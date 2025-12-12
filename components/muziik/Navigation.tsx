@@ -61,8 +61,8 @@ export default function Navigation({ currentPath }: NavigationProps) {
               className="h-12 w-auto object-contain"
             />
             <div className="flex flex-col">
-              <span>MUZIIK</span>
-              <span className="text-xs text-gray-400">X MASSGOO</span>
+              <span>MASSGOO</span>
+              <span className="text-xs text-gray-400">X MUZIIK</span>
             </div>
           </Link>
           

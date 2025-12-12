@@ -71,6 +71,7 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed') {
  * FAL AI는 공개적으로 접근 가능한 URL만 사용할 수 있으므로 로컬호스트는 사용 불가
  */
 function getAbsoluteProductImageUrl(productImageUrl) {
+  if (!productImageUrl) return null;
   // 이미 절대 URL인 경우 그대로 반환
   if (productImageUrl.startsWith('http://') || productImageUrl.startsWith('https://')) {
     // 로컬호스트 URL은 FAL AI에서 접근 불가하므로 에러 발생
@@ -282,8 +283,8 @@ export default async function handler(req, res) {
     
     console.log('📝 최종 합성 프롬프트:', compositionPrompt);
 
-    // 모델 이미지 URL 검증 (로컬호스트인지 확인)
-    if (modelImageUrl.includes('localhost') || modelImageUrl.includes('127.0.0.1')) {
+    // 모델 이미지 URL 검증 (로컬호스트인지 확인) - URL이 있을 때만 체크
+    if (modelImageUrl && (modelImageUrl.includes('localhost') || modelImageUrl.includes('127.0.0.1'))) {
       throw new Error(`모델 이미지 URL이 로컬호스트입니다. FAL AI는 공개적으로 접근 가능한 URL만 사용할 수 있습니다. Supabase 공개 URL을 사용해주세요: ${modelImageUrl}`);
     }
     

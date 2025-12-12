@@ -14,7 +14,7 @@ export interface ProductForComposition {
   displayName: string;
   category: ProductCategory; // 'driver' | 'hat' | 'apparel' | 'accessory'
   compositionTarget: CompositionTarget; // 'hands' | 'head' | 'body' | 'accessory'
-  imageUrl: string; // 제품 단독 이미지 URL (합성에 사용)
+  imagㄴㄴeUrl: string; // 제품 단독 이미지 URL (합성에 사용)
   referenceImages?: string[]; // 다양한 각도의 참조 이미지 배열 (뱃지/문구 없는 순수 헤드)
   driverParts?: {
     crown?: string[];

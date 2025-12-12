@@ -123,14 +123,14 @@ export default async function handler(req, res) {
       throw bookingError;
     }
 
-    // 3. 슬랙 알림 전송
+    // 3. 알림 전송 (슬랙, 고객 SMS, 스탭진 SMS)
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : 'http://localhost:3000';
+
+    // 3-1. 슬랙 알림 전송
     try {
       console.log('슬랙 알림 전송 시작...');
-      
-      // 절대 URL로 변경
-      const baseUrl = process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}` 
-        : 'http://localhost:3000';
       
       const slackResponse = await fetch(`${baseUrl}/api/slack/notify`, {
         method: 'POST',
@@ -152,20 +152,52 @@ export default async function handler(req, res) {
       });
 
       console.log('슬랙 응답 상태:', slackResponse.status);
-      console.log('슬랙 응답 헤더:', Object.fromEntries(slackResponse.headers.entries()));
-
       if (!slackResponse.ok) {
         const errorText = await slackResponse.text();
         console.error('슬랙 알림 전송 실패:', errorText);
-        console.error('슬랙 응답 상태:', slackResponse.status);
       } else {
         const responseText = await slackResponse.text();
         console.log('슬랙 알림 전송 성공:', responseText);
       }
     } catch (slackError) {
       console.error('슬랙 알림 에러:', slackError);
-      console.error('슬랙 에러 스택:', slackError.stack);
       // 슬랙 알림 실패해도 예약은 계속 처리
+    }
+
+    // 3-2. 고객에게 예약 접수 SMS 발송
+    try {
+      console.log('고객 예약 접수 SMS 발송 시작...');
+      const customerSmsResponse = await fetch(`${baseUrl}/api/bookings/notify-customer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId: booking.id,
+          notificationType: 'booking_received',
+        }),
+      });
+      const customerSmsResult = await customerSmsResponse.json();
+      console.log('고객 SMS 발송 결과:', customerSmsResult);
+    } catch (customerSmsError) {
+      console.error('고객 SMS 발송 에러:', customerSmsError);
+      // 고객 SMS 실패해도 예약은 계속 처리
+    }
+
+    // 3-3. 스탭진에게 예약 접수 SMS 발송
+    try {
+      console.log('스탭진 예약 접수 SMS 발송 시작...');
+      const staffSmsResponse = await fetch(`${baseUrl}/api/bookings/notify-staff`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId: booking.id,
+          notificationType: 'received',
+        }),
+      });
+      const staffSmsResult = await staffSmsResponse.json();
+      console.log('스탭진 SMS 발송 결과:', staffSmsResult);
+    } catch (staffSmsError) {
+      console.error('스탭진 SMS 발송 에러:', staffSmsError);
+      // 스탭진 SMS 실패해도 예약은 계속 처리
     }
 
     // 성공 응답 반환

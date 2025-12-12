@@ -185,7 +185,22 @@ ${koreanGolferSpec}
 
         const composeResult = await composeResponse.json();
         if (composeResult.success && composeResult.images && composeResult.images.length > 0) {
-          setGeneratedImages(composeResult.images);
+          const mapped = composeResult.images
+            .map((img: any) => ({
+              url: img.imageUrl || img.url || img.originalUrl,
+              path: img.path,
+              originalUrl: img.originalUrl || img.url || img.imageUrl,
+              product: composeResult.product,
+              metadata: composeResult.metadata,
+              isComposed: true,
+            }))
+            .filter((img: any) => !!img.url);
+
+          if (mapped.length === 0) {
+            alert('제품컷 결과가 없습니다. (이미지 URL 없음)');
+          } else {
+            setGeneratedImages(mapped);
+          }
         } else {
           alert('제품컷 결과가 없습니다.');
         }

@@ -56,6 +56,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           restUpdateData.cancelled_at = new Date().toISOString();
         }
 
+        // 기존 예약 상태 확인 (확정 알림 발송을 위해)
+        const { data: existingBooking } = await supabase
+          .from('bookings')
+          .select('status')
+          .eq('id', parseInt(id))
+          .single();
+
+        const previousStatus = existingBooking?.status || 'pending';
+        const newStatus = restUpdateData.status;
+
         const { data: updatedBooking, error: updateError } = await supabase
           .from('bookings')
           .update(restUpdateData)
@@ -64,6 +74,80 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .single();
 
         if (updateError) throw updateError;
+
+        // 상태가 'confirmed'로 변경된 경우 알림 발송
+        if (previousStatus !== 'confirmed' && newStatus === 'confirmed') {
+          const baseUrl = process.env.VERCEL_URL 
+            ? `https://${process.env.VERCEL_URL}` 
+            : 'http://localhost:3000';
+
+          // 고객에게 예약 확정 SMS 발송
+          try {
+            console.log('고객 예약 확정 SMS 발송 시작...');
+            const customerSmsResponse = await fetch(`${baseUrl}/api/bookings/notify-customer`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                bookingId: parseInt(id),
+                notificationType: 'booking_confirmed',
+              }),
+            });
+            const customerSmsResult = await customerSmsResponse.json();
+            console.log('고객 확정 SMS 발송 결과:', customerSmsResult);
+          } catch (customerSmsError) {
+            console.error('고객 확정 SMS 발송 에러:', customerSmsError);
+            // 고객 SMS 실패해도 예약 업데이트는 계속 처리
+          }
+
+          // 스탭진에게 예약 확정 SMS 발송
+          try {
+            console.log('스탭진 예약 확정 SMS 발송 시작...');
+            const staffSmsResponse = await fetch(`${baseUrl}/api/bookings/notify-staff`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                bookingId: parseInt(id),
+                notificationType: 'confirmed',
+              }),
+            });
+            const staffSmsResult = await staffSmsResponse.json();
+            console.log('스탭진 확정 SMS 발송 결과:', staffSmsResult);
+          } catch (staffSmsError) {
+            console.error('스탭진 확정 SMS 발송 에러:', staffSmsError);
+            // 스탭진 SMS 실패해도 예약 업데이트는 계속 처리
+          }
+
+          // 슬랙 알림 발송 (설정에 따라)
+          try {
+            const { data: settings } = await supabase
+              .from('booking_settings')
+              .select('enable_slack_notification')
+              .eq('id', '00000000-0000-0000-0000-000000000001')
+              .single();
+
+            if (settings?.enable_slack_notification !== false) {
+              const baseUrl = process.env.VERCEL_URL 
+                ? `https://${process.env.VERCEL_URL}` 
+                : 'http://localhost:3000';
+              
+              const slackResponse = await fetch(`${baseUrl}/api/slack/notify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  type: 'booking_confirmed',
+                  data: {
+                    booking_id: parseInt(id),
+                    ...updatedBooking,
+                  },
+                }),
+              });
+              console.log('슬랙 확정 알림 발송 결과:', slackResponse.status);
+            }
+          } catch (slackError) {
+            console.error('슬랙 확정 알림 에러:', slackError);
+            // 슬랙 알림 실패해도 예약 업데이트는 계속 처리
+          }
+        }
 
         return res.status(200).json(updatedBooking);
 

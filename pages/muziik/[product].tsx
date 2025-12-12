@@ -530,7 +530,7 @@ export default function ProductPage({ product }: ProductPageProps) {
             
             {/* 저작권 */}
             <div className="py-4 text-center text-xs text-gray-500 border-t border-gray-800">
-              <p>&copy; 2025 MUZIIK X MASSGOO. All rights reserved.</p>
+              <p>&copy; 2025 MASSGOO X MUZIIK. All rights reserved.</p>
               <p className="mt-2">{t.footer}</p>
             </div>
           </div>

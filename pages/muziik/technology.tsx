@@ -555,7 +555,7 @@ export default function TechnologyPage() {
             
             {/* 저작권 */}
             <div className="py-4 text-center text-xs text-gray-500 border-t border-gray-800">
-              <p>&copy; 2025 MUZIIK X MASSGOO. All rights reserved.</p>
+              <p>&copy; 2025 MASSGOO X MUZIIK. All rights reserved.</p>
               <p className="mt-2">
                 {locale === 'ja' 
                   ? 'DOGATTI GENERATION シャフト - 日本製プレミアムゴルフシャフト'

@@ -37,6 +37,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               auto_block_excess_slots: true,
               show_call_message: true,
               call_message_text: '원하시는 시간에 예약이 어려우신가요? 전화로 문의해주세요.',
+              enable_slack_notification: true,
+              enable_staff_notification: true,
+              staff_phone_numbers: ['010-6669-9000', '010-5704-0013'],
               updated_at: new Date().toISOString()
             });
           }
@@ -55,7 +58,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           max_weekly_slots,
           auto_block_excess_slots,
           show_call_message,
-          call_message_text
+          call_message_text,
+          enable_slack_notification,
+          enable_staff_notification,
+          staff_phone_numbers
         } = req.body;
 
         // 기존 설정 조회 (없으면 기본값 사용)
@@ -92,6 +98,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           call_message_text: typeof call_message_text === 'string'
             ? call_message_text
             : (existingSettings?.call_message_text ?? '원하시는 시간에 예약이 어려우신가요? 전화로 문의해주세요.'),
+          enable_slack_notification: typeof enable_slack_notification === 'boolean'
+            ? enable_slack_notification
+            : (existingSettings?.enable_slack_notification ?? true),
+          enable_staff_notification: typeof enable_staff_notification === 'boolean'
+            ? enable_staff_notification
+            : (existingSettings?.enable_staff_notification ?? true),
+          staff_phone_numbers: Array.isArray(staff_phone_numbers)
+            ? staff_phone_numbers
+            : (existingSettings?.staff_phone_numbers ?? ['010-6669-9000', '010-5704-0013']),
           updated_at: new Date().toISOString()
         };
 

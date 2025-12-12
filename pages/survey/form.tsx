@@ -1,30 +1,35 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
-type FormStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+type FormStep = 1 | 2 | 3;
 
 const MODEL_OPTIONS = [
   {
     id: 'beryl-47g',
     name: '풀티타늄 베릴 47g(240cpm) S 대응',
     description: '40g대 X 대응 기술력, 가벼우면서도 강한 샤프트',
+    image: '/main/products/pro3-muziik/massgoo_pro3_beryl_240.webp',
   },
   {
     id: 'beryl-42g',
     name: '풀티타늄 베릴 42g(230cpm) SR 대응',
     description: '40g대 X 대응 기술력, 가벼우면서도 강한 샤프트',
+    image: '/main/products/pro3-muziik/massgoo_pro3_beryl_230.webp',
   },
   {
     id: 'sapphire-53g',
     name: '원플렉스 사파이어 53g (215cpm: 오토 R~S 대응)',
     description: '30g대 R 대응 기술력, 가벼우면서도 강한 샤프트',
+    image: '/main/products/pro3-muziik/massgoo_pro3_sapphire_215.webp',
   },
   {
     id: 'sapphire-44g',
     name: '원플렉스 사파이어 44g (200cpm: 오토 R2~R 대응)',
     description: '30g대 R 대응 기술력, 가벼우면서도 강한 샤프트',
+    image: '/main/products/pro3-muziik/massgoo_pro3_sapphire_200.webp',
   },
 ];
 
@@ -104,37 +109,48 @@ export default function SurveyForm() {
 
   // 다음 단계로
   const handleNext = () => {
-    // 현재 단계 검증
-    if (currentStep === 1 && !formData.name.trim()) {
-      setError('이름을 입력해주세요.');
-      return;
+    // Step 1 검증: 기본 정보
+    if (currentStep === 1) {
+      if (!formData.name.trim()) {
+        setError('이름을 입력해주세요.');
+        return;
+      }
+      if (!formData.phone.trim()) {
+        setError('전화번호를 입력해주세요.');
+        return;
+      }
+      if (!formData.age.trim()) {
+        setError('나이를 입력해주세요.');
+        return;
+      }
     }
-    if (currentStep === 2 && !formData.phone.trim()) {
-      setError('전화번호를 입력해주세요.');
-      return;
+    
+    // Step 2 검증: 설문 응답
+    if (currentStep === 2) {
+      if (!formData.selected_model) {
+        setError('모델을 선택해주세요.');
+        return;
+      }
+      if (formData.important_factors.length === 0) {
+        setError('중요 요소를 최소 1개 이상 선택해주세요.');
+        return;
+      }
     }
-    if (currentStep === 3 && !formData.age.trim()) {
-      setError('나이를 입력해주세요.');
-      return;
-    }
-    if (currentStep === 4 && !formData.selected_model) {
-      setError('모델을 선택해주세요.');
-      return;
-    }
-    if (currentStep === 5 && formData.important_factors.length === 0) {
-      setError('최소 1개 이상 선택해주세요.');
-      return;
-    }
-    if (currentStep === 7 && !formData.address.trim()) {
-      setError('주소를 입력해주세요.');
+    
+    // Step 3 검증: 추가 정보
+    if (currentStep === 3) {
+      if (!formData.address.trim()) {
+        setError('주소를 입력해주세요.');
+        return;
+      }
+      // Step 3가 마지막이므로 제출
+      handleSubmit();
       return;
     }
 
     setError('');
-    if (currentStep < 7) {
+    if (currentStep < 3) {
       setCurrentStep((currentStep + 1) as FormStep);
-    } else {
-      handleSubmit();
     }
   };
 
@@ -181,7 +197,7 @@ export default function SurveyForm() {
   };
 
   // 진행률 계산
-  const progress = (currentStep / 7) * 100;
+  const progress = (currentStep / 3) * 100;
 
   return (
     <>
@@ -192,11 +208,47 @@ export default function SurveyForm() {
 
       <div className="min-h-screen bg-gray-50 py-8 px-4">
         <div className="max-w-2xl mx-auto">
+          {/* 진행 단계 표시 (시타 예약 스타일) */}
+          <div className="mb-8 flex items-center justify-center gap-2 sm:gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
+              }`}>
+                {currentStep > 1 ? '✓' : '1'}
+              </div>
+              <span className={`text-xs sm:text-sm ${currentStep >= 1 ? 'font-medium text-gray-700' : 'text-gray-500'}`}>
+                기본 정보
+              </span>
+            </div>
+            <div className={`w-8 sm:w-12 h-0.5 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+            <div className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
+              }`}>
+                {currentStep > 2 ? '✓' : '2'}
+              </div>
+              <span className={`text-xs sm:text-sm ${currentStep >= 2 ? 'font-medium text-gray-700' : 'text-gray-500'}`}>
+                설문 응답
+              </span>
+            </div>
+            <div className={`w-8 sm:w-12 h-0.5 ${currentStep >= 3 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+            <div className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                currentStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
+              }`}>
+                3
+              </div>
+              <span className={`text-xs sm:text-sm ${currentStep >= 3 ? 'font-medium text-gray-700' : 'text-gray-500'}`}>
+                추가 정보
+              </span>
+            </div>
+          </div>
+
           {/* 진행 바 */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-gray-700">
-                {currentStep} / 7
+                {currentStep} / 3
               </span>
               <span className="text-sm font-medium text-gray-700">
                 {Math.round(progress)}%
@@ -212,148 +264,198 @@ export default function SurveyForm() {
 
           {/* 폼 카드 */}
           <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
-            {/* Step 1: 이름 */}
+            {/* Step 1: 기본 정보 (3개 필드) */}
             {currentStep === 1 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">성함을 입력해주세요</h2>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="홍길동"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  autoFocus
-                />
+                <div>
+                  <h2 className="text-xl font-semibold mb-4 text-gray-900">기본 정보</h2>
+                  <p className="text-sm text-gray-600 mb-6">설문에 필요한 기본 정보를 입력해주세요.</p>
+                </div>
+
+                {/* 이름 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    이름 <span className="text-blue-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="홍길동"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    autoFocus
+                  />
+                </div>
+
+                {/* 전화번호 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    전화번호 <span className="text-blue-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    placeholder="010-1234-5678"
+                    inputMode="tel"
+                    pattern="[0-9-]*"
+                    maxLength={13}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+                  />
+                </div>
+
+                {/* 연령대 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    연령대 <span className="text-blue-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.age}
+                    onChange={(e) => handleAgeChange(e.target.value)}
+                    placeholder="예: 65"
+                    min="10"
+                    max="100"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  {formData.age_group && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      {formData.age_group}로 분류됩니다.
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* Step 2: 전화번호 */}
+            {/* Step 2: 설문 응답 (2개 필드) */}
             {currentStep === 2 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">연락처를 입력해주세요</h2>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => handlePhoneChange(e.target.value)}
-                  placeholder="010-1234-5678"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  autoFocus
-                />
+                <div>
+                  <h2 className="text-xl font-semibold mb-4 text-gray-900">설문 응답</h2>
+                  <p className="text-sm text-gray-600 mb-6">마쓰구 신모델에 대한 선호도를 알려주세요.</p>
+                </div>
+
+                {/* 모델 선택 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    마쓰구 신모델 선택 <span className="text-blue-500">*</span>
+                  </label>
+                  
+                  {/* 선택된 샤프트 이미지 표시 (선택 시에만 표시) */}
+                  {formData.selected_model && (
+                    <div className="mb-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200 shadow-sm">
+                      <div className="relative aspect-video w-full max-w-md mx-auto mb-3">
+                        <Image
+                          src={MODEL_OPTIONS.find(m => m.id === formData.selected_model)?.image || ''}
+                          alt={MODEL_OPTIONS.find(m => m.id === formData.selected_model)?.name || ''}
+                          fill
+                          className="object-contain"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                        />
+                      </div>
+                      <p className="text-center text-sm font-semibold text-gray-900">
+                        {MODEL_OPTIONS.find(m => m.id === formData.selected_model)?.name}
+                      </p>
+                      <p className="text-center text-xs text-gray-600 mt-1">
+                        {MODEL_OPTIONS.find(m => m.id === formData.selected_model)?.description}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    {MODEL_OPTIONS.map((model) => (
+                      <label
+                        key={model.id}
+                        className={`block p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          formData.selected_model === model.id
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="model"
+                          value={model.id}
+                          checked={formData.selected_model === model.id}
+                          onChange={(e) => setFormData(prev => ({ ...prev, selected_model: e.target.value }))}
+                          className="sr-only"
+                        />
+                        <div className="font-semibold text-gray-900 mb-1">{model.name}</div>
+                        <div className="text-sm text-gray-600">{model.description}</div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 중요 요소 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    클럽 구매 시 중요 요소 <span className="text-blue-500">*</span>
+                    <span className="text-xs text-gray-500 ml-2">(복수 선택 가능)</span>
+                  </label>
+                  <div className="space-y-3">
+                    {IMPORTANT_FACTORS.map((factor) => (
+                      <label
+                        key={factor.id}
+                        className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          formData.important_factors.includes(factor.id)
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.important_factors.includes(factor.id)}
+                          onChange={() => toggleImportantFactor(factor.id)}
+                          className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <span className="ml-3 text-gray-900 font-medium">{factor.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Step 3: 연령대 */}
+            {/* Step 3: 추가 정보 (2개 필드) */}
             {currentStep === 3 && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">연령대를 입력해주세요</h2>
-                <input
-                  type="number"
-                  value={formData.age}
-                  onChange={(e) => handleAgeChange(e.target.value)}
-                  placeholder="예: 65"
-                  min="10"
-                  max="100"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  autoFocus
-                />
-                {formData.age_group && (
-                  <p className="text-sm text-gray-500">
-                    {formData.age_group}로 분류됩니다.
+                <div>
+                  <h2 className="text-xl font-semibold mb-4 text-gray-900">추가 정보</h2>
+                  <p className="text-sm text-gray-600 mb-6">모자 배송을 위한 주소를 입력해주세요.</p>
+                </div>
+
+                {/* 추가 의견 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    MASSGOO 드라이버에 원하시는 점이 있다면 알려주세요 (선택)
+                  </label>
+                  <textarea
+                    value={formData.additional_feedback}
+                    onChange={(e) => setFormData(prev => ({ ...prev, additional_feedback: e.target.value }))}
+                    placeholder="의견을 자유롭게 입력해주세요 (선택사항)"
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    autoFocus
+                  />
+                </div>
+
+                {/* 주소 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    주소 <span className="text-blue-500">*</span>
+                  </label>
+                  <textarea
+                    value={formData.address}
+                    onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                    placeholder="모자 배송을 위해 정확한 주소를 입력해주세요"
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="text-sm text-gray-500 mt-2">
+                    모자 배송을 위해 정확한 주소를 입력해주세요.
                   </p>
-                )}
-              </div>
-            )}
-
-            {/* Step 4: 모델 선택 */}
-            {currentStep === 4 && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">마쓰구 신모델을 선택해주세요</h2>
-                <div className="space-y-3">
-                  {MODEL_OPTIONS.map((model) => (
-                    <label
-                      key={model.id}
-                      className={`block p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                        formData.selected_model === model.id
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="model"
-                        value={model.id}
-                        checked={formData.selected_model === model.id}
-                        onChange={(e) => setFormData(prev => ({ ...prev, selected_model: e.target.value }))}
-                        className="sr-only"
-                      />
-                      <div className="font-semibold text-gray-900 mb-1">{model.name}</div>
-                      <div className="text-sm text-gray-600">{model.description}</div>
-                    </label>
-                  ))}
                 </div>
-              </div>
-            )}
-
-            {/* Step 5: 중요 요소 */}
-            {currentStep === 5 && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">클럽 구매 시 중요 요소를 선택해주세요</h2>
-                <p className="text-sm text-gray-600 mb-4">복수 선택 가능</p>
-                <div className="space-y-3">
-                  {IMPORTANT_FACTORS.map((factor) => (
-                    <label
-                      key={factor.id}
-                      className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                        formData.important_factors.includes(factor.id)
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.important_factors.includes(factor.id)}
-                        onChange={() => toggleImportantFactor(factor.id)}
-                        className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                      <span className="ml-3 text-gray-900 font-medium">{factor.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Step 6: 추가 의견 */}
-            {currentStep === 6 && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  고반발 드라이버 마쓰구에 원하시는 점이 있다면 적어주세요
-                </h2>
-                <textarea
-                  value={formData.additional_feedback}
-                  onChange={(e) => setFormData(prev => ({ ...prev, additional_feedback: e.target.value }))}
-                  placeholder="의견을 자유롭게 입력해주세요 (선택사항)"
-                  rows={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  autoFocus
-                />
-              </div>
-            )}
-
-            {/* Step 7: 주소 */}
-            {currentStep === 7 && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">모자 배송을 위해 주소를 입력해주세요</h2>
-                <textarea
-                  value={formData.address}
-                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                  placeholder="주소를 입력해주세요"
-                  rows={4}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  autoFocus
-                />
-                <p className="text-sm text-gray-500">
-                  모자 배송을 위해 정확한 주소를 입력해주세요.
-                </p>
               </div>
             )}
 
@@ -382,7 +484,7 @@ export default function SurveyForm() {
                 disabled={loading}
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? '제출 중...' : currentStep === 7 ? '제출하기' : '다음'}
+                {loading ? '제출 중...' : currentStep === 3 ? '제출하기' : '다음'}
               </button>
             </div>
           </div>

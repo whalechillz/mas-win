@@ -55,6 +55,24 @@ export default function Home({ hostname }) {
       borderColor: 'green',
     },
     {
+      id: 'pro3-muziik',
+      name: '시크리트포스 PRO 3 MUZIIK',
+      subtitle: 'MUZIIK 협업 제품',
+      price: '1,700,000원',
+      features: ['MUZIIK 샤프트', '사파이어, 베릴 샤프트 추가', '업그레이드된 고반발 드라이버'],
+      images: [
+        '/main/products/pro3-muziik/secret-force-pro-3-muziik-00.webp',
+        '/main/products/pro3-muziik/massgoo_pro3_beryl_230.webp',
+        '/main/products/pro3-muziik/massgoo_pro3_beryl_240.webp',
+        '/main/products/pro3-muziik/massgoo_pro3_beryl_250.webp',
+        '/main/products/pro3-muziik/massgoo_pro3_sapphire_200.webp',
+        '/main/products/pro3-muziik/massgoo_pro3_sapphire_215.webp',
+        '/main/products/pro3-muziik/secret-force-pro-3-muziik-03.webp',
+      ],
+      badges: { left: 'NEW', right: null, leftColor: 'red', rightColor: null },
+      borderColor: null,
+    },
+    {
       id: 'gold2',
       name: '시크리트포스 골드 2',
       subtitle: '프리미엄 드라이버',
@@ -164,6 +182,10 @@ export default function Home({ hostname }) {
       router.push('/products/weapon-beryl');
       return;
     }
+    if (product.id === 'pro3-muziik') {
+      router.push('/products/pro3-muziik');
+      return;
+    }
     if (product.id === 'gold2') {
       // gold2 제품 페이지가 없으면 모달 표시
       setSelectedProduct(product);
@@ -260,6 +282,17 @@ export default function Home({ hostname }) {
                         </div>
                         <p className="text-sm text-gray-600 mt-1">MUZIIK 협업 제품</p>
                       </Link>
+                      <Link 
+                        href="/products/pro3-muziik"
+                        className="block px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-100"
+                        onClick={() => setDriverMenuOpen(false)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-gray-900">시크리트포스 PRO 3 MUZIIK</span>
+                          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">NEW</span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">MUZIIK 협업 제품</p>
+                      </Link>
                     </div>
                   )}
                 </div>
@@ -330,6 +363,20 @@ export default function Home({ hostname }) {
                           <div className="flex items-center justify-between">
                             <span className="font-semibold">시크리트포스 골드 2 MUZIIK</span>
                             <span className="bg-yellow-500 text-black text-xs px-2 py-1 rounded ml-2">BEST</span>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1">MUZIIK 협업 제품</p>
+                        </Link>
+                        <Link 
+                          href="/products/pro3-muziik"
+                          className="block py-2 text-gray-700 hover:text-gray-900"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            setDriverMenuOpen(false);
+                          }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">시크리트포스 PRO 3 MUZIIK</span>
+                            <span className="bg-red-500 text-white text-xs px-2 py-1 rounded ml-2">NEW</span>
                           </div>
                           <p className="text-xs text-gray-600 mt-1">MUZIIK 협업 제품</p>
                         </Link>
@@ -418,8 +465,8 @@ export default function Home({ hostname }) {
         {/* 제품 소개 섹션 */}
         <section className="py-16 bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white">
           <div className="container mx-auto px-4">
-            <div className="max-w-6xl mx-auto">
-              <div className="grid md:grid-cols-2 gap-8 mb-12">
+            <div className="max-w-7xl mx-auto">
+              <div className="grid md:grid-cols-3 gap-8 mb-12">
                 <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-green-500/30 hover:border-green-400 transition-all">
                   <Image
                     src="/main/products/black-beryl/massgoo_sw_black_muz_11.webp"
@@ -452,9 +499,25 @@ export default function Home({ hostname }) {
                     <p className="text-yellow-400 text-sm font-semibold">검증된 성능, 안정적인 비거리</p>
                   </div>
                 </div>
+                <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-red-500/30 hover:border-red-400 transition-all">
+                  <Image
+                    src="/main/products/pro3-muziik/secret-force-pro-3-muziik-00.webp"
+                    alt="시크리트포스 PRO 3 MUZIIK"
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute top-4 left-4 flex items-center gap-2">
+                    <span className="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold">NEW</span>
+                    <span className="bg-red-400/20 text-red-300 px-3 py-1 rounded-full text-xs font-semibold">업그레이드된 비거리</span>
+                  </div>
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <h3 className="text-2xl font-bold mb-2">시크리트포스 PRO 3 MUZIIK</h3>
+                    <p className="text-red-400 text-sm font-semibold">업그레이드된 비거리 드라이버</p>
+                  </div>
+                </div>
               </div>
               <div className="bg-gray-900/50 rounded-2xl p-8 border border-gray-700">
-                <div className="grid md:grid-cols-2 gap-8">
+                <div className="grid md:grid-cols-3 gap-8">
                   <div>
                     <div className="flex items-center gap-3 mb-6">
                       <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold">LIMITED</span>
@@ -521,6 +584,41 @@ export default function Home({ hostname }) {
                     <Link
                       href="/products/gold2-sapphire"
                       className="inline-block bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-yellow-600 text-white px-6 py-3 rounded-lg font-semibold transition-all"
+                    >
+                      자세히 보기 →
+                    </Link>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-3 mb-6">
+                      <span className="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold">NEW</span>
+                      <h3 className="text-2xl font-bold">시크리트포스 PRO 3 MUZIIK</h3>
+                    </div>
+                    <div className="space-y-4 mb-6">
+                      <div className="flex items-start">
+                        <span className="text-red-400 text-xl mr-3">⚡</span>
+                        <div>
+                          <h4 className="font-semibold mb-1">MUZIIK 샤프트 추가</h4>
+                          <p className="text-gray-300 text-sm">사파이어, 베릴 샤프트를 추가하여 더 강하고 가벼운 성능을 실현</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start">
+                        <span className="text-red-400 text-xl mr-3">🚀</span>
+                        <div>
+                          <h4 className="font-semibold mb-1">40g대 X/S 대응</h4>
+                          <p className="text-gray-300 text-sm">30g대 R 대응 기술력을 자랑하는 가벼우면서도 강한 샤프트</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start">
+                        <span className="text-red-400 text-xl mr-3">💎</span>
+                        <div>
+                          <h4 className="font-semibold mb-1">업그레이드된 성능</h4>
+                          <p className="text-gray-300 text-sm">PRO3의 한계를 넘어서 더 강하고 더 가벼운 티타늄 샤프트 사용</p>
+                        </div>
+                      </div>
+                    </div>
+                    <Link
+                      href="/products/pro3-muziik"
+                      className="inline-block bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-all"
                     >
                       자세히 보기 →
                     </Link>

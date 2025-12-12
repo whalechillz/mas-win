@@ -40,11 +40,11 @@ export default function SurveySuccess() {
             <ul className="text-left space-y-2 text-gray-700">
               <li className="flex items-start">
                 <span className="text-blue-600 mr-2">•</span>
-                <span>시타 예약 전화를 해주시면 모자 증정 대상이 됩니다.</span>
+                <span>설문 조사에 참여해주셔서 감사합니다.</span>
               </li>
               <li className="flex items-start">
                 <span className="text-blue-600 mr-2">•</span>
-                <span>전화번호: <a href="tel:031-215-0013" className="text-blue-600 hover:underline">031-215-0013</a></span>
+                <span>전화번호: <a href="tel:080-028-8888" className="text-blue-600 hover:underline font-semibold">080-028-8888 (무료 상담)</a></span>
               </li>
               <li className="flex items-start">
                 <span className="text-blue-600 mr-2">•</span>
@@ -52,7 +52,7 @@ export default function SurveySuccess() {
               </li>
               <li className="flex items-start">
                 <span className="text-blue-600 mr-2">•</span>
-                <span>선착순 30명에게 증정됩니다.</span>
+                <span>선착순 20명에게 증정됩니다. (버킷햇 10명, 골프모자 10명)</span>
               </li>
             </ul>
           </div>
@@ -65,10 +65,10 @@ export default function SurveySuccess() {
               시타 예약하기
             </Link>
             <a
-              href="tel:031-215-0013"
+              href="tel:080-028-8888"
               className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
             >
-              전화하기
+              전화하기 (080-028-8888)
             </a>
             <Link
               href="/"

@@ -15,6 +15,9 @@ interface BookingSettings {
   auto_block_excess_slots?: boolean;
   show_call_message?: boolean;
   call_message_text?: string;
+  enable_slack_notification?: boolean;
+  enable_staff_notification?: boolean;
+  staff_phone_numbers?: string[];
   updated_at?: string;
 }
 
@@ -158,6 +161,9 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
           auto_block_excess_slots: settings.auto_block_excess_slots,
           show_call_message: settings.show_call_message,
           call_message_text: settings.call_message_text,
+          enable_slack_notification: settings.enable_slack_notification,
+          enable_staff_notification: settings.enable_staff_notification,
+          staff_phone_numbers: settings.staff_phone_numbers,
         }),
       });
 
@@ -625,6 +631,116 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
                 </p>
               </div>
             )}
+
+            {/* 알림 설정 섹션 */}
+            <div className="pt-6 border-t border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">알림 설정</h3>
+              
+              <div className="space-y-6">
+                {/* 슬랙 알림 */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      예약 완료 시 슬랙 알림 발송
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1">
+                      예약이 완료되거나 확정될 때 슬랙 채널로 알림을 보냅니다.
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.enable_slack_notification !== false}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        enable_slack_notification: e.target.checked
+                      })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                  </label>
+                </div>
+
+                {/* 스탭진 알림 */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      예약 완료 시 스탭진에게 SMS 발송
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1">
+                      예약이 완료되거나 확정될 때 스탭진 전화번호로 SMS를 보냅니다.
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.enable_staff_notification !== false}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        enable_staff_notification: e.target.checked
+                      })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                  </label>
+                </div>
+
+                {/* 스탭진 전화번호 관리 */}
+                {settings.enable_staff_notification !== false && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      스탭진 전화번호
+                    </label>
+                    <div className="space-y-2">
+                      {(settings.staff_phone_numbers || []).map((phone, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={phone}
+                            onChange={(e) => {
+                              const newPhones = [...(settings.staff_phone_numbers || [])];
+                              newPhones[index] = e.target.value;
+                              setSettings({
+                                ...settings,
+                                staff_phone_numbers: newPhones
+                              });
+                            }}
+                            placeholder="010-XXXX-XXXX"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          />
+                          <button
+                            onClick={() => {
+                              const newPhones = (settings.staff_phone_numbers || []).filter((_, i) => i !== index);
+                              setSettings({
+                                ...settings,
+                                staff_phone_numbers: newPhones
+                              });
+                            }}
+                            className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
+                          >
+                            삭제
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => {
+                          setSettings({
+                            ...settings,
+                            staff_phone_numbers: [...(settings.staff_phone_numbers || []), '']
+                          });
+                        }}
+                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm"
+                      >
+                        + 전화번호 추가
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      예약 완료 시 이 번호들로 SMS가 발송됩니다. (010-XXXX-XXXX 형식)
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* 저장 버튼 */}
             <div className="pt-4 border-t">
