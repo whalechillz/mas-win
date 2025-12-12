@@ -33,6 +33,26 @@
 
 # 🎯 프로젝트 진행 현황
 
+## ✅ 최근 작업: 예약 메시지 시스템 개선 및 당일 예약 리마인드 기능 구현 (2025-01-XX)
+
+### 완료된 작업
+- **예약 메시지 템플릿 개선** ✅:
+  - 예약 대기 메시지: 홈페이지 링크 추가, 매력적인 문구 개선
+  - 예약 확정 메시지: 약도 링크 명시, 로고 포함, 매력적인 문구 개선
+  - 당일 예약 리마인드 메시지: 예약 시간 2시간 전 자동 발송, 약도 링크 포함
+- **BookingDetailModal 개선** ✅:
+  - 예약 수정 시 API 호출로 변경 (확정 문자 자동 발송)
+  - 당일 예약 메시지 UI 추가 (체크박스, 발송 시간 설정)
+  - 예약 시간 2시간 전 자동 계산 및 표시
+- **예약 리마인드 API 구현** ✅:
+  - `/api/bookings/[id]/schedule-reminder.ts`: 예약 메시지 생성/수정/삭제/조회
+  - `channel_sms` 테이블에 `draft` 상태로 저장
+  - 기존 cron job(`send-scheduled-sms.js`)과 연동
+- **변경 파일**:
+  - `pages/api/bookings/notify-customer.ts` (메시지 템플릿 개선)
+  - `components/admin/bookings/BookingDetailModal.tsx` (당일 예약 메시지 UI 추가, API 호출로 변경)
+  - `pages/api/bookings/[id]/schedule-reminder.ts` (신규 생성)
+
 ## ✅ 최근 작업: 제품 합성 이미지 경로 보강 (2025-12-11)
 - **무엇을 했나**: 제품 합성용 이미지가 `.png` 경로를 참조해 404가 발생하는 문제를 방어적으로 해결했습니다.
 - **왜 했나**: Supabase `product_composition`에 남아 있는 `.png` 경로 때문에 모자 썸네일이 깨지는 현상이 발생했습니다.

@@ -45,6 +45,10 @@ export default function BookingDetailModal({
   const [isEditing, setIsEditing] = useState(defaultEditing);
   const [editData, setEditData] = useState(booking);
   const [saving, setSaving] = useState(false);
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderScheduledAt, setReminderScheduledAt] = useState('');
+  const [reminderSaving, setReminderSaving] = useState(false);
+  const [existingReminder, setExistingReminder] = useState<any>(null);
 
   const customerInfo = customers.find((c) => c.phone === booking.phone);
 
@@ -53,16 +57,56 @@ export default function BookingDetailModal({
     setIsEditing(defaultEditing);
   }, [booking, defaultEditing]);
 
+  // 예약 시간 2시간 전 계산
+  useEffect(() => {
+    if (booking.date && booking.time) {
+      const bookingDateTime = new Date(`${booking.date}T${booking.time}`);
+      const reminderDateTime = new Date(bookingDateTime.getTime() - 2 * 60 * 60 * 1000); // 2시간 전
+      const formattedDateTime = reminderDateTime.toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm 형식
+      setReminderScheduledAt(formattedDateTime);
+    }
+  }, [booking.date, booking.time]);
+
+  // 기존 예약 메시지 확인
+  useEffect(() => {
+    const checkExistingReminder = async () => {
+      try {
+        const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
+        const response = await fetch(`/api/bookings/${bookingId}/schedule-reminder`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.reminder) {
+            setExistingReminder(data.reminder);
+            setReminderEnabled(true);
+            if (data.reminder.scheduled_at) {
+              const scheduledDate = new Date(data.reminder.scheduled_at);
+              setReminderScheduledAt(scheduledDate.toISOString().slice(0, 16));
+            }
+          }
+        }
+      } catch (error) {
+        console.error('예약 메시지 확인 오류:', error);
+      }
+    };
+    checkExistingReminder();
+  }, [booking.id]);
+
   const handleSave = async () => {
     setSaving(true);
     try {
       const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
-      const { error } = await supabase
-        .from('bookings')
-        .update(editData)
-        .eq('id', bookingId);
+      
+      // API를 통해 업데이트 (상태 변경 감지 및 확정 문자 발송)
+      const response = await fetch(`/api/bookings/${bookingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editData),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || '예약 수정에 실패했습니다.');
+      }
 
       setIsEditing(false);
       onUpdate();
@@ -71,6 +115,59 @@ export default function BookingDetailModal({
       alert('예약 수정에 실패했습니다: ' + error.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSaveReminder = async () => {
+    if (!reminderEnabled) {
+      // 체크 해제 시 예약 메시지 삭제
+      if (existingReminder) {
+        setReminderSaving(true);
+        try {
+          const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
+          const response = await fetch(`/api/bookings/${bookingId}/schedule-reminder`, {
+            method: 'DELETE',
+          });
+          if (response.ok) {
+            setExistingReminder(null);
+            alert('당일 예약 메시지가 취소되었습니다.');
+          }
+        } catch (error: any) {
+          console.error('예약 메시지 삭제 오류:', error);
+          alert('예약 메시지 취소에 실패했습니다.');
+        } finally {
+          setReminderSaving(false);
+        }
+      }
+      return;
+    }
+
+    // 예약 메시지 생성/수정
+    setReminderSaving(true);
+    try {
+      const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
+      const response = await fetch(`/api/bookings/${bookingId}/schedule-reminder`, {
+        method: existingReminder ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scheduled_at: reminderScheduledAt,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setExistingReminder(result.data);
+          alert('당일 예약 메시지가 설정되었습니다.');
+        }
+      } else {
+        throw new Error('예약 메시지 설정에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('예약 메시지 저장 오류:', error);
+      alert('예약 메시지 설정에 실패했습니다: ' + error.message);
+    } finally {
+      setReminderSaving(false);
     }
   };
 
@@ -282,6 +379,67 @@ export default function BookingDetailModal({
               )}
             </div>
           )}
+
+          {/* 당일 예약 메시지 섹션 */}
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="reminder-enabled"
+                checked={reminderEnabled}
+                onChange={(e) => setReminderEnabled(e.target.checked)}
+                className="mt-1"
+                disabled={reminderSaving}
+              />
+              <div className="flex-1">
+                <label htmlFor="reminder-enabled" className="font-medium text-gray-900 cursor-pointer">
+                  당일 예약 메시지 발송 <span className="text-blue-600 text-xs font-normal">(추천)</span>
+                </label>
+                <p className="text-sm text-gray-600 mt-1">
+                  예약 시간 2시간 전에 고객에게 리마인드 메시지를 발송합니다.
+                </p>
+                {reminderEnabled && (
+                  <div className="mt-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      발송 시간
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={reminderScheduledAt}
+                      onChange={(e) => setReminderScheduledAt(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                      disabled={reminderSaving}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      기본값: 예약 시간 2시간 전 ({booking.date && booking.time ? (() => {
+                        const bookingDateTime = new Date(`${booking.date}T${booking.time}`);
+                        const reminderDateTime = new Date(bookingDateTime.getTime() - 2 * 60 * 60 * 1000);
+                        return reminderDateTime.toLocaleString('ko-KR', { 
+                          year: 'numeric', 
+                          month: '2-digit', 
+                          day: '2-digit', 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        });
+                      })() : '')})
+                    </p>
+                    <button
+                      onClick={handleSaveReminder}
+                      disabled={reminderSaving}
+                      className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+                    >
+                      {reminderSaving ? '저장 중...' : existingReminder ? '수정' : '설정'}
+                    </button>
+                  </div>
+                )}
+                {existingReminder && (
+                  <p className="text-xs text-green-600 mt-2">
+                    ✓ 예약 메시지가 설정되어 있습니다.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
 
           {isEditing && (
             <div className="mt-6 flex justify-end gap-2">

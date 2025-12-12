@@ -22,13 +22,31 @@ const KAKAO_TEMPLATE_CODES = {
 
 // SMS 메시지 템플릿 (카카오톡 실패 시 대체)
 const SMS_TEMPLATES = {
-  booking_received: `[마쓰구골프] {고객명}님, 시타 예약 요청이 접수되었습니다. 예약 가능 여부 확인 후 연락드리겠습니다. 예약일시: {날짜} {시간} 문의: 031-215-0013`,
-  booking_confirmed: `[마쓰구골프] {고객명}님, 예약이 확정되었습니다!
+  booking_received: `[마쓰구골프] {고객명}님, 시타 예약 요청이 접수되었습니다!
 
-예약일시: {날짜} {시간}
-장소: 마쓰구골프 수원 본점
-위치 안내: https://www.masgolf.co.kr/contact
+예약 가능 여부 확인 후 연락드리겠습니다.
 
+📅 예약일시: {날짜} {시간}
+🏌️ 한 번의 시타로 30m 비거리 증가를 직접 체험하세요!
+
+자세한 정보: https://www.masgolf.co.kr/
+문의: 031-215-0013`,
+  booking_confirmed: `[마쓰구골프] {고객명}님, 예약이 확정되었습니다! 🎉
+
+고객님만을 위해 특별히 준비한 맞춤형 분석과 시타 체험을 통해 최상의 경험을 선사해 드리겠습니다.
+
+📅 예약일시: {날짜} {시간}
+📍 장소: 마쓰구골프 수원 본점
+🗺️ 약도: https://www.masgolf.co.kr/contact
+
+🏌️ 한 번의 시타로 30m 비거리 증가를 직접 체험하세요!
+
+문의: 031-215-0013`,
+  booking_reminder_2h: `[마쓰구골프] {고객명}님, 안녕하세요! 오늘 {시간} 시타 예약이 있습니다.
+
+고객님만을 위해 특별히 준비한 맞춤형 분석과 시타 체험을 통해 최상의 경험을 선사해 드리겠습니다. 준비해주세요!
+
+📍 약도: https://www.masgolf.co.kr/contact
 문의: 031-215-0013`,
   booking_completed: `[마쓰구골프] {고객명}님, 시타 체험 감사합니다! 추가 문의사항이 있으시면 언제든 연락주세요. 다음 예약: https://masgolf.co.kr/try-a-massgoo 문의: 031-215-0013`,
 };
@@ -288,26 +306,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           
           // channel_sms 테이블에 메시지 저장 (예약 관련 메시지 관리용)
           try {
+            const insertData: any = {
+              message_type: messageType,
+              message_text: smsMessage,
+              recipient_numbers: [phone],
+              status: 'sent',
+              sent_at: new Date().toISOString(),
+              sent_count: 1,
+              success_count: 1,
+              fail_count: 0,
+              solapi_group_id: smsResult.groupId || null,
+              note: `예약 ${notificationType}: 예약 ID ${bookingId}, 고객 ${variables.고객명}`,
+            };
+
+            // metadata 컬럼이 있으면 예약 정보 저장
+            try {
+              insertData.metadata = {
+                booking_id: bookingId,
+                notification_type: notificationType,
+                customer_id: booking.customer_id || null,
+              };
+            } catch (metaError) {
+              // metadata 컬럼이 없으면 무시
+              console.log('metadata 컬럼이 없거나 사용할 수 없습니다.');
+            }
+
             const { error: saveError } = await supabase
               .from('channel_sms')
-              .insert({
-                message_type: messageType,
-                message_text: smsMessage,
-                recipient_numbers: [phone],
-                status: 'sent',
-                sent_at: new Date().toISOString(),
-                sent_count: 1,
-                success_count: 1,
-                fail_count: 0,
-                solapi_group_id: smsResult.groupId || null,
-                note: `예약 ${notificationType}: 예약 ID ${bookingId}, 고객 ${variables.고객명}`,
-                // 메타데이터에 예약 정보 저장 (JSONB 컬럼이 있다면)
-                // metadata: {
-                //   booking_id: bookingId,
-                //   notification_type: notificationType,
-                //   customer_id: booking.customer_id || null
-                // }
-              });
+              .insert(insertData);
             
             if (saveError) {
               console.error('예약 메시지 channel_sms 저장 오류:', saveError);
