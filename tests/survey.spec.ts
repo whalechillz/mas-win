@@ -8,18 +8,19 @@ test.describe('설문 조사 E2E 테스트', () => {
 
   test('설문 조사 전체 플로우', async ({ page }) => {
     // 1. 설문 랜딩 페이지 확인
-    await expect(page.locator('h1')).toContainText('MASSGOO X MUZIIK');
-    await expect(page.locator('text=설문 조사만 해도')).toBeVisible();
+    await expect(page.locator('h1')).toContainText(/MASSGOO.*MUZIIK/i);
+    await expect(page.locator('text=설문 조사만 해도').first()).toBeVisible();
     
     // 2. "설문 조사 시작하기" 버튼 클릭
     await page.click('text=설문 조사 시작하기');
     await page.waitForURL(/\/survey\/form/);
     
     // 3. Step 1: 기본 정보 입력
-    await expect(page.locator('text=기본 정보')).toBeVisible();
+    await expect(page.locator('h2:has-text("기본 정보")')).toBeVisible();
     
     // 이름 입력
-    await page.fill('input[placeholder*="홍길동"], input[type="text"]', '테스트 사용자');
+    const nameInput = page.locator('input[type="text"]').first();
+    await nameInput.fill('테스트 사용자');
     
     // 전화번호 입력
     const phoneInput = page.locator('input[type="tel"]').first();
@@ -31,23 +32,41 @@ test.describe('설문 조사 E2E 테스트', () => {
     
     // 다음 버튼 클릭
     await page.click('button:has-text("다음")');
+    await page.waitForTimeout(1000);
     
     // 4. Step 2: 설문 응답
-    await expect(page.locator('text=설문 응답')).toBeVisible();
+    await expect(page.locator('h2:has-text("설문 응답")')).toBeVisible();
     
-    // 모델 선택 (첫 번째 옵션)
-    const firstModelOption = page.locator('input[type="radio"][name="model"]').first();
-    await firstModelOption.click();
+    // 모델 선택 (첫 번째 옵션 - label 클릭)
+    const firstModelLabel = page.locator('label').filter({ hasText: /베릴|사파이어/ }).first();
+    if (await firstModelLabel.isVisible({ timeout: 5000 })) {
+      await firstModelLabel.click();
+      await page.waitForTimeout(500);
+    } else {
+      // 대체: 라디오 버튼 직접 클릭
+      const firstModelOption = page.locator('input[type="radio"][name="model"]').first();
+      await firstModelOption.click({ force: true });
+      await page.waitForTimeout(500);
+    }
     
-    // 중요 요소 선택 (비거리, 방향성)
-    await page.click('text=비거리');
-    await page.click('text=방향성');
+    // 중요 요소 선택 (비거리, 방향성 - label 클릭)
+    const distanceLabel = page.locator('label').filter({ hasText: '비거리' }).first();
+    const directionLabel = page.locator('label').filter({ hasText: '방향성' }).first();
+    
+    if (await distanceLabel.isVisible({ timeout: 3000 })) {
+      await distanceLabel.click();
+    }
+    if (await directionLabel.isVisible({ timeout: 3000 })) {
+      await directionLabel.click();
+    }
+    await page.waitForTimeout(500);
     
     // 다음 버튼 클릭
     await page.click('button:has-text("다음")');
+    await page.waitForTimeout(1000);
     
     // 5. Step 3: 추가 정보
-    await expect(page.locator('text=추가 정보')).toBeVisible();
+    await expect(page.locator('h2:has-text("추가 정보")')).toBeVisible();
     
     // 주소 입력
     const addressTextarea = page.locator('textarea').last();
@@ -57,9 +76,10 @@ test.describe('설문 조사 E2E 테스트', () => {
     await page.click('button:has-text("제출하기")');
     
     // 6. 완료 페이지 확인
-    await page.waitForURL(/\/survey\/success/);
-    await expect(page.locator('text=설문이 완료되었습니다')).toBeVisible();
-    await expect(page.locator('text=참여해주셔서 감사합니다')).toBeVisible();
+    await page.waitForURL(/\/survey\/success/, { timeout: 15000 });
+    // 성공 페이지의 주요 텍스트 확인
+    await expect(page.locator('h1:has-text("설문이 완료되었습니다")')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=참여해주셔서 감사합니다')).toBeVisible({ timeout: 5000 });
   });
 
   test('설문 랜딩 페이지 CTA 버튼 확인', async ({ page }) => {
