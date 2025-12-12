@@ -56,15 +56,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           restUpdateData.cancelled_at = new Date().toISOString();
         }
 
-        // 기존 예약 상태 확인 (확정 알림 발송을 위해)
+        // 기존 예약 정보 확인 (확정 알림 발송을 위해)
         const { data: existingBooking } = await supabase
           .from('bookings')
-          .select('status')
+          .select('status, date, time')
           .eq('id', parseInt(id))
           .single();
 
         const previousStatus = existingBooking?.status || 'pending';
-        const newStatus = restUpdateData.status;
+        const newStatus = restUpdateData.status || previousStatus;
+        
+        // 시간 변경 여부 확인
+        const timeChanged = existingBooking && 
+          (restUpdateData.date !== undefined && restUpdateData.date !== existingBooking.date) ||
+          (restUpdateData.time !== undefined && restUpdateData.time !== existingBooking.time);
 
         const { data: updatedBooking, error: updateError } = await supabase
           .from('bookings')
@@ -75,15 +80,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (updateError) throw updateError;
 
-        // 상태가 'confirmed'로 변경된 경우 알림 발송
-        if (previousStatus !== 'confirmed' && newStatus === 'confirmed') {
+        // 알림 발송 조건:
+        // 1. 상태가 'pending' → 'confirmed'로 변경된 경우
+        // 2. 이미 'confirmed' 상태이고 시간이 변경된 경우
+        const shouldSendNotification = 
+          (previousStatus !== 'confirmed' && newStatus === 'confirmed') ||
+          (previousStatus === 'confirmed' && newStatus === 'confirmed' && timeChanged);
+
+        if (shouldSendNotification) {
           const baseUrl = process.env.VERCEL_URL 
             ? `https://${process.env.VERCEL_URL}` 
             : 'http://localhost:3000';
 
+          const notificationReason = timeChanged && previousStatus === 'confirmed' 
+            ? '시간 변경으로 인한 재발송' 
+            : '예약 확정';
+
           // 고객에게 예약 확정 SMS 발송
           try {
-            console.log('고객 예약 확정 SMS 발송 시작...');
+            console.log(`고객 예약 확정 SMS 발송 시작... (${notificationReason})`);
             const customerSmsResponse = await fetch(`${baseUrl}/api/bookings/notify-customer`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -101,7 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           // 스탭진에게 예약 확정 SMS 발송
           try {
-            console.log('스탭진 예약 확정 SMS 발송 시작...');
+            console.log(`스탭진 예약 확정 SMS 발송 시작... (${notificationReason})`);
             const staffSmsResponse = await fetch(`${baseUrl}/api/bookings/notify-staff`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
