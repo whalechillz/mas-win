@@ -23,9 +23,18 @@ const KAKAO_TEMPLATE_CODES = {
 // SMS 메시지 템플릿 (카카오톡 실패 시 대체)
 const SMS_TEMPLATES = {
   booking_received: `[마쓰구골프] {고객명}님, 시타 예약 요청이 접수되었습니다. 예약 가능 여부 확인 후 연락드리겠습니다. 예약일시: {날짜} {시간} 문의: 031-215-0013`,
-  booking_confirmed: `[마쓰구골프] {고객명}님, 예약이 확정되었습니다! 예약일시: {날짜} {시간}, 장소: 마쓰구골프 [수원 본점] 문의: 031-215-0013`,
+  booking_confirmed: `[마쓰구골프] {고객명}님, 예약이 확정되었습니다!
+
+예약일시: {날짜} {시간}
+장소: 마쓰구골프 수원 본점
+위치 안내: https://www.masgolf.co.kr/contact
+
+문의: 031-215-0013`,
   booking_completed: `[마쓰구골프] {고객명}님, 시타 체험 감사합니다! 추가 문의사항이 있으시면 언제든 연락주세요. 다음 예약: https://masgolf.co.kr/try-a-massgoo 문의: 031-215-0013`,
 };
+
+// 로고 이미지 URL (환경변수 또는 기본값)
+const LOGO_IMAGE_URL = process.env.BOOKING_LOGO_IMAGE_URL || '/main/brand/mas9golf-icon.svg';
 
 // 날짜 포맷팅 (예: 2025-11-27 → 2025년 11월 27일)
 function formatDate(dateStr: string): string {
@@ -69,6 +78,52 @@ function replaceTemplateVariables(
   result = result.replace(/\{시간\}/g, variables.시간);
   result = result.replace(/\{서비스명\}/g, variables.서비스명);
   return result;
+}
+
+// 메시지 길이에 따라 자동으로 SMS/LMS/MMS 결정
+function determineMessageType(text: string): 'SMS' | 'LMS' | 'MMS' {
+  const estimatedBytes = Buffer.from(text, 'utf8').length;
+  
+  if (estimatedBytes <= 90) {
+    return 'SMS';
+  } else if (estimatedBytes <= 2000) {
+    return 'LMS';
+  } else {
+    return 'MMS'; // 이미지 첨부 시
+  }
+}
+
+// 이미지 URL을 Solapi imageId로 변환 (HTTP URL인 경우)
+async function getSolapiImageId(imageUrl: string, baseUrl: string): Promise<string | null> {
+  if (!imageUrl) return null;
+  
+  // 이미 Solapi imageId 형식인지 확인 (일반적으로 UUID 형식)
+  if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+    return imageUrl; // 이미 imageId인 경우
+  }
+  
+  try {
+    // HTTP URL이면 Solapi에 재업로드
+    const reuploadResponse = await fetch(`${baseUrl}/api/solapi/reupload-image`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        imageUrl: imageUrl,
+        messageId: 'booking-confirmed-logo', // 임시 ID
+      }),
+    });
+    
+    if (reuploadResponse.ok) {
+      const reuploadResult = await reuploadResponse.json();
+      if (reuploadResult.success && reuploadResult.imageId) {
+        return reuploadResult.imageId;
+      }
+    }
+  } catch (error) {
+    console.error('로고 이미지 Solapi 업로드 오류:', error);
+  }
+  
+  return null;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -175,40 +230,66 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       kakaoError = 'Solapi API 키가 설정되지 않았습니다.';
     }
 
-    // 카카오톡 실패 시 SMS로 대체 발송
+    // 카카오톡 실패 시 SMS/LMS/MMS로 대체 발송
     let smsSuccess = false;
     let smsError = null;
+    let messageType = 'SMS';
 
     if (!kakaoSuccess) {
       try {
         const smsTemplate = SMS_TEMPLATES[notificationType as keyof typeof SMS_TEMPLATES];
         const smsMessage = replaceTemplateVariables(smsTemplate, variables);
 
+        // 메시지 타입 자동 결정
+        messageType = determineMessageType(smsMessage);
+
+        // 예약 확정 시 MMS로 로고 첨부
+        let imageId: string | null = null;
+        if (notificationType === 'booking_confirmed' && messageType === 'LMS') {
+          // 예약 확정 시에는 MMS로 전환하여 로고 첨부
+          messageType = 'MMS';
+          const baseUrl = process.env.VERCEL_URL 
+            ? `https://${process.env.VERCEL_URL}` 
+            : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+          imageId = await getSolapiImageId(LOGO_IMAGE_URL, baseUrl);
+        }
+
         // Solapi API 인증 헤더 생성
         const headers = createSolapiSignature(SOLAPI_API_KEY, SOLAPI_API_SECRET);
 
-        // SMS 발송 요청
+        // 메시지 발송 요청
+        const messageData: any = {
+          message: {
+            to: phone,
+            from: '0312150013', // 발신번호
+            text: smsMessage,
+            type: messageType,
+          },
+        };
+
+        // MMS인 경우 이미지 첨부
+        if (messageType === 'MMS' && imageId) {
+          messageData.message.imageId = imageId;
+        } else if (messageType === 'MMS' && !imageId) {
+          // 이미지가 없으면 LMS로 변경
+          messageType = 'LMS';
+          messageData.message.type = 'LMS';
+        }
+
         const smsResponse = await fetch(SOLAPI_API_URL, {
           method: 'POST',
           headers,
-          body: JSON.stringify({
-            message: {
-              to: phone,
-              from: '0312150013', // 발신번호
-              text: smsMessage,
-              type: 'SMS',
-            },
-          }),
+          body: JSON.stringify(messageData),
         });
 
         const smsResult = await smsResponse.json();
         if (smsResponse.ok && smsResult.statusCode === '2000') {
           smsSuccess = true;
         } else {
-          smsError = smsResult.errorMessage || 'SMS 발송 실패';
+          smsError = smsResult.errorMessage || `${messageType} 발송 실패`;
         }
       } catch (err: any) {
-        smsError = err.message || 'SMS 발송 중 오류 발생';
+        smsError = err.message || '메시지 발송 중 오류 발생';
       }
     }
 
@@ -228,7 +309,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         error: smsError,
       },
       message: finalSuccess
-        ? `${channel === 'kakao' ? '카카오톡' : 'SMS'} 알림이 발송되었습니다.`
+        ? `${channel === 'kakao' ? '카카오톡' : messageType === 'MMS' ? 'MMS' : messageType === 'LMS' ? 'LMS' : 'SMS'} 알림이 발송되었습니다.`
         : '알림 발송에 실패했습니다.',
     });
   } catch (error: any) {

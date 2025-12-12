@@ -56,6 +56,17 @@ function formatPhone(phone: string): string {
   return phone;
 }
 
+// 메시지 길이에 따라 자동으로 SMS/LMS 결정
+function determineMessageType(text: string): 'SMS' | 'LMS' {
+  const estimatedBytes = Buffer.from(text, 'utf8').length;
+  
+  if (estimatedBytes <= 90) {
+    return 'SMS';
+  } else {
+    return 'LMS'; // 2000바이트까지 가능
+  }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, message: 'Method Not Allowed' });
@@ -142,6 +153,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       try {
+        // 메시지 타입 자동 결정
+        const messageType = determineMessageType(message);
+
         const smsResponse = await fetch(SOLAPI_API_URL, {
           method: 'POST',
           headers,
@@ -150,7 +164,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               to: normalizedPhone,
               from: '0312150013', // 발신번호
               text: message,
-              type: 'SMS',
+              type: messageType,
             },
           }),
         });
@@ -159,10 +173,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (smsResponse.ok && smsResult.statusCode === '2000') {
           results.push({ phone, success: true });
         } else {
-          results.push({ phone, success: false, error: smsResult.errorMessage || 'SMS 발송 실패' });
+          results.push({ phone, success: false, error: smsResult.errorMessage || `${messageType} 발송 실패` });
         }
       } catch (err: any) {
-        results.push({ phone, success: false, error: err.message || 'SMS 발송 중 오류 발생' });
+        results.push({ phone, success: false, error: err.message || '메시지 발송 중 오류 발생' });
       }
     }
 
