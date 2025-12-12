@@ -196,7 +196,7 @@ export default function SurveyLanding() {
                   href="/products/pro3-muziik"
                   className="w-full sm:w-auto px-8 py-3 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded-lg transition-colors shadow-lg hover:shadow-xl text-center"
                 >
-                  제품 보기 (PRO3)
+                  제품보기 (PRO3 MUZIIK)
                 </Link>
                 <a
                   href="tel:080-028-8888"
