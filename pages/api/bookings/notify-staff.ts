@@ -132,11 +132,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else {
       // confirmed
       message = `[시타 예약 확정]
+
 고객명: ${customerName}
+
 전화번호: ${formatPhone(customerPhone)}
+
 예약일시: ${formatDate(booking.date)} ${formatTime(booking.time)}
+
 서비스: ${serviceName}
+
 장소: ${location}
+
 확정 시간: ${new Date().toLocaleString('ko-KR')}`;
     }
 

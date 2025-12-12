@@ -36,10 +36,14 @@ const SMS_TEMPLATES = {
 고객님만을 위해 특별히 준비한 맞춤형 분석과 시타 체험을 통해 최상의 경험을 선사해 드리겠습니다.
 
 📅 예약일시: {날짜} {시간}
+
 📍 장소: 마쓰구골프 수원 본점
-🗺️ 약도: https://www.masgolf.co.kr/contact
+
+🗺️ 약도 안내: https://www.masgolf.co.kr/contact
 
 🏌️ 한 번의 시타로 30m 비거리 증가를 직접 체험하세요!
+
+편한 복장으로 방문해 주세요.
 
 문의: 031-215-0013`,
   booking_reminder_2h: `[마쓰구골프] {고객명}님, 안녕하세요! 오늘 {시간} 시타 예약이 있습니다.
@@ -252,11 +256,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let smsSuccess = false;
     let smsError = null;
     let messageType = 'SMS';
+    let smsMessage = '';
 
     if (!kakaoSuccess) {
       try {
         const smsTemplate = SMS_TEMPLATES[notificationType as keyof typeof SMS_TEMPLATES];
-        const smsMessage = replaceTemplateVariables(smsTemplate, variables);
+        smsMessage = replaceTemplateVariables(smsTemplate, variables);
 
         // 메시지 타입 자동 결정
         messageType = determineMessageType(smsMessage);
