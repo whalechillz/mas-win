@@ -87,9 +87,9 @@ export default function Contact() {
                 <Link href="/#reviews" className="text-gray-700 hover:text-gray-900">고객후기</Link>
                 <Link href="/about" className="text-gray-700 hover:text-gray-900">브랜드 스토리</Link>
                 <Link href="/contact" className="text-red-600 font-semibold">시타매장</Link>
-                <a href="https://www.mas9golf.com/try-a-massgoo" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                <Link href="/try-a-massgoo" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
                   무료 시타
-                </a>
+                </Link>
               </nav>
               <div className="md:hidden">
                 <button
@@ -112,9 +112,9 @@ export default function Contact() {
                   <Link href="/#reviews" className="text-gray-700 hover:text-gray-900 py-2" onClick={() => setIsMobileMenuOpen(false)}>고객후기</Link>
                   <Link href="/about" className="text-gray-700 hover:text-gray-900 py-2" onClick={() => setIsMobileMenuOpen(false)}>브랜드 스토리</Link>
                   <Link href="/contact" className="text-red-600 font-semibold py-2" onClick={() => setIsMobileMenuOpen(false)}>시타매장</Link>
-                  <a href="https://www.mas9golf.com/try-a-massgoo" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-center">
+                  <Link href="/try-a-massgoo" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-center">
                     무료 시타
-                  </a>
+                  </Link>
                 </div>
               </div>
             )}
@@ -452,14 +452,12 @@ export default function Contact() {
               <h2 className="text-4xl md:text-5xl font-bold mb-6">마쓰구의 압도적인 비거리를 경험해보세요</h2>
               <p className="text-xl text-gray-300 mb-8">전문 피팅을 통해 당신에게 가장 적합한 드라이버를 찾아보세요</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a
-                  href="https://www.mas9golf.com/try-a-massgoo"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href="/try-a-massgoo"
                   className="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition shadow-lg hover:shadow-2xl"
                 >
                   📞 시타 신청하기
-                </a>
+                </Link>
                 <a
                   href="tel:080-028-8888"
                   className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-8 rounded-xl text-lg transition shadow-lg hover:shadow-2xl"

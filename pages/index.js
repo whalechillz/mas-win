@@ -300,9 +300,9 @@ export default function Home({ hostname }) {
                 <Link href="/#reviews" className="text-gray-700 hover:text-gray-900">고객후기</Link>
                 <Link href="/about" className="text-gray-700 hover:text-gray-900">브랜드 스토리</Link>
                 <Link href="/contact" className="text-gray-700 hover:text-gray-900">시타매장</Link>
-                <a href="https://www.mas9golf.com/try-a-massgoo" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                <Link href="/try-a-massgoo" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
                   무료 시타
-                </a>
+                </Link>
               </nav>
               <div className="md:hidden">
                 <button
@@ -387,9 +387,9 @@ export default function Home({ hostname }) {
                   <Link href="/#reviews" className="text-gray-700 hover:text-gray-900 py-2">고객후기</Link>
                   <Link href="/about" className="text-gray-700 hover:text-gray-900 py-2">브랜드 스토리</Link>
                   <Link href="/contact" className="text-gray-700 hover:text-gray-900 py-2">시타매장</Link>
-                  <a href="https://www.mas9golf.com/try-a-massgoo" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-center">
+                  <Link href="/try-a-massgoo" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-center">
                     무료 시타
-                  </a>
+                  </Link>
                 </nav>
               </div>
             )}
@@ -439,12 +439,12 @@ export default function Home({ hostname }) {
               </p>
             </div>
               <div className="flex flex-col md:flex-row gap-4 justify-center">
-              <a 
-                href="https://www.mas9golf.com/try-a-massgoo" 
+              <Link 
+                href="/try-a-massgoo" 
                 className="bg-red-600 hover:bg-red-700 text-white px-10 py-4 rounded-lg font-semibold text-lg transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                   무료 시타 신청하기
-                </a>
+                </Link>
               <Link 
                 href="/#products"
                 className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-10 py-4 rounded-lg font-semibold text-lg transition-all border-2 border-white/30 hover:border-white/50"
@@ -868,12 +868,12 @@ export default function Home({ hostname }) {
               })}
                 </div>
             <div className="text-center mt-8">
-              <a
-                href="https://www.mas9golf.com/try-a-massgoo"
+              <Link
+                href="/try-a-massgoo"
                 className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
               >
                 무료 시타 신청하기
-              </a>
+              </Link>
             </div>
           </div>
         </section>
@@ -974,12 +974,12 @@ export default function Home({ hostname }) {
             <div className="text-center mt-12">
               <p className="text-lg mb-4 text-gray-700">지금 무료 시타를 신청하고 직접 경험해보세요</p>
               <div className="flex flex-col md:flex-row gap-4 justify-center">
-                <a
-                  href="https://www.mas9golf.com/try-a-massgoo"
+                <Link
+                  href="/try-a-massgoo"
                   className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
                 >
                   무료 시타 신청하기
-                </a>
+                </Link>
                 <Link
                   href="/contact"
                   className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
@@ -1211,14 +1211,12 @@ export default function Home({ hostname }) {
                         </Link>
                   </div>
                       <div className="mt-2">
-                        <a
-                          href="https://www.mas9golf.com/try-a-massgoo"
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <Link
+                          href="/try-a-massgoo"
                           className="inline-block bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors"
                         >
                       무료 시타 신청 +30m 비거리
-                    </a>
+                    </Link>
                       </div>
                     </div>
                   </div>
