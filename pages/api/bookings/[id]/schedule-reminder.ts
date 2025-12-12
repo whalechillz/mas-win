@@ -290,6 +290,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         success: true,
         message: '예약 메시지가 취소되었습니다.',
       });
+      }
+
+      // 삭제할 메시지가 없으면 그대로 성공 처리
+      return res.status(200).json({
+        success: true,
+        message: '예약 메시지가 없습니다.',
+      });
     } catch (error: any) {
       console.error('예약 메시지 삭제 오류:', error);
       return res.status(500).json({
