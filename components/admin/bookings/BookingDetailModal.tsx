@@ -421,7 +421,7 @@ export default function BookingDetailModal({
                           hour: '2-digit', 
                           minute: '2-digit' 
                         });
-                      })() : '')})
+                      })() : ''})
                     </p>
                     <button
                       onClick={handleSaveReminder}
