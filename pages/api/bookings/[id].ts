@@ -105,6 +105,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               body: JSON.stringify({
                 bookingId: parseInt(id),
                 notificationType: 'booking_confirmed',
+                bookingData: updatedBooking, // 최신 예약 정보 직접 전달
               }),
             });
             const customerSmsResult = await customerSmsResponse.json();
@@ -123,6 +124,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               body: JSON.stringify({
                 bookingId: parseInt(id),
                 notificationType: 'confirmed',
+                bookingData: updatedBooking, // 최신 예약 정보 직접 전달
               }),
             });
             const staffSmsResult = await staffSmsResponse.json();

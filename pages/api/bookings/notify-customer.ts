@@ -154,7 +154,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { bookingId, notificationType } = req.body;
+    const { bookingId, notificationType, bookingData } = req.body;
 
     if (!bookingId || !notificationType) {
       return res.status(400).json({
@@ -170,18 +170,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // 예약 정보 조회
-    const { data: booking, error: bookingError } = await supabase
-      .from('bookings')
-      .select('*')
-      .eq('id', bookingId)
-      .single();
+    // 예약 정보 조회 (bookingData가 있으면 사용, 없으면 DB에서 조회)
+    let booking;
+    if (bookingData) {
+      // 최신 예약 데이터를 직접 사용 (시간 변경 시 최신 정보 보장)
+      booking = bookingData;
+    } else {
+      // 기존 방식: DB에서 조회
+      const { data: bookingFromDb, error: bookingError } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('id', bookingId)
+        .single();
 
-    if (bookingError || !booking) {
-      return res.status(404).json({
-        success: false,
-        message: '예약을 찾을 수 없습니다.',
-      });
+      if (bookingError || !bookingFromDb) {
+        return res.status(404).json({
+          success: false,
+          message: '예약을 찾을 수 없습니다.',
+        });
+      }
+      booking = bookingFromDb;
     }
 
     // 전화번호 정규화
