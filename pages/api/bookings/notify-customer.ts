@@ -279,24 +279,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // 예약 확정 시 MMS로 로고 첨부
         let imageId: string | null = null;
         if (notificationType === 'booking_confirmed' && messageType === 'LMS') {
-          // 예약 확정 시에는 MMS로 전환하여 로고 첨부
-          messageType = 'MMS';
-          
           // booking_settings에서 로고 설정 조회
           const { data: bookingSettings } = await supabase
             .from('booking_settings')
-            .select('mms_logo_id, mms_logo_color, mms_logo_size, booking_logo_id, booking_logo_size')
+            .select('enable_booking_logo, booking_logo_id, booking_logo_size, mms_logo_color')
             .eq('id', '00000000-0000-0000-0000-000000000001')
             .single();
 
-          // 예약 문자용 로고 우선 사용, 없으면 MMS 로고 사용
-          const logoId = bookingSettings?.booking_logo_id || bookingSettings?.mms_logo_id;
+          const enableLogo = bookingSettings?.enable_booking_logo !== false; // 기본값: true
+          const logoId = bookingSettings?.booking_logo_id;
           const logoColor = bookingSettings?.mms_logo_color || '#000000';
-          // 예약 문자용은 작은 가로형, MMS용은 중간 크기
-          const logoSize = bookingSettings?.booking_logo_size || bookingSettings?.mms_logo_size || 'small-landscape';
+          const logoSize = bookingSettings?.booking_logo_size || 'small-landscape';
 
-          if (logoId) {
-            // 갤러리에서 로고 가져오기 (새 API 사용)
+          // 로고가 활성화되어 있고 로고 ID가 설정된 경우
+          if (enableLogo && logoId) {
+            // 예약 확정 시에는 MMS로 전환하여 로고 첨부
+            messageType = 'MMS';
+            
+            // 갤러리에서 로고 가져오기
             try {
               const baseUrl = process.env.VERCEL_URL 
                 ? `https://${process.env.VERCEL_URL}` 
@@ -312,28 +312,54 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 })
               });
 
-              if (logoResponse.ok) {
-                const logoResult = await logoResponse.json();
-                if (logoResult.success && logoResult.imageId) {
-                  imageId = logoResult.imageId;
-                  console.log('✅ 로고 가져오기 성공 (갤러리):', logoResult.imageId);
+              if (!logoResponse.ok) {
+                let errorText = '';
+                try {
+                  const errorData = await logoResponse.json();
+                  errorText = errorData.error || JSON.stringify(errorData);
+                } catch {
+                  errorText = await logoResponse.text();
                 }
+                throw new Error(`로고 API HTTP 오류 (${logoResponse.status}): ${errorText}`);
               }
-            } catch (error) {
-              console.error('로고 API 호출 오류:', error);
-            }
-          }
 
-          // 로고 API 실패 시 레거시 방식 사용
-          if (!imageId) {
-            const baseUrl = process.env.VERCEL_URL 
-              ? `https://${process.env.VERCEL_URL}` 
-              : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-            imageId = await getSolapiImageId(LOGO_IMAGE_URL, baseUrl);
-            if (imageId) {
-              console.log('✅ 로고 가져오기 성공 (레거시):', imageId);
+              const logoResult = await logoResponse.json();
+              if (logoResult.success && logoResult.imageId) {
+                imageId = logoResult.imageId;
+                console.log('✅ 로고 가져오기 성공:', logoResult.imageId);
+              } else {
+                throw new Error(`로고 API 응답 실패: ${logoResult.error || 'imageId를 받지 못했습니다.'}`);
+              }
+            } catch (error: any) {
+              console.error('❌ 로고 가져오기 실패:', error);
+              
+              // 로고가 필수인 경우 (enable_booking_logo = true)
+              // 에러 반환하고 메시지 발송 중단
+              return res.status(500).json({
+                success: false,
+                message: `예약 확정 메시지 발송 실패: 로고를 가져올 수 없습니다.`,
+                error: error.message || '로고 API 호출 실패',
+                details: {
+                  logoId: logoId,
+                  logoSize: logoSize,
+                  enable_booking_logo: enableLogo,
+                  error: error.message
+                }
+              });
             }
+          } else if (enableLogo && !logoId) {
+            // 로고가 활성화되어 있지만 로고 ID가 없는 경우
+            return res.status(400).json({
+              success: false,
+              message: '예약 확정 메시지 발송 실패: 로고가 설정되지 않았습니다.',
+              error: 'booking_logo_id가 설정되지 않음',
+              details: {
+                enable_booking_logo: enableLogo,
+                booking_logo_id: null
+              }
+            });
           }
+          // enableLogo가 false인 경우: 로고 없이 LMS로 발송 (현재 동작 유지)
         }
 
         // Solapi API 인증 헤더 생성
@@ -349,11 +375,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         };
 
-        // MMS인 경우 이미지 첨부
+        // MMS인 경우 이미지 첨부 (로고가 있는 경우만)
         if (messageType === 'MMS' && imageId) {
           messageData.message.imageId = imageId;
         } else if (messageType === 'MMS' && !imageId) {
-          // 이미지가 없으면 LMS로 변경
+          // 이 경우는 발생하지 않아야 함 (위에서 에러 처리)
+          // 하지만 방어적으로 LMS로 변경
+          console.warn('⚠️ MMS로 설정되었지만 imageId가 없음. LMS로 변경.');
           messageType = 'LMS';
           messageData.message.type = 'LMS';
         }

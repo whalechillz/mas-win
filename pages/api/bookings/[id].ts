@@ -108,11 +108,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 bookingData: updatedBooking, // 최신 예약 정보 직접 전달
               }),
             });
+            
             const customerSmsResult = await customerSmsResponse.json();
-            console.log('고객 확정 SMS 발송 결과:', customerSmsResult);
-          } catch (customerSmsError) {
-            console.error('고객 확정 SMS 발송 에러:', customerSmsError);
-            // 고객 SMS 실패해도 예약 업데이트는 계속 처리
+            
+            if (!customerSmsResponse.ok || !customerSmsResult.success) {
+              console.error(`❌ 고객 알림 발송 실패 (${customerSmsResponse.status}):`, customerSmsResult);
+              // 에러는 로그만 남기고 예약 업데이트는 계속 진행
+              // (로고 실패 등으로 인한 발송 실패는 notify-customer에서 처리)
+            } else {
+              console.log('✅ 고객 확정 SMS 발송 성공:', customerSmsResult);
+            }
+          } catch (customerSmsError: any) {
+            console.error('❌ 고객 확정 SMS 발송 예외:', customerSmsError.message || customerSmsError);
+            // 예외 발생해도 예약 업데이트는 계속 처리
           }
 
           // 스탭진에게 예약 확정 SMS 발송

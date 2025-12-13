@@ -66,7 +66,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           mms_logo_color,
           mms_logo_size,
           booking_logo_id,
-          booking_logo_size
+          booking_logo_size,
+          enable_booking_logo
         } = req.body;
 
         // 기존 설정 조회 (없으면 기본값 사용)
@@ -121,6 +122,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ? booking_logo_id
             : existingSettings?.booking_logo_id,
           booking_logo_size: booking_logo_size || existingSettings?.booking_logo_size || 'small-landscape',
+          enable_booking_logo: enable_booking_logo !== undefined
+            ? enable_booking_logo
+            : existingSettings?.enable_booking_logo !== false, // 기본값: true
           updated_at: new Date().toISOString()
         };
 

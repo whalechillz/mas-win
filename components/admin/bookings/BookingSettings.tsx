@@ -27,6 +27,7 @@ interface BookingSettings {
   mms_logo_size?: string;
   booking_logo_id?: string;
   booking_logo_size?: string;
+  enable_booking_logo?: boolean;
   updated_at?: string;
 }
 
@@ -85,20 +86,6 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
           
           if (bookingLogoData) {
             setSelectedBookingLogoUrl(bookingLogoData.image_url);
-          }
-        }
-        
-        // MMS 마케팅 메시지 로고 정보 로드
-        if (settingsData.mms_logo_id) {
-          const { data: mmsLogoData } = await supabase
-            .from('image_metadata')
-            .select('id, image_url')
-            .eq('id', settingsData.mms_logo_id)
-            .single();
-          
-          if (mmsLogoData) {
-            setSelectedLogoId(mmsLogoData.id);
-            setSelectedLogoUrl(mmsLogoData.image_url);
           }
         }
       } else {
@@ -735,14 +722,41 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">예약 문자 로고 설정</h3>
                   
                   <div className="space-y-4 mb-6">
-                    {/* 예약 문자용 로고 선택 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        예약 확정 메시지 로고 (작은 가로형)
+                    {/* 로고 삽입 사용 토글 */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">
+                          로고 삽입 사용
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1">
+                          예약 확정 메시지에 로고를 포함합니다. OFF 시 로고 없이 발송됩니다.
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={settings.enable_booking_logo !== false}
+                          onChange={(e) => setSettings({
+                            ...settings,
+                            enable_booking_logo: e.target.checked
+                          })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
                       </label>
-                      <p className="text-xs text-gray-500 mb-3">
-                        예약 확정 시 고객에게 발송되는 MMS 메시지에 첨부될 작은 가로형 로고를 선택하세요.
-                      </p>
+                    </div>
+
+                    {/* 예약 문자용 로고 선택 (로고 삽입이 ON일 때만 표시) */}
+                    {settings.enable_booking_logo !== false && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            예약 확정 메시지 로고 (작은 가로형)
+                          </label>
+                          <p className="text-xs text-gray-500 mb-3">
+                            예약 확정 시 고객에게 발송되는 MMS 메시지에 첨부될 작은 가로형 로고를 선택하세요.
+                            <span className="text-red-600 font-medium"> 로고가 설정되어 있으면 반드시 포함됩니다.</span>
+                          </p>
                       
                       <div className="flex items-center gap-4">
                         {settings.booking_logo_id ? (
@@ -809,100 +823,7 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
                         </p>
                       </div>
                     )}
-                  </div>
-                </div>
-
-                {/* MMS 마케팅 메시지 로고 설정 */}
-                <div className="pt-6 border-t border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">MMS 마케팅 메시지 로고 설정</h3>
-                  
-                  <div className="space-y-4">
-                    {/* 로고 선택 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        마케팅 메시지 로고
-                      </label>
-                      <p className="text-xs text-gray-500 mb-3">
-                        마케팅용 MMS 메시지에 첨부될 로고를 선택하세요.
-                      </p>
-                      
-                      <div className="flex items-center gap-4">
-                        {selectedLogoUrl ? (
-                          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                            <img 
-                              src={selectedLogoUrl} 
-                              alt="선택된 로고" 
-                              className="h-12 w-auto object-contain"
-                            />
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-gray-700">로고 선택됨</p>
-                              <p className="text-xs text-gray-500">ID: {selectedLogoId}</p>
-                            </div>
-                            <button
-                              onClick={() => {
-                                setSelectedLogoUrl(null);
-                                setSelectedLogoId(null);
-                                setSettings({
-                                  ...settings,
-                                  mms_logo_id: undefined
-                                });
-                              }}
-                              className="text-red-600 hover:text-red-700 text-sm"
-                            >
-                              제거
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setShowLogoGallery(true)}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
-                          >
-                            로고 선택
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* 로고 색상 설정 */}
-                    {selectedLogoId && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          로고 색상
-                        </label>
-                        <input
-                          type="color"
-                          value={settings.mms_logo_color || '#000000'}
-                          onChange={(e) => setSettings({
-                            ...settings,
-                            mms_logo_color: e.target.value
-                          })}
-                          className="h-10 w-20 rounded border border-gray-300 cursor-pointer"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                          로고 색상을 변경할 수 있습니다. (SVG 로고에만 적용)
-                        </p>
-                      </div>
-                    )}
-
-                    {/* 로고 크기 설정 */}
-                    {selectedLogoId && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          로고 크기
-                        </label>
-                        <select
-                          value={settings.mms_logo_size || 'medium'}
-                          onChange={(e) => setSettings({
-                            ...settings,
-                            mms_logo_size: e.target.value
-                          })}
-                          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
-                        >
-                          <option value="small">작게 (400px)</option>
-                          <option value="medium">보통 (800px)</option>
-                          <option value="large">크게 (1200px)</option>
-                        </select>
-                      </div>
+                      </>
                     )}
                   </div>
                 </div>
@@ -1293,33 +1214,15 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
               .single();
 
             if (logoMetadata?.is_logo || imageUrl.includes('originals/logos')) {
-              // 예약 문자용 로고 설정 (우선)
-              if (!settings?.booking_logo_id) {
-                setSettings({
-                  ...settings!,
-                  booking_logo_id: logoData.id,
-                  booking_logo_size: 'small-landscape',
-                  // MMS 로고도 함께 설정 (없으면)
-                  mms_logo_id: settings?.mms_logo_id || logoData.id,
-                  mms_logo_color: settings?.mms_logo_color || '#000000',
-                  mms_logo_size: settings?.mms_logo_size || 'medium'
-                });
-                setSelectedBookingLogoUrl(imageUrl);
-                if (!settings?.mms_logo_id) {
-                  setSelectedLogoId(logoData.id);
-                  setSelectedLogoUrl(imageUrl);
-                }
-              } else {
-                // MMS 로고로 설정
-                setSettings({
-                  ...settings!,
-                  mms_logo_id: logoData.id,
-                  mms_logo_color: settings?.mms_logo_color || '#000000',
-                  mms_logo_size: settings?.mms_logo_size || 'medium'
-                });
-                setSelectedLogoId(logoData.id);
-                setSelectedLogoUrl(imageUrl);
-              }
+              // 예약 문자용 로고 설정
+              setSettings({
+                ...settings!,
+                booking_logo_id: logoData.id,
+                booking_logo_size: 'small-landscape',
+                // 로고 삽입도 자동으로 활성화
+                enable_booking_logo: true
+              });
+              setSelectedBookingLogoUrl(imageUrl);
             }
           }
           setShowLogoGallery(false);
