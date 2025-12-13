@@ -946,8 +946,8 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
             </div>
 
             {/* 스탭진 전화번호 관리 */}
-                {settings.enable_staff_notification !== false && (
-                  <div>
+            {settings.enable_staff_notification !== false && (
+              <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       스탭진 전화번호
                     </label>
@@ -997,21 +997,19 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
                     <p className="text-xs text-gray-500 mt-2">
                       예약 완료 시 이 번호들로 SMS가 발송됩니다. (010-XXXX-XXXX 형식)
                     </p>
-                  </div>
-                )}
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* 저장 버튼 */}
-            <div className="pt-4 border-t">
-              <button
-                onClick={handleSettingsSave}
-                disabled={saving}
-                className="px-6 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                {saving ? '저장 중...' : '설정 저장'}
-              </button>
-            </div>
+          {/* 저장 버튼 */}
+          <div className="pt-4 border-t">
+            <button
+              onClick={handleSettingsSave}
+              disabled={saving}
+              className="px-6 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {saving ? '저장 중...' : '설정 저장'}
+            </button>
           </div>
         </div>
       )}
