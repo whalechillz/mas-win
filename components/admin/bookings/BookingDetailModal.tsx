@@ -52,6 +52,16 @@ export default function BookingDetailModal({
 
   const customerInfo = customers.find((c) => c.phone === booking.phone);
 
+  // 로컬 시간대를 유지하면서 datetime-local 형식으로 변환
+  const formatLocalDateTime = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   useEffect(() => {
     setEditData(booking);
     setIsEditing(defaultEditing);
@@ -62,7 +72,7 @@ export default function BookingDetailModal({
     if (booking.date && booking.time) {
       const bookingDateTime = new Date(`${booking.date}T${booking.time}`);
       const reminderDateTime = new Date(bookingDateTime.getTime() - 2 * 60 * 60 * 1000); // 2시간 전
-      const formattedDateTime = reminderDateTime.toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm 형식
+      const formattedDateTime = formatLocalDateTime(reminderDateTime);
       setReminderScheduledAt(formattedDateTime);
     }
   }, [booking.date, booking.time]);
@@ -80,7 +90,7 @@ export default function BookingDetailModal({
             setReminderEnabled(true);
             if (data.reminder.scheduled_at) {
               const scheduledDate = new Date(data.reminder.scheduled_at);
-              setReminderScheduledAt(scheduledDate.toISOString().slice(0, 16));
+              setReminderScheduledAt(formatLocalDateTime(scheduledDate));
             }
           }
         }
@@ -419,7 +429,8 @@ export default function BookingDetailModal({
                           month: '2-digit', 
                           day: '2-digit', 
                           hour: '2-digit', 
-                          minute: '2-digit' 
+                          minute: '2-digit',
+                          timeZone: 'Asia/Seoul'
                         });
                       })() : ''})
                     </p>
