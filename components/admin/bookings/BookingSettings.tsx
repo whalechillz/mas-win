@@ -58,6 +58,7 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
   const [showLogoGallery, setShowLogoGallery] = useState(false);
   const [selectedLogoUrl, setSelectedLogoUrl] = useState<string | null>(null);
   const [selectedLogoId, setSelectedLogoId] = useState<string | null>(null);
+  const [selectedBookingLogoUrl, setSelectedBookingLogoUrl] = useState<string | null>(null);
 
   const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
 
@@ -74,19 +75,30 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
         const settingsData = await response.json();
         setSettings(settingsData);
         
-        // 로고 정보 로드 (예약 문자용 우선, 없으면 MMS용)
-        const logoIdToLoad = settingsData.booking_logo_id || settingsData.mms_logo_id;
-        if (logoIdToLoad) {
-          // 로고 메타데이터 조회
-          const { data: logoData } = await supabase
+        // 예약 문자용 로고 정보 로드
+        if (settingsData.booking_logo_id) {
+          const { data: bookingLogoData } = await supabase
             .from('image_metadata')
             .select('id, image_url')
-            .eq('id', logoIdToLoad)
+            .eq('id', settingsData.booking_logo_id)
             .single();
           
-          if (logoData) {
-            setSelectedLogoId(logoData.id);
-            setSelectedLogoUrl(logoData.image_url);
+          if (bookingLogoData) {
+            setSelectedBookingLogoUrl(bookingLogoData.image_url);
+          }
+        }
+        
+        // MMS 마케팅 메시지 로고 정보 로드
+        if (settingsData.mms_logo_id) {
+          const { data: mmsLogoData } = await supabase
+            .from('image_metadata')
+            .select('id, image_url')
+            .eq('id', settingsData.mms_logo_id)
+            .single();
+          
+          if (mmsLogoData) {
+            setSelectedLogoId(mmsLogoData.id);
+            setSelectedLogoUrl(mmsLogoData.image_url);
           }
         }
       } else {
@@ -735,6 +747,13 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
                       <div className="flex items-center gap-4">
                         {settings.booking_logo_id ? (
                           <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            {selectedBookingLogoUrl && (
+                              <img 
+                                src={selectedBookingLogoUrl} 
+                                alt="선택된 로고" 
+                                className="h-12 w-auto object-contain"
+                              />
+                            )}
                             <div className="flex-1">
                               <p className="text-sm font-medium text-gray-700">로고 선택됨</p>
                               <p className="text-xs text-gray-500">ID: {settings.booking_logo_id}</p>
@@ -746,6 +765,7 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
                                   booking_logo_id: undefined,
                                   booking_logo_size: undefined
                                 });
+                                setSelectedBookingLogoUrl(null);
                               }}
                               className="text-red-600 hover:text-red-700 text-sm"
                             >
@@ -1273,9 +1293,6 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
               .single();
 
             if (logoMetadata?.is_logo || imageUrl.includes('originals/logos')) {
-              setSelectedLogoId(logoData.id);
-              setSelectedLogoUrl(imageUrl);
-              
               // 예약 문자용 로고 설정 (우선)
               if (!settings?.booking_logo_id) {
                 setSettings({
@@ -1287,6 +1304,11 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
                   mms_logo_color: settings?.mms_logo_color || '#000000',
                   mms_logo_size: settings?.mms_logo_size || 'medium'
                 });
+                setSelectedBookingLogoUrl(imageUrl);
+                if (!settings?.mms_logo_id) {
+                  setSelectedLogoId(logoData.id);
+                  setSelectedLogoUrl(imageUrl);
+                }
               } else {
                 // MMS 로고로 설정
                 setSettings({
@@ -1295,6 +1317,8 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
                   mms_logo_color: settings?.mms_logo_color || '#000000',
                   mms_logo_size: settings?.mms_logo_size || 'medium'
                 });
+                setSelectedLogoId(logoData.id);
+                setSelectedLogoUrl(imageUrl);
               }
             }
           }
