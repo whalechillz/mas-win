@@ -208,6 +208,7 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
           mms_logo_size: settings.mms_logo_size,
           booking_logo_id: settings.booking_logo_id,
           booking_logo_size: settings.booking_logo_size,
+          enable_booking_logo: settings.enable_booking_logo,
         }),
       });
 
@@ -833,13 +834,13 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
               </div>
             </div>
 
-                {/* 예약 문자 로고 설정 */}
-                <div className="pt-6 border-t border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">예약 문자 로고 설정</h3>
-                  
-                  <div className="space-y-4 mb-6">
-                    {/* 로고 삽입 사용 토글 */}
-                    <div className="flex items-center justify-between">
+            {/* 예약 문자 로고 설정 */}
+            <div className="pt-6 border-t border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">예약 문자 로고 설정</h3>
+              
+              <div className="space-y-4 mb-6">
+                {/* 로고 삽입 사용 토글 */}
+                <div className="flex items-center justify-between">
                       <div>
                         <label className="text-sm font-medium text-gray-700">
                           로고 삽입 사용
@@ -860,19 +861,19 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
                       </label>
-                    </div>
+                </div>
 
-                    {/* 예약 문자용 로고 선택 (로고 삽입이 ON일 때만 표시) */}
-                    {settings.enable_booking_logo !== false && (
-                      <>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            예약 확정 메시지 로고 (작은 가로형)
-                          </label>
-                          <p className="text-xs text-gray-500 mb-3">
-                            예약 확정 시 고객에게 발송되는 MMS 메시지에 첨부될 작은 가로형 로고를 선택하세요.
-                            <span className="text-red-600 font-medium"> 로고가 설정되어 있으면 반드시 포함됩니다.</span>
-                          </p>
+                {/* 예약 문자용 로고 선택 (로고 삽입이 ON일 때만 표시) */}
+                {settings.enable_booking_logo !== false && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        예약 확정 메시지 로고 (작은 가로형)
+                      </label>
+                      <p className="text-xs text-gray-500 mb-3">
+                        예약 확정 시 고객에게 발송되는 MMS 메시지에 첨부될 작은 가로형 로고를 선택하세요.
+                        <span className="text-red-600 font-medium"> 로고가 설정되어 있으면 반드시 포함됩니다.</span>
+                      </p>
                       
                       <div className="flex items-center gap-4">
                         {settings.booking_logo_id ? (
@@ -939,12 +940,12 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
                         </p>
                       </div>
                     )}
-                      </>
-                    )}
-                  </div>
-                </div>
+                  </>
+                )}
+              </div>
+            </div>
 
-                {/* 스탭진 전화번호 관리 */}
+            {/* 스탭진 전화번호 관리 */}
                 {settings.enable_staff_notification !== false && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
