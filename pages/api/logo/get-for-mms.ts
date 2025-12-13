@@ -44,7 +44,17 @@ async function uploadToSolapi(imageBuffer: Buffer, filename: string): Promise<st
     }
 
     const result = await response.json();
-    return result.fileId || result.id || null;
+    const imageId = result.fileId || result.id || null;
+    
+    console.log('📦 Solapi 업로드 응답:', {
+      status: response.status,
+      fileId: result.fileId,
+      id: result.id,
+      finalImageId: imageId,
+      fullResponse: result
+    });
+    
+    return imageId;
   } catch (error) {
     console.error('Solapi 업로드 오류:', error);
     return null;

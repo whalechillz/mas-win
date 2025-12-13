@@ -104,6 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .single();
 
           // 고객에게 예약 확정 SMS 발송
+          let customerSmsResult: any = null;
           if (settings?.notify_on_confirmed_customer_sms !== false) {
             try {
               console.log(`고객 예약 확정 SMS 발송 시작... (${notificationReason})`);
@@ -117,7 +118,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }),
               });
               
-              const customerSmsResult = await customerSmsResponse.json();
+              customerSmsResult = await customerSmsResponse.json();
               
               if (!customerSmsResponse.ok || !customerSmsResult.success) {
                 console.error(`❌ 고객 알림 발송 실패 (${customerSmsResponse.status}):`, customerSmsResult);
@@ -128,6 +129,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               }
             } catch (customerSmsError: any) {
               console.error('❌ 고객 확정 SMS 발송 예외:', customerSmsError.message || customerSmsError);
+              customerSmsResult = { success: false, error: customerSmsError.message };
               // 예외 발생해도 예약 업데이트는 계속 처리
             }
           }
@@ -175,7 +177,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         }
 
-        return res.status(200).json(updatedBooking);
+        // ⭐ 메시지 발송 결과를 응답에 포함
+        const responseData: any = { ...updatedBooking };
+        if (shouldSendNotification) {
+          responseData.notificationResult = {
+            customerSms: customerSmsResult || { skipped: true, reason: '고객 SMS 알림이 비활성화되어 있습니다.' },
+            sent: !!customerSmsResult?.success,
+            error: customerSmsResult?.error || customerSmsResult?.message || null,
+          };
+        }
+
+        return res.status(200).json(responseData);
 
       case 'DELETE':
         // 예약 삭제

@@ -422,6 +422,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // MMS인 경우 이미지 첨부 (로고가 있는 경우만)
         if (messageType === 'MMS' && imageId) {
           messageData.message.imageId = imageId;
+          console.log('📤 MMS 발송 준비:', { messageType, imageId, phone, messageLength: smsMessage.length });
         } else if (messageType === 'MMS' && !imageId) {
           // 이 경우는 발생하지 않아야 함 (위에서 에러 처리)
           // 하지만 방어적으로 LMS로 변경
@@ -430,15 +431,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           messageData.message.type = 'LMS';
         }
 
+        console.log('📡 Solapi API 호출 시작:', { 
+          url: SOLAPI_API_URL, 
+          messageType, 
+          hasImageId: !!imageId,
+          messagePreview: smsMessage.substring(0, 50) + '...'
+        });
+
         const smsResponse = await fetch(SOLAPI_API_URL, {
           method: 'POST',
           headers,
           body: JSON.stringify(messageData),
         });
 
+        console.log('📥 Solapi API 응답 상태:', smsResponse.status, smsResponse.statusText);
+        
         const smsResult = await smsResponse.json();
+        console.log('📦 Solapi API 응답 데이터:', JSON.stringify(smsResult, null, 2));
+        
+        // ⭐ MMS 발송 실패 시 상세 로그
+        if (!smsResponse.ok || smsResult.statusCode !== '2000') {
+          console.error('❌ Solapi API 발송 실패:', {
+            status: smsResponse.status,
+            statusCode: smsResult.statusCode,
+            errorCode: smsResult.errorCode,
+            errorMessage: smsResult.errorMessage,
+            messageType,
+            hasImageId: !!imageId,
+            imageId: imageId,
+            fullResponse: smsResult
+          });
+        }
+        
         if (smsResponse.ok && smsResult.statusCode === '2000') {
           smsSuccess = true;
+          console.log('✅ Solapi API 발송 성공:', { 
+            groupId: smsResult.groupId, 
+            messageType,
+            hasImageId: !!imageId 
+          });
           
           // channel_sms 테이블에 메시지 저장 (예약 관련 메시지 관리용)
           try {
