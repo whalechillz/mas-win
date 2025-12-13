@@ -179,6 +179,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'logoId는 필수입니다.' });
     }
 
+    // ⭐ 추가: 캐시된 솔라피 이미지 ID 확인 (booking_settings에서)
+    const cacheKey = `${logoId}-${color || '#000000'}-${size}`;
+    const { data: cachedSettings } = await supabase
+      .from('booking_settings')
+      .select('booking_logo_solapi_image_id, booking_logo_id, mms_logo_color, booking_logo_size')
+      .eq('id', '00000000-0000-0000-0000-000000000001')
+      .single();
+
+    // 캐시된 이미지 ID가 있고, 설정이 동일한 경우 재사용
+    if (cachedSettings?.booking_logo_solapi_image_id && 
+        cachedSettings.booking_logo_id === logoId &&
+        cachedSettings.mms_logo_color === (color || '#000000') &&
+        cachedSettings.booking_logo_size === size) {
+      console.log('✅ 캐시된 솔라피 이미지 ID 재사용:', cachedSettings.booking_logo_solapi_image_id);
+      return res.status(200).json({
+        success: true,
+        imageId: cachedSettings.booking_logo_solapi_image_id,
+        cached: true,
+        logoMetadata: {
+          id: logoId,
+          brand: null,
+          type: null,
+          color: null
+        }
+      });
+    }
+
     // 로고 메타데이터 조회
     console.log('🔍 로고 메타데이터 조회:', { logoId });
     
@@ -346,9 +373,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: 'Solapi 업로드 실패' });
     }
 
+    // ⭐ 추가: 솔라피 이미지 ID를 booking_settings에 캐시 저장
+    try {
+      await supabase
+        .from('booking_settings')
+        .update({
+          booking_logo_solapi_image_id: solapiImageId
+        })
+        .eq('id', '00000000-0000-0000-0000-000000000001');
+      console.log('✅ 솔라피 이미지 ID 캐시 저장 완료:', solapiImageId);
+    } catch (cacheError: any) {
+      console.warn('⚠️ 솔라피 이미지 ID 캐시 저장 실패 (계속 진행):', cacheError.message);
+      // 캐시 저장 실패해도 이미지 ID는 반환
+    }
+
     return res.status(200).json({
       success: true,
       imageId: solapiImageId,
+      cached: false,
       logoMetadata: {
         id: logoMetadata.id,
         brand: logoMetadata.logo_brand,

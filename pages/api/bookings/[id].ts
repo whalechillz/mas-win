@@ -66,10 +66,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const previousStatus = existingBooking?.status || 'pending';
         const newStatus = restUpdateData.status || previousStatus;
         
-        // 시간 변경 여부 확인
-        const timeChanged = existingBooking && 
+        // ⭐ 수정: 시간 변경 여부 확인 (실제로 값이 변경되었는지 확인)
+        const timeChanged = existingBooking && (
           (restUpdateData.date !== undefined && restUpdateData.date !== existingBooking.date) ||
-          (restUpdateData.time !== undefined && restUpdateData.time !== existingBooking.time);
+          (restUpdateData.time !== undefined && restUpdateData.time !== existingBooking.time)
+        );
 
         const { data: updatedBooking, error: updateError } = await supabase
           .from('bookings')
@@ -80,12 +81,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (updateError) throw updateError;
 
-        // 알림 발송 조건:
-        // 1. 상태가 'pending' → 'confirmed'로 변경된 경우
-        // 2. 이미 'confirmed' 상태이고 시간이 변경된 경우
+        // ⭐ 수정: 알림 발송 조건 개선
+        // 1. 상태가 'pending' → 'confirmed'로 변경된 경우만
+        // 2. 이미 'confirmed' 상태이고 실제로 시간이 변경된 경우만
         const shouldSendNotification = 
           (previousStatus !== 'confirmed' && newStatus === 'confirmed') ||
-          (previousStatus === 'confirmed' && newStatus === 'confirmed' && timeChanged);
+          (previousStatus === 'confirmed' && newStatus === 'confirmed' && timeChanged === true);
 
         if (shouldSendNotification) {
           const baseUrl = process.env.VERCEL_URL 
@@ -196,13 +197,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         }
 
-        // ⭐ 메시지 발송 결과를 응답에 포함
+        // ⭐ 수정: 메시지 발송 결과를 응답에 포함 (로고 실패해도 발송 성공한 경우 처리)
         const responseData: any = { ...updatedBooking };
         if (shouldSendNotification) {
+          // 로고 실패해도 LMS로 발송 성공한 경우를 고려
+          const isSuccess = customerSmsResult?.success === true || 
+                           (customerSmsResult?.message && customerSmsResult.message.includes('발송'));
+          const hasError = customerSmsResult?.error && !customerSmsResult?.success;
+          
           responseData.notificationResult = {
             customerSms: customerSmsResult || { skipped: true, reason: '고객 SMS 알림이 비활성화되어 있습니다.' },
-            sent: !!customerSmsResult?.success,
-            error: customerSmsResult?.error || customerSmsResult?.message || null,
+            sent: isSuccess,
+            error: hasError ? (customerSmsResult.error || customerSmsResult.message) : null,
+            // ⭐ 추가: 로고 없이 발송 성공한 경우 표시
+            sentWithoutLogo: customerSmsResult?.message?.includes('로고 없이') || false,
           };
         }
 

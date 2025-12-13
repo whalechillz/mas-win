@@ -121,11 +121,15 @@ export default function BookingDetailModal({
 
       const result = await response.json();
       
-      // ⭐ 메시지 발송 결과 확인 및 피드백
+      // ⭐ 수정: 메시지 발송 결과 확인 및 피드백 개선
       if (result.notificationResult) {
-        const { customerSms, sent, error } = result.notificationResult;
+        const { customerSms, sent, error, sentWithoutLogo } = result.notificationResult;
         if (sent) {
-          alert('✅ 예약이 저장되었습니다.\n\n📱 고객에게 확정 메시지가 발송되었습니다.');
+          if (sentWithoutLogo) {
+            alert('✅ 예약이 저장되었습니다.\n\n📱 고객에게 확정 메시지가 발송되었습니다.\n(로고 없이 발송)');
+          } else {
+            alert('✅ 예약이 저장되었습니다.\n\n📱 고객에게 확정 메시지가 발송되었습니다.');
+          }
         } else if (customerSms?.skipped) {
           alert('✅ 예약이 저장되었습니다.\n\nℹ️ 고객 SMS 알림이 비활성화되어 있어 메시지를 발송하지 않았습니다.');
         } else if (error) {
