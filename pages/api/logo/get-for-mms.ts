@@ -9,6 +9,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import sharp from 'sharp';
 import { createSolapiSignature } from '../../../utils/solapiSignature.js';
+import { compressImageForSolapi } from '../../../lib/server/compressImageForSolapi.js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -169,9 +170,52 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .png()
       .toBuffer();
 
+    // ⭐ 추가: 200KB 제한을 위한 압축 처리
+    const MAX_SOLAPI_SIZE = 200 * 1024; // 200KB
+    console.log(`📊 로고 이미지 크기: ${(imageBuffer.length / 1024).toFixed(2)}KB`);
+    
+    let finalImageBuffer = imageBuffer;
+    let fileExtension = 'png';
+    
+    if (imageBuffer.length > MAX_SOLAPI_SIZE) {
+      console.log('🔄 로고 이미지 압축 시작 (200KB 초과)...');
+      try {
+        // PNG를 JPEG로 변환하여 압축 (더 나은 압축률)
+        const jpegBuffer = await sharp(imageBuffer)
+          .jpeg({ quality: 85, progressive: true, mozjpeg: true })
+          .toBuffer();
+        
+        console.log(`📊 JPEG 변환 후 크기: ${(jpegBuffer.length / 1024).toFixed(2)}KB`);
+        
+        // 여전히 200KB 초과하면 compressImageForSolapi 사용
+        if (jpegBuffer.length > MAX_SOLAPI_SIZE) {
+          console.log('🔄 추가 압축 필요, compressImageForSolapi 사용...');
+          const compressionInfo = await compressImageForSolapi(jpegBuffer, MAX_SOLAPI_SIZE);
+          finalImageBuffer = compressionInfo.buffer;
+          fileExtension = 'jpg';
+          console.log(`✅ 로고 압축 완료: ${(imageBuffer.length / 1024).toFixed(2)}KB → ${(finalImageBuffer.length / 1024).toFixed(2)}KB (품질: ${compressionInfo.quality}%)`);
+        } else {
+          finalImageBuffer = jpegBuffer;
+          fileExtension = 'jpg';
+          console.log(`✅ JPEG 변환으로 압축: ${(imageBuffer.length / 1024).toFixed(2)}KB → ${(finalImageBuffer.length / 1024).toFixed(2)}KB`);
+        }
+      } catch (compressError: any) {
+        console.error('❌ 로고 압축 실패:', compressError);
+        // 압축 실패해도 계속 진행 (Solapi가 거부할 수 있음)
+        console.warn('⚠️ 압축 실패, 원본 이미지 사용 (Solapi가 거부할 수 있음)');
+      }
+    } else {
+      console.log(`✅ 로고 이미지 크기가 200KB 이하입니다. 압축 불필요.`);
+    }
+
+    // ⭐ 최종 크기 체크
+    if (finalImageBuffer.length > MAX_SOLAPI_SIZE) {
+      console.warn(`⚠️ 로고 이미지가 여전히 200KB를 초과합니다: ${(finalImageBuffer.length / 1024).toFixed(2)}KB`);
+    }
+
     // Solapi에 업로드
-    const filename = `logo-${logoId}-${Date.now()}.png`;
-    const solapiImageId = await uploadToSolapi(imageBuffer, filename);
+    const filename = `logo-${logoId}-${Date.now()}.${fileExtension}`;
+    const solapiImageId = await uploadToSolapi(finalImageBuffer, filename);
 
     if (!solapiImageId) {
       return res.status(500).json({ error: 'Solapi 업로드 실패' });

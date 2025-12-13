@@ -318,20 +318,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
               console.log('📡 로고 API 응답 상태:', logoResponse.status, logoResponse.statusText);
 
+              // ⭐ 수정: 응답 body를 안전하게 읽기 (한 번만 읽기)
+              let logoResponseText = '';
+              try {
+                logoResponseText = await logoResponse.text();
+              } catch (textError: any) {
+                console.error('❌ 로고 API 응답 body 읽기 실패:', textError.message);
+                logoResponseText = '';
+              }
+
               if (!logoResponse.ok) {
                 let errorText = '';
                 try {
-                  const errorData = await logoResponse.json();
+                  const errorData = JSON.parse(logoResponseText);
                   errorText = errorData.error || JSON.stringify(errorData);
                   console.error('❌ 로고 API JSON 에러:', errorData);
                 } catch {
-                  errorText = await logoResponse.text();
+                  errorText = logoResponseText || `HTTP ${logoResponse.status} ${logoResponse.statusText}`;
                   console.error('❌ 로고 API 텍스트 에러:', errorText);
                 }
                 throw new Error(`로고 API HTTP 오류 (${logoResponse.status}): ${errorText}`);
               }
 
-              const logoResult = await logoResponse.json();
+              // ⭐ 수정: 이미 읽은 텍스트를 JSON으로 파싱
+              let logoResult: any;
+              try {
+                logoResult = JSON.parse(logoResponseText);
+              } catch (parseError) {
+                throw new Error(`로고 API 응답 파싱 실패: ${parseError instanceof Error ? parseError.message : '알 수 없는 오류'}`);
+              }
               console.log('📦 로고 API 응답 데이터:', logoResult);
               
               if (logoResult.success && logoResult.imageId) {

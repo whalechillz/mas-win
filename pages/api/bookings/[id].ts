@@ -118,7 +118,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }),
               });
               
-              customerSmsResult = await customerSmsResponse.json();
+              // ⭐ 수정: 응답 body를 안전하게 읽기 (한 번만 읽기)
+              let responseText = '';
+              try {
+                responseText = await customerSmsResponse.text();
+              } catch (textError: any) {
+                console.error('❌ 응답 body 읽기 실패:', textError.message);
+                responseText = '';
+              }
+              
+              // JSON 파싱 시도
+              try {
+                customerSmsResult = JSON.parse(responseText);
+              } catch (parseError) {
+                // JSON 파싱 실패 시 텍스트로 처리
+                customerSmsResult = { 
+                  success: false, 
+                  error: responseText || '응답 파싱 실패',
+                  rawResponse: responseText.substring(0, 200) // 처음 200자만 저장
+                };
+              }
               
               if (!customerSmsResponse.ok || !customerSmsResult.success) {
                 console.error(`❌ 고객 알림 발송 실패 (${customerSmsResponse.status}):`, customerSmsResult);
