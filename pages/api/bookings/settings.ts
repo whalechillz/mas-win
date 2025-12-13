@@ -61,6 +61,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           call_message_text,
           enable_slack_notification,
           enable_staff_notification,
+          notify_on_received_slack,
+          notify_on_received_staff_sms,
+          notify_on_received_customer_sms,
+          notify_on_confirmed_slack,
+          notify_on_confirmed_staff_sms,
+          notify_on_confirmed_customer_sms,
           staff_phone_numbers,
           mms_logo_id,
           mms_logo_color,
@@ -110,6 +116,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           enable_staff_notification: typeof enable_staff_notification === 'boolean'
             ? enable_staff_notification
             : (existingSettings?.enable_staff_notification ?? true),
+          notify_on_received_slack: typeof notify_on_received_slack === 'boolean'
+            ? notify_on_received_slack
+            : (existingSettings?.notify_on_received_slack ?? true),
+          notify_on_received_staff_sms: typeof notify_on_received_staff_sms === 'boolean'
+            ? notify_on_received_staff_sms
+            : (existingSettings?.notify_on_received_staff_sms ?? true),
+          notify_on_received_customer_sms: typeof notify_on_received_customer_sms === 'boolean'
+            ? notify_on_received_customer_sms
+            : (existingSettings?.notify_on_received_customer_sms ?? true),
+          notify_on_confirmed_slack: typeof notify_on_confirmed_slack === 'boolean'
+            ? notify_on_confirmed_slack
+            : (existingSettings?.notify_on_confirmed_slack ?? true),
+          notify_on_confirmed_staff_sms: typeof notify_on_confirmed_staff_sms === 'boolean'
+            ? notify_on_confirmed_staff_sms
+            : (existingSettings?.notify_on_confirmed_staff_sms ?? true),
+          notify_on_confirmed_customer_sms: typeof notify_on_confirmed_customer_sms === 'boolean'
+            ? notify_on_confirmed_customer_sms
+            : (existingSettings?.notify_on_confirmed_customer_sms ?? true),
           staff_phone_numbers: Array.isArray(staff_phone_numbers)
             ? staff_phone_numbers
             : (existingSettings?.staff_phone_numbers ?? ['010-6669-9000', '010-5704-0013']),

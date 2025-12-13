@@ -298,6 +298,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             
             // 갤러리에서 로고 가져오기
             try {
+              console.log('🔍 로고 가져오기 시작:', { logoId, logoColor, logoSize, enableLogo });
               const baseUrl = process.env.VERCEL_URL 
                 ? `https://${process.env.VERCEL_URL}` 
                 : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
@@ -312,18 +313,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 })
               });
 
+              console.log('📡 로고 API 응답 상태:', logoResponse.status, logoResponse.statusText);
+
               if (!logoResponse.ok) {
                 let errorText = '';
                 try {
                   const errorData = await logoResponse.json();
                   errorText = errorData.error || JSON.stringify(errorData);
+                  console.error('❌ 로고 API JSON 에러:', errorData);
                 } catch {
                   errorText = await logoResponse.text();
+                  console.error('❌ 로고 API 텍스트 에러:', errorText);
                 }
                 throw new Error(`로고 API HTTP 오류 (${logoResponse.status}): ${errorText}`);
               }
 
               const logoResult = await logoResponse.json();
+              console.log('📦 로고 API 응답 데이터:', logoResult);
+              
               if (logoResult.success && logoResult.imageId) {
                 imageId = logoResult.imageId;
                 console.log('✅ 로고 가져오기 성공:', logoResult.imageId);
@@ -331,7 +338,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 throw new Error(`로고 API 응답 실패: ${logoResult.error || 'imageId를 받지 못했습니다.'}`);
               }
             } catch (error: any) {
-              console.error('❌ 로고 가져오기 실패:', error);
+              console.error('❌ 로고 가져오기 실패 상세:', {
+                error: error.message,
+                stack: error.stack,
+                logoId,
+                logoSize,
+                logoColor,
+                enableLogo,
+                notificationType,
+                bookingId
+              });
               
               // 로고가 필수인 경우 (enable_booking_logo = true)
               // 에러 반환하고 메시지 발송 중단
@@ -342,13 +358,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 details: {
                   logoId: logoId,
                   logoSize: logoSize,
+                  logoColor: logoColor,
                   enable_booking_logo: enableLogo,
-                  error: error.message
+                  error: error.message,
+                  stack: error.stack
                 }
               });
             }
           } else if (enableLogo && !logoId) {
             // 로고가 활성화되어 있지만 로고 ID가 없는 경우
+            console.error('❌ 로고 활성화되었지만 로고 ID가 없음:', { enableLogo, logoId });
             return res.status(400).json({
               success: false,
               message: '예약 확정 메시지 발송 실패: 로고가 설정되지 않았습니다.',
@@ -358,6 +377,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 booking_logo_id: null
               }
             });
+          } else {
+            console.log('ℹ️ 로고 비활성화 또는 로고 ID 없음:', { enableLogo, logoId });
           }
           // enableLogo가 false인 경우: 로고 없이 LMS로 발송 (현재 동작 유지)
         }

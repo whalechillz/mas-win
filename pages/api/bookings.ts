@@ -219,25 +219,50 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // 예약 생성 후 알림 발송 (비동기, 실패해도 예약은 성공 처리)
         try {
-          // 고객 알림 (카카오톡 → SMS 대체)
-          fetch(`${req.headers.origin || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/bookings/notify-customer`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              bookingId: newBooking.id,
-              notificationType: 'booking_received',
-            }),
-          }).catch(err => console.error('고객 알림 발송 오류 (무시):', err));
+          const baseUrl = req.headers.origin || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+          
+          // 예약 설정 조회
+          const { data: settings } = await supabase
+            .from('booking_settings')
+            .select('notify_on_received_slack, notify_on_received_staff_sms, notify_on_received_customer_sms')
+            .eq('id', '00000000-0000-0000-0000-000000000001')
+            .single();
 
-          // Slack 알림 (관리자)
-          fetch(`${req.headers.origin || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/slack/booking-notify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              type: 'booking_created',
-              bookingId: newBooking.id,
-            }),
-          }).catch(err => console.error('Slack 알림 발송 오류 (무시):', err));
+          // 고객 알림 (예약 접수 확인)
+          if (settings?.notify_on_received_customer_sms !== false) {
+            fetch(`${baseUrl}/api/bookings/notify-customer`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                bookingId: newBooking.id,
+                notificationType: 'booking_received',
+              }),
+            }).catch(err => console.error('고객 알림 발송 오류 (무시):', err));
+          }
+
+          // 관리자 Slack 알림
+          if (settings?.notify_on_received_slack !== false) {
+            fetch(`${baseUrl}/api/slack/booking-notify`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'booking_created',
+                bookingId: newBooking.id,
+              }),
+            }).catch(err => console.error('Slack 알림 발송 오류 (무시):', err));
+          }
+
+          // 관리자 SMS 알림 (신규 추가)
+          if (settings?.notify_on_received_staff_sms !== false) {
+            fetch(`${baseUrl}/api/bookings/notify-staff`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                bookingId: newBooking.id,
+                notificationType: 'received',
+              }),
+            }).catch(err => console.error('관리자 SMS 알림 발송 오류 (무시):', err));
+          }
         } catch (notificationError) {
           // 알림 실패해도 예약은 성공 처리
           console.error('알림 발송 중 오류 (무시):', notificationError);

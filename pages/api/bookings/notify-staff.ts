@@ -38,6 +38,20 @@ function formatTime(timeStr: string): string {
   }
 }
 
+function getKoreaTime(): string {
+  const now = new Date();
+  return now.toLocaleString('ko-KR', { 
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+}
+
 // 전화번호 정규화
 function normalizePhone(phone: string): string {
   const numbers = phone.replace(/[^0-9]/g, '');
@@ -160,7 +174,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 장소: ${location}
 
-확정 시간: ${new Date().toLocaleString('ko-KR')}`;
+확정 시간: ${getKoreaTime()}`;
     }
 
     // Solapi API 인증 헤더 생성

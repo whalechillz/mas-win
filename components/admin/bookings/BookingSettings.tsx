@@ -21,6 +21,12 @@ interface BookingSettings {
   call_message_text?: string;
   enable_slack_notification?: boolean;
   enable_staff_notification?: boolean;
+  notify_on_received_slack?: boolean;
+  notify_on_received_staff_sms?: boolean;
+  notify_on_received_customer_sms?: boolean;
+  notify_on_confirmed_slack?: boolean;
+  notify_on_confirmed_staff_sms?: boolean;
+  notify_on_confirmed_customer_sms?: boolean;
   staff_phone_numbers?: string[];
   mms_logo_id?: string;
   mms_logo_color?: string;
@@ -190,6 +196,12 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
           call_message_text: settings.call_message_text,
           enable_slack_notification: settings.enable_slack_notification,
           enable_staff_notification: settings.enable_staff_notification,
+          notify_on_received_slack: settings.notify_on_received_slack,
+          notify_on_received_staff_sms: settings.notify_on_received_staff_sms,
+          notify_on_received_customer_sms: settings.notify_on_received_customer_sms,
+          notify_on_confirmed_slack: settings.notify_on_confirmed_slack,
+          notify_on_confirmed_staff_sms: settings.notify_on_confirmed_staff_sms,
+          notify_on_confirmed_customer_sms: settings.notify_on_confirmed_customer_sms,
           staff_phone_numbers: settings.staff_phone_numbers,
           mms_logo_id: settings.mms_logo_id,
           mms_logo_color: settings.mms_logo_color,
@@ -669,53 +681,157 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
               <h3 className="text-lg font-semibold text-gray-900 mb-4">알림 설정</h3>
               
               <div className="space-y-6">
-                {/* 슬랙 알림 */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      예약 완료 시 슬랙 알림 발송
-                    </label>
-                    <p className="text-xs text-gray-500 mt-1">
-                      예약이 완료되거나 확정될 때 슬랙 채널로 알림을 보냅니다.
-                    </p>
+                {/* 예약 신청 시 알림 */}
+                <div>
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">예약 신청 시 알림</h4>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">
+                          슬랙 알림
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1">
+                          예약 신청 시 슬랙 채널로 알림을 보냅니다.
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={settings.notify_on_received_slack !== false}
+                          onChange={(e) => setSettings({
+                            ...settings,
+                            notify_on_received_slack: e.target.checked
+                          })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">
+                          관리자 SMS
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1">
+                          예약 신청 시 관리자에게 SMS를 보냅니다.
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={settings.notify_on_received_staff_sms !== false}
+                          onChange={(e) => setSettings({
+                            ...settings,
+                            notify_on_received_staff_sms: e.target.checked
+                          })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">
+                          고객 SMS
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1">
+                          예약 신청 시 고객에게 접수 확인 SMS를 보냅니다.
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={settings.notify_on_received_customer_sms !== false}
+                          onChange={(e) => setSettings({
+                            ...settings,
+                            notify_on_received_customer_sms: e.target.checked
+                          })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                      </label>
+                    </div>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={settings.enable_slack_notification !== false}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        enable_slack_notification: e.target.checked
-                      })}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                  </label>
                 </div>
 
-                {/* 스탭진 알림 */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      예약 완료 시 스탭진에게 SMS 발송
-                    </label>
-                    <p className="text-xs text-gray-500 mt-1">
-                      예약이 완료되거나 확정될 때 스탭진 전화번호로 SMS를 보냅니다.
-                    </p>
+                {/* 예약 확정 시 알림 */}
+                <div>
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">예약 확정 시 알림</h4>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">
+                          슬랙 알림
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1">
+                          예약 확정 시 슬랙 채널로 알림을 보냅니다.
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={settings.notify_on_confirmed_slack !== false}
+                          onChange={(e) => setSettings({
+                            ...settings,
+                            notify_on_confirmed_slack: e.target.checked
+                          })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">
+                          관리자 SMS
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1">
+                          예약 확정 시 관리자에게 SMS를 보냅니다.
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={settings.notify_on_confirmed_staff_sms !== false}
+                          onChange={(e) => setSettings({
+                            ...settings,
+                            notify_on_confirmed_staff_sms: e.target.checked
+                          })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">
+                          고객 SMS
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1">
+                          예약 확정 시 고객에게 확정 확인 SMS를 보냅니다.
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={settings.notify_on_confirmed_customer_sms !== false}
+                          onChange={(e) => setSettings({
+                            ...settings,
+                            notify_on_confirmed_customer_sms: e.target.checked
+                          })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                      </label>
+                    </div>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={settings.enable_staff_notification !== false}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        enable_staff_notification: e.target.checked
-                      })}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                  </label>
                 </div>
+              </div>
+            </div>
 
                 {/* 예약 문자 로고 설정 */}
                 <div className="pt-6 border-t border-gray-200">
