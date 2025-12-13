@@ -302,9 +302,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // 갤러리에서 로고 가져오기
             try {
               console.log('🔍 로고 가져오기 시작:', { logoId, logoColor, logoSize, enableLogo });
-              const baseUrl = process.env.VERCEL_URL 
-                ? `https://${process.env.VERCEL_URL}` 
-                : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+              
+              // ⭐ 수정: 요청 호스트를 사용하여 동적으로 baseUrl 설정 (405 에러 해결)
+              const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+              const host = req.headers.host || process.env.NEXT_PUBLIC_BASE_URL?.replace(/^https?:\/\//, '') || 'localhost:3000';
+              const baseUrl = `${protocol}://${host}`;
+              
+              console.log('🌐 로고 API baseUrl:', baseUrl);
               
               const logoResponse = await fetch(`${baseUrl}/api/logo/get-for-mms`, {
                 method: 'POST',
