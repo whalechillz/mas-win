@@ -180,113 +180,167 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Solapi API 인증 헤더 생성
     const headers = createSolapiSignature(SOLAPI_API_KEY, SOLAPI_API_SECRET);
 
-    // 각 스탭진 번호로 SMS 발송
-    const results = [];
+    // 메시지 타입 자동 결정
+    const messageType = determineMessageType(message);
+
+    // 모든 스탭진 번호 정규화 및 유효성 검사
+    const normalizedPhones = [];
+    const invalidPhones: Array<{ phone: string; success: false; error: string }> = [];
     for (const phone of staffPhones) {
       const normalizedPhone = normalizePhone(phone);
       if (!normalizedPhone || normalizedPhone.length < 10) {
-        results.push({ phone, success: false, error: '유효하지 않은 전화번호' });
+        invalidPhones.push({ phone, success: false, error: '유효하지 않은 전화번호' });
         continue;
       }
+      normalizedPhones.push(normalizedPhone);
+    }
 
-      try {
-        // 메시지 타입 자동 결정
-        const messageType = determineMessageType(message);
+    if (normalizedPhones.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: '유효한 스탭진 전화번호가 없습니다.',
+        results: invalidPhones
+      });
+    }
 
-        const smsResponse = await fetch(SOLAPI_API_URL, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            message: {
-              to: normalizedPhone,
-              from: '0312150013', // 발신번호
-              text: message,
-              type: messageType,
-            },
-          }),
-        });
+    // Solapi send-many API로 한 번에 발송
+    let solapiGroupId: string | null = null;
+    let successCount = 0;
+    let failCount = 0;
+    const results: Array<{ phone: string; success: boolean; error?: string }> = [];
 
-        const smsResult = await smsResponse.json();
-        if (smsResponse.ok && smsResult.statusCode === '2000') {
-          results.push({ phone, success: true });
-          
-          // channel_sms 테이블에 스탭진 메시지 저장
-          try {
-            await supabase
-              .from('channel_sms')
-              .insert({
-                message_type: messageType,
-                message_text: message,
-                recipient_numbers: [normalizedPhone],
-                status: 'sent',
-                sent_at: new Date().toISOString(),
-                sent_count: 1,
-                success_count: 1,
-                fail_count: 0,
-                solapi_group_id: smsResult.groupId || null,
-                note: `스탭진 알림 ${notificationType}: 예약 ID ${bookingId}`,
-              });
-          } catch (saveErr: any) {
-            console.error('스탭진 메시지 channel_sms 저장 오류:', saveErr);
-          }
-        } else {
-          const errorMsg = smsResult.errorMessage || `${messageType} 발송 실패`;
-          results.push({ phone, success: false, error: errorMsg });
-          
-          // 실패한 메시지도 저장
-          try {
-            await supabase
-              .from('channel_sms')
-              .insert({
-                message_type: messageType,
-                message_text: message,
-                recipient_numbers: [normalizedPhone],
-                status: 'failed',
-                sent_at: new Date().toISOString(),
-                sent_count: 1,
-                success_count: 0,
-                fail_count: 1,
-                note: `스탭진 알림 ${notificationType} 실패: 예약 ID ${bookingId}, 오류: ${errorMsg}`,
-              });
-          } catch (saveErr: any) {
-            console.error('스탭진 실패 메시지 저장 오류:', saveErr);
-          }
-        }
-      } catch (err: any) {
-        const errorMsg = err.message || '메시지 발송 중 오류 발생';
-        results.push({ phone, success: false, error: errorMsg });
+    try {
+      // 여러 수신자에게 한 번에 발송
+      const messages = normalizedPhones.map(phone => ({
+        to: phone,
+        from: '0312150013',
+        text: message,
+        type: messageType,
+      }));
+
+      const smsResponse = await fetch('https://api.solapi.com/messages/v4/send-many', {
+        method: 'POST',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: messages,
+          allowDuplicates: false
+        }),
+      });
+
+      const smsResult = await smsResponse.json();
+
+      if (smsResponse.ok && smsResult.groupId) {
+        solapiGroupId = smsResult.groupId;
         
-        // 예외 발생 시에도 저장
+        // 결과 처리
+        if (smsResult.results && Array.isArray(smsResult.results)) {
+          smsResult.results.forEach((result: any, index: number) => {
+            const phone = normalizedPhones[index];
+            if (result.statusCode === '2000' || result.status === 'success') {
+              results.push({ phone, success: true });
+              successCount++;
+            } else {
+              const errorMsg = result.errorMessage || result.message || '발송 실패';
+              results.push({ phone, success: false, error: errorMsg });
+              failCount++;
+            }
+          });
+        } else {
+          // results가 없으면 모두 성공으로 간주
+          normalizedPhones.forEach(phone => {
+            results.push({ phone, success: true });
+            successCount++;
+          });
+        }
+
+        // channel_sms 테이블에 하나의 레코드로 저장 (모든 수신자 포함)
         try {
           await supabase
             .from('channel_sms')
             .insert({
               message_type: messageType,
               message_text: message,
-              recipient_numbers: [normalizedPhone],
-              status: 'failed',
+              recipient_numbers: normalizedPhones, // 모든 번호 포함
+              status: failCount === 0 ? 'sent' : (successCount > 0 ? 'partial' : 'failed'),
               sent_at: new Date().toISOString(),
-              sent_count: 1,
-              success_count: 0,
-              fail_count: 1,
-              note: `스탭진 알림 ${notificationType} 예외: 예약 ID ${bookingId}, 오류: ${errorMsg}`,
+              sent_count: normalizedPhones.length,
+              success_count: successCount,
+              fail_count: failCount,
+              solapi_group_id: solapiGroupId,
+              note: `스탭진 알림 ${notificationType}: 예약 ID ${bookingId}`,
             });
         } catch (saveErr: any) {
-          console.error('스탭진 예외 메시지 저장 오류:', saveErr);
+          console.error('스탭진 메시지 channel_sms 저장 오류:', saveErr);
         }
+      } else {
+        // Solapi API 실패
+        const errorMsg = smsResult.errorMessage || smsResult.message || 'Solapi API 호출 실패';
+        normalizedPhones.forEach(phone => {
+          results.push({ phone, success: false, error: errorMsg });
+          failCount++;
+        });
+
+        // 실패한 메시지도 저장
+        try {
+          await supabase
+            .from('channel_sms')
+            .insert({
+              message_type: messageType,
+              message_text: message,
+              recipient_numbers: normalizedPhones,
+              status: 'failed',
+              sent_at: new Date().toISOString(),
+              sent_count: normalizedPhones.length,
+              success_count: 0,
+              fail_count: failCount,
+              note: `스탭진 알림 ${notificationType} 실패: 예약 ID ${bookingId}, 오류: ${errorMsg}`,
+            });
+        } catch (saveErr: any) {
+          console.error('스탭진 실패 메시지 저장 오류:', saveErr);
+        }
+      }
+    } catch (err: any) {
+      // 예외 발생
+      const errorMsg = err.message || '메시지 발송 중 오류 발생';
+      normalizedPhones.forEach(phone => {
+        results.push({ phone, success: false, error: errorMsg });
+        failCount++;
+      });
+
+      // 예외 발생 시에도 저장
+      try {
+        await supabase
+          .from('channel_sms')
+          .insert({
+            message_type: messageType,
+            message_text: message,
+            recipient_numbers: normalizedPhones,
+            status: 'failed',
+            sent_at: new Date().toISOString(),
+            sent_count: normalizedPhones.length,
+            success_count: 0,
+            fail_count: failCount,
+            note: `스탭진 알림 ${notificationType} 예외: 예약 ID ${bookingId}, 오류: ${errorMsg}`,
+          });
+      } catch (saveErr: any) {
+        console.error('스탭진 예외 메시지 저장 오류:', saveErr);
       }
     }
 
-    const successCount = results.filter(r => r.success).length;
-    const failCount = results.filter(r => !r.success).length;
+    // 유효하지 않은 번호도 결과에 포함
+    results.push(...invalidPhones);
 
     return res.status(200).json({
       success: successCount > 0,
-      message: `${successCount}건 발송 성공${failCount > 0 ? `, ${failCount}건 실패` : ''}`,
-      results,
-      total: results.length,
-      successCount,
-      failCount,
+      message: `스탭진 ${successCount}명 발송 성공, ${failCount}명 실패`,
+      results: results,
+      solapi_group_id: solapiGroupId,
+      success_count: successCount,
+      fail_count: failCount,
+      total_count: normalizedPhones.length + invalidPhones.length
     });
   } catch (error: any) {
     console.error('스탭진 알림 발송 오류:', error);
