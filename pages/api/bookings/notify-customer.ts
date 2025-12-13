@@ -288,12 +288,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .eq('id', '00000000-0000-0000-0000-000000000001')
             .single();
 
-          const enableLogo = bookingSettings?.enable_booking_logo !== false; // 기본값: true
+          // ⭐ 수정: enable_booking_logo를 명시적으로 boolean으로 확인
+          const enableLogo = bookingSettings?.enable_booking_logo === true; // 명시적으로 true만 허용
           const logoId = bookingSettings?.booking_logo_id;
           const logoColor = bookingSettings?.mms_logo_color || '#000000';
           const logoSize = bookingSettings?.booking_logo_size || 'small-landscape';
 
-          // 로고가 활성화되어 있고 로고 ID가 설정된 경우
+          // ⭐ 수정: enableLogo가 true이고 logoId가 있는 경우에만 로고 처리
           if (enableLogo && logoId) {
             // 예약 확정 시에는 MMS로 전환하여 로고 첨부
             messageType = 'MMS';
@@ -351,21 +352,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 bookingId
               });
               
-              // 로고가 필수인 경우 (enable_booking_logo = true)
-              // 에러 반환하고 메시지 발송 중단
-              return res.status(500).json({
-                success: false,
-                message: `예약 확정 메시지 발송 실패: 로고를 가져올 수 없습니다.`,
-                error: error.message || '로고 API 호출 실패',
-                details: {
-                  logoId: logoId,
-                  logoSize: logoSize,
-                  logoColor: logoColor,
-                  enable_booking_logo: enableLogo,
-                  error: error.message,
-                  stack: error.stack
-                }
-              });
+              // ⭐ 수정: 로고가 필수인 경우에만 에러 반환 (enableLogo가 true인 경우)
+              // enableLogo가 false이면 여기 도달하지 않지만, 방어적으로 체크
+              if (enableLogo) {
+                return res.status(500).json({
+                  success: false,
+                  message: `예약 확정 메시지 발송 실패: 로고를 가져올 수 없습니다.`,
+                  error: error.message || '로고 API 호출 실패',
+                  details: {
+                    logoId: logoId,
+                    logoSize: logoSize,
+                    logoColor: logoColor,
+                    enable_booking_logo: enableLogo,
+                    error: error.message,
+                    stack: error.stack
+                  }
+                });
+              } else {
+                // enableLogo가 false인데 여기 도달했다는 것은 로직 오류
+                console.warn('⚠️ enableLogo가 false인데 로고 가져오기 블록에 진입함. 로고 없이 계속 진행.');
+              }
             }
           } else if (enableLogo && !logoId) {
             // 로고가 활성화되어 있지만 로고 ID가 없는 경우
@@ -380,9 +386,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               }
             });
           } else {
-            console.log('ℹ️ 로고 비활성화 또는 로고 ID 없음:', { enableLogo, logoId });
+            // ⭐ 수정: 로고가 비활성화되었거나 로고 ID가 없는 경우
+            if (enableLogo && !logoId) {
+              // 로고가 활성화되어 있지만 로고 ID가 없는 경우는 에러
+              console.error('❌ 로고 활성화되었지만 로고 ID가 없음:', { enableLogo, logoId });
+              return res.status(400).json({
+                success: false,
+                message: '예약 확정 메시지 발송 실패: 로고가 설정되지 않았습니다.',
+                error: 'booking_logo_id가 설정되지 않음',
+                details: {
+                  enable_booking_logo: enableLogo,
+                  booking_logo_id: null
+                }
+              });
+            } else {
+              // enableLogo가 false인 경우: 로고 없이 LMS로 발송 (정상 동작)
+              console.log('ℹ️ 로고 비활성화 - 로고 없이 LMS로 발송:', { enableLogo, logoId });
+            }
           }
-          // enableLogo가 false인 경우: 로고 없이 LMS로 발송 (현재 동작 유지)
         }
 
         // Solapi API 인증 헤더 생성
