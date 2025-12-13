@@ -57,7 +57,7 @@ const SMS_TEMPLATES = {
   booking_completed: `[마쓰구골프] {고객명}님, 시타 체험 감사합니다! 추가 문의사항이 있으시면 언제든 연락주세요. 다음 예약: https://masgolf.co.kr/try-a-massgoo 문의: 031-215-0013`,
 };
 
-// 로고 이미지 URL (환경변수 또는 기본값)
+// 로고 이미지 URL (환경변수 또는 기본값) - 레거시 지원용
 const LOGO_IMAGE_URL = process.env.BOOKING_LOGO_IMAGE_URL || '/main/brand/mas9golf-icon.svg';
 
 // 날짜 포맷팅 (예: 2025-11-27 → 2025년 11월 27일)
@@ -281,10 +281,59 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (notificationType === 'booking_confirmed' && messageType === 'LMS') {
           // 예약 확정 시에는 MMS로 전환하여 로고 첨부
           messageType = 'MMS';
-          const baseUrl = process.env.VERCEL_URL 
-            ? `https://${process.env.VERCEL_URL}` 
-            : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-          imageId = await getSolapiImageId(LOGO_IMAGE_URL, baseUrl);
+          
+          // booking_settings에서 로고 설정 조회
+          const { data: bookingSettings } = await supabase
+            .from('booking_settings')
+            .select('mms_logo_id, mms_logo_color, mms_logo_size, booking_logo_id, booking_logo_size')
+            .eq('id', '00000000-0000-0000-0000-000000000001')
+            .single();
+
+          // 예약 문자용 로고 우선 사용, 없으면 MMS 로고 사용
+          const logoId = bookingSettings?.booking_logo_id || bookingSettings?.mms_logo_id;
+          const logoColor = bookingSettings?.mms_logo_color || '#000000';
+          // 예약 문자용은 작은 가로형, MMS용은 중간 크기
+          const logoSize = bookingSettings?.booking_logo_size || bookingSettings?.mms_logo_size || 'small-landscape';
+
+          if (logoId) {
+            // 갤러리에서 로고 가져오기 (새 API 사용)
+            try {
+              const baseUrl = process.env.VERCEL_URL 
+                ? `https://${process.env.VERCEL_URL}` 
+                : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+              
+              const logoResponse = await fetch(`${baseUrl}/api/logo/get-for-mms`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  logoId: logoId,
+                  color: logoColor,
+                  size: logoSize
+                })
+              });
+
+              if (logoResponse.ok) {
+                const logoResult = await logoResponse.json();
+                if (logoResult.success && logoResult.imageId) {
+                  imageId = logoResult.imageId;
+                  console.log('✅ 로고 가져오기 성공 (갤러리):', logoResult.imageId);
+                }
+              }
+            } catch (error) {
+              console.error('로고 API 호출 오류:', error);
+            }
+          }
+
+          // 로고 API 실패 시 레거시 방식 사용
+          if (!imageId) {
+            const baseUrl = process.env.VERCEL_URL 
+              ? `https://${process.env.VERCEL_URL}` 
+              : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+            imageId = await getSolapiImageId(LOGO_IMAGE_URL, baseUrl);
+            if (imageId) {
+              console.log('✅ 로고 가져오기 성공 (레거시):', imageId);
+            }
+          }
         }
 
         // Solapi API 인증 헤더 생성

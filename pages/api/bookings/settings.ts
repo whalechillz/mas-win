@@ -61,7 +61,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           call_message_text,
           enable_slack_notification,
           enable_staff_notification,
-          staff_phone_numbers
+          staff_phone_numbers,
+          mms_logo_id,
+          mms_logo_color,
+          mms_logo_size,
+          booking_logo_id,
+          booking_logo_size
         } = req.body;
 
         // 기존 설정 조회 (없으면 기본값 사용)
@@ -107,6 +112,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           staff_phone_numbers: Array.isArray(staff_phone_numbers)
             ? staff_phone_numbers
             : (existingSettings?.staff_phone_numbers ?? ['010-6669-9000', '010-5704-0013']),
+          mms_logo_id: mms_logo_id !== undefined
+            ? mms_logo_id
+            : existingSettings?.mms_logo_id,
+          mms_logo_color: mms_logo_color || existingSettings?.mms_logo_color || '#000000',
+          mms_logo_size: mms_logo_size || existingSettings?.mms_logo_size || 'medium',
+          booking_logo_id: booking_logo_id !== undefined
+            ? booking_logo_id
+            : existingSettings?.booking_logo_id,
+          booking_logo_size: booking_logo_size || existingSettings?.booking_logo_size || 'small-landscape',
           updated_at: new Date().toISOString()
         };
 

@@ -51,3 +51,4 @@ CREATE POLICY "Enable update for authenticated users" ON surveys
 CREATE POLICY "Enable delete for authenticated users" ON surveys
   FOR DELETE USING (auth.role() = 'authenticated');
 
+

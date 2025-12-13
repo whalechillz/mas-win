@@ -33,7 +33,35 @@
 
 # 🎯 프로젝트 진행 현황
 
-## ✅ 최근 작업: 예약 메시지 시스템 개선 및 당일 예약 리마인드 기능 구현 (2025-01-XX)
+## ✅ 최근 작업: 로고 관리 시스템 개발 (2025-01-XX)
+
+### 완료된 작업
+- **로고 파일 정리 및 통합** ✅:
+  - `scripts/create-logos-with-background.js`: 배경이 있는 로고 이미지 생성 스크립트 작성
+  - `scripts/upload-logos-to-supabase.js`: 배경 포함 로고 추가 (massgoo_logo_black_with_bg.png, massgoo_logo_white_with_bg.png)
+  - 모든 로고를 `originals/logos/` 폴더에 통합 관리
+- **로고 크기 옵션 확장** ✅:
+  - `pages/api/logo/get-for-mms.ts`: `small-landscape` (600x200px) 가로형 크기 추가
+  - 예약 문자용 작은 가로형 로고 지원
+- **예약 문자용 로고 설정** ✅:
+  - `booking_settings` 테이블에 `booking_logo_id`, `booking_logo_size` 컬럼 추가
+  - `pages/api/bookings/notify-customer.ts`: 예약 확정 메시지에 작은 가로형 로고 첨부
+  - `components/admin/bookings/BookingSettings.tsx`: 예약 문자용 로고 설정 UI 추가
+- **갤러리 관리에 로고 필터 추가** ✅:
+  - `pages/admin/gallery.tsx`: "로고만 보기" 필터 추가 (`filterType: 'logos'`)
+  - `is_logo = true` 또는 `folder_path`가 `originals/logos`로 시작하는 이미지 필터링
+- **API 업데이트** ✅:
+  - `pages/api/bookings/settings.ts`: `booking_logo_id`, `booking_logo_size` 저장/조회 지원
+
+### 다음 단계
+- **로고 합성 시스템 개발** (Phase 4):
+  - `/api/logo/compose`: 로고 합성 API 개발
+  - `/admin/logo-composer`: 로고 합성 페이지 개발
+  - 9방향 배치, 크기/투명도/여백 조정 기능
+
+---
+
+## ✅ 이전 작업: 예약 메시지 시스템 개선 및 당일 예약 리마인드 기능 구현 (2025-01-XX)
 
 ### 완료된 작업
 - **예약 메시지 템플릿 개선** ✅:

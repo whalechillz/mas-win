@@ -74,6 +74,11 @@ interface ImageMetadata {
     has_keywords: boolean;
     issues: string[];  // 품질 이슈 목록
   };
+  // 로고 관련 필드
+  is_logo?: boolean;
+  logo_brand?: string;
+  logo_type?: string;
+  logo_color_variant?: string;
 }
 
 export default function GalleryAdmin() {
@@ -827,7 +832,7 @@ export default function GalleryAdmin() {
   const [searchQuery, setSearchQuery] = useState('');
   // 검색어 디바운싱 (500ms 지연)
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
-  const [filterType, setFilterType] = useState<'all' | 'featured' | 'unused' | 'duplicates' | 'category'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'featured' | 'unused' | 'duplicates' | 'category' | 'logos'>('all');
   const [folderFilter, setFolderFilter] = useState<string>('all'); // 폴더 필터 추가
   const [includeChildren, setIncludeChildren] = useState<boolean>(true); // 하위 폴더 포함
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null);
@@ -1066,6 +1071,20 @@ export default function GalleryAdmin() {
             return category && img.category === category.name;
           });
         }
+        break;
+      case 'logos':
+        // 로고만 필터링 (is_logo = true 또는 folder_path가 originals/logos로 시작)
+        filtered = filtered.filter(img => {
+          // image_metadata의 is_logo 필드 확인
+          if (img.is_logo === true) {
+            return true;
+          }
+          // folder_path로 확인 (originals/logos로 시작)
+          if (img.folder_path && img.folder_path.startsWith('originals/logos')) {
+            return true;
+          }
+          return false;
+        });
         break;
       case 'all':
       default:
@@ -3786,6 +3805,7 @@ export default function GalleryAdmin() {
                   <option value="unused">사용되지 않음</option>
                   <option value="duplicates">중복 이미지</option>
                   <option value="category">📂 카테고리별</option>
+                  <option value="logos">🎨 로고만 보기</option>
                 </select>
               </div>
 
