@@ -38,12 +38,13 @@ interface BookingListViewProps {
   customers: any[];
   supabase: any;
   onUpdate: () => void;
+  initialFilter?: { type: 'date' | 'status'; value: string };
 }
 
-export default function BookingListView({ bookings, customers, supabase, onUpdate }: BookingListViewProps) {
+export default function BookingListView({ bookings, customers, supabase, onUpdate, initialFilter }: BookingListViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [dateFilter, setDateFilter] = useState('all');
-  const [combinedStatusFilter, setCombinedStatusFilter] = useState('all'); // 통합 필터
+  const [dateFilter, setDateFilter] = useState(initialFilter?.type === 'date' ? initialFilter.value : 'all');
+  const [combinedStatusFilter, setCombinedStatusFilter] = useState(initialFilter?.type === 'status' ? initialFilter.value : 'all'); // 통합 필터
   const [serviceFilter, setServiceFilter] = useState('all');
   const [selectedBookings, setSelectedBookings] = useState<(string | number)[]>([]);
   const [editingId, setEditingId] = useState<string | number | null>(null);

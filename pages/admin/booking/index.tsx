@@ -22,6 +22,7 @@ export default function BookingAdmin() {
   const [bookings, setBookings] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [listViewFilter, setListViewFilter] = useState<{ type: 'date' | 'status'; value: string } | null>(null);
 
   // 예약 및 고객 데이터 로드
   const loadData = useCallback(async () => {
@@ -224,6 +225,10 @@ export default function BookingAdmin() {
               customers={customers}
               supabase={supabase}
               onUpdate={loadData}
+              onFilterClick={(filter) => {
+                setListViewFilter(filter);
+                setViewMode('list');
+              }}
             />
           )}
           {viewMode === 'calendar' && (
@@ -240,6 +245,7 @@ export default function BookingAdmin() {
               customers={customers}
               supabase={supabase}
               onUpdate={loadData}
+              initialFilter={listViewFilter || undefined}
             />
           )}
           {viewMode === 'customers' && (

@@ -29,9 +29,10 @@ interface BookingDashboardProps {
   customers: Customer[];
   supabase: any;
   onUpdate: () => void;
+  onFilterClick?: (filter: { type: 'date' | 'status'; value: string }) => void;
 }
 
-export default function BookingDashboard({ bookings, customers, supabase, onUpdate }: BookingDashboardProps) {
+export default function BookingDashboard({ bookings, customers, supabase, onUpdate, onFilterClick }: BookingDashboardProps) {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   // 통계 계산
   const stats = useMemo(() => {
@@ -172,7 +173,10 @@ export default function BookingDashboard({ bookings, customers, supabase, onUpda
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+        <div 
+          className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => onFilterClick?.({ type: 'date', value: 'today' })}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">오늘 예약</p>
@@ -184,7 +188,10 @@ export default function BookingDashboard({ bookings, customers, supabase, onUpda
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+        <div 
+          className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => onFilterClick?.({ type: 'status', value: 'pending' })}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">대기중</p>

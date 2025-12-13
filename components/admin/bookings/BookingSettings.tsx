@@ -1001,15 +1001,15 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
             )}
           </div>
 
-          {/* 저장 버튼 */}
-          <div className="pt-4 border-t">
-            <button
-              onClick={handleSettingsSave}
-              disabled={saving}
-              className="px-6 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {saving ? '저장 중...' : '설정 저장'}
-            </button>
+            {/* 저장 버튼 */}
+            <div className="pt-4 border-t">
+              <button
+                onClick={handleSettingsSave}
+                disabled={saving}
+                className="px-6 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {saving ? '저장 중...' : '설정 저장'}
+              </button>
           </div>
         </div>
       )}
