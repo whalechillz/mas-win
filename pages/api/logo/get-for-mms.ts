@@ -24,6 +24,9 @@ const SOLAPI_STORAGE_URL = 'https://api.solapi.com/storage/v1/files';
 async function uploadToSolapi(imageBuffer: Buffer, filename: string): Promise<string | null> {
   try {
     const base64Data = imageBuffer.toString('base64');
+    const imageSize = imageBuffer.length;
+    console.log(`📤 Solapi 업로드 시작: ${filename}, 크기: ${(imageSize / 1024).toFixed(2)}KB`);
+    
     const authHeaders = createSolapiSignature(SOLAPI_API_KEY, SOLAPI_API_SECRET);
 
     const response = await fetch(SOLAPI_STORAGE_URL, {
@@ -39,25 +42,59 @@ async function uploadToSolapi(imageBuffer: Buffer, filename: string): Promise<st
       })
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Solapi 업로드 실패');
+    // ⭐ 수정: 응답 본문을 안전하게 읽기
+    let responseText = '';
+    try {
+      responseText = await response.text();
+    } catch (textError: any) {
+      console.error('❌ Solapi 응답 body 읽기 실패:', textError.message);
     }
 
-    const result = await response.json();
+    if (!response.ok) {
+      let errorMessage = 'Solapi 업로드 실패';
+      try {
+        const errorData = JSON.parse(responseText);
+        errorMessage = errorData.message || errorData.error || JSON.stringify(errorData);
+        console.error('❌ Solapi 업로드 실패 상세:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData,
+          imageSize: `${(imageSize / 1024).toFixed(2)}KB`,
+          filename
+        });
+      } catch {
+        errorMessage = responseText || `HTTP ${response.status} ${response.statusText}`;
+        console.error('❌ Solapi 업로드 실패 (텍스트):', {
+          status: response.status,
+          statusText: response.statusText,
+          responseText: responseText.substring(0, 500), // 처음 500자만
+          imageSize: `${(imageSize / 1024).toFixed(2)}KB`,
+          filename
+        });
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = JSON.parse(responseText);
     const imageId = result.fileId || result.id || null;
     
-    console.log('📦 Solapi 업로드 응답:', {
+    console.log('📦 Solapi 업로드 성공:', {
       status: response.status,
       fileId: result.fileId,
       id: result.id,
       finalImageId: imageId,
-      fullResponse: result
+      imageSize: `${(imageSize / 1024).toFixed(2)}KB`,
+      filename
     });
     
     return imageId;
-  } catch (error) {
-    console.error('Solapi 업로드 오류:', error);
+  } catch (error: any) {
+    console.error('❌ Solapi 업로드 오류 상세:', {
+      error: error.message,
+      stack: error.stack,
+      filename,
+      imageSize: imageBuffer ? `${(imageBuffer.length / 1024).toFixed(2)}KB` : 'unknown'
+    });
     return null;
   }
 }
@@ -110,8 +147,29 @@ async function changeImageColor(imageBuffer: Buffer, color: string): Promise<Buf
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // ⭐ 추가: 메서드 디버깅 로깅
+  console.log('📡 get-for-mms API 호출:', {
+    method: req.method,
+    url: req.url,
+    headers: {
+      'content-type': req.headers['content-type'],
+      'user-agent': req.headers['user-agent']?.substring(0, 100)
+    },
+    bodyKeys: req.body ? Object.keys(req.body) : [],
+    body: req.body
+  });
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    console.error('❌ 잘못된 메서드:', {
+      received: req.method,
+      expected: 'POST',
+      url: req.url
+    });
+    return res.status(405).json({ 
+      error: 'Method not allowed',
+      receivedMethod: req.method,
+      allowedMethod: 'POST'
+    });
   }
 
   try {
@@ -122,6 +180,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // 로고 메타데이터 조회
+    console.log('🔍 로고 메타데이터 조회:', { logoId });
+    
     const { data: logoMetadata, error: fetchError } = await supabase
       .from('image_metadata')
       .select('*')
@@ -130,16 +190,54 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .single();
 
     if (fetchError || !logoMetadata) {
-      return res.status(404).json({ error: '로고를 찾을 수 없습니다.' });
+      console.error('❌ 로고 메타데이터 조회 실패:', {
+        logoId: logoId,
+        error: fetchError,
+        found: !!logoMetadata
+      });
+      return res.status(404).json({ 
+        error: '로고를 찾을 수 없습니다.',
+        logoId: logoId,
+        details: fetchError ? fetchError.message : '메타데이터가 없습니다.'
+      });
     }
+    
+    console.log('✅ 로고 메타데이터 조회 성공:', {
+      id: logoMetadata.id,
+      imageUrl: logoMetadata.image_url,
+      brand: logoMetadata.logo_brand,
+      type: logoMetadata.logo_type
+    });
 
     // 이미지 다운로드
+    console.log('📥 이미지 다운로드 시작:', {
+      imageUrl: logoMetadata.image_url,
+      logoId: logoId
+    });
+    
     const imageResponse = await fetch(logoMetadata.image_url);
+    
     if (!imageResponse.ok) {
-      throw new Error(`이미지 다운로드 실패: ${imageResponse.status}`);
+      let errorText = '';
+      try {
+        errorText = await imageResponse.text();
+      } catch {
+        errorText = '응답 본문 읽기 실패';
+      }
+      
+      console.error('❌ 이미지 다운로드 실패:', {
+        status: imageResponse.status,
+        statusText: imageResponse.statusText,
+        imageUrl: logoMetadata.image_url,
+        errorText: errorText.substring(0, 200), // 처음 200자만
+        logoId: logoId
+      });
+      
+      throw new Error(`이미지 다운로드 실패: ${imageResponse.status} ${imageResponse.statusText}`);
     }
 
     let imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+    console.log(`✅ 이미지 다운로드 완료: ${(imageBuffer.length / 1024).toFixed(2)}KB`);
 
     // 색상 변경 (색상이 제공된 경우)
     if (color && color !== '#000000') {
@@ -170,14 +268,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .png()
       .toBuffer();
 
-    // ⭐ 추가: 200KB 제한을 위한 압축 처리
+    // ⭐ 수정: 200KB 제한을 위한 압축 처리 (작은 이미지는 스킵)
     const MAX_SOLAPI_SIZE = 200 * 1024; // 200KB
-    console.log(`📊 로고 이미지 크기: ${(imageBuffer.length / 1024).toFixed(2)}KB`);
+    const SMALL_IMAGE_THRESHOLD = 50 * 1024; // 50KB
+    const currentSize = imageBuffer.length;
+    console.log(`📊 로고 이미지 크기: ${(currentSize / 1024).toFixed(2)}KB`);
     
     let finalImageBuffer = imageBuffer;
     let fileExtension = 'png';
     
-    if (imageBuffer.length > MAX_SOLAPI_SIZE) {
+    // ⭐ 최적화: 50KB 이하는 압축 없이 그대로 사용
+    if (currentSize <= SMALL_IMAGE_THRESHOLD) {
+      console.log(`✅ 로고 이미지가 작습니다 (${(currentSize / 1024).toFixed(2)}KB). 압축 불필요.`);
+    } else if (currentSize > MAX_SOLAPI_SIZE) {
+      // 200KB 초과: 압축 필요
       console.log('🔄 로고 이미지 압축 시작 (200KB 초과)...');
       try {
         // PNG를 JPEG로 변환하여 압축 (더 나은 압축률)
@@ -193,19 +297,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const compressionInfo = await compressImageForSolapi(jpegBuffer, MAX_SOLAPI_SIZE);
           finalImageBuffer = compressionInfo.buffer;
           fileExtension = 'jpg';
-          console.log(`✅ 로고 압축 완료: ${(imageBuffer.length / 1024).toFixed(2)}KB → ${(finalImageBuffer.length / 1024).toFixed(2)}KB (품질: ${compressionInfo.quality}%)`);
+          console.log(`✅ 로고 압축 완료: ${(currentSize / 1024).toFixed(2)}KB → ${(finalImageBuffer.length / 1024).toFixed(2)}KB (품질: ${compressionInfo.quality}%)`);
         } else {
           finalImageBuffer = jpegBuffer;
           fileExtension = 'jpg';
-          console.log(`✅ JPEG 변환으로 압축: ${(imageBuffer.length / 1024).toFixed(2)}KB → ${(finalImageBuffer.length / 1024).toFixed(2)}KB`);
+          console.log(`✅ JPEG 변환으로 압축: ${(currentSize / 1024).toFixed(2)}KB → ${(jpegBuffer.length / 1024).toFixed(2)}KB`);
         }
       } catch (compressError: any) {
-        console.error('❌ 로고 압축 실패:', compressError);
+        console.error('❌ 로고 압축 실패:', {
+          error: compressError.message,
+          stack: compressError.stack,
+          originalSize: `${(currentSize / 1024).toFixed(2)}KB`
+        });
         // 압축 실패해도 계속 진행 (Solapi가 거부할 수 있음)
         console.warn('⚠️ 압축 실패, 원본 이미지 사용 (Solapi가 거부할 수 있음)');
       }
     } else {
-      console.log(`✅ 로고 이미지 크기가 200KB 이하입니다. 압축 불필요.`);
+      // 50KB ~ 200KB: 선택적 JPEG 변환 (크기 감소 시에만)
+      console.log(`ℹ️ 로고 이미지가 ${(currentSize / 1024).toFixed(2)}KB입니다. 선택적 JPEG 변환 시도...`);
+      try {
+        const jpegBuffer = await sharp(imageBuffer)
+          .jpeg({ quality: 90, progressive: true, mozjpeg: true })
+          .toBuffer();
+        
+        // JPEG가 더 작으면 사용, 아니면 원본 PNG 사용
+        if (jpegBuffer.length < currentSize) {
+          finalImageBuffer = jpegBuffer;
+          fileExtension = 'jpg';
+          console.log(`✅ JPEG 변환으로 크기 감소: ${(currentSize / 1024).toFixed(2)}KB → ${(jpegBuffer.length / 1024).toFixed(2)}KB`);
+        } else {
+          console.log(`ℹ️ JPEG 변환 후 크기가 증가했습니다. 원본 PNG 사용.`);
+        }
+      } catch (convertError: any) {
+        console.warn('⚠️ JPEG 변환 실패, 원본 PNG 사용:', convertError.message);
+      }
     }
 
     // ⭐ 최종 크기 체크
@@ -232,9 +357,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     });
   } catch (error: any) {
-    console.error('로고 가져오기 오류:', error);
+    console.error('❌ 로고 가져오기 오류 상세:', {
+      error: error.message,
+      stack: error.stack,
+      logoId: req.body?.logoId,
+      color: req.body?.color,
+      size: req.body?.size
+    });
     return res.status(500).json({
-      error: error.message || '로고 가져오기 중 오류가 발생했습니다.'
+      error: error.message || '로고 가져오기 중 오류가 발생했습니다.',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }
