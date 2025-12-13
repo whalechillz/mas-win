@@ -37,6 +37,12 @@
       "destination": "/api/:path*"
     }
   ],
+  "crons": [
+    {
+      "path": "/api/admin/send-scheduled-sms",
+      "schedule": "* * * * *"
+    }
+  ],
   "redirects": [
     {
       "source": "/muziik/ko/sapphire",
