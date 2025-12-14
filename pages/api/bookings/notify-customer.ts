@@ -299,65 +299,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // 예약 확정 시에는 MMS로 전환하여 로고 첨부
             messageType = 'MMS';
             
-            // 갤러리에서 로고 가져오기
+            // ⭐ 수정: MMS 시스템과 동일한 방식으로 로고 이미지 URL 가져오기
             try {
               console.log('🔍 로고 가져오기 시작:', { logoId, logoColor, logoSize, enableLogo });
               
-              // ⭐ 수정: 요청 호스트를 사용하여 동적으로 baseUrl 설정 (405 에러 해결)
-              const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-              const host = req.headers.host || process.env.NEXT_PUBLIC_BASE_URL?.replace(/^https?:\/\//, '') || 'localhost:3000';
-              const baseUrl = `${protocol}://${host}`;
+              // 1. 로고 메타데이터에서 image_url 가져오기
+              const { data: logoMetadata, error: fetchError } = await supabase
+                .from('image_metadata')
+                .select('image_url')
+                .eq('id', logoId)
+                .eq('is_logo', true)
+                .single();
+
+              if (fetchError || !logoMetadata || !logoMetadata.image_url) {
+                throw new Error(`로고를 찾을 수 없습니다: ${fetchError?.message || '메타데이터가 없습니다.'}`);
+              }
+
+              const logoImageUrl = logoMetadata.image_url;
+              console.log('✅ 로고 이미지 URL 가져오기 성공:', logoImageUrl);
+
+              // 2. MMS 시스템과 동일하게 reupload-image API 사용
+              const baseUrl = req.headers.origin || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
               
-              console.log('🌐 로고 API baseUrl:', baseUrl);
+              console.log('🔄 MMS 시스템과 동일하게 reupload-image API 호출:', logoImageUrl);
               
-              const logoResponse = await fetch(`${baseUrl}/api/logo/get-for-mms`, {
+              const reuploadResponse = await fetch(`${baseUrl}/api/solapi/reupload-image`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  logoId: logoId,
-                  color: logoColor,
-                  size: logoSize
+                  imageUrl: logoImageUrl,
+                  messageId: bookingId // 예약 ID를 messageId로 전달
                 })
               });
 
-              console.log('📡 로고 API 응답 상태:', logoResponse.status, logoResponse.statusText);
-
-              // ⭐ 수정: 응답 body를 안전하게 읽기 (한 번만 읽기)
-              let logoResponseText = '';
-              try {
-                logoResponseText = await logoResponse.text();
-              } catch (textError: any) {
-                console.error('❌ 로고 API 응답 body 읽기 실패:', textError.message);
-                logoResponseText = '';
+              if (!reuploadResponse.ok) {
+                const errorData = await reuploadResponse.json().catch(() => ({ message: '알 수 없는 오류' }));
+                throw new Error(`로고 재업로드 실패: ${errorData.message || reuploadResponse.statusText}`);
               }
 
-              if (!logoResponse.ok) {
-                let errorText = '';
-                try {
-                  const errorData = JSON.parse(logoResponseText);
-                  errorText = errorData.error || JSON.stringify(errorData);
-                  console.error('❌ 로고 API JSON 에러:', errorData);
-                } catch {
-                  errorText = logoResponseText || `HTTP ${logoResponse.status} ${logoResponse.statusText}`;
-                  console.error('❌ 로고 API 텍스트 에러:', errorText);
-                }
-                throw new Error(`로고 API HTTP 오류 (${logoResponse.status}): ${errorText}`);
-              }
-
-              // ⭐ 수정: 이미 읽은 텍스트를 JSON으로 파싱
-              let logoResult: any;
-              try {
-                logoResult = JSON.parse(logoResponseText);
-              } catch (parseError) {
-                throw new Error(`로고 API 응답 파싱 실패: ${parseError instanceof Error ? parseError.message : '알 수 없는 오류'}`);
-              }
-              console.log('📦 로고 API 응답 데이터:', logoResult);
+              const reuploadResult = await reuploadResponse.json();
               
-              if (logoResult.success && logoResult.imageId) {
-                imageId = logoResult.imageId;
-                console.log('✅ 로고 가져오기 성공:', logoResult.imageId);
+              if (reuploadResult.success && reuploadResult.imageId) {
+                imageId = reuploadResult.imageId;
+                console.log('✅ 로고 Solapi 업로드 성공 (MMS 시스템과 동일한 방식):', imageId);
               } else {
-                throw new Error(`로고 API 응답 실패: ${logoResult.error || 'imageId를 받지 못했습니다.'}`);
+                throw new Error(`로고 재업로드 실패: ${reuploadResult.message || 'imageId를 받지 못했습니다.'}`);
               }
             } catch (error: any) {
               console.error('❌ 로고 가져오기 실패 상세:', {
@@ -372,12 +358,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               });
               
               // ⭐ 수정: 로고가 필수인 경우에만 에러 반환 (enableLogo가 true인 경우)
-              // enableLogo가 false이면 여기 도달하지 않지만, 방어적으로 체크
               if (enableLogo) {
                 return res.status(500).json({
                   success: false,
                   message: `예약 확정 메시지 발송 실패: 로고를 가져올 수 없습니다.`,
-                  error: error.message || '로고 API 호출 실패',
+                  error: error.message || '로고 재업로드 실패',
                   details: {
                     logoId: logoId,
                     logoSize: logoSize,
@@ -387,9 +372,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     stack: error.stack
                   }
                 });
-              } else {
-                // enableLogo가 false인데 여기 도달했다는 것은 로직 오류
-                console.warn('⚠️ enableLogo가 false인데 로고 가져오기 블록에 진입함. 로고 없이 계속 진행.');
               }
             }
           } else if (enableLogo && !logoId) {
