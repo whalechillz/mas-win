@@ -171,6 +171,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.log('metadata 컬럼을 사용할 수 없습니다. note 필드만 사용합니다.');
       }
 
+      // ⭐ 추가: scheduled_at 형식 검증 및 변환
+      let scheduledAtISO: string;
+      try {
+        const scheduledDate = new Date(scheduled_at);
+        if (Number.isNaN(scheduledDate.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: '유효하지 않은 발송 시간 형식입니다.',
+          });
+        }
+        scheduledAtISO = scheduledDate.toISOString();
+      } catch (dateError: any) {
+        return res.status(400).json({
+          success: false,
+          message: `발송 시간 변환 실패: ${dateError.message}`,
+        });
+      }
+
+      // ⭐ 수정: ISO 형식으로 저장
+      insertData.scheduled_at = scheduledAtISO;
+
       const { data: smsRecord, error: smsError } = await supabase
         .from('channel_sms')
         .insert(insertData)
@@ -178,10 +199,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .single();
 
       if (smsError) {
-        console.error('예약 메시지 저장 오류:', smsError);
+        // ⭐ 수정: 더 자세한 에러 로깅
+        console.error('예약 메시지 저장 오류 상세:', {
+          error: smsError,
+          message: smsError.message,
+          details: smsError.details,
+          hint: smsError.hint,
+          code: smsError.code,
+          insertData: {
+            ...insertData,
+            metadata: insertData.metadata ? JSON.stringify(insertData.metadata) : null
+          }
+        });
         return res.status(500).json({
           success: false,
-          message: '예약 메시지 저장에 실패했습니다.',
+          message: `예약 메시지 저장에 실패했습니다: ${smsError.message || '알 수 없는 오류'}`,
+          error: smsError.message,
+          details: smsError.details,
+          code: smsError.code
         });
       }
 
@@ -228,11 +263,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
+      // ⭐ 추가: scheduled_at 형식 검증 및 변환
+      let scheduledAtISO: string;
+      try {
+        const scheduledDate = new Date(scheduled_at);
+        if (Number.isNaN(scheduledDate.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: '유효하지 않은 발송 시간 형식입니다.',
+          });
+        }
+        scheduledAtISO = scheduledDate.toISOString();
+      } catch (dateError: any) {
+        return res.status(400).json({
+          success: false,
+          message: `발송 시간 변환 실패: ${dateError.message}`,
+        });
+      }
+
       // 예약 메시지 수정
       const { data: updatedReminder, error: updateError } = await supabase
         .from('channel_sms')
         .update({
-          scheduled_at: scheduled_at,
+          scheduled_at: scheduledAtISO, // ⭐ ISO 형식 사용
           updated_at: new Date().toISOString(),
         })
         .eq('id', existingReminders[0].id)

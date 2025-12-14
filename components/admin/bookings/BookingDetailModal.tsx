@@ -217,6 +217,14 @@ export default function BookingDetailModal({
     try {
       const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
       
+      // ⭐ 추가: 예약 설정 조회 (Slack 알림 여부 확인)
+      const { data: settings } = await supabase
+        .from('booking_settings')
+        .select('notify_on_confirmed_slack, notify_on_confirmed_staff_sms')
+        .eq('id', '00000000-0000-0000-0000-000000000001')
+        .single();
+
+      // 고객 메시지 발송
       const response = await fetch(`/api/bookings/notify-customer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -228,6 +236,31 @@ export default function BookingDetailModal({
       });
 
       const result = await response.json();
+      
+      // ⭐ 추가: Slack 알림 발송 (설정 확인)
+      if (settings?.notify_on_confirmed_slack !== false) {
+        fetch(`/api/slack/booking-notify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'booking_confirmed',
+            bookingId: bookingId,
+          }),
+        }).catch(err => console.error('Slack 알림 발송 오류:', err));
+      }
+
+      // ⭐ 추가: 관리자 SMS 알림 발송 (설정 확인)
+      if (settings?.notify_on_confirmed_staff_sms !== false) {
+        fetch(`/api/bookings/notify-staff`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bookingId: bookingId,
+            notificationType: 'confirmed',
+            bookingData: editData,
+          }),
+        }).catch(err => console.error('관리자 SMS 알림 발송 오류:', err));
+      }
       
       if (response.ok && result.success) {
         alert('✅ 고객에게 확정 메시지가 발송되었습니다.');
@@ -252,13 +285,22 @@ export default function BookingDetailModal({
           const response = await fetch(`/api/bookings/${bookingId}/schedule-reminder`, {
             method: 'DELETE',
           });
-          if (response.ok) {
+          
+          // ⭐ 수정: 에러 응답 읽기
+          const result = await response.json().catch(() => ({ 
+            success: false, 
+            message: '응답을 읽을 수 없습니다.' 
+          }));
+
+          if (response.ok && result.success) {
             setExistingReminder(null);
             alert('당일 예약 메시지가 취소되었습니다.');
+          } else {
+            throw new Error(result.message || '예약 메시지 취소에 실패했습니다.');
           }
         } catch (error: any) {
           console.error('예약 메시지 삭제 오류:', error);
-          alert('예약 메시지 취소에 실패했습니다.');
+          alert('예약 메시지 취소에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
         } finally {
           setReminderSaving(false);
         }
@@ -267,29 +309,43 @@ export default function BookingDetailModal({
     }
 
     // 예약 메시지 생성/수정
+    // ⭐ 추가: scheduled_at 검증
+    if (!reminderScheduledAt) {
+      alert('발송 시간을 선택해주세요.');
+      return;
+    }
+
     setReminderSaving(true);
     try {
       const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
+      
+      // ⭐ 추가: datetime-local 형식을 ISO 형식으로 변환
+      const scheduledAtISO = new Date(reminderScheduledAt).toISOString();
+      
       const response = await fetch(`/api/bookings/${bookingId}/schedule-reminder`, {
         method: existingReminder ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          scheduled_at: reminderScheduledAt,
+          scheduled_at: scheduledAtISO, // ⭐ ISO 형식으로 변환
         }),
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          setExistingReminder(result.data);
-          alert('당일 예약 메시지가 설정되었습니다.');
-        }
+      // ⭐ 수정: 에러 응답 읽기
+      const result = await response.json().catch(() => ({ 
+        success: false, 
+        message: '응답을 읽을 수 없습니다.' 
+      }));
+
+      if (response.ok && result.success) {
+        setExistingReminder(result.data);
+        alert('당일 예약 메시지가 설정되었습니다.');
       } else {
-        throw new Error('예약 메시지 설정에 실패했습니다.');
+        // ⭐ 수정: 실제 에러 메시지 사용
+        throw new Error(result.message || '예약 메시지 설정에 실패했습니다.');
       }
     } catch (error: any) {
       console.error('예약 메시지 저장 오류:', error);
-      alert('예약 메시지 설정에 실패했습니다: ' + error.message);
+      alert('예약 메시지 설정에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
     } finally {
       setReminderSaving(false);
     }
