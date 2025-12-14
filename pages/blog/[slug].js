@@ -423,7 +423,7 @@ export default function BlogPost({ post: staticPost, relatedPosts: staticRelated
 
       fetchPost();
     }
-  }, [slug, staticPost, staticRelatedPosts]);
+  }, [slug, staticPost, staticRelatedPosts, staticPrevPost, staticNextPost]);
 
   if (loading) {
     return (
