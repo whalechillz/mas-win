@@ -72,31 +72,35 @@ export default function TryAMassgoo() {
           </div>
           
           <div className="relative z-10 container mx-auto px-4 text-center">
-            {/* 배지 - 그라데이션 적용 */}
+            {/* 배지 - 그라데이션 및 그림자 효과 */}
             <div className="mb-4 md:mb-6">
-              <span className="inline-block bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 text-black px-4 py-1.5 rounded-full text-xs md:text-sm font-bold">
+              <span className="inline-block bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 text-black px-4 py-1.5 md:px-5 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg">
                 KGFA 1급 전문 피터
               </span>
             </div>
             
-            {/* 메인 타이틀 - 하단 섹션과 일관된 크기 */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 text-white leading-tight">
-              마쓰구 드라이버<br className="hidden md:block" />
-              <span className="text-yellow-400">시타서비스</span>
+            {/* 메인 타이틀 - 모바일 최적화 */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 text-white leading-[1.2] tracking-tight">
+              마쓰구 드라이버<br />
+              <span className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 bg-clip-text text-transparent">
+                시타서비스
+              </span>
             </h1>
             
-            {/* 서브텍스트 - 하나만, 핵심만 */}
-            <p className="text-lg md:text-xl lg:text-2xl mb-8 md:mb-10 text-gray-200 max-w-xl mx-auto">
-              무료 시타 체험으로 최적의 드라이버를 찾아보세요
+            {/* 서브텍스트 - 모바일에서 행바꿈 */}
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-8 md:mb-10 text-gray-200 max-w-xl mx-auto leading-relaxed px-2">
+              무료 시타 체험으로<br className="sm:hidden" />
+              최적의 드라이버를 찾아보세요
             </p>
             
-            {/* CTA - 하나만, 크게 */}
+            {/* CTA - 최신 디자인 트렌드 적용 */}
             <div className="flex justify-center">
               <Link
                 href="/booking"
-                className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 md:px-12 md:py-5 rounded-lg font-bold text-base md:text-lg transition-all shadow-lg hover:shadow-xl transform hover:scale-105 w-full max-w-xs md:w-auto"
+                className="group inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 md:px-12 md:py-5 rounded-xl font-bold text-base md:text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 w-full max-w-xs md:w-auto"
               >
-                무료 시타 예약하기 →
+                <span>무료 시타 예약하기</span>
+                <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
               </Link>
             </div>
           </div>
@@ -106,58 +110,61 @@ export default function TryAMassgoo() {
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto">
-              <h2 className="text-4xl font-bold text-center mb-12 text-gray-900">
-                왜 마쓰구 시타를 선택해야 할까요?
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12 text-gray-900 leading-tight px-4">
+                왜 마쓰구 시타를<br className="sm:hidden" />
+                선택해야 할까요?
               </h2>
               
-              <div className="grid md:grid-cols-3 gap-8">
+              <div className="grid md:grid-cols-3 gap-6 md:gap-8">
                 {/* KGFA 1급 전문 피터 - 상담 장면 */}
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                  <div className="relative h-48">
+                <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+                  <div className="relative h-48 overflow-hidden">
                     <Image
                       src="/main/store/fitting-consultation.jpeg"
                       alt="시타 상담 장면"
                       fill
-                      className="object-cover"
+                      className="object-cover transition-transform duration-500 hover:scale-110"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                   </div>
-                  <div className="p-8">
+                  <div className="p-6 md:p-8">
                     <div className="text-4xl mb-4">🏌️</div>
-                    <h3 className="text-2xl font-bold mb-4 text-gray-900">KGFA 1급 전문 피터</h3>
-                    <p className="text-gray-600">
+                    <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 text-gray-900">KGFA 1급 전문 피터</h3>
+                    <p className="text-gray-600 text-sm md:text-base leading-relaxed">
                       골프 피팅 전문가가 직접 진행하는 정확한 스윙 분석과 클럽 추천
                     </p>
                   </div>
                 </div>
 
                 {/* 정밀 스윙 분석 - 체험 장면 */}
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                  <div className="relative h-48">
+                <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+                  <div className="relative h-48 overflow-hidden">
                     <Image
                       src="/main/store/fitting-experience.png"
                       alt="시타 체험 장면"
                       fill
-                      className="object-cover"
+                      className="object-cover transition-transform duration-500 hover:scale-110"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                   </div>
-                  <div className="p-8">
+                  <div className="p-6 md:p-8">
                     <div className="text-4xl mb-4">📊</div>
-                    <h3 className="text-2xl font-bold mb-4 text-gray-900">정밀 스윙 분석</h3>
-                    <p className="text-gray-600">
+                    <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 text-gray-900">정밀 스윙 분석</h3>
+                    <p className="text-gray-600 text-sm md:text-base leading-relaxed">
                       최신 장비를 활용한 스윙 속도, 볼 스피드, 비거리 등 정확한 데이터 측정
                     </p>
                   </div>
                 </div>
 
                 {/* 맞춤형 추천 - 전문 피터 작업 (AI 생성 이미지) */}
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                  <div className="relative h-48">
+                <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+                  <div className="relative h-48 overflow-hidden">
                     {fitterImageUrl ? (
                       <Image
                         src={fitterImageUrl}
                         alt="전문 피터 작업 장면"
                         fill
-                        className="object-cover"
+                        className="object-cover transition-transform duration-500 hover:scale-110"
                       />
                     ) : (
                       <div className="h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
@@ -172,11 +179,12 @@ export default function TryAMassgoo() {
                         </div>
                       </div>
                     )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                   </div>
-                  <div className="p-8">
+                  <div className="p-6 md:p-8">
                     <div className="text-4xl mb-4">🎯</div>
-                    <h3 className="text-2xl font-bold mb-4 text-gray-900">맞춤형 추천</h3>
-                    <p className="text-gray-600">
+                    <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 text-gray-900">맞춤형 추천</h3>
+                    <p className="text-gray-600 text-sm md:text-base leading-relaxed">
                       개인의 스윙 스타일과 목표에 맞는 최적의 드라이버 추천
                     </p>
                   </div>
@@ -190,7 +198,7 @@ export default function TryAMassgoo() {
         <section className="py-16 bg-white">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-4xl font-bold text-center mb-12 text-gray-900">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12 text-gray-900 leading-tight px-4">
                 간편한 예약 프로세스
               </h2>
               
@@ -247,39 +255,62 @@ export default function TryAMassgoo() {
               <div className="mt-12 text-center">
                 <Link
                   href="/booking"
-                  className="inline-block bg-blue-600 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition-colors shadow-lg"
+                  className="group inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105"
                 >
-                  예약하기 →
+                  <span>예약하기</span>
+                  <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
                 </Link>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 매장 정보 */}
-        <section className="py-16 bg-gray-50">
+        {/* 매장 정보 - 최신 디자인 */}
+        <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
           <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-3xl font-bold mb-6 text-gray-900">시타 매장 정보</h2>
-              <div className="space-y-4 text-gray-700">
-                <div>
-                  <strong className="text-gray-900">위치:</strong> 경기도 수원시 영통구 법조로149번길 200
+            <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-gray-100">
+              <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-gray-900">시타 매장 정보</h2>
+              <div className="space-y-4 md:space-y-5 text-gray-700">
+                <div className="flex items-start gap-3">
+                  <span className="text-xl mt-0.5">📍</span>
+                  <div>
+                    <strong className="text-gray-900 block mb-1">위치</strong>
+                    <span className="text-gray-700">경기도 수원시 영통구 법조로149번길 200</span>
+                  </div>
                 </div>
-                <div>
-                  <strong className="text-gray-900">전화:</strong> 031-215-0013
+                <div className="flex items-start gap-3">
+                  <span className="text-xl mt-0.5">📞</span>
+                  <div>
+                    <strong className="text-gray-900 block mb-1">전화</strong>
+                    <a href="tel:031-215-0013" className="text-blue-600 hover:text-blue-700 font-medium">
+                      031-215-0013
+                    </a>
+                  </div>
                 </div>
-                <div>
-                  <strong className="text-gray-900">운영시간:</strong> 평일 09:00 - 18:00, 주말 예약제 운영
+                <div className="flex items-start gap-3">
+                  <span className="text-xl mt-0.5">🕘</span>
+                  <div>
+                    <strong className="text-gray-900 block mb-1">운영시간</strong>
+                    <span className="text-gray-700">평일 09:00 - 18:00, 주말 예약제 운영</span>
+                  </div>
                 </div>
-                <div className="text-sm text-gray-600">
-                  비거리 상담: 080-028-8888 (무료)
+                <div className="flex items-start gap-3 pt-2 border-t border-gray-200">
+                  <span className="text-xl mt-0.5">☎️</span>
+                  <div>
+                    <strong className="text-gray-900 block mb-1 text-base md:text-lg">비거리 상담</strong>
+                    <a href="tel:080-028-8888" className="text-blue-600 hover:text-blue-700 font-semibold text-base md:text-lg">
+                      080-028-8888
+                    </a>
+                    <span className="text-gray-600 text-sm md:text-base ml-2">(무료)</span>
+                  </div>
                 </div>
                 <div className="pt-4">
                   <Link
                     href="/contact"
-                    className="text-blue-600 hover:text-blue-700 font-semibold"
+                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors"
                   >
-                    매장 위치 자세히 보기 →
+                    <span>매장 위치 자세히 보기</span>
+                    <span className="transition-transform hover:translate-x-1">→</span>
                   </Link>
                 </div>
               </div>
