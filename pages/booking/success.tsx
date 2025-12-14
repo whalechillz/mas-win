@@ -19,26 +19,20 @@ export default function BookingSuccess() {
         <div className="container mx-auto px-4 max-w-2xl">
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             {/* 진행 단계 표시 */}
-            <div className="mb-8 flex items-center justify-center gap-1 sm:gap-2 flex-nowrap overflow-x-auto">
-              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            <div className="mb-8 flex items-center justify-center gap-0.5 sm:gap-1 flex-nowrap overflow-x-auto">
+              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                 <div className="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold text-sm">1</div>
-                <span className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap">
-                  <span className="hidden sm:inline">날짜/시간 선택</span>
-                  <span className="sm:hidden">날짜/시간</span>
-                </span>
+                <span className="text-[9px] sm:text-[10px] text-gray-500 whitespace-nowrap">날짜/시간</span>
               </div>
               <div className="w-4 sm:w-8 h-0.5 bg-gray-300 shrink-0"></div>
-              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                 <div className="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold text-sm">2</div>
-                <span className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap">
-                  <span className="hidden sm:inline">정보 입력</span>
-                  <span className="sm:hidden">정보</span>
-                </span>
+                <span className="text-[9px] sm:text-[10px] text-gray-500 whitespace-nowrap">정보</span>
               </div>
               <div className="w-4 sm:w-8 h-0.5 bg-gray-300 shrink-0"></div>
-              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                 <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">3</div>
-                <span className="text-[10px] sm:text-xs font-medium text-gray-700 whitespace-nowrap">완료</span>
+                <span className="text-[9px] sm:text-[10px] font-medium text-gray-700 whitespace-nowrap">완료</span>
               </div>
             </div>
 

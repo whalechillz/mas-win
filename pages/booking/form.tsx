@@ -526,40 +526,37 @@ export default function BookingForm() {
             </div>
 
             {/* 진행 단계 표시 */}
-            <div className="mb-8 flex items-center justify-center gap-1 sm:gap-2 flex-nowrap overflow-x-auto">
-              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            <div className="mb-8 flex items-center justify-center gap-0.5 sm:gap-1 flex-nowrap overflow-x-auto">
+              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                   currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
                 }`}>
                   {currentStep > 1 ? '✓' : '1'}
                 </div>
-                <span className={`text-[10px] sm:text-xs ${currentStep >= 1 ? 'font-medium text-gray-700' : 'text-gray-500'} whitespace-nowrap`}>
-                  <span className="hidden sm:inline">기본 정보</span>
-                  <span className="sm:hidden">기본</span>
+                <span className={`text-[9px] sm:text-[10px] ${currentStep >= 1 ? 'font-medium text-gray-700' : 'text-gray-500'} whitespace-nowrap`}>
+                  날짜/시간
                 </span>
               </div>
               <div className={`w-4 sm:w-8 h-0.5 shrink-0 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                   currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
                 }`}>
                   {currentStep > 2 ? '✓' : '2'}
                 </div>
-                <span className={`text-[10px] sm:text-xs ${currentStep >= 2 ? 'font-medium text-gray-700' : 'text-gray-500'} whitespace-nowrap`}>
-                  <span className="hidden sm:inline">골프 정보</span>
-                  <span className="sm:hidden">골프</span>
+                <span className={`text-[9px] sm:text-[10px] ${currentStep >= 2 ? 'font-medium text-gray-700' : 'text-gray-500'} whitespace-nowrap`}>
+                  정보
                 </span>
               </div>
               <div className={`w-4 sm:w-8 h-0.5 shrink-0 ${currentStep >= 3 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                   currentStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
                 }`}>
                   3
                 </div>
-                <span className={`text-[10px] sm:text-xs ${currentStep >= 3 ? 'font-medium text-gray-700' : 'text-gray-500'} whitespace-nowrap`}>
-                  <span className="hidden sm:inline">개인화</span>
-                  <span className="sm:hidden">개인화</span>
+                <span className={`text-[9px] sm:text-[10px] ${currentStep >= 3 ? 'font-medium text-gray-700' : 'text-gray-500'} whitespace-nowrap`}>
+                  완료
                 </span>
               </div>
             </div>

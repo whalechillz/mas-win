@@ -334,6 +334,6 @@ function formatKoreanDateFromString(dateStr: string): string {
   const [year, month, day] = dateStr.split('-').map(Number);
   const dateObj = new Date(year, month - 1, day);
   const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][dateObj.getDay()];
-  return `${year}년 ${month}월 ${day}일 (${dayOfWeek})`;
+  return `${year}년${month}월${day}일(${dayOfWeek})`;
 }
 

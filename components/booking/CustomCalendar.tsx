@@ -157,7 +157,7 @@ export default function CustomCalendar({
         <div className="mb-4">
           <button
             onClick={onNextAvailable}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            className="w-full px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors"
           >
             다음 예약 가능일: {nextAvailableDate}
           </button>

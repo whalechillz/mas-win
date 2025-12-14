@@ -373,20 +373,20 @@ export default function Booking() {
             </div>
 
             {/* 진행 단계 표시 */}
-            <div className="mb-8 flex items-center justify-center gap-2 sm:gap-4 flex-wrap">
-              <div className="flex items-center gap-2">
+            <div className="mb-8 flex items-center justify-center gap-0.5 sm:gap-1 flex-nowrap overflow-x-auto">
+              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                 <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">1</div>
-                <span className="text-xs sm:text-sm font-medium text-gray-700">날짜/시간 선택</span>
+                <span className="text-[9px] sm:text-[10px] font-medium text-gray-700 whitespace-nowrap">날짜/시간</span>
               </div>
-              <div className="w-8 sm:w-12 h-0.5 bg-gray-300"></div>
-              <div className="flex items-center gap-2">
+              <div className="w-4 sm:w-8 h-0.5 bg-gray-300 shrink-0"></div>
+              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                 <div className="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold text-sm">2</div>
-                <span className="text-xs sm:text-sm text-gray-500">정보 입력</span>
+                <span className="text-[9px] sm:text-[10px] text-gray-500 whitespace-nowrap">정보</span>
               </div>
-              <div className="w-8 sm:w-12 h-0.5 bg-gray-300"></div>
-              <div className="flex items-center gap-2">
+              <div className="w-4 sm:w-8 h-0.5 bg-gray-300 shrink-0"></div>
+              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                 <div className="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold text-sm">3</div>
-                <span className="text-xs sm:text-sm text-gray-500">완료</span>
+                <span className="text-[9px] sm:text-[10px] text-gray-500 whitespace-nowrap">완료</span>
               </div>
             </div>
 
