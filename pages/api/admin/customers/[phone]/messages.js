@@ -108,27 +108,69 @@ export default async function handler(req, res) {
       const contentIdNumber = Number(log.content_id);
       const detail = !Number.isNaN(contentIdNumber) ? smsDetailsMap.get(contentIdNumber) : null;
 
-      // detail에서 예약 정보 확인
-      const isBookingMessage = detail?.metadata?.booking_id || detail?.note?.includes('예약');
+      // detail에서 예약 정보 확인 (더 강화된 로직)
+      let isBookingMessage = false;
+      if (detail) {
+        // metadata가 객체인지 문자열인지 확인
+        let metadata = detail.metadata;
+        if (typeof metadata === 'string') {
+          try {
+            metadata = JSON.parse(metadata);
+          } catch (e) {
+            metadata = null;
+          }
+        }
 
-      return {
-        logId: log.id,
-        messageId: Number.isNaN(contentIdNumber) ? null : contentIdNumber,
-        messageText: detail?.message_text || null,
-        messageType: detail?.message_type || log.message_type || null,
-        sentAt: log.sent_at || detail?.sent_at || null,
-        createdAt: detail?.created_at || null,
-        sendStatus: log.status || null,
-        messageStatus: detail?.status || null,
-        note: detail?.note || null,
-        solapiGroupId: detail?.solapi_group_id || null,
-        successCount: detail?.success_count !== undefined ? detail.success_count : null,
-        failCount: detail?.fail_count !== undefined ? detail.fail_count : null,
-        imageUrl: detail?.image_url || null,
-        isBookingMessage: isBookingMessage,
-        bookingId: detail?.metadata?.booking_id || null,
-        notificationType: detail?.metadata?.notification_type || null,
-      };
+        // 예약 메시지 판단 조건
+        isBookingMessage = !!(
+          (metadata && metadata.booking_id) ||
+          detail.note?.includes('예약') ||
+          detail.note?.includes('시타') ||
+          detail.message_text?.includes('예약') ||
+          detail.message_text?.includes('시타') ||
+          detail.note?.includes('스탭진 알림')
+        );
+
+        return {
+          logId: log.id,
+          messageId: Number.isNaN(contentIdNumber) ? null : contentIdNumber,
+          messageText: detail.message_text || null,
+          messageType: detail.message_type || log.message_type || null,
+          sentAt: log.sent_at || detail.sent_at || null,
+          createdAt: detail.created_at || null,
+          sendStatus: log.status || null,
+          messageStatus: detail.status || null,
+          note: detail.note || null,
+          solapiGroupId: detail.solapi_group_id || null,
+          successCount: detail.success_count !== undefined ? detail.success_count : null,
+          failCount: detail.fail_count !== undefined ? detail.fail_count : null,
+          imageUrl: detail.image_url || null,
+          isBookingMessage: isBookingMessage,
+          bookingId: (metadata && metadata.booking_id) || null,
+          notificationType: (metadata && metadata.notification_type) || null,
+        };
+      } else {
+        // detail이 null인 경우 (channel_sms에 없는 메시지)
+        // message_logs만 있는 경우는 일반적으로 홍보 메시지
+        return {
+          logId: log.id,
+          messageId: Number.isNaN(contentIdNumber) ? null : contentIdNumber,
+          messageText: null,
+          messageType: log.message_type || null,
+          sentAt: log.sent_at || null,
+          createdAt: null,
+          sendStatus: log.status || null,
+          messageStatus: null,
+          note: null,
+          solapiGroupId: null,
+          successCount: null,
+          failCount: null,
+          imageUrl: null,
+          isBookingMessage: false, // detail이 없으면 홍보 메시지로 간주
+          bookingId: null,
+          notificationType: null,
+        };
+      }
     });
 
     // 5. channel_sms 기반 메시지 변환 (예약 관련 메시지)
@@ -138,8 +180,25 @@ export default async function handler(req, res) {
         return !messageIds.includes(record.id);
       })
       .map((record) => {
-        // metadata에서 예약 정보 확인
-        const isBookingMessage = record.metadata?.booking_id || record.note?.includes('예약');
+        // metadata가 객체인지 문자열인지 확인
+        let metadata = record.metadata;
+        if (typeof metadata === 'string') {
+          try {
+            metadata = JSON.parse(metadata);
+          } catch (e) {
+            metadata = null;
+          }
+        }
+
+        // 예약 메시지 판단 조건 (더 강화된 로직)
+        const isBookingMessage = !!(
+          (metadata && metadata.booking_id) ||
+          record.note?.includes('예약') ||
+          record.note?.includes('시타') ||
+          record.message_text?.includes('예약') ||
+          record.message_text?.includes('시타') ||
+          record.note?.includes('스탭진 알림')
+        );
 
         return {
           logId: null, // channel_sms 직접 조회는 logId 없음
@@ -156,8 +215,8 @@ export default async function handler(req, res) {
           failCount: record.fail_count !== undefined ? record.fail_count : null,
           imageUrl: record.image_url || null,
           isBookingMessage: isBookingMessage,
-          bookingId: record.metadata?.booking_id || null,
-          notificationType: record.metadata?.notification_type || null,
+          bookingId: (metadata && metadata.booking_id) || null,
+          notificationType: (metadata && metadata.notification_type) || null,
         };
       });
 
