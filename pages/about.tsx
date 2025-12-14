@@ -79,14 +79,18 @@ export default function About() {
           </div>
           <div className="relative z-10 container mx-auto px-4 text-center">
             <div className="max-w-4xl mx-auto">
-              <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-                22년 전, 하나의 꿈이 시작되었습니다
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-white mb-4 md:mb-6 leading-[1.2] tracking-tight px-2">
+                22년 전,<br className="sm:hidden" />
+                하나의 꿈이<br className="hidden sm:block md:hidden" />
+                시작되었습니다
               </h1>
-              <p className="text-xl md:text-2xl text-gray-200 mb-8 leading-relaxed">
-                정직함과 정확성으로 골프의 미래를 새롭게 정의하는 여정
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-200 mb-6 md:mb-8 leading-relaxed px-2">
+                정직함과 정확성으로<br className="sm:hidden" />
+                골프의 미래를 새롭게 정의하는 여정
               </p>
-              <p className="text-lg text-gray-300 max-w-3xl mx-auto leading-relaxed">
-                2003년, 일본 장인 정신과 혁신 기술력이 만나 MASSGOO가 탄생했습니다.<br/>
+              <p className="text-sm sm:text-base md:text-lg text-gray-300 max-w-3xl mx-auto leading-relaxed px-2">
+                2003년, 일본 장인 정신과 혁신 기술력이 만나<br className="sm:hidden" />
+                MASSGOO가 탄생했습니다.<br />
                 지금까지 골퍼들과 함께한 22년의 여정을 소개합니다.
               </p>
             </div>
@@ -94,12 +98,14 @@ export default function About() {
         </section>
 
         {/* 브랜드 철학 */}
-        <section className="py-20 bg-white">
+        <section className="py-12 md:py-20 bg-white">
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">브랜드 철학</h2>
-                <div className="w-24 h-1 bg-red-600 mx-auto mb-8"></div>
+              <div className="text-center mb-12 md:mb-16">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight px-4">
+                  브랜드 철학
+                </h2>
+                <div className="w-16 md:w-24 h-0.5 md:h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent mx-auto mb-6 md:mb-8"></div>
               </div>
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="space-y-6">
@@ -131,13 +137,17 @@ export default function About() {
         </section>
 
         {/* 혁신의 시작 */}
-        <section className="py-20 bg-gray-50">
+        <section className="py-12 md:py-20 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">혁신의 시작</h2>
-                <div className="w-24 h-1 bg-red-600 mx-auto mb-8"></div>
-                <p className="text-xl text-gray-600 max-w-3xl mx-auto">2003년, 드라이버와 우드 생산의 시작</p>
+              <div className="text-center mb-12 md:mb-16">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight px-4">
+                  혁신의 시작
+                </h2>
+                <div className="w-16 md:w-24 h-0.5 md:h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent mx-auto mb-4 md:mb-8"></div>
+                <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto px-4">
+                  2003년, 드라이버와 우드 생산의 시작
+                </p>
               </div>
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="relative aspect-video rounded-2xl overflow-hidden shadow-xl">
@@ -163,56 +173,58 @@ export default function About() {
         </section>
 
         {/* 차별화된 기술력 */}
-        <section className="py-20 bg-white">
+        <section className="py-12 md:py-20 bg-white">
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">차별화된 기술력</h2>
-                <div className="w-24 h-1 bg-red-600 mx-auto mb-8"></div>
+              <div className="text-center mb-12 md:mb-16">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight px-4">
+                  차별화된 기술력
+                </h2>
+                <div className="w-16 md:w-24 h-0.5 md:h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent mx-auto mb-6 md:mb-8"></div>
               </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div className="bg-gray-50 rounded-xl p-8 shadow-md hover:shadow-xl transition-shadow">
-                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
-                    <span className="text-3xl">⚡</span>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 md:p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+                  <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-red-100 to-red-200 rounded-full flex items-center justify-center mb-4 md:mb-6 shadow-md">
+                    <span className="text-2xl md:text-3xl">⚡</span>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">DAT55G+ Titanium</h3>
-                  <p className="text-gray-600 leading-relaxed">
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">DAT55G+ Titanium</h3>
+                  <p className="text-sm md:text-base text-gray-600 leading-relaxed">
                     최고급 항공우주용 티타늄. 뛰어난 내구성과 강도로 2.2mm 초박형 페이스를 구현할 수 있는 혁신적인 소재입니다.
                   </p>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-8 shadow-md hover:shadow-xl transition-shadow">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
-                    <span className="text-3xl">💎</span>
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 md:p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+                  <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mb-4 md:mb-6 shadow-md">
+                    <span className="text-2xl md:text-3xl">💎</span>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">SP700+ Titanium</h3>
-                  <p className="text-gray-600 leading-relaxed">
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">SP700+ Titanium</h3>
+                  <p className="text-sm md:text-base text-gray-600 leading-relaxed">
                     특수 가공 티타늄. 최적의 경량성과 성능을 제공하며, 블랙 PVD 코팅과 결합하여 프리미엄 비주얼과 성능을 완성합니다.
                   </p>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-8 shadow-md hover:shadow-xl transition-shadow">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
-                    <span className="text-3xl">🎯</span>
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 md:p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+                  <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mb-4 md:mb-6 shadow-md">
+                    <span className="text-2xl md:text-3xl">🎯</span>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">2.2mm 초박형 페이스</h3>
-                  <p className="text-gray-600 leading-relaxed">
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">2.2mm 초박형 페이스</h3>
+                  <p className="text-sm md:text-base text-gray-600 leading-relaxed">
                     경쟁사 대비 33.33% 얇은 페이스. 실제 측정 검증된 2.2mm 초박형 페이스로 최대 비거리를 실현합니다. (경쟁사 2.7~3.3mm)
                   </p>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-8 shadow-md hover:shadow-xl transition-shadow">
-                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6">
-                    <span className="text-3xl">🚀</span>
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 md:p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+                  <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center mb-4 md:mb-6 shadow-md">
+                    <span className="text-2xl md:text-3xl">🚀</span>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">풀티타늄 샤프트</h3>
-                  <p className="text-gray-600 leading-relaxed">
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">풀티타늄 샤프트</h3>
+                  <p className="text-sm md:text-base text-gray-600 leading-relaxed">
                     샤프트 전장에 티타늄 파이버를 사용한 혁신적인 기술. 초고속 반발력과 헤드 안정성을 실현하며, 오프센터 시 헤드 흔들림을 억제합니다.
                   </p>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-8 shadow-md hover:shadow-xl transition-shadow">
-                  <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-6">
-                    <span className="text-3xl">✨</span>
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 md:p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+                  <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-full flex items-center justify-center mb-4 md:mb-6 shadow-md">
+                    <span className="text-2xl md:text-3xl">✨</span>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">오토플렉스 (원플렉스)</h3>
-                  <p className="text-gray-600 leading-relaxed">
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">오토플렉스 (원플렉스)</h3>
+                  <p className="text-sm md:text-base text-gray-600 leading-relaxed">
                     헤드 스피드에 관계없이 다양한 골퍼에게 적합한 자동적인 플렉스 타입. 백스윙 탑부터 임팩트까지 헤드 움직임을 안정화하여 타이밍을 잡기 쉽게 합니다.
                   </p>
                 </div>
@@ -222,13 +234,17 @@ export default function About() {
         </section>
 
         {/* 프리미엄 샤프트 콜라보 */}
-        <section className="py-20 bg-gray-50">
+        <section className="py-12 md:py-20 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">프리미엄 샤프트 콜라보</h2>
-                <div className="w-24 h-1 bg-red-600 mx-auto mb-8"></div>
-                <p className="text-xl text-gray-600 max-w-3xl mx-auto">세계 최고 수준의 샤프트 제조사들과의 전략적 파트너십</p>
+              <div className="text-center mb-12 md:mb-16">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight px-4">
+                  프리미엄 샤프트 콜라보
+                </h2>
+                <div className="w-16 md:w-24 h-0.5 md:h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent mx-auto mb-4 md:mb-8"></div>
+                <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto px-4">
+                  세계 최고 수준의 샤프트 제조사들과의 전략적 파트너십
+                </p>
               </div>
               <div className="grid md:grid-cols-3 gap-8">
                 <div className="bg-white rounded-xl p-8 shadow-md hover:shadow-xl transition-shadow">
@@ -273,14 +289,18 @@ export default function About() {
         </section>
 
         {/* 글로벌 여정 */}
-        <section className="py-20 bg-gradient-to-br from-gray-50 to-gray-100">
+        <section className="py-12 md:py-20 bg-gradient-to-br from-gray-50 to-gray-100">
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">글로벌 여정</h2>
-                <div className="w-24 h-1 bg-red-600 mx-auto mb-8"></div>
-                <p className="text-xl text-gray-600 max-w-3xl mx-auto">세계 골프업계에서의 입지 확대</p>
-                <p className="text-lg text-gray-600 max-w-3xl mx-auto mt-4 leading-relaxed">
+              <div className="text-center mb-12 md:mb-16">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight px-4">
+                  글로벌 여정
+                </h2>
+                <div className="w-16 md:w-24 h-0.5 md:h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent mx-auto mb-4 md:mb-8"></div>
+                <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto px-4">
+                  세계 골프업계에서의 입지 확대
+                </p>
+                <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-3xl mx-auto mt-4 leading-relaxed px-4">
                   일본, 미국, 중국을 포함한 주요 글로벌 시장에서 인정받으며, 혁신적인 기술과 신뢰를 바탕으로 세계 골프업계에서 그 입지를 넓혀가고 있습니다.
                 </p>
               </div>
@@ -339,13 +359,18 @@ export default function About() {
         </section>
 
         {/* 22년간 함께한 골퍼들의 이야기 */}
-        <section className="py-20 bg-gray-50">
+        <section className="py-12 md:py-20 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">22년간 함께한 골퍼들의 이야기</h2>
-                <div className="w-24 h-1 bg-red-600 mx-auto mb-8"></div>
-                <p className="text-xl text-gray-600 max-w-3xl mx-auto">실제 고객 후기와 성공 사례</p>
+              <div className="text-center mb-12 md:mb-16">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight px-4">
+                  22년간 함께한<br className="sm:hidden" />
+                  골퍼들의 이야기
+                </h2>
+                <div className="w-16 md:w-24 h-0.5 md:h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent mx-auto mb-4 md:mb-8"></div>
+                <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto px-4">
+                  실제 고객 후기와 성공 사례
+                </p>
               </div>
               <div className="grid md:grid-cols-3 gap-8">
                 <div className="bg-white rounded-xl p-8 shadow-md">
@@ -375,12 +400,14 @@ export default function About() {
         </section>
 
         {/* 프리미엄 드라이버 시리즈 */}
-        <section className="py-20 bg-white">
+        <section className="py-12 md:py-20 bg-white">
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">프리미엄 드라이버 시리즈</h2>
-                <div className="w-24 h-1 bg-red-600 mx-auto mb-8"></div>
+              <div className="text-center mb-12 md:mb-16">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight px-4">
+                  프리미엄 드라이버 시리즈
+                </h2>
+                <div className="w-16 md:w-24 h-0.5 md:h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent mx-auto mb-6 md:mb-8"></div>
               </div>
               <div className="relative aspect-video rounded-2xl overflow-hidden shadow-xl mb-12">
                 <Image
@@ -427,13 +454,17 @@ export default function About() {
         </section>
 
         {/* 서비스 보증 */}
-        <section className="py-20 bg-gray-50">
+        <section className="py-12 md:py-20 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">서비스 보증</h2>
-                <div className="w-24 h-1 bg-red-600 mx-auto mb-8"></div>
-                <p className="text-xl text-gray-600 max-w-3xl mx-auto">고객 만족을 최우선으로 하는 우리의 약속</p>
+              <div className="text-center mb-12 md:mb-16">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight px-4">
+                  서비스 보증
+                </h2>
+                <div className="w-16 md:w-24 h-0.5 md:h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent mx-auto mb-4 md:mb-8"></div>
+                <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto px-4">
+                  고객 만족을 최우선으로 하는 우리의 약속
+                </p>
               </div>
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="relative aspect-video rounded-2xl overflow-hidden shadow-xl">
@@ -470,26 +501,31 @@ export default function About() {
         </section>
 
         {/* CTA 섹션 */}
-        <section className="py-20 bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white">
+        <section className="py-12 md:py-20 bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white">
           <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">골프의 미래를 함께 만들어갑니다</h2>
-              <p className="text-xl text-gray-300 mb-12 leading-relaxed">
-                당신의 골프 여정에 함께하겠습니다.<br/>
+            <div className="max-w-4xl mx-auto text-center px-4">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 leading-tight">
+                골프의 미래를<br className="sm:hidden" />
+                함께 만들어갑니다
+              </h2>
+              <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-8 md:mb-12 leading-relaxed">
+                당신의 골프 여정에 함께하겠습니다.<br />
                 22년 전통의 기술력으로 특별한 퍼포먼스를 제공합니다.
               </p>
-              <div className="flex flex-col md:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/try-a-massgoo"
-                  className="bg-red-600 hover:bg-red-700 text-white px-10 py-4 rounded-lg font-semibold text-lg transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                  className="group inline-flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-8 py-4 md:px-10 md:py-4 rounded-xl font-semibold text-base md:text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105"
                 >
-                  무료 시타 체험하기
+                  <span>무료 시타 체험하기</span>
+                  <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
                 </Link>
                 <Link
                   href="/"
-                  className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-10 py-4 rounded-lg font-semibold text-lg transition-all border-2 border-white/30 hover:border-white/50"
+                  className="group inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-8 py-4 md:px-10 md:py-4 rounded-xl font-semibold text-base md:text-lg transition-all duration-300 border-2 border-white/30 hover:border-white/50"
                 >
-                  제품 둘러보기
+                  <span>제품 둘러보기</span>
+                  <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
                 </Link>
               </div>
             </div>
