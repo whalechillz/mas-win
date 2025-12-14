@@ -325,6 +325,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               const logoImageUrl = logoMetadata.image_url;
               console.log('✅ 로고 이미지 URL 가져오기 성공:', logoImageUrl);
 
+              // ⭐ 추가: 이미지 형식 사전 검증
+              const isJpeg = logoImageUrl.toLowerCase().endsWith('.jpg') || 
+                            logoImageUrl.toLowerCase().endsWith('.jpeg');
+              const isPng = logoImageUrl.toLowerCase().endsWith('.png');
+              const isSvg = logoImageUrl.toLowerCase().endsWith('.svg');
+
+              if (!isJpeg && (isPng || isSvg)) {
+                console.error('❌ 로고 형식 오류: PNG/SVG는 Solapi MMS에서 지원하지 않습니다.');
+                return res.status(400).json({
+                  success: false,
+                  message: `예약 확정 메시지 발송 실패: 선택한 로고가 PNG/SVG 형식입니다. Solapi MMS는 JPEG 형식만 지원합니다. JPEG 형식의 로고를 선택해주세요.`,
+                  error: 'INVALID_LOGO_FORMAT',
+                  details: {
+                    logoId: logoId,
+                    imageUrl: logoImageUrl,
+                    format: isPng ? 'PNG' : 'SVG',
+                    requiredFormat: 'JPEG'
+                  }
+                });
+              }
+
               // 2. MMS 시스템과 동일하게 reupload-image API 사용
               const baseUrl = req.headers.origin || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
               

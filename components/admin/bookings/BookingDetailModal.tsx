@@ -146,7 +146,7 @@ export default function BookingDetailModal({
             });
 
             const messageResult = await messageResponse.json();
-            
+
             if (messageResponse.ok && messageResult.success) {
               alert('✅ 예약이 저장되었습니다.\n\n📱 고객에게 확정 메시지가 발송되었습니다.');
             } else {

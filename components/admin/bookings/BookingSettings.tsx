@@ -1313,20 +1313,51 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
         isOpen={showLogoGallery}
         onClose={() => setShowLogoGallery(false)}
         onSelect={async (imageUrl, options) => {
+          // ⭐ 추가: 이미지 형식 확인 (PNG/SVG 경고)
+          const isJpeg = imageUrl.toLowerCase().endsWith('.jpg') || 
+                        imageUrl.toLowerCase().endsWith('.jpeg');
+          const isPng = imageUrl.toLowerCase().endsWith('.png');
+          const isSvg = imageUrl.toLowerCase().endsWith('.svg');
+
+          if (isPng || isSvg) {
+            const proceed = confirm(
+              '⚠️ 선택한 이미지가 JPEG 형식이 아닙니다.\n\n' +
+              'Solapi MMS는 JPEG 형식만 지원합니다.\n' +
+              'PNG/SVG 이미지를 선택하면 메시지 발송이 실패할 수 있습니다.\n\n' +
+              'JPEG 형식의 로고를 선택하시겠습니까?'
+            );
+            if (!proceed) {
+              return; // 선택 취소
+            }
+          }
+
           // image_metadata에서 로고 ID 찾기
           const { data: logoData } = await supabase
             .from('image_metadata')
-            .select('id')
+            .select('id, image_url')
             .eq('image_url', imageUrl)
             .single();
 
           if (logoData) {
-            // is_logo가 true인지 확인
+            // ⭐ 추가: 메타데이터에서 실제 파일 형식 확인
             const { data: logoMetadata } = await supabase
               .from('image_metadata')
-              .select('is_logo')
+              .select('is_logo, image_url')
               .eq('id', logoData.id)
               .single();
+
+            // ⭐ 추가: image_url에서도 형식 재확인
+            const metadataIsJpeg = logoMetadata?.image_url?.toLowerCase().endsWith('.jpg') ||
+                                  logoMetadata?.image_url?.toLowerCase().endsWith('.jpeg');
+
+            if (!metadataIsJpeg && (logoMetadata?.image_url?.toLowerCase().endsWith('.png') || 
+                                   logoMetadata?.image_url?.toLowerCase().endsWith('.svg'))) {
+              alert(
+                '⚠️ 경고: 선택한 로고가 PNG/SVG 형식입니다.\n\n' +
+                '예약 문자 발송 시 메시지가 실패할 수 있습니다.\n' +
+                'JPEG 형식의 로고를 사용하는 것을 권장합니다.'
+              );
+            }
 
             if (logoMetadata?.is_logo || imageUrl.includes('originals/logos')) {
               // 예약 문자용 로고 설정

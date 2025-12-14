@@ -240,13 +240,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (settings?.notify_on_received_customer_sms !== false) {
             notificationPromises.push(
               fetch(`${baseUrl}/api/bookings/notify-customer`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  bookingId: newBooking.id,
-                  notificationType: 'booking_received',
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              bookingId: newBooking.id,
+              notificationType: 'booking_received',
                   bookingData: newBooking, // 최신 예약 정보 직접 전달
-                }),
+            }),
               })
                 .then(async (res) => {
                   const result = await res.json();
@@ -264,12 +264,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (settings?.notify_on_received_slack !== false) {
             notificationPromises.push(
               fetch(`${baseUrl}/api/slack/booking-notify`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  type: 'booking_created',
-                  bookingId: newBooking.id,
-                }),
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'booking_created',
+              bookingId: newBooking.id,
+            }),
               })
                 .then(async (res) => {
                   const result = await res.json();
