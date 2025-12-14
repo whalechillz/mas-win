@@ -1,5 +1,6 @@
 import { sendSlackNotification } from '../../../lib/slack-notification.js';
 import { createClient } from '@supabase/supabase-js';
+import { formatPhoneNumber } from '../../../lib/formatters.js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
