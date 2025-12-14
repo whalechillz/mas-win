@@ -92,7 +92,7 @@ export default async function handler(req, res) {
       const { data: smsDetails, error: smsError } = await supabase
         .from('channel_sms')
         .select(
-          'id, message_text, message_type, status, note, solapi_group_id, sent_at, success_count, fail_count, image_url, created_at'
+          'id, message_text, message_type, status, note, solapi_group_id, sent_at, success_count, fail_count, image_url, created_at, metadata'
         )
         .in('id', messageIds);
 
@@ -108,6 +108,9 @@ export default async function handler(req, res) {
       const contentIdNumber = Number(log.content_id);
       const detail = !Number.isNaN(contentIdNumber) ? smsDetailsMap.get(contentIdNumber) : null;
 
+      // detail에서 예약 정보 확인
+      const isBookingMessage = detail?.metadata?.booking_id || detail?.note?.includes('예약');
+
       return {
         logId: log.id,
         messageId: Number.isNaN(contentIdNumber) ? null : contentIdNumber,
@@ -122,7 +125,9 @@ export default async function handler(req, res) {
         successCount: detail?.success_count !== undefined ? detail.success_count : null,
         failCount: detail?.fail_count !== undefined ? detail.fail_count : null,
         imageUrl: detail?.image_url || null,
-        isBookingMessage: false,
+        isBookingMessage: isBookingMessage,
+        bookingId: detail?.metadata?.booking_id || null,
+        notificationType: detail?.metadata?.notification_type || null,
       };
     });
 
