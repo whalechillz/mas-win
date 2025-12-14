@@ -559,6 +559,162 @@ bg-gradient-to-br from-white to-gray-50
 
 ---
 
+## 기존 페이지 분석
+
+### 메인 페이지 (`/`)
+
+#### 잘된 점 ✅
+- **제품 소개**: 제품 카드가 명확하고 시각적으로 잘 표현됨
+- **고객 후기**: 고객 후기 섹션이 신뢰감을 줌
+- **기술력 섹션**: 기술력 설명이 전문성을 보여줌
+- **CTA 버튼**: "무료 시타" 버튼이 명확하고 눈에 띔
+- **제품 이미지**: 고품질 이미지로 제품을 잘 보여줌
+
+#### 개선점 🔧
+- **모바일 최적화**: 타이포그래피 및 간격 모바일 최적화 필요
+- **히어로 섹션**: 블로그 링크 추가로 교육적 가치 제공
+- **제품 카드**: 호버 효과 추가 (고객 페이지 가이드라인 적용)
+- **"골프 가이드" 섹션**: 블로그 콘텐츠를 소개하는 섹션 추가
+- **섹션 간격**: 모바일에서 섹션 간격 조정 (`py-12 md:py-20`)
+
+#### 적용 권장사항
+```tsx
+// 제품 카드에 호버 효과 추가
+<div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+  {/* 제품 내용 */}
+</div>
+
+// 히어로 섹션에 블로그 링크 추가
+<Link href="/blog" className="text-blue-600 hover:text-blue-700">
+  골프 가이드 보기 →
+</Link>
+```
+
+### 브랜드 스토리 페이지 (`/about`)
+
+#### 잘된 점 ✅
+- **스토리텔링**: 22년 역사가 명확하고 감동적으로 전달됨
+- **섹션 구성**: 섹션 구분이 명확하고 읽기 쉬움
+- **기술력 설명**: 기술력 설명이 체계적이고 전문적임
+- **시각적 요소**: 이미지와 아이콘이 적절히 사용됨
+- **CTA 섹션**: "골프의 미래를 함께 만들어갑니다" 섹션이 효과적
+
+#### 개선점 🔧
+- **✅ 모바일 최적화 완료**: 최근 개선 완료 (2025-01-14)
+- **블로그 연결**: 관련 블로그 콘텐츠 링크 추가
+- **고객 사례**: 고객 사례를 더 구체적으로 표시 (비디오, 데이터)
+- **비디오 콘텐츠**: 브랜드 스토리 비디오 추가 고려
+- **인터랙티브 요소**: 타임라인 또는 인터랙티브 스토리 추가
+
+#### 적용 권장사항
+```tsx
+// 관련 블로그 콘텐츠 섹션 추가
+<section className="py-12 md:py-20 bg-gray-50">
+  <div className="container mx-auto px-4">
+    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8">
+      브랜드 스토리 더 알아보기
+    </h2>
+    <div className="grid md:grid-cols-3 gap-6">
+      {/* 블로그 포스트 카드들 */}
+    </div>
+  </div>
+</section>
+```
+
+### 시타 매장 페이지 (`/contact`)
+
+#### 잘된 점 ✅
+- **위치 정보**: 주소, 전화번호, 운영시간이 명확함
+- **네비게이션 링크**: 다양한 네비게이션 앱 링크 제공
+- **지도 통합**: 지도가 잘 통합되어 있음
+- **운영시간**: 요일별 운영시간이 상세히 표시됨
+- **접근성**: 대중교통 및 자가용 경로 안내
+
+#### 개선점 🔧
+- **모바일 최적화**: 모바일에서 타이포그래피 및 레이아웃 개선 필요
+- **"골프 가이드" 링크**: 시타 전 준비 가이드 링크 추가
+- **FAQ 섹션**: 자주 묻는 질문 섹션 추가
+- **시타 프로세스**: 시타 체험 프로세스 시각화
+- **고객 후기**: 매장 방문 고객 후기 추가
+
+#### 적용 권장사항
+```tsx
+// 시타 전 준비 가이드 섹션 추가
+<section className="py-12 md:py-20 bg-gray-50">
+  <div className="container mx-auto px-4">
+    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8">
+      시타 전 준비 가이드
+    </h2>
+    <div className="max-w-3xl mx-auto">
+      <Link href="/blog/category/시타-가이드" className="block p-6 bg-white rounded-xl shadow-lg hover:shadow-xl">
+        시타 체험 전 알아야 할 모든 것 →
+      </Link>
+    </div>
+  </div>
+</section>
+```
+
+### 예약 페이지 (`/booking`)
+
+#### 잘된 점 ✅
+- **예약 프로세스**: 예약 프로세스가 명확하고 직관적임
+- **캘린더 UI**: 캘린더 인터페이스가 사용하기 쉬움
+- **고객 세그먼트**: 고객 세그먼트별 맞춤 메시지 제공
+- **다음 예약 가능일**: 다음 예약 가능일 표시로 사용자 편의성 향상
+- **폼 검증**: 폼 검증이 잘 되어 있음
+
+#### 개선점 🔧
+- **시타 전 준비 가이드**: 예약 완료 전 가이드 링크 제공
+- **"골프 가이드" 추천**: 예약 완료 후 관련 가이드 추천
+- **모바일 최적화**: 모바일에서 폼 레이아웃 확인
+- **진행 상황 표시**: 예약 단계별 진행 상황 표시
+- **예약 확인 메일**: 예약 확인 시 가이드 링크 포함
+
+#### 적용 권장사항
+```tsx
+// 예약 완료 후 가이드 추천
+<div className="mt-8 p-6 bg-blue-50 rounded-xl">
+  <h3 className="text-lg font-bold mb-4">시타 전 준비하세요</h3>
+  <Link href="/blog/category/시타-가이드" className="text-blue-600 hover:text-blue-700">
+    시타 체험 전 알아야 할 모든 것 보기 →
+  </Link>
+</div>
+```
+
+### 블로그 페이지 (`/blog`)
+
+#### 잘된 점 ✅
+- **카테고리 필터**: 카테고리별 필터링 기능
+- **반응형 디자인**: 모바일/데스크톱 최적화
+- **카드 디자인**: 블로그 카드 디자인이 깔끔함
+- **페이지네이션**: 페이지네이션이 잘 구현됨
+- **SEO 최적화**: 메타 태그 및 구조화된 데이터
+
+#### 개선점 🔧
+- **히어로 섹션**: 가치 제안을 명확히 하는 히어로 섹션 추가
+- **메뉴 통합**: 메인 네비게이션에 "골프 가이드" 메뉴 추가
+- **리마커블 요소**: 전문 피터 배지, 데이터 시각화 등 추가
+- **인터랙티브 요소**: 퀴즈, 계산기 등 추가
+- **CTA 통합**: 각 포스트에 시타 예약 CTA 추가
+
+#### 적용 권장사항
+```tsx
+// 히어로 섹션 추가
+<section className="relative min-h-[50vh] flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900">
+  <div className="relative z-10 container mx-auto px-4 text-center">
+    <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
+      골프 가이드
+    </h1>
+    <p className="text-xl md:text-2xl text-gray-200 mb-8">
+      당신의 골프 실력을 한 단계 올려주는<br />
+      KGFA 1급 전문 피터의 실전 노하우
+    </p>
+  </div>
+</section>
+```
+
+---
+
 ## 체크리스트
 
 새 페이지를 만들거나 기존 페이지를 개선할 때 다음 사항을 확인하세요:
