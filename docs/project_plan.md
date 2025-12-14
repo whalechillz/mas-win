@@ -33,6 +33,20 @@
 
 # 🎯 프로젝트 진행 현황
 
+## ✅ 최근 작업: 블로그 이미지 마이그레이션 시작 (2025-01-XX)
+
+### 블로그 이미지 마이그레이션 시스템 구축
+- **목표**: 모든 블로그 이미지를 `originals/blog/YYYY-MM/{blog-id}/` 폴더로 정확히 마이그레이션
+- **생성된 파일**:
+  - `scripts/run-blog-image-migration.js` - 마이그레이션 실행 스크립트
+- **Phase 1**: 전체 분석 및 현황 파악 (준비 완료)
+- **Phase 2**: 발행일 순서로 글별 마이그레이션 (대기 중)
+- **참고 문서**:
+  - `docs/blog-image-migration-and-cleanup-plan.md` - 전체 계획
+  - `docs/blog-image-migration-implementation-plan.md` - 구현 계획
+
+---
+
 ## ✅ 최근 작업: 고객 페이지 디자인 가이드라인 작성 및 모바일 최적화 (2025-01-14)
 
 ### 완료된 작업
