@@ -361,10 +361,14 @@ export default function BlogPost({ post: staticPost, relatedPosts: staticRelated
       console.log('📋 getServerSideProps에서 받은 데이터:', {
         hasPost: !!staticPost,
         hasRelatedPosts: !!staticRelatedPosts,
-        relatedPostsCount: staticRelatedPosts?.length || 0
+        relatedPostsCount: staticRelatedPosts?.length || 0,
+        hasPrevPost: !!staticPrevPost,
+        hasNextPost: !!staticNextPost
       });
       setPost(staticPost);
       setRelatedPosts(staticRelatedPosts || []);
+      setPrevPost(staticPrevPost || null);
+      setNextPost(staticNextPost || null);
       setLoading(false);
     } else if (slug) {
       const fetchPost = async () => {

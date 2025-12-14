@@ -89,16 +89,18 @@ export default async function handler(req, res) {
     // 현재 포스트의 정렬 기준 날짜
     const currentDate = post.published_at || post.created_at;
     
-    // 이전 포스트: 현재보다 이전 날짜의 포스트 중 가장 최근 것
+    // 이전 포스트: 정렬된 데이터에서 현재보다 이전 날짜의 포스트 중 첫 번째 (가장 최근)
     const prevPost = (prevPostsResult.data || []).find(p => {
       const postDate = p.published_at || p.created_at;
-      return postDate < currentDate;
+      if (!postDate || !currentDate) return false;
+      return new Date(postDate) < new Date(currentDate);
     }) || null;
     
-    // 다음 포스트: 현재보다 이후 날짜의 포스트 중 가장 오래된 것
+    // 다음 포스트: 정렬된 데이터에서 현재보다 이후 날짜의 포스트 중 첫 번째 (가장 오래된)
     const nextPost = (nextPostsResult.data || []).find(p => {
       const postDate = p.published_at || p.created_at;
-      return postDate > currentDate;
+      if (!postDate || !currentDate) return false;
+      return new Date(postDate) > new Date(currentDate);
     }) || null;
 
     // Transform data for frontend
