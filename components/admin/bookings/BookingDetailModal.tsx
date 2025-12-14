@@ -54,6 +54,26 @@ export default function BookingDetailModal({
 
   const customerInfo = customers.find((c) => c.phone === booking.phone);
 
+  // ⭐ 추가: UTC → 한국 시간 변환 (명시적 처리)
+  const convertUTCToKST = (utcString: string): Date => {
+    // UTC 문자열을 파싱
+    const utcDate = new Date(utcString);
+    // 한국 시간대(UTC+9)로 변환
+    const kstOffset = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
+    const kstDate = new Date(utcDate.getTime() + kstOffset);
+    return kstDate;
+  };
+
+  // ⭐ 추가: 한국 시간 → UTC 변환 (명시적 처리)
+  const convertKSTToUTC = (kstString: string): string => {
+    // datetime-local 형식: "2025-12-14T17:45"
+    // 한국 시간대(UTC+9)를 명시적으로 지정
+    const kstDateString = `${kstString}:00+09:00`;
+    const kstDate = new Date(kstDateString);
+    // toISOString()이 자동으로 UTC로 변환 (9시간 빼짐)
+    return kstDate.toISOString();
+  };
+
   // 로컬 시간대를 유지하면서 datetime-local 형식으로 변환
   const formatLocalDateTime = (date: Date): string => {
     const year = date.getFullYear();
@@ -91,8 +111,9 @@ export default function BookingDetailModal({
             setExistingReminder(data.reminder);
             setReminderEnabled(true);
             if (data.reminder.scheduled_at) {
-              const scheduledDate = new Date(data.reminder.scheduled_at);
-              setReminderScheduledAt(formatLocalDateTime(scheduledDate));
+              // ⭐ 수정: UTC → 한국 시간 변환
+              const kstDate = convertUTCToKST(data.reminder.scheduled_at);
+              setReminderScheduledAt(formatLocalDateTime(kstDate));
             }
           }
         }
@@ -320,8 +341,8 @@ export default function BookingDetailModal({
     try {
       const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
       
-      // ⭐ 추가: datetime-local 형식을 ISO 형식으로 변환
-      const scheduledAtISO = new Date(reminderScheduledAt).toISOString();
+      // ⭐ 수정: 한국 시간 → UTC 변환 (명시적 처리)
+      const scheduledAtISO = convertKSTToUTC(reminderScheduledAt);
       
       const response = await fetch(`/api/bookings/${bookingId}/schedule-reminder`, {
         method: existingReminder ? 'PUT' : 'POST',

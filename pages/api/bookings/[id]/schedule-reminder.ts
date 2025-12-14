@@ -148,6 +148,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 고객님만을 위해 특별히 준비한 맞춤형 분석과 시타 체험을 통해 최상의 경험을 선사해 드리겠습니다. 준비해주세요!
 
 📍 약도: https://www.masgolf.co.kr/contact
+
 문의: 031-215-0013`;
 
       // 기존 예약 메시지가 있으면 삭제
