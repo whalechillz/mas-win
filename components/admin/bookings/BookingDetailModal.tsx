@@ -107,6 +107,9 @@ export default function BookingDetailModal({
     try {
       const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
       
+      // ⭐ 추가: 시간 변경 여부 확인 (저장 전)
+      const timeChanged = (editData.date !== booking.date) || (editData.time !== booking.time);
+      
       // API를 통해 업데이트 (상태 변경 감지 및 확정 문자 발송)
       const response = await fetch(`/api/bookings/${bookingId}`, {
         method: 'PUT',
@@ -121,8 +124,46 @@ export default function BookingDetailModal({
 
       const result = await response.json();
       
-      // ⭐ 수정: 저장 성공 후 모달 닫고 대시보드로 이동
-      alert('✅ 예약이 저장되었습니다.');
+      // ⭐ 수정: 저장 성공 후 시간이 변경되었고 확정 상태인 경우 메시지 발송 확인
+      if (timeChanged && (editData.status === 'confirmed' || result.status === 'confirmed')) {
+        const shouldSendMessage = confirm(
+          '✅ 예약이 저장되었습니다.\n\n' +
+          '📱 변경된 시간으로 고객에게 확정 메시지를 보내시겠습니까?'
+        );
+        
+        if (shouldSendMessage) {
+          // 메시지 발송
+          setSendingMessage(true);
+          try {
+            const messageResponse = await fetch(`/api/bookings/notify-customer`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                bookingId: bookingId,
+                notificationType: 'booking_confirmed',
+                bookingData: result, // 최신 예약 데이터 사용
+              }),
+            });
+
+            const messageResult = await messageResponse.json();
+            
+            if (messageResponse.ok && messageResult.success) {
+              alert('✅ 예약이 저장되었습니다.\n\n📱 고객에게 확정 메시지가 발송되었습니다.');
+            } else {
+              alert(`✅ 예약이 저장되었습니다.\n\n⚠️ 메시지 발송에 실패했습니다:\n${messageResult.error || messageResult.message || '알 수 없는 오류'}`);
+            }
+          } catch (messageError: any) {
+            console.error('메시지 발송 오류:', messageError);
+            alert(`✅ 예약이 저장되었습니다.\n\n⚠️ 메시지 발송 중 오류가 발생했습니다:\n${messageError.message}`);
+          } finally {
+            setSendingMessage(false);
+          }
+        } else {
+          alert('✅ 예약이 저장되었습니다.');
+        }
+      } else {
+        alert('✅ 예약이 저장되었습니다.');
+      }
       
       // ⭐ 수정: 저장 후 모달 닫기 및 목록 새로고침
       onUpdate(); // 목록 새로고침

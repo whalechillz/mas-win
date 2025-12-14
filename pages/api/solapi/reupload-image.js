@@ -116,9 +116,15 @@ export default async function handler(req, res) {
     } catch (sharpError) {
       console.error('❌ Sharp 모듈 로드 실패:', sharpError.message);
       
-      // ⭐ Fallback: 이미지가 200KB 이하인 경우 원본 사용
-      if (imageBuffer.length <= 200 * 1024) {
-        console.warn('⚠️ Sharp 없이 원본 이미지 사용 (200KB 이하)');
+      // ⭐ 수정: 원본 이미지 형식 확인 (Solapi는 JPEG만 허용)
+      const contentType = imageResponse.headers.get('content-type') || '';
+      const isJpeg = contentType.includes('jpeg') || contentType.includes('jpg') || 
+                     imageUrl.toLowerCase().endsWith('.jpg') || 
+                     imageUrl.toLowerCase().endsWith('.jpeg');
+      
+      // ⭐ 수정: JPEG 파일이고 200KB 이하인 경우에만 원본 사용
+      if (isJpeg && imageBuffer.length <= 200 * 1024) {
+        console.warn('⚠️ Sharp 없이 원본 JPEG 사용 (200KB 이하)');
         compressionInfo = {
           buffer: imageBuffer,
           quality: 100,
@@ -130,12 +136,14 @@ export default async function handler(req, res) {
           compressedSize: imageBuffer.length
         };
       } else {
-        // 200KB 초과 시 에러 반환
+        // ⭐ 수정: PNG/SVG 등은 Sharp 없이 변환 불가능하므로 에러 반환
         return res.status(500).json({
           success: false,
-          message: `이미지 처리 모듈을 로드할 수 없습니다. 이미지 크기가 ${(imageBuffer.length / 1024).toFixed(2)}KB로 200KB를 초과합니다. 더 작은 이미지를 사용하거나 관리자에게 문의하세요.`,
+          message: `이미지 처리 모듈을 로드할 수 없습니다. ${isJpeg ? '이미지 크기가 200KB를 초과합니다.' : 'PNG/SVG 등 비JPEG 이미지는 JPEG로 변환이 필요합니다.'} 더 작은 JPEG 이미지를 사용하거나 관리자에게 문의하세요.`,
           error: 'SHARP_MODULE_LOAD_FAILED',
-          imageSize: imageBuffer.length
+          imageSize: imageBuffer.length,
+          contentType: contentType,
+          isJpeg: isJpeg
         });
       }
     }
@@ -243,7 +251,8 @@ export default async function handler(req, res) {
 
     // 파일명 생성
     const fileName = imageUrl.split('/').pop() || `mms-${Date.now()}.jpg`;
-    const safeFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    // ⭐ 수정: 확장자를 강제로 .jpg로 변경 (Solapi는 JPEG만 허용)
+    const safeFileName = (fileName.replace(/[^a-zA-Z0-9.-]/g, '_').replace(/\.[^.]+$/, '') || `mms-${Date.now()}`) + '.jpg';
 
     const solapiResponse = await fetch('https://api.solapi.com/storage/v1/files', {
       method: 'POST',
