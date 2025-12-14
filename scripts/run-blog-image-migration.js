@@ -8,7 +8,8 @@ import path from 'path';
 
 dotenv.config({ path: '.env.local' });
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.masgolf.co.kr';
+// API Base URL 설정 (로컬 개발 서버 우선, 없으면 프로덕션)
+const API_BASE_URL = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 const BACKUP_DIR = path.join(process.cwd(), 'backup');
 
 // 백업 디렉토리 생성
@@ -19,17 +20,25 @@ if (!fs.existsSync(BACKUP_DIR)) {
 // Phase 1: 전체 분석
 async function phase1AnalyzeAllBlogImages() {
   console.log('\n📊 Phase 1: 블로그 이미지 전체 분석 시작...\n');
+  console.log(`📍 API Base URL: ${API_BASE_URL}\n`);
   
   try {
+    // 타임아웃 설정 (60초)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    
     const response = await fetch(`${API_BASE_URL}/api/admin/analyze-all-blog-images`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ dryRun: true })
+      body: JSON.stringify({ dryRun: true }),
+      signal: controller.signal
     });
     
+    clearTimeout(timeoutId);
+    
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || errorData.details || '분석 실패');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || errorData.details || `분석 실패 (${response.status})`);
     }
     
     const data = await response.json();
@@ -55,7 +64,16 @@ async function phase1AnalyzeAllBlogImages() {
     
     return data;
   } catch (error) {
-    console.error('❌ Phase 1 분석 실패:', error.message);
+    if (error.name === 'AbortError') {
+      console.error('❌ Phase 1 분석 실패: 요청 시간 초과 (60초)');
+      console.error('💡 서버가 실행 중인지 확인하세요: npm run dev');
+    } else {
+      console.error('❌ Phase 1 분석 실패:', error.message);
+      if (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED')) {
+        console.error('💡 서버가 실행 중인지 확인하세요: npm run dev');
+        console.error(`💡 또는 API_BASE_URL을 확인하세요: ${API_BASE_URL}`);
+      }
+    }
     throw error;
   }
 }
@@ -67,30 +85,88 @@ async function phase2MigrateBlogPost(blogPostId, options = {}) {
   console.log(`\n🔄 Phase 2: 블로그 글 #${blogPostId} 마이그레이션 시작...\n`);
   
   try {
-    // 1. 이미지 정렬
+    // 1. 이미지 정렬 (기존 성공 패턴 사용: GET으로 조회 → POST로 이동)
     if (organizeImages) {
       console.log('📁 이미지 폴더 정렬 중...');
-      const organizeResponse = await fetch(`${API_BASE_URL}/api/admin/organize-images-by-blog?blogPostId=${blogPostId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+      
+      // 1-1. 먼저 이미지 정렬 정보 조회 (GET) - 기존 성공 패턴 사용
+      console.log('  → 이미지 정렬 정보 조회 중...');
+      const controller1 = new AbortController();
+      const timeoutId1 = setTimeout(() => controller1.abort(), 30000);
+      
+      const checkResponse = await fetch(`${API_BASE_URL}/api/admin/organize-images-by-blog?blogPostId=${blogPostId}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller1.signal
       });
       
-      if (!organizeResponse.ok) {
-        const errorData = await organizeResponse.json();
-        throw new Error(errorData.error || '이미지 정렬 실패');
+      clearTimeout(timeoutId1);
+      
+      if (!checkResponse.ok) {
+        const errorData = await checkResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || errorData.details || '이미지 정렬 정보 조회 실패');
       }
       
-      const organizeData = await organizeResponse.json();
-      console.log(`✅ 이미지 정렬 완료: ${organizeData.moved || 0}개 이동\n`);
+      const checkData = await checkResponse.json();
+      const result = checkData.results?.[0];
+      const imageCount = result?.totalImages || 0;
+      const extractedCount = result?.totalExtractedImages || imageCount;
       
-      // 이미지 이동 후 대기 (Storage 동기화 대기)
-      if (organizeData.moved > 0) {
-        console.log('⏳ Storage 동기화 대기 중... (10초)');
-        await new Promise(resolve => setTimeout(resolve, 10000));
+      console.log(`  → 발견된 이미지: ${extractedCount}개 (Storage에서 찾은 이미지: ${imageCount}개)`);
+      
+      if (extractedCount === 0) {
+        console.log('  ⚠️  이 블로그 글에 연결된 이미지가 없습니다.');
+      } else if (imageCount === 0 && extractedCount > 0) {
+        console.log('  ⚠️  경고: 이미지를 추출했지만 Storage에서 찾지 못했습니다.');
+      }
+      
+      // 1-2. 실제로 이미지 이동 (POST) - 기존 성공 패턴 사용
+      if (extractedCount > 0) {
+        console.log('  → 이미지 이동 실행 중...');
+        const controller2 = new AbortController();
+        const timeoutId2 = setTimeout(() => controller2.abort(), 60000);
+        
+        const moveResponse = await fetch(`${API_BASE_URL}/api/admin/organize-images-by-blog`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            blogPostId: blogPostId, 
+            moveImages: true 
+          }),
+          signal: controller2.signal
+        });
+        
+        clearTimeout(timeoutId2);
+        
+        if (!moveResponse.ok) {
+          const errorData = await moveResponse.json().catch(() => ({}));
+          throw new Error(errorData.error || errorData.details || '이미지 이동 실패');
+        }
+        
+        const moveData = await moveResponse.json();
+        const movedCount = moveData.summary?.moved || 0;
+        const skippedCount = moveData.summary?.skipped || 0;
+        const errorCount = moveData.summary?.errors || 0;
+        
+        console.log(`✅ 이미지 정렬 완료:`);
+        console.log(`     이동: ${movedCount}개`);
+        console.log(`     스킵: ${skippedCount}개`);
+        if (errorCount > 0) {
+          console.log(`     오류: ${errorCount}개`);
+        }
+        console.log('');
+        
+        // 이미지 이동 후 대기 (Storage 동기화 대기)
+        if (movedCount > 0) {
+          console.log('⏳ Storage 동기화 대기 중... (10초)');
+          await new Promise(resolve => setTimeout(resolve, 10000));
+        }
+      } else {
+        console.log('  → 이동할 이미지가 없습니다.\n');
       }
     }
     
-    // 2. 메타데이터 동기화
+    // 2. 메타데이터 동기화 (기존 API 사용)
     if (syncMetadata) {
       console.log('📝 메타데이터 동기화 중...');
       const syncResponse = await fetch(`${API_BASE_URL}/api/admin/sync-blog-with-dedupe`, {
@@ -100,20 +176,30 @@ async function phase2MigrateBlogPost(blogPostId, options = {}) {
           blogPostId,
           organizeImages: false, // 이미 정렬했으므로 false
           syncMetadata: true,
-          removeDuplicates
+          removeDuplicates: removeDuplicates
         })
       });
       
       if (!syncResponse.ok) {
-        const errorData = await syncResponse.json();
-        throw new Error(errorData.error || '메타데이터 동기화 실패');
+        const errorData = await syncResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || errorData.details || '메타데이터 동기화 실패');
       }
       
       const syncData = await syncResponse.json();
-      console.log(`✅ 메타데이터 동기화 완료: ${syncData.metadataCreated || 0}개 생성\n`);
+      const metadataCreated = syncData.metadataCreated || syncData.summary?.metadataCreated || 0;
+      const metadataUpdated = syncData.metadataUpdated || syncData.summary?.metadataUpdated || 0;
+      
+      console.log(`✅ 메타데이터 동기화 완료:`);
+      if (metadataCreated > 0) {
+        console.log(`     생성: ${metadataCreated}개`);
+      }
+      if (metadataUpdated > 0) {
+        console.log(`     업데이트: ${metadataUpdated}개`);
+      }
+      console.log('');
     }
     
-    // 3. 검증
+    // 3. 검증 (기존 검증 API 사용)
     console.log('🔍 마이그레이션 검증 중...');
     const verifyResponse = await fetch(`${API_BASE_URL}/api/admin/verify-blog-images?blogPostId=${blogPostId}`, {
       method: 'GET',
@@ -121,8 +207,8 @@ async function phase2MigrateBlogPost(blogPostId, options = {}) {
     });
     
     if (!verifyResponse.ok) {
-      const errorData = await verifyResponse.json();
-      throw new Error(errorData.error || '검증 실패');
+      const errorData = await verifyResponse.json().catch(() => ({}));
+      throw new Error(errorData.error || errorData.details || '검증 실패');
     }
     
     const verifyData = await verifyResponse.json();
@@ -145,11 +231,22 @@ async function phase2MigrateBlogPost(blogPostId, options = {}) {
         });
         console.log('');
       }
+    } else if (verifyData.success === false) {
+      console.log('⚠️  검증 결과를 가져올 수 없습니다.');
     }
     
     return verifyData;
   } catch (error) {
-    console.error(`❌ 블로그 글 #${blogPostId} 마이그레이션 실패:`, error.message);
+    if (error.name === 'AbortError') {
+      console.error(`❌ 블로그 글 #${blogPostId} 마이그레이션 실패: 요청 시간 초과`);
+      console.error('💡 서버가 실행 중인지 확인하세요: npm run dev');
+    } else {
+      console.error(`❌ 블로그 글 #${blogPostId} 마이그레이션 실패:`, error.message);
+      if (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED')) {
+        console.error('💡 서버가 실행 중인지 확인하세요: npm run dev');
+        console.error(`💡 또는 API_BASE_URL을 확인하세요: ${API_BASE_URL}`);
+      }
+    }
     throw error;
   }
 }
@@ -184,7 +281,12 @@ async function main() {
   const command = args[0];
   
   console.log('🚀 블로그 이미지 마이그레이션 스크립트\n');
-  console.log(`📍 API Base URL: ${API_BASE_URL}\n`);
+  console.log(`📍 API Base URL: ${API_BASE_URL}`);
+  if (API_BASE_URL.includes('localhost')) {
+    console.log('💡 로컬 서버를 사용합니다. 서버가 실행 중인지 확인하세요: npm run dev\n');
+  } else {
+    console.log('💡 프로덕션 서버를 사용합니다.\n');
+  }
   
   try {
     if (command === 'analyze' || !command) {
