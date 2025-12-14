@@ -121,25 +121,8 @@ export default function BookingDetailModal({
 
       const result = await response.json();
       
-      // ⭐ 수정: 메시지 발송 결과 확인 및 피드백 개선
-      if (result.notificationResult) {
-        const { customerSms, sent, error, sentWithoutLogo } = result.notificationResult;
-        if (sent) {
-          if (sentWithoutLogo) {
-            alert('✅ 예약이 저장되었습니다.\n\n📱 고객에게 확정 메시지가 발송되었습니다.\n(로고 없이 발송)');
-          } else {
-            alert('✅ 예약이 저장되었습니다.\n\n📱 고객에게 확정 메시지가 발송되었습니다.');
-          }
-        } else if (customerSms?.skipped) {
-          alert('✅ 예약이 저장되었습니다.\n\nℹ️ 고객 SMS 알림이 비활성화되어 있어 메시지를 발송하지 않았습니다.');
-        } else if (error) {
-          alert(`✅ 예약이 저장되었습니다.\n\n⚠️ 고객 메시지 발송에 실패했습니다:\n${error}`);
-        } else {
-          alert('✅ 예약이 저장되었습니다.');
-        }
-      } else {
-        alert('✅ 예약이 저장되었습니다.');
-      }
+      // ⭐ 수정: 메시지 발송 관련 피드백 제거 (저장은 저장만 수행)
+      alert('✅ 예약이 저장되었습니다.');
 
       setIsEditing(false);
       onUpdate();
@@ -151,9 +134,42 @@ export default function BookingDetailModal({
     }
   };
 
-  // ⭐ 확정 메시지 보내기 (이미 확정된 예약에 대해 재발송)
+  // ⭐ 추가: 예약 접수 메시지 보내기 (pending 상태일 때)
+  const handleSendReceivedMessage = async () => {
+    if (!confirm('고객에게 예약 접수 메시지를 보내시겠습니까?')) return;
+    
+    setSendingMessage(true);
+    try {
+      const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
+      
+      const response = await fetch(`/api/bookings/notify-customer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId: bookingId,
+          notificationType: 'booking_received',
+          bookingData: editData,
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        alert('✅ 고객에게 예약 접수 메시지가 발송되었습니다.');
+      } else {
+        alert(`❌ 메시지 발송에 실패했습니다:\n${result.error || result.message || '알 수 없는 오류'}`);
+      }
+    } catch (error: any) {
+      console.error('예약 접수 메시지 발송 오류:', error);
+      alert('메시지 발송 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  // ⭐ 확정 메시지 보내기 (confirmed 상태일 때)
   const handleSendConfirmationMessage = async () => {
-    if (!confirm('고객에게 확정 메시지를 다시 보내시겠습니까?')) return;
+    if (!confirm('고객에게 확정 메시지를 보내시겠습니까?')) return;
     
     setSendingMessage(true);
     try {
@@ -508,22 +524,42 @@ export default function BookingDetailModal({
             </div>
           </div>
 
-          {/* ⭐ 확정 메시지 보내기 버튼 (확정된 예약일 때만 표시) */}
-          {!isEditing && (booking.status === 'confirmed' || editData.status === 'confirmed') && (
-            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          {/* ⭐ 메시지 보내기 버튼 (모든 상태에서 표시) */}
+          {!isEditing && (
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-green-900">📱 확정 메시지 재발송</p>
-                  <p className="text-xs text-green-700 mt-1">
-                    고객에게 확정 메시지를 다시 보낼 수 있습니다.
-                  </p>
+                  {booking.status === 'confirmed' || editData.status === 'confirmed' ? (
+                    <>
+                      <p className="text-sm font-medium text-blue-900">📱 확정 메시지 보내기</p>
+                      <p className="text-xs text-blue-700 mt-1">
+                        고객에게 예약 확정 메시지를 보낼 수 있습니다.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm font-medium text-blue-900">📱 예약 접수 메시지 보내기</p>
+                      <p className="text-xs text-blue-700 mt-1">
+                        고객에게 예약 접수 확인 메시지를 보낼 수 있습니다.
+                      </p>
+                    </>
+                  )}
                 </div>
                 <button
-                  onClick={handleSendConfirmationMessage}
+                  onClick={
+                    booking.status === 'confirmed' || editData.status === 'confirmed'
+                      ? handleSendConfirmationMessage
+                      : handleSendReceivedMessage
+                  }
                   disabled={sendingMessage}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
                 >
-                  {sendingMessage ? '발송 중...' : '확정 메시지 보내기'}
+                  {sendingMessage 
+                    ? '발송 중...' 
+                    : (booking.status === 'confirmed' || editData.status === 'confirmed'
+                        ? '확정 메시지 보내기'
+                        : '예약 접수 메시지 보내기')
+                  }
                 </button>
               </div>
             </div>

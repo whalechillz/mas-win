@@ -33,6 +33,21 @@
 
 # 🎯 프로젝트 진행 현황
 
+## ✅ 최근 작업: 예약 저장 시 자동 메시지 발송 제거 및 메시지 보내기 버튼 추가 (2025-12-13)
+
+### 완료된 작업
+- **예약 저장 시 자동 메시지 발송 제거** ✅:
+  - `pages/api/bookings/[id].ts`: 예약 저장 시 자동으로 메시지를 보내는 로직 제거
+  - 저장은 저장만 수행하고, 메시지 발송은 별도 버튼으로만 가능하도록 변경
+  - `components/admin/bookings/BookingDetailModal.tsx`: 저장 시 메시지 발송 관련 피드백 제거
+
+- **메시지 보내기 버튼 추가** ✅:
+  - `components/admin/bookings/BookingDetailModal.tsx`: 모든 예약 상태에서 메시지를 보낼 수 있는 버튼 추가
+  - `pending` 상태: "예약 접수 메시지 보내기" 버튼 표시 → `booking_received` 타입 발송
+  - `confirmed` 상태: "확정 메시지 보내기" 버튼 표시 → `booking_confirmed` 타입 발송
+  - `handleSendReceivedMessage` 함수 추가: 예약 접수 메시지 발송 처리
+  - `handleSendConfirmationMessage` 함수 수정: 확정 메시지 발송 처리
+
 ## ✅ 최근 작업: 예약 폼 개인화 및 SMS 발송 개선 (2025-12-13)
 
 ### 완료된 작업
