@@ -144,6 +144,19 @@ export default function CustomerGroupedView({ bookings, customers, supabase, onU
     return time.split(':').slice(0, 2).join(':');
   };
 
+  // 날짜에 요일 추가
+  const formatDateWithDay = (dateStr: string): string => {
+    if (!dateStr) return '';
+    try {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const dateObj = new Date(year, month - 1, day);
+      const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][dateObj.getDay()];
+      return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}(${dayOfWeek})`;
+    } catch {
+      return dateStr;
+    }
+  };
+
   const getStatusBadge = (status?: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
       confirmed: { label: '확정', className: 'bg-blue-100 text-blue-800' },
@@ -289,7 +302,7 @@ export default function CustomerGroupedView({ bookings, customers, supabase, onU
                             <tr key={booking.id} className="hover:bg-white">
                               <td className="px-4 py-2 text-sm">
                                 <div>
-                                  <p className="font-medium">{booking.date}</p>
+                                  <p className="font-medium">{formatDateWithDay(booking.date)}</p>
                                   <p className="text-gray-500">{formatTime(booking.time)}</p>
                                 </div>
                               </td>

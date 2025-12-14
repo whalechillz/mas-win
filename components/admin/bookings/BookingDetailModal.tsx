@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { formatPhoneNumber } from '../../../lib/formatters';
 
 interface Booking {
   id: string | number;
@@ -440,7 +441,7 @@ export default function BookingDetailModal({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500 mb-1">전화번호</label>
-              <p className="text-gray-900">{booking.phone}</p>
+              <p className="text-gray-900">{formatPhoneNumber(booking.phone)}</p>
             </div>
             {booking.email && (
               <div>
@@ -475,7 +476,21 @@ export default function BookingDetailModal({
                   />
                 </div>
               ) : (
-                <p className="text-gray-900">{booking.date} {booking.time}</p>
+                <p className="text-gray-900">
+                  {(() => {
+                    // 날짜에 요일 추가
+                    if (!booking.date) return '';
+                    const [year, month, day] = booking.date.split('-').map(Number);
+                    const dateObj = new Date(year, month - 1, day);
+                    const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][dateObj.getDay()];
+                    const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}(${dayOfWeek})`;
+                    
+                    // 시간에서 초 제거
+                    const formattedTime = booking.time ? booking.time.split(':').slice(0, 2).join(':') : '';
+                    
+                    return `${formattedDate} ${formattedTime}`;
+                  })()}
+                </p>
               )}
             </div>
             <div>

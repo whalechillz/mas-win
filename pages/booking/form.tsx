@@ -524,7 +524,7 @@ export default function BookingForm() {
             </div>
 
             {/* 진행 단계 표시 */}
-            <div className="mb-8 flex items-center justify-center gap-2 sm:gap-4 flex-wrap">
+            <div className="mb-8 flex items-center justify-center gap-2 sm:gap-4 flex-nowrap overflow-x-auto">
               <div className="flex items-center gap-2">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                   currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'

@@ -6,6 +6,25 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+// 날짜에 요일 추가
+function formatDateWithDay(dateStr) {
+  if (!dateStr) return '';
+  try {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const dateObj = new Date(year, month - 1, day);
+    const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][dateObj.getDay()];
+    return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}(${dayOfWeek})`;
+  } catch {
+    return dateStr;
+  }
+}
+
+// 시간에서 초 제거
+function formatTime(timeStr) {
+  if (!timeStr) return '';
+  return timeStr.split(':').slice(0, 2).join(':');
+}
+
 /**
  * 예약 정보를 Slack 메시지로 포맷팅
  */
@@ -40,11 +59,11 @@ function formatBookingSlackMessage(booking, type) {
       },
       {
         type: 'mrkdwn',
-        text: `*전화번호:*\n${booking.phone || '-'}`,
+        text: `*전화번호:*\n${formatPhoneNumber(booking.phone) || '-'}`,
       },
       {
         type: 'mrkdwn',
-        text: `*예약일시:*\n${booking.date || '-'} ${booking.time || ''}`,
+        text: `*예약일시:*\n${formatDateWithDay(booking.date) || '-'} ${formatTime(booking.time) || ''}`,
       },
       {
         type: 'mrkdwn',

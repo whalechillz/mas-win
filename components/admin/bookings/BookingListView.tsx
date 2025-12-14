@@ -438,6 +438,19 @@ export default function BookingListView({ bookings, customers, supabase, onUpdat
     return time.split(':').slice(0, 2).join(':');
   };
 
+  // 날짜에 요일 추가
+  const formatDateWithDay = (dateStr: string): string => {
+    if (!dateStr) return '';
+    try {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const dateObj = new Date(year, month - 1, day);
+      const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][dateObj.getDay()];
+      return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}(${dayOfWeek})`;
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* 필터 및 검색 */}
@@ -973,7 +986,7 @@ export default function BookingListView({ bookings, customers, supabase, onUpdat
                 )}
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-1">예약일시</label>
-                  <p className="text-gray-900">{viewingBooking.date} {formatTime(viewingBooking.time)}</p>
+                  <p className="text-gray-900">{formatDateWithDay(viewingBooking.date)} {formatTime(viewingBooking.time)}</p>
                 </div>
                 {viewingBooking.service_type && (
                   <div>
