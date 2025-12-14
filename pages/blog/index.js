@@ -156,11 +156,11 @@ export default function BlogIndex({ posts: staticPosts, initialPagination }) {
   return (
     <>
       <Head>
-        <title>마쓰구 블로그 | 22년 전통의 맞춤형 드라이버 전문 브랜드</title>
-        <meta name="description" content="마쓰구 블로그에서 22년 전통의 맞춤형 드라이버, 골프 피팅, 고객 성공 스토리 등 골프 관련 정보를 확인하세요." />
-        <meta name="keywords" content="마쓰구, 맞춤형 드라이버, 골프 드라이버, 골프 피팅, 22년 전통, 비거리 향상, 고객 성공 스토리" />
-        <meta property="og:title" content="마쓰구 블로그 | 22년 전통의 맞춤형 드라이버 전문 브랜드" />
-        <meta property="og:description" content="마쓰구 블로그에서 22년 전통의 맞춤형 드라이버, 골프 피팅, 고객 성공 스토리 등 골프 관련 정보를 확인하세요." />
+        <title>골프 가이드 | KGFA 1급 전문 피터의 실전 노하우 | 마쓰구골프</title>
+        <meta name="description" content="당신의 골프 실력을 한 단계 올려주는 골프 가이드. KGFA 1급 전문 피터의 22년 경험 노하우, 비거리 향상, 정확도 개선, 드라이버 피팅 가이드 등 실전 정보를 확인하세요." />
+        <meta name="keywords" content="골프 가이드, 골프 노하우, 비거리 향상, 정확도 개선, 드라이버 피팅, KGFA 1급 전문 피터, 골프 팁, 골프 기초" />
+        <meta property="og:title" content="골프 가이드 | KGFA 1급 전문 피터의 실전 노하우" />
+        <meta property="og:description" content="당신의 골프 실력을 한 단계 올려주는 골프 가이드. KGFA 1급 전문 피터의 22년 경험 노하우를 확인하세요." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://masgolf.co.kr/blog" />
         <link rel="canonical" href="https://masgolf.co.kr/blog" />
@@ -205,8 +205,8 @@ export default function BlogIndex({ posts: staticPosts, initialPagination }) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-6 sm:py-8 lg:py-12">
               <div className="mb-4 sm:mb-0">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-slate-900 tracking-tight">마쓰구 블로그</h1>
-                <p className="mt-2 sm:mt-4 text-slate-600 text-sm sm:text-base lg:text-lg xl:text-xl font-medium">22년 전통의 맞춤형 드라이버 전문 브랜드</p>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-slate-900 tracking-tight">골프 가이드</h1>
+                <p className="mt-2 sm:mt-4 text-slate-600 text-sm sm:text-base lg:text-lg xl:text-xl font-medium">당신의 골프 실력을 한 단계 올려주는<br className="sm:hidden" />KGFA 1급 전문 피터의 실전 노하우</p>
               </div>
               <Link href="/" className="inline-flex items-center gap-2 text-slate-700 hover:text-slate-900 font-medium transition-colors duration-200 group text-sm sm:text-base lg:text-lg">
                 <HomeIcon />

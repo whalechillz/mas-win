@@ -49,6 +49,7 @@ export default function About() {
                 <Link href="/#technology" className="text-gray-700 hover:text-gray-900">기술력</Link>
                 <Link href="/#reviews" className="text-gray-700 hover:text-gray-900">고객후기</Link>
                 <Link href="/about" className="text-gray-700 hover:text-gray-900 font-semibold">브랜드 스토리</Link>
+                <Link href="/blog" className="text-gray-700 hover:text-gray-900">골프 가이드</Link>
                 <Link href="/contact" className="text-gray-700 hover:text-gray-900">시타매장</Link>
                 <Link href="/try-a-massgoo" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
                   무료 시타
