@@ -261,13 +261,28 @@ export default async function handler(req, res) {
     const solapiResult = await solapiResponse.json();
 
     if (!solapiResponse.ok) {
-      throw new Error(solapiResult?.message || 'Solapi 업로드 실패');
+      // ⭐ 수정: 더 자세한 에러 로깅
+      console.error('❌ Solapi 업로드 실패 상세:', {
+        status: solapiResponse.status,
+        statusText: solapiResponse.statusText,
+        response: solapiResult,
+        imageUrl: imageUrl,
+        imageSize: `${(uploadBuffer.length / 1024).toFixed(2)}KB`,
+        fileName: safeFileName
+      });
+      throw new Error(solapiResult?.message || solapiResult?.errorMessage || `Solapi 업로드 실패 (${solapiResponse.status})`);
     }
 
     const imageId = solapiResult.fileId || solapiResult.id;
 
     if (!imageId) {
-      throw new Error('Solapi에서 imageId를 받지 못했습니다.');
+      // ⭐ 수정: imageId가 없을 때 더 자세한 에러
+      console.error('❌ Solapi 응답에 imageId가 없음:', {
+        response: solapiResult,
+        imageUrl: imageUrl,
+        imageSize: `${(uploadBuffer.length / 1024).toFixed(2)}KB`
+      });
+      throw new Error(`Solapi에서 imageId를 받지 못했습니다. 응답: ${JSON.stringify(solapiResult)}`);
     }
 
     console.log('✅ Solapi 업로드 성공, imageId:', imageId);

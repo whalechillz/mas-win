@@ -304,15 +304,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               console.log('🔍 로고 가져오기 시작:', { logoId, logoColor, logoSize, enableLogo });
               
               // 1. 로고 메타데이터에서 image_url 가져오기
+              // ⭐ 수정: is_logo 조건 제거 (logo 폴더 이미지 포함 모든 이미지 허용)
               const { data: logoMetadata, error: fetchError } = await supabase
                 .from('image_metadata')
-                .select('image_url')
+                .select('image_url, folder_path')
                 .eq('id', logoId)
-                .eq('is_logo', true)
                 .single();
 
               if (fetchError || !logoMetadata || !logoMetadata.image_url) {
-                throw new Error(`로고를 찾을 수 없습니다: ${fetchError?.message || '메타데이터가 없습니다.'}`);
+                throw new Error(`이미지를 찾을 수 없습니다: ${fetchError?.message || '메타데이터가 없습니다.'}`);
+              }
+
+              // ⭐ 추가: logo 폴더에 있는 이미지인지 확인 (선택적 경고)
+              const isLogoFolder = logoMetadata.folder_path?.includes('originals/logos') || 
+                                   logoMetadata.folder_path?.includes('logos');
+              if (!isLogoFolder) {
+                console.log('ℹ️ 일반 이미지가 로고로 선택되었습니다. 계속 진행합니다.');
               }
 
               const logoImageUrl = logoMetadata.image_url;

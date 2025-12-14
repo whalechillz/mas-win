@@ -121,15 +121,12 @@ export default function BookingDetailModal({
 
       const result = await response.json();
       
-      // ⭐ 수정: 저장 성공 후 모달 유지 (onUpdate 호출 제거)
+      // ⭐ 수정: 저장 성공 후 모달 닫고 대시보드로 이동
       alert('✅ 예약이 저장되었습니다.');
       
-      // ⭐ 수정: 편집 모드 종료하고 예약 데이터 업데이트 (모달은 유지)
-      setIsEditing(false);
-      // editData를 최신 데이터로 업데이트
-      setEditData(result);
-      // ⭐ 수정: onUpdate는 호출하지 않음 (모달 유지)
-      // onUpdate(); // 제거
+      // ⭐ 수정: 저장 후 모달 닫기 및 목록 새로고침
+      onUpdate(); // 목록 새로고침
+      onClose(); // 모달 닫기
     } catch (error: any) {
       console.error('예약 수정 오류:', error);
       alert('예약 수정에 실패했습니다: ' + error.message);
@@ -588,25 +585,7 @@ export default function BookingDetailModal({
               >
                 {saving ? '저장 중...' : '저장'}
               </button>
-              {/* ⭐ 추가: 저장 버튼 옆에 메시지 보내기 버튼 */}
-              {!saving && (
-                <button
-                  onClick={
-                    editData.status === 'confirmed'
-                      ? handleSendConfirmationMessage
-                      : handleSendReceivedMessage
-                  }
-                  disabled={sendingMessage}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  {sendingMessage 
-                    ? '발송 중...' 
-                    : (editData.status === 'confirmed'
-                        ? '확정 메시지 보내기'
-                        : '예약 접수 메시지 보내기')
-                  }
-                </button>
-              )}
+              {/* ⭐ 제거: 편집 모드에서는 메시지 보내기 버튼 제거 (저장 후 모달이 닫히므로 편집 모드가 아닐 때만 표시) */}
             </div>
           )}
         </div>
