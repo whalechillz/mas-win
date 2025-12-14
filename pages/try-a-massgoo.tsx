@@ -269,7 +269,10 @@ export default function TryAMassgoo() {
                   <strong className="text-gray-900">전화:</strong> 031-215-0013
                 </div>
                 <div>
-                  <strong className="text-gray-900">운영시간:</strong> 평일 10:00 - 19:00, 주말 10:00 - 18:00
+                  <strong className="text-gray-900">운영시간:</strong> 평일 09:00 - 18:00, 주말 예약제 운영
+                </div>
+                <div className="text-sm text-gray-600">
+                  비거리 상담: 080-028-8888 (무료)
                 </div>
                 <div className="pt-4">
                   <Link
