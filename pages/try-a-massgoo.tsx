@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { formatBrandDistanceResearch, formatBrandYears } from '../lib/brand-utils';
 
 export default function TryAMassgoo() {
   const [footerExpanded, setFooterExpanded] = useState(false);
@@ -15,12 +16,12 @@ export default function TryAMassgoo() {
   return (
     <>
       <Head>
-        <title>KGFA 1급 전문 피터가 진행하는 마쓰구 드라이버 시타서비스 - 무료 시타 예약 | 마쓰구골프</title>
-        <meta name="description" content="KGFA 1급 전문 피터가 직접 진행하는 마쓰구 드라이버 시타서비스. 무료 시타 체험으로 최적의 드라이버를 찾아보세요. 온라인 예약 가능." />
+        <title>마쓰구 드라이버 시타서비스 - {formatBrandDistanceResearch()} | 무료 시타 예약 | 마쓰구골프</title>
+        <meta name="description" content={`${formatBrandDistanceResearch()}. KGFA 1급 전문 피터가 직접 진행하는 마쓰구 드라이버 시타서비스. 무료 시타 체험으로 최적의 드라이버를 찾아보세요.`} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
-        <meta property="og:title" content="KGFA 1급 전문 피터가 진행하는 마쓰구 드라이버 시타서비스" />
-        <meta property="og:description" content="KGFA 1급 전문 피터가 직접 진행하는 마쓰구 드라이버 시타서비스. 무료 시타 체험으로 최적의 드라이버를 찾아보세요." />
+        <meta property="og:title" content={`마쓰구 드라이버 시타서비스 - ${formatBrandDistanceResearch()}`} />
+        <meta property="og:description" content={`${formatBrandDistanceResearch()}. KGFA 1급 전문 피터가 직접 진행하는 무료 시타 체험으로 최적의 드라이버를 찾아보세요.`} />
         <meta property="og:url" content="https://www.masgolf.co.kr/try-a-massgoo" />
         <meta property="og:type" content="website" />
         <link rel="canonical" href="https://www.masgolf.co.kr/try-a-massgoo" />
@@ -74,9 +75,12 @@ export default function TryAMassgoo() {
           
           <div className="relative z-10 container mx-auto px-4 text-center">
             {/* 배지 - 그라데이션 및 그림자 효과 */}
-            <div className="mb-4 md:mb-6">
+            <div className="mb-4 md:mb-6 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
               <span className="inline-block bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 text-black px-4 py-1.5 md:px-5 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg">
                 KGFA 1급 전문 피터
+              </span>
+              <span className="inline-block bg-gradient-to-r from-blue-500 via-blue-400 to-blue-500 text-white px-4 py-1.5 md:px-5 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg">
+                {formatBrandDistanceResearch()}
               </span>
             </div>
             

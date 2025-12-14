@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import { formatBrandYearsTradition, BRAND_FOUNDED_YEAR } from '../lib/brand-utils';
 
 export default function Home({ hostname }) {
   const router = useRouter();
@@ -1158,7 +1159,7 @@ export default function Home({ hostname }) {
                   </div>
                       <p className="text-sm text-gray-400 mb-4">MASGOLF® 프리미엄 드라이버 브랜드</p>
                       <p className="text-gray-300 mb-4 leading-relaxed">
-                        MASGOLF는 2003년부터 당신의 골프 여정에 함께해 왔습니다. MASSGOO는 MASGOLF의 프리미엄 드라이버 브랜드입니다. 20년 전통의 기술력으로 만든 혁신적인 드라이버 브랜드로, 나노레벨 카본 기술을 추구하는 골퍼부터 비거리 회복을 원하는 골퍼까지, 모든 골퍼에게 특별한 퍼포먼스를 제공합니다.
+                        {`MASGOLF는 ${BRAND_FOUNDED_YEAR}년부터 당신의 골프 여정에 함께해 왔습니다. MASSGOO는 MASGOLF의 프리미엄 드라이버 브랜드입니다. ${formatBrandYearsTradition()}의 기술력으로 만든 혁신적인 드라이버 브랜드로, 나노레벨 카본 기술을 추구하는 골퍼부터 비거리 회복을 원하는 골퍼까지, 모든 골퍼에게 특별한 퍼포먼스를 제공합니다.`}
                 </p>
                     </div>
                     <div className="space-y-2">

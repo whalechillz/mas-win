@@ -2,6 +2,14 @@ import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
+import { 
+  formatBrandYearsAgo, 
+  formatBrandYearsJourney, 
+  formatBrandYearsDuration, 
+  formatBrandYearsTradition,
+  getBrandYears,
+  BRAND_FOUNDED_YEAR
+} from '../lib/brand-utils';
 
 export default function About() {
   const [footerExpanded, setFooterExpanded] = useState(false);
@@ -9,17 +17,17 @@ export default function About() {
   return (
     <>
       <Head>
-        <title>MASSGOO 브랜드 스토리 - 22년 전통의 프리미엄 드라이버</title>
-        <meta name="description" content="2003년 설립된 마쓰구골프의 브랜드 스토리. 정직함과 정확성을 바탕으로 골프의 미래를 새롭게 정의합니다." />
+        <title>MASSGOO 브랜드 스토리 - {formatBrandYearsTradition()}의 프리미엄 드라이버</title>
+        <meta name="description" content={`${BRAND_FOUNDED_YEAR}년 설립된 마쓰구골프의 브랜드 스토리. 정직함과 정확성을 바탕으로 골프의 미래를 새롭게 정의합니다.`} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
-        <meta property="og:title" content="MASSGOO 브랜드 스토리 - 22년 전통의 프리미엄 드라이버" />
-        <meta property="og:description" content="2003년 설립된 마쓰구골프의 브랜드 스토리. 정직함과 정확성을 바탕으로 골프의 미래를 새롭게 정의합니다." />
+        <meta property="og:title" content={`MASSGOO 브랜드 스토리 - ${formatBrandYearsTradition()}의 프리미엄 드라이버`} />
+        <meta property="og:description" content={`${BRAND_FOUNDED_YEAR}년 설립된 마쓰구골프의 브랜드 스토리. 정직함과 정확성을 바탕으로 골프의 미래를 새롭게 정의합니다.`} />
         <meta property="og:image" content="https://www.masgolf.co.kr/main/brand/hero-titanium.webp" />
         <meta property="og:url" content="https://www.masgolf.co.kr/about" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="MASSGOO 브랜드 스토리 - 22년 전통의 프리미엄 드라이버" />
+        <meta name="twitter:title" content={`MASSGOO 브랜드 스토리 - ${formatBrandYearsTradition()}의 프리미엄 드라이버`} />
         <meta name="twitter:description" content="2003년 설립된 마쓰구골프의 브랜드 스토리. 정직함과 정확성을 바탕으로 골프의 미래를 새롭게 정의합니다." />
         <meta name="twitter:image" content="https://www.masgolf.co.kr/main/brand/hero-titanium.webp" />
         <meta name="robots" content="index, follow" />
@@ -81,7 +89,7 @@ export default function About() {
           <div className="relative z-10 container mx-auto px-4 text-center">
             <div className="max-w-4xl mx-auto">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-white mb-4 md:mb-6 leading-[1.2] tracking-tight px-2">
-                22년 전,<br className="sm:hidden" />
+                {formatBrandYearsAgo()},<br className="sm:hidden" />
                 하나의 꿈이<br className="hidden sm:block md:hidden" />
                 시작되었습니다
               </h1>
@@ -90,9 +98,9 @@ export default function About() {
                 골프의 미래를 새롭게 정의하는 여정
               </p>
               <p className="text-sm sm:text-base md:text-lg text-gray-300 max-w-3xl mx-auto leading-relaxed px-2">
-                2003년, 일본 장인 정신과 혁신 기술력이 만나<br className="sm:hidden" />
+                {BRAND_FOUNDED_YEAR}년, 일본 장인 정신과 혁신 기술력이 만나<br className="sm:hidden" />
                 MASSGOO가 탄생했습니다.<br />
-                지금까지 골퍼들과 함께한 22년의 여정을 소개합니다.
+                지금까지 골퍼들과 함께한 {formatBrandYearsJourney()}을 소개합니다.
               </p>
             </div>
           </div>
@@ -119,7 +127,7 @@ export default function About() {
                   <div className="space-y-4">
                     <h3 className="text-3xl font-bold text-gray-900">정확성</h3>
                     <p className="text-lg text-gray-600 leading-relaxed">
-                      정확한 제조 공정, 정확한 피팅, 정확한 성능 데이터. 모든 것이 정확해야 합니다. 이는 우리가 22년간 지켜온 신념입니다.
+                      정확한 제조 공정, 정확한 피팅, 정확한 성능 데이터. 모든 것이 정확해야 합니다. 이는 우리가 {formatBrandYearsDuration()} 지켜온 신념입니다.
                     </p>
                   </div>
                 </div>
@@ -165,7 +173,7 @@ export default function About() {
                     2003년, 마쓰구골프는 드라이버와 우드 생산을 시작했습니다. 일본의 장인 정신과 혁신적인 기술력을 결합하여 전 세계 골퍼에게 최고의 경험을 제공하고자 했습니다.
                   </p>
                   <p className="text-lg text-gray-600 leading-relaxed">
-                    기술적 설명보다는 스토리 중심으로, 고객과 함께 성장해온 22년의 여정을 이야기합니다.
+                    기술적 설명보다는 스토리 중심으로, 고객과 함께 성장해온 {formatBrandYearsJourney()}을 이야기합니다.
                   </p>
                 </div>
               </div>
@@ -359,13 +367,13 @@ export default function About() {
           </div>
         </section>
 
-        {/* 22년간 함께한 골퍼들의 이야기 */}
+        {/* {formatBrandYearsDuration()} 함께한 골퍼들의 이야기 */}
         <section className="py-12 md:py-20 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto">
               <div className="text-center mb-12 md:mb-16">
                 <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight px-4">
-                  22년간 함께한<br className="sm:hidden" />
+                  {formatBrandYearsDuration()} 함께한<br className="sm:hidden" />
                   골퍼들의 이야기
                 </h2>
                 <div className="w-16 md:w-24 h-0.5 md:h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent mx-auto mb-4 md:mb-8"></div>
@@ -392,7 +400,7 @@ export default function About() {
                   <div className="text-4xl mb-4">😊</div>
                   <h3 className="text-xl font-bold text-gray-900 mb-3">만족도 향상</h3>
                   <p className="text-gray-600 leading-relaxed">
-                    22년간 쌓아온 신뢰와 만족도. 고객 중심의 성공 사례를 확인해보세요.
+                    {formatBrandYearsDuration()} 쌓아온 신뢰와 만족도. 고객 중심의 성공 사례를 확인해보세요.
                   </p>
                 </div>
               </div>
@@ -511,7 +519,7 @@ export default function About() {
               </h2>
               <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-8 md:mb-12 leading-relaxed">
                 당신의 골프 여정에 함께하겠습니다.<br />
-                22년 전통의 기술력으로 특별한 퍼포먼스를 제공합니다.
+                {formatBrandYearsTradition()}의 기술력으로 특별한 퍼포먼스를 제공합니다.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
@@ -680,7 +688,7 @@ export default function About() {
                         </div>
                         <p className="text-sm text-gray-400 mb-4">MASGOLF® 프리미엄 드라이버 브랜드</p>
                         <p className="text-gray-300 mb-4 leading-relaxed">
-                          MASGOLF는 2003년부터 당신의 골프 여정에 함께해 왔습니다. MASSGOO는 MASGOLF의 프리미엄 드라이버 브랜드입니다. 20년 전통의 기술력으로 만든 혁신적인 드라이버 브랜드로, 나노레벨 카본 기술을 추구하는 골퍼부터 비거리 회복을 원하는 골퍼까지, 모든 골퍼에게 특별한 퍼포먼스를 제공합니다.
+                          MASGOLF는 {BRAND_FOUNDED_YEAR}년부터 당신의 골프 여정에 함께해 왔습니다. MASSGOO는 MASGOLF의 프리미엄 드라이버 브랜드입니다. {formatBrandYearsTradition()}의 기술력으로 만든 혁신적인 드라이버 브랜드로, 나노레벨 카본 기술을 추구하는 골퍼부터 비거리 회복을 원하는 골퍼까지, 모든 골퍼에게 특별한 퍼포먼스를 제공합니다.
                         </p>
                       </div>
                       <div className="space-y-2">

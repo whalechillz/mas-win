@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { formatBrandYears } from '../../lib/brand-utils';
 
 const REVIEW_CATEGORIES = ['고객 후기', '리얼 체험, 비거리 성공 후기'];
 
@@ -186,7 +187,7 @@ export default function Gold2SapphireProduct() {
                   </div>
                   <div className="bg-green-50 p-4 rounded-lg">
                     <h3 className="font-bold text-gray-900 mb-2">일본 제조</h3>
-                    <p className="text-sm text-gray-600">드라이버 22년 제조 경력</p>
+                    <p className="text-sm text-gray-600">드라이버 {formatBrandYears()} 제조 경력</p>
                   </div>
                   <div className="bg-purple-50 p-4 rounded-lg">
                     <h3 className="font-bold text-gray-900 mb-2">한정 제작</h3>
@@ -364,7 +365,7 @@ export default function Gold2SapphireProduct() {
                   <span className="text-2xl">🏆</span>
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">일본 장인정신</h3>
-                <p className="text-gray-600">드라이버 22년 제조 경력의 수제 공정과 최고급 소재</p>
+                <p className="text-gray-600">드라이버 {formatBrandYears()} 제조 경력의 수제 공정과 최고급 소재</p>
               </div>
             </div>
 
@@ -800,7 +801,7 @@ export default function Gold2SapphireProduct() {
               <div className="grid md:grid-cols-3 gap-8 mb-8">
                 <div className="bg-white rounded-lg p-6 shadow-md">
                   <h3 className="text-xl font-bold text-gray-900 mb-2">혼마 수준의 수제 제작</h3>
-                  <p className="text-gray-600">드라이버 22년 제조 경력의 수제 공정</p>
+                  <p className="text-gray-600">드라이버 {formatBrandYears()} 제조 경력의 수제 공정</p>
                 </div>
                 <div className="bg-white rounded-lg p-6 shadow-md">
                   <h3 className="text-xl font-bold text-gray-900 mb-2">마제스티 수준의 품질 관리</h3>
