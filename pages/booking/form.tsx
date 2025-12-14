@@ -579,7 +579,8 @@ export default function BookingForm() {
                   )}
                 </div>
                 <p className="mt-3 text-xs text-blue-600">
-                  입력란을 자동으로 채워드렸습니다. 필요 시 내용을 수정해주세요.
+                  입력란을 자동으로 채워드렸습니다.<br />
+                  필요 시 내용을 수정해주세요.
                 </p>
               </div>
             )}
