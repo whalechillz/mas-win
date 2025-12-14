@@ -649,11 +649,61 @@ export default function BookingDetailModal({
                     </button>
                   </div>
                 )}
-                {existingReminder && (
-                  <p className="text-xs text-green-600 mt-2">
-                    ✓ 예약 메시지가 설정되어 있습니다.
-                  </p>
-                )}
+                {existingReminder && (() => {
+                  const now = new Date();
+                  const scheduledAt = existingReminder.scheduled_at ? new Date(existingReminder.scheduled_at) : null;
+                  const isSent = existingReminder.status === 'sent' || existingReminder.status === 'partial';
+                  const isPast = scheduledAt && scheduledAt < now && existingReminder.status === 'draft';
+                  
+                  if (isSent) {
+                    return (
+                      <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs">
+                        <p className="text-green-800 font-medium">✓ 메시지가 발송되었습니다.</p>
+                        {existingReminder.sent_at && (
+                          <p className="text-green-600 mt-1">
+                            발송 시간: {new Date(existingReminder.sent_at).toLocaleString('ko-KR', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              timeZone: 'Asia/Seoul'
+                            })}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  }
+                  
+                  if (isPast) {
+                    return (
+                      <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+                        <p className="text-yellow-800 font-medium">⚠️ 발송 시간이 지났습니다.</p>
+                        {scheduledAt && (
+                          <p className="text-yellow-600 mt-1">
+                            예정 시간: {scheduledAt.toLocaleString('ko-KR', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              timeZone: 'Asia/Seoul'
+                            })}
+                          </p>
+                        )}
+                        <p className="text-yellow-600 text-[10px] mt-1">
+                          메시지가 아직 발송되지 않았습니다. 수동으로 발송하거나 시간을 수정해주세요.
+                        </p>
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <p className="text-xs text-green-600 mt-2">
+                      ✓ 예약 메시지가 설정되어 있습니다.
+                    </p>
+                  );
+                })()}
               </div>
             </div>
           </div>
