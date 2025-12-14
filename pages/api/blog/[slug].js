@@ -56,51 +56,44 @@ export default async function handler(req, res) {
 
     // Get previous and next posts by published_at order
     // published_at이 없으면 created_at 사용
-    const orderDate = post.published_at || post.created_at;
-    
-    // 이전 포스트: published_at이 orderDate보다 작거나, published_at이 null이고 created_at이 orderDate보다 작은 경우
-    let prevPostQuery = supabase
+    // 모든 포스트를 가져와서 JavaScript에서 정렬하는 방식으로 변경
+    let allPostsQuery = supabase
       .from('blog_posts')
       .select('id, title, slug, published_at, created_at')
-      .neq('id', post.id)
-      .order('published_at', { ascending: false, nullsFirst: false })
-      .order('created_at', { ascending: false });
-    
-    // 다음 포스트: published_at이 orderDate보다 크거나, published_at이 null이고 created_at이 orderDate보다 큰 경우
-    let nextPostQuery = supabase
-      .from('blog_posts')
-      .select('id, title, slug, published_at, created_at')
-      .neq('id', post.id)
-      .order('published_at', { ascending: true, nullsFirst: true })
-      .order('created_at', { ascending: true });
+      .neq('id', post.id);
 
     // 관리자가 아닌 경우 발행된 게시물만 조회
     if (!isAdmin) {
-      prevPostQuery = prevPostQuery.eq('status', 'published');
-      nextPostQuery = nextPostQuery.eq('status', 'published');
+      allPostsQuery = allPostsQuery.eq('status', 'published');
     }
 
-    // 모든 포스트를 가져와서 필터링
-    const [prevPostsResult, nextPostsResult] = await Promise.all([
-      prevPostQuery.limit(100), // 충분한 수를 가져와서 필터링
-      nextPostQuery.limit(100)
-    ]);
+    // 모든 포스트 가져오기 (충분한 수를 가져와서 필터링)
+    const { data: allPosts } = await allPostsQuery.limit(500);
+
+    // JavaScript에서 정렬: published_at 우선, 없으면 created_at 사용
+    // 내림차순 (최신순)
+    const sortedPosts = (allPosts || []).sort((a, b) => {
+      const dateA = new Date(a.published_at || a.created_at);
+      const dateB = new Date(b.published_at || b.created_at);
+      return dateB - dateA; // 내림차순 (최신순)
+    });
 
     // 현재 포스트의 정렬 기준 날짜
-    const currentDate = post.published_at || post.created_at;
+    const currentDate = new Date(post.published_at || post.created_at);
     
-    // 이전 포스트: 정렬된 데이터에서 현재보다 이전 날짜의 포스트 중 첫 번째 (가장 최근)
-    const prevPost = (prevPostsResult.data || []).find(p => {
-      const postDate = p.published_at || p.created_at;
-      if (!postDate || !currentDate) return false;
-      return new Date(postDate) < new Date(currentDate);
+    // 이전 포스트: 정렬된 배열에서 현재보다 이전 날짜의 포스트 중 첫 번째
+    // (배열이 최신순이므로, 현재보다 이전 날짜는 뒤쪽에 있음)
+    const prevPost = sortedPosts.find(p => {
+      const postDate = new Date(p.published_at || p.created_at);
+      return postDate < currentDate;
     }) || null;
     
-    // 다음 포스트: 정렬된 데이터에서 현재보다 이후 날짜의 포스트 중 첫 번째 (가장 오래된)
-    const nextPost = (nextPostsResult.data || []).find(p => {
-      const postDate = p.published_at || p.created_at;
-      if (!postDate || !currentDate) return false;
-      return new Date(postDate) > new Date(currentDate);
+    // 다음 포스트: 정렬된 배열을 뒤집어서 현재보다 이후 날짜의 포스트 중 첫 번째
+    // (배열이 최신순이므로, 현재보다 이후 날짜는 앞쪽에 있음)
+    const reversedPosts = [...sortedPosts].reverse();
+    const nextPost = reversedPosts.find(p => {
+      const postDate = new Date(p.published_at || p.created_at);
+      return postDate > currentDate;
     }) || null;
 
     // Transform data for frontend
