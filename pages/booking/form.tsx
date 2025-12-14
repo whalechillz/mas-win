@@ -339,6 +339,18 @@ export default function BookingForm() {
     }
   };
 
+  // ⭐ 수정: form 레벨에서 Enter 키로 인한 submit 방지
+  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    // Enter 키가 form submit을 트리거하지 않도록 방지
+    // 단, submit 버튼을 클릭한 경우는 허용
+    if (e.key === 'Enter' && e.target instanceof HTMLTextAreaElement) {
+      // textarea에서 Enter 키는 줄바꿈만 허용
+      e.stopPropagation();
+      return;
+    }
+    // 다른 input에서 Enter 키는 기본 동작 허용 (필드 간 이동 등)
+  };
+
   // ⭐ 수정: textarea에서 Enter 키 처리 (form 제출 명시적 방지)
   const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Enter 키는 항상 줄바꿈으로만 처리 (form 제출 방지)
@@ -348,6 +360,10 @@ export default function BookingForm() {
       // preventDefault는 호출하지 않음 (줄바꿈 허용)
       // 하지만 form submit 이벤트 전파는 방지
       e.stopPropagation(); // ⭐ form submit 이벤트 전파 방지
+      // 추가: 네이티브 이벤트에서도 stopImmediatePropagation 호출
+      if (e.nativeEvent && typeof (e.nativeEvent as any).stopImmediatePropagation === 'function') {
+        (e.nativeEvent as any).stopImmediatePropagation();
+      }
       return; // 기본 동작(줄바꿈) 허용
     }
   };
@@ -585,7 +601,7 @@ export default function BookingForm() {
               </div>
             )}
 
-            <form onSubmit={handleFormSubmit} className="space-y-6">
+            <form onSubmit={handleFormSubmit} onKeyDown={handleFormKeyDown} className="space-y-6">
               {/* Phase 1: 필수 정보 */}
               {currentStep === 1 && (
                 <div className="space-y-6">
@@ -969,7 +985,14 @@ export default function BookingForm() {
                   </button>
                 ) : (
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (currentStep === 3) {
+                        handleSubmit(e as any);
+                      }
+                    }}
                     disabled={loading}
                     className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                   >
