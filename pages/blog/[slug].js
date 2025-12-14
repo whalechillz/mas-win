@@ -666,7 +666,7 @@ export default function BlogPost({ post: staticPost, relatedPosts: staticRelated
               {/* 한국 50대 남성 최적화 공유 섹션 */}
               <div className="mt-12 pt-8 border-t border-gray-200 no-print">
                 <div className="text-center">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">🏌️‍♂️ 골프 동호회 친구들과 공유하세요!</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6">이 가이드를 골프 친구들과 나눠보세요!</h3>
                   
                   {/* 공유 버튼들 */}
                   <div className="flex flex-wrap justify-center gap-3 mb-6">
@@ -690,24 +690,6 @@ export default function BlogPost({ post: staticPost, relatedPosts: staticRelated
                     >
                       <CopyIcon />
                       {copySuccess ? '복사 완료!' : '링크 복사'}
-                    </button>
-                    
-                    {/* 이메일 공유 */}
-                    <button 
-                      onClick={handleEmailShare}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium text-sm shadow-md hover:shadow-lg"
-                    >
-                      <EmailIcon />
-                      이메일 공유
-                    </button>
-                    
-                    {/* 인쇄 */}
-                    <button 
-                      onClick={handlePrint}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium text-sm shadow-md hover:shadow-lg"
-                    >
-                      <PrintIcon />
-                      인쇄하기
                     </button>
                   </div>
                   
