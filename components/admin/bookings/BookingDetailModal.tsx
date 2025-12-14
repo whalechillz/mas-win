@@ -650,10 +650,17 @@ export default function BookingDetailModal({
                   </div>
                 )}
                 {existingReminder && (() => {
+                  // ⭐ 수정: UTC → KST 명시적 변환
                   const now = new Date();
-                  const scheduledAt = existingReminder.scheduled_at ? new Date(existingReminder.scheduled_at) : null;
+                  const scheduledAtKST = existingReminder.scheduled_at 
+                    ? convertUTCToKST(existingReminder.scheduled_at) 
+                    : null;
+                  
+                  // ⭐ 수정: 현재 시간도 KST로 변환하여 비교
+                  const nowKST = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+                  
                   const isSent = existingReminder.status === 'sent' || existingReminder.status === 'partial';
-                  const isPast = scheduledAt && scheduledAt < now && existingReminder.status === 'draft';
+                  const isPast = scheduledAtKST && scheduledAtKST < nowKST && existingReminder.status === 'draft';
                   
                   if (isSent) {
                     return (
@@ -661,7 +668,7 @@ export default function BookingDetailModal({
                         <p className="text-green-800 font-medium">✓ 메시지가 발송되었습니다.</p>
                         {existingReminder.sent_at && (
                           <p className="text-green-600 mt-1">
-                            발송 시간: {new Date(existingReminder.sent_at).toLocaleString('ko-KR', {
+                            발송 시간: {convertUTCToKST(existingReminder.sent_at).toLocaleString('ko-KR', {
                               year: 'numeric',
                               month: '2-digit',
                               day: '2-digit',
@@ -679,9 +686,9 @@ export default function BookingDetailModal({
                     return (
                       <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
                         <p className="text-yellow-800 font-medium">⚠️ 발송 시간이 지났습니다.</p>
-                        {scheduledAt && (
+                        {scheduledAtKST && (
                           <p className="text-yellow-600 mt-1">
-                            예정 시간: {scheduledAt.toLocaleString('ko-KR', {
+                            예정 시간: {scheduledAtKST.toLocaleString('ko-KR', {
                               year: 'numeric',
                               month: '2-digit',
                               day: '2-digit',
