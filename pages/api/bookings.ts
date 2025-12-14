@@ -219,7 +219,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // 예약 생성 후 알림 발송 (비동기, 실패해도 예약은 성공 처리)
         try {
-          const baseUrl = req.headers.origin || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+          // ⭐ 수정: baseUrl을 더 안정적으로 설정
+          const protocol = req.headers['x-forwarded-proto'] || (req.headers.origin?.startsWith('https') ? 'https' : 'http');
+          const host = req.headers.host || process.env.NEXT_PUBLIC_BASE_URL?.replace(/^https?:\/\//, '') || 'localhost:3000';
+          const baseUrl = `${protocol}://${host}`;
+          
+          console.log('📡 예약 생성 알림 발송 시작:', { baseUrl, bookingId: newBooking.id });
           
           // 예약 설정 조회
           const { data: settings } = await supabase
@@ -228,44 +233,91 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .eq('id', '00000000-0000-0000-0000-000000000001')
             .single();
 
+          // ⭐ 수정: Promise.all로 병렬 처리하되, 각각 await하여 실제 발송 확인
+          const notificationPromises = [];
+
           // 고객 알림 (예약 접수 확인)
           if (settings?.notify_on_received_customer_sms !== false) {
-            fetch(`${baseUrl}/api/bookings/notify-customer`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                bookingId: newBooking.id,
-                notificationType: 'booking_received',
-              }),
-            }).catch(err => console.error('고객 알림 발송 오류 (무시):', err));
+            notificationPromises.push(
+              fetch(`${baseUrl}/api/bookings/notify-customer`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  bookingId: newBooking.id,
+                  notificationType: 'booking_received',
+                  bookingData: newBooking, // 최신 예약 정보 직접 전달
+                }),
+              })
+                .then(async (res) => {
+                  const result = await res.json();
+                  console.log('✅ 고객 알림 발송 결과:', result);
+                  return result;
+                })
+                .catch(err => {
+                  console.error('❌ 고객 알림 발송 오류:', err);
+                  return { success: false, error: err.message };
+                })
+            );
           }
 
           // 관리자 Slack 알림
           if (settings?.notify_on_received_slack !== false) {
-            fetch(`${baseUrl}/api/slack/booking-notify`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                type: 'booking_created',
-                bookingId: newBooking.id,
-              }),
-            }).catch(err => console.error('Slack 알림 발송 오류 (무시):', err));
+            notificationPromises.push(
+              fetch(`${baseUrl}/api/slack/booking-notify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  type: 'booking_created',
+                  bookingId: newBooking.id,
+                }),
+              })
+                .then(async (res) => {
+                  const result = await res.json();
+                  console.log('✅ Slack 알림 발송 결과:', result);
+                  return { success: res.ok, result };
+                })
+                .catch(err => {
+                  console.error('❌ Slack 알림 발송 오류:', err);
+                  return { success: false, error: err.message };
+                })
+            );
           }
 
-          // 관리자 SMS 알림 (신규 추가)
+          // 관리자 SMS 알림
           if (settings?.notify_on_received_staff_sms !== false) {
-            fetch(`${baseUrl}/api/bookings/notify-staff`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                bookingId: newBooking.id,
-                notificationType: 'received',
-              }),
-            }).catch(err => console.error('관리자 SMS 알림 발송 오류 (무시):', err));
+            notificationPromises.push(
+              fetch(`${baseUrl}/api/bookings/notify-staff`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  bookingId: newBooking.id,
+                  notificationType: 'received',
+                  bookingData: newBooking, // 최신 예약 정보 직접 전달
+                }),
+              })
+                .then(async (res) => {
+                  const result = await res.json();
+                  console.log('✅ 관리자 SMS 알림 발송 결과:', result);
+                  return result;
+                })
+                .catch(err => {
+                  console.error('❌ 관리자 SMS 알림 발송 오류:', err);
+                  return { success: false, error: err.message };
+                })
+            );
+          }
+
+          // ⭐ 수정: 모든 알림을 병렬로 실행하되, 결과를 기다림 (최대 5초 타임아웃)
+          if (notificationPromises.length > 0) {
+            await Promise.race([
+              Promise.all(notificationPromises),
+              new Promise((resolve) => setTimeout(resolve, 5000)) // 5초 타임아웃
+            ]);
+            console.log('📡 예약 생성 알림 발송 완료');
           }
         } catch (notificationError) {
           // 알림 실패해도 예약은 성공 처리
-          console.error('알림 발송 중 오류 (무시):', notificationError);
+          console.error('❌ 알림 발송 중 오류 (무시):', notificationError);
         }
 
         return res.status(201).json(newBooking);

@@ -321,7 +321,32 @@ export default function BookingForm() {
       }
       setCurrentStep(2);
     } else if (currentStep === 2) {
+      // ⭐ 수정: Step 2에서 Step 3로 넘어갈 때 에러 초기화
+      setError('');
       setCurrentStep(3);
+    }
+  };
+
+  // ⭐ 추가: form 제출 처리 (Step 3가 아닐 때는 다음 단계로 이동)
+  const handleFormSubmit = (e: React.FormEvent) => {
+    if (currentStep < 3) {
+      e.preventDefault();
+      handleNext();
+    } else {
+      handleSubmit(e);
+    }
+  };
+
+  // ⭐ 추가: textarea에서 Enter 키 처리 (줄바꿈 허용, form 제출 방지)
+  const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && e.shiftKey) {
+      // Shift+Enter: 줄바꿈 (기본 동작)
+      return;
+    }
+    if (e.key === 'Enter' && currentStep === 3) {
+      // Enter만 누르면 form 제출 방지 (textarea 내에서는 줄바꿈)
+      // form 제출은 "예약 완료" 버튼으로만 가능
+      e.preventDefault();
     }
   };
 
@@ -557,7 +582,7 @@ export default function BookingForm() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleFormSubmit} className="space-y-6">
               {/* Phase 1: 필수 정보 */}
               {currentStep === 1 && (
                 <div className="space-y-6">
@@ -903,6 +928,7 @@ export default function BookingForm() {
                       name="notes"
                       value={formData.notes}
                       onChange={handleChange}
+                      onKeyDown={handleTextareaKeyDown}
                       rows={4}
                       placeholder="예: 비거리, 정확도, 탄도 등 개선하고 싶은 부분을 알려주세요. 특별히 관심 있는 클럽이 있으시면 함께 적어주세요."
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
