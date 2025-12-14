@@ -114,6 +114,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
+      // ⭐ 추가: scheduled_at 형식 검증 및 변환 (먼저 수행)
+      let scheduledAtISO: string;
+      try {
+        const scheduledDate = new Date(scheduled_at);
+        if (Number.isNaN(scheduledDate.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: '유효하지 않은 발송 시간 형식입니다.',
+          });
+        }
+        scheduledAtISO = scheduledDate.toISOString();
+      } catch (dateError: any) {
+        return res.status(400).json({
+          success: false,
+          message: `발송 시간 변환 실패: ${dateError.message}`,
+        });
+      }
+
       // 전화번호 정규화
       const phone = booking.phone?.replace(/[\s\-+]/g, '') || '';
       if (!phone || !/^010\d{8}$/.test(phone)) {
@@ -155,42 +173,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         message_text: message,
         recipient_numbers: [phone],
         status: 'draft',
-        scheduled_at: scheduled_at,
+        scheduled_at: scheduledAtISO, // ⭐ ISO 형식으로 저장
         note: `예약 당일 알림: 예약 ID ${bookingId}, 고객 ${booking.name}`,
       };
 
       // metadata 컬럼이 있으면 추가
-      try {
-        insertData.metadata = {
-          booking_id: bookingId,
-          notification_type: 'booking_reminder_2h',
-          customer_id: booking.customer_id || null,
-        };
-      } catch (metaError) {
-        // metadata 컬럼이 없으면 note만 사용
-        console.log('metadata 컬럼을 사용할 수 없습니다. note 필드만 사용합니다.');
-      }
-
-      // ⭐ 추가: scheduled_at 형식 검증 및 변환
-      let scheduledAtISO: string;
-      try {
-        const scheduledDate = new Date(scheduled_at);
-        if (Number.isNaN(scheduledDate.getTime())) {
-          return res.status(400).json({
-            success: false,
-            message: '유효하지 않은 발송 시간 형식입니다.',
-          });
-        }
-        scheduledAtISO = scheduledDate.toISOString();
-      } catch (dateError: any) {
-        return res.status(400).json({
-          success: false,
-          message: `발송 시간 변환 실패: ${dateError.message}`,
-        });
-      }
-
-      // ⭐ 수정: ISO 형식으로 저장
-      insertData.scheduled_at = scheduledAtISO;
+      insertData.metadata = {
+        booking_id: bookingId,
+        notification_type: 'booking_reminder_2h',
+        customer_id: booking.customer_id || null,
+      };
 
       const { data: smsRecord, error: smsError } = await supabase
         .from('channel_sms')
