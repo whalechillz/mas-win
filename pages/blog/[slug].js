@@ -185,12 +185,14 @@ const convertMarkdownToHtml = (content) => {
   return html;
 };
 
-export default function BlogPost({ post: staticPost, relatedPosts: staticRelatedPosts = [] }) {
+export default function BlogPost({ post: staticPost, relatedPosts: staticRelatedPosts = [], prevPost: staticPrevPost = null, nextPost: staticNextPost = null }) {
   const router = useRouter();
   const { slug } = router.query;
   const [post, setPost] = useState(staticPost || null);
   const [loading, setLoading] = useState(!staticPost);
   const [relatedPosts, setRelatedPosts] = useState(staticRelatedPosts || []);
+  const [prevPost, setPrevPost] = useState(staticPrevPost || null);
+  const [nextPost, setNextPost] = useState(staticNextPost || null);
   
   // 디버깅: props 확인
   useEffect(() => {
@@ -391,13 +393,17 @@ export default function BlogPost({ post: staticPost, relatedPosts: staticRelated
           if (response.ok) {
             // API 응답 구조 확인: 관리자 요청은 직접 객체, 일반 요청은 중첩 구조
             if (data.post) {
-              // 일반 요청: {post: {...}, relatedPosts: [...]}
+              // 일반 요청: {post: {...}, relatedPosts: [...], prevPost: {...}, nextPost: {...}}
               setPost(data.post);
               setRelatedPosts(data.relatedPosts || []);
+              setPrevPost(data.prevPost || null);
+              setNextPost(data.nextPost || null);
             } else {
               // 관리자 요청: 직접 객체 {...}
               setPost(data);
               setRelatedPosts([]);
+              setPrevPost(null);
+              setNextPost(null);
             }
           } else {
             console.error('Failed to fetch post:', data.error);
@@ -544,10 +550,13 @@ export default function BlogPost({ post: staticPost, relatedPosts: staticRelated
         <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 no-print">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
-              <Link href="/blog" className="inline-flex items-center gap-2 text-slate-700 hover:text-slate-900 font-medium transition-colors duration-200 group">
+              <button 
+                onClick={() => router.back()} 
+                className="inline-flex items-center gap-2 text-slate-700 hover:text-slate-900 font-medium transition-colors duration-200 group"
+              >
                 <ArrowLeftIcon />
                 <span className="group-hover:translate-x-0.5 transition-transform duration-200">블로그 목록</span>
-              </Link>
+              </button>
               <Link href="/" className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors duration-200 group">
                 <HomeIcon />
                 <span className="group-hover:translate-x-0.5 transition-transform duration-200">홈으로</span>
@@ -703,6 +712,61 @@ export default function BlogPost({ post: staticPost, relatedPosts: staticRelated
             </div>
           </article>
 
+          {/* 이전/다음 포스트 네비게이션 */}
+          {(prevPost || nextPost) && (
+            <nav className="mt-16 pt-8 border-t border-slate-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 이전 포스트 */}
+                {prevPost ? (
+                  <Link 
+                    href={`/blog/${prevPost.slug}`}
+                    className="group flex items-center gap-4 p-6 bg-white/70 backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg border border-slate-200/50 transition-all duration-300 hover:-translate-y-1"
+                  >
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 transition-colors duration-200">
+                        <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-slate-500 font-medium mb-1">이전 글</div>
+                      <h3 className="text-base font-semibold text-slate-900 line-clamp-2 group-hover:text-slate-700 transition-colors duration-200">
+                        {prevPost.title}
+                      </h3>
+                    </div>
+                  </Link>
+                ) : (
+                  <div className="p-6"></div>
+                )}
+
+                {/* 다음 포스트 */}
+                {nextPost ? (
+                  <Link 
+                    href={`/blog/${nextPost.slug}`}
+                    className="group flex items-center gap-4 p-6 bg-white/70 backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg border border-slate-200/50 transition-all duration-300 hover:-translate-y-1 md:ml-auto"
+                  >
+                    <div className="flex-1 min-w-0 text-right">
+                      <div className="text-xs text-slate-500 font-medium mb-1">다음 글</div>
+                      <h3 className="text-base font-semibold text-slate-900 line-clamp-2 group-hover:text-slate-700 transition-colors duration-200">
+                        {nextPost.title}
+                      </h3>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 transition-colors duration-200">
+                        <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </Link>
+                ) : (
+                  <div className="p-6"></div>
+                )}
+              </div>
+            </nav>
+          )}
+
           {/* 고급스러운 관련 게시물 섹션 */}
           {(() => {
             console.log('🔍 렌더링 시점 relatedPosts 상태:', {
@@ -804,7 +868,9 @@ export async function getServerSideProps({ params, query, req }) {
     return {
       props: {
         post: data.post,
-        relatedPosts: data.relatedPosts || []
+        relatedPosts: data.relatedPosts || [],
+        prevPost: data.prevPost || null,
+        nextPost: data.nextPost || null
       }
     };
   } catch (error) {

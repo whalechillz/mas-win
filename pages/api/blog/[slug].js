@@ -54,6 +54,53 @@ export default async function handler(req, res) {
       .order('published_at', { ascending: false })
       .limit(3);
 
+    // Get previous and next posts by published_at order
+    // published_at이 없으면 created_at 사용
+    const orderDate = post.published_at || post.created_at;
+    
+    // 이전 포스트: published_at이 orderDate보다 작거나, published_at이 null이고 created_at이 orderDate보다 작은 경우
+    let prevPostQuery = supabase
+      .from('blog_posts')
+      .select('id, title, slug, published_at, created_at')
+      .neq('id', post.id)
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false });
+    
+    // 다음 포스트: published_at이 orderDate보다 크거나, published_at이 null이고 created_at이 orderDate보다 큰 경우
+    let nextPostQuery = supabase
+      .from('blog_posts')
+      .select('id, title, slug, published_at, created_at')
+      .neq('id', post.id)
+      .order('published_at', { ascending: true, nullsFirst: true })
+      .order('created_at', { ascending: true });
+
+    // 관리자가 아닌 경우 발행된 게시물만 조회
+    if (!isAdmin) {
+      prevPostQuery = prevPostQuery.eq('status', 'published');
+      nextPostQuery = nextPostQuery.eq('status', 'published');
+    }
+
+    // 모든 포스트를 가져와서 필터링
+    const [prevPostsResult, nextPostsResult] = await Promise.all([
+      prevPostQuery.limit(100), // 충분한 수를 가져와서 필터링
+      nextPostQuery.limit(100)
+    ]);
+
+    // 현재 포스트의 정렬 기준 날짜
+    const currentDate = post.published_at || post.created_at;
+    
+    // 이전 포스트: 현재보다 이전 날짜의 포스트 중 가장 최근 것
+    const prevPost = (prevPostsResult.data || []).find(p => {
+      const postDate = p.published_at || p.created_at;
+      return postDate < currentDate;
+    }) || null;
+    
+    // 다음 포스트: 현재보다 이후 날짜의 포스트 중 가장 오래된 것
+    const nextPost = (nextPostsResult.data || []).find(p => {
+      const postDate = p.published_at || p.created_at;
+      return postDate > currentDate;
+    }) || null;
+
     // Transform data for frontend
     const transformedPost = {
       id: post.id,
@@ -97,7 +144,17 @@ export default async function handler(req, res) {
     
     res.status(200).json({
       post: transformedPost,
-      relatedPosts: transformedRelatedPosts
+      relatedPosts: transformedRelatedPosts,
+      prevPost: prevPost ? {
+        id: prevPost.id,
+        title: prevPost.title,
+        slug: prevPost.slug
+      } : null,
+      nextPost: nextPost ? {
+        id: nextPost.id,
+        title: nextPost.title,
+        slug: nextPost.slug
+      } : null
     });
   } catch (error) {
     console.error('Error fetching blog post:', error);
