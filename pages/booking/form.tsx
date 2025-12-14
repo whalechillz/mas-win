@@ -327,24 +327,27 @@ export default function BookingForm() {
     }
   };
 
-  // ⭐ 추가: form 제출 처리 (Step 3가 아닐 때는 다음 단계로 이동)
+  // ⭐ 수정: form 제출 처리 (항상 preventDefault 호출하여 자동 제출 방지)
   const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault(); // ⭐ 항상 preventDefault 호출 (자동 form submit 방지)
+    
     if (currentStep < 3) {
-      e.preventDefault();
       handleNext();
     } else {
+      // Step 3일 때만 실제 제출 (handleSubmit 내부에서도 preventDefault 호출)
       handleSubmit(e);
     }
   };
 
-  // ⭐ 추가: textarea에서 Enter 키 처리 (줄바꿈 허용, form 제출 방지)
+  // ⭐ 수정: textarea에서 Enter 키 처리 (form 제출 명시적 방지)
   const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Enter 키는 항상 줄바꿈으로만 처리 (form 제출 방지)
     // form 제출은 "예약 완료" 버튼으로만 가능
     if (e.key === 'Enter') {
-      // Enter 키는 기본 동작(줄바꿈)만 허용, form 제출은 방지
-      // preventDefault를 호출하지 않아서 줄바꿈은 정상 작동
-      // 하지만 form의 기본 submit은 handleFormSubmit에서 처리
+      // Enter 키는 기본 동작(줄바꿈)만 허용
+      // preventDefault는 호출하지 않음 (줄바꿈 허용)
+      // 하지만 form submit 이벤트 전파는 방지
+      e.stopPropagation(); // ⭐ form submit 이벤트 전파 방지
       return; // 기본 동작(줄바꿈) 허용
     }
   };
