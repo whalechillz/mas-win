@@ -19,20 +19,26 @@ export default function BookingSuccess() {
         <div className="container mx-auto px-4 max-w-2xl">
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             {/* 진행 단계 표시 */}
-            <div className="mb-8 flex items-center justify-center gap-2 sm:gap-4 flex-wrap">
-              <div className="flex items-center gap-2">
+            <div className="mb-8 flex items-center justify-center gap-1 sm:gap-2 flex-nowrap overflow-x-auto">
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                 <div className="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold text-sm">1</div>
-                <span className="text-xs sm:text-sm text-gray-500">날짜/시간 선택</span>
+                <span className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap">
+                  <span className="hidden sm:inline">날짜/시간 선택</span>
+                  <span className="sm:hidden">날짜/시간</span>
+                </span>
               </div>
-              <div className="w-8 sm:w-12 h-0.5 bg-gray-300"></div>
-              <div className="flex items-center gap-2">
+              <div className="w-4 sm:w-8 h-0.5 bg-gray-300 shrink-0"></div>
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                 <div className="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold text-sm">2</div>
-                <span className="text-xs sm:text-sm text-gray-500">정보 입력</span>
+                <span className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap">
+                  <span className="hidden sm:inline">정보 입력</span>
+                  <span className="sm:hidden">정보</span>
+                </span>
               </div>
-              <div className="w-8 sm:w-12 h-0.5 bg-gray-300"></div>
-              <div className="flex items-center gap-2">
+              <div className="w-4 sm:w-8 h-0.5 bg-gray-300 shrink-0"></div>
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                 <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">3</div>
-                <span className="text-xs sm:text-sm font-medium text-gray-700">완료</span>
+                <span className="text-[10px] sm:text-xs font-medium text-gray-700 whitespace-nowrap">완료</span>
               </div>
             </div>
 
@@ -43,9 +49,6 @@ export default function BookingSuccess() {
                 </svg>
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">예약이 완료되었습니다!</h1>
-              <p className="text-gray-600">
-                예약해주셔서 감사합니다.
-              </p>
             </div>
 
             {date && time && (
@@ -64,7 +67,7 @@ export default function BookingSuccess() {
               <h3 className="font-semibold text-gray-900 mb-2">안내사항</h3>
               <ul className="space-y-2 text-sm text-gray-700">
                 <li>• 예약하신 시간에 매장을 방문해주세요.</li>
-                <li>• 예약 변경이나 취소는 전화(031-215-0013)로 문의해주세요.</li>
+                <li>• 예약 변경이나 취소는<br />전화 (031-215-0013)로 문의해주세요.</li>
                 <li>• 예약 확인 문자는 곧 발송됩니다.</li>
               </ul>
             </div>

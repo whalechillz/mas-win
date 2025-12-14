@@ -339,14 +339,13 @@ export default function BookingForm() {
 
   // ⭐ 추가: textarea에서 Enter 키 처리 (줄바꿈 허용, form 제출 방지)
   const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && e.shiftKey) {
-      // Shift+Enter: 줄바꿈 (기본 동작)
-      return;
-    }
-    if (e.key === 'Enter' && currentStep === 3) {
-      // Enter만 누르면 form 제출 방지 (textarea 내에서는 줄바꿈)
-      // form 제출은 "예약 완료" 버튼으로만 가능
-      e.preventDefault();
+    // Enter 키는 항상 줄바꿈으로만 처리 (form 제출 방지)
+    // form 제출은 "예약 완료" 버튼으로만 가능
+    if (e.key === 'Enter') {
+      // Enter 키는 기본 동작(줄바꿈)만 허용, form 제출은 방지
+      // preventDefault를 호출하지 않아서 줄바꿈은 정상 작동
+      // 하지만 form의 기본 submit은 handleFormSubmit에서 처리
+      return; // 기본 동작(줄바꿈) 허용
     }
   };
 
@@ -524,37 +523,40 @@ export default function BookingForm() {
             </div>
 
             {/* 진행 단계 표시 */}
-            <div className="mb-8 flex items-center justify-center gap-2 sm:gap-4 flex-nowrap overflow-x-auto">
-              <div className="flex items-center gap-2">
+            <div className="mb-8 flex items-center justify-center gap-1 sm:gap-2 flex-nowrap overflow-x-auto">
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                   currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
                 }`}>
                   {currentStep > 1 ? '✓' : '1'}
                 </div>
-                <span className={`text-xs sm:text-sm ${currentStep >= 1 ? 'font-medium text-gray-700' : 'text-gray-500'}`}>
-                  기본 정보
+                <span className={`text-[10px] sm:text-xs ${currentStep >= 1 ? 'font-medium text-gray-700' : 'text-gray-500'} whitespace-nowrap`}>
+                  <span className="hidden sm:inline">기본 정보</span>
+                  <span className="sm:hidden">기본</span>
                 </span>
               </div>
-              <div className={`w-8 sm:w-12 h-0.5 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-              <div className="flex items-center gap-2">
+              <div className={`w-4 sm:w-8 h-0.5 shrink-0 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                   currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
                 }`}>
                   {currentStep > 2 ? '✓' : '2'}
                 </div>
-                <span className={`text-xs sm:text-sm ${currentStep >= 2 ? 'font-medium text-gray-700' : 'text-gray-500'}`}>
-                  골프 정보
+                <span className={`text-[10px] sm:text-xs ${currentStep >= 2 ? 'font-medium text-gray-700' : 'text-gray-500'} whitespace-nowrap`}>
+                  <span className="hidden sm:inline">골프 정보</span>
+                  <span className="sm:hidden">골프</span>
                 </span>
               </div>
-              <div className={`w-8 sm:w-12 h-0.5 ${currentStep >= 3 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-              <div className="flex items-center gap-2">
+              <div className={`w-4 sm:w-8 h-0.5 shrink-0 ${currentStep >= 3 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                   currentStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
                 }`}>
                   3
                 </div>
-                <span className={`text-xs sm:text-sm ${currentStep >= 3 ? 'font-medium text-gray-700' : 'text-gray-500'}`}>
-                  개인화
+                <span className={`text-[10px] sm:text-xs ${currentStep >= 3 ? 'font-medium text-gray-700' : 'text-gray-500'} whitespace-nowrap`}>
+                  <span className="hidden sm:inline">개인화</span>
+                  <span className="sm:hidden">개인화</span>
                 </span>
               </div>
             </div>
@@ -853,7 +855,6 @@ export default function BookingForm() {
                       >
                         <span className="text-xl">⬆️</span>
                         <span>스트레이트</span>
-                        <span className="text-[11px] text-gray-500">정면</span>
                       </button>
                       <div className="grid grid-cols-4 gap-2">
                         {[
@@ -874,7 +875,6 @@ export default function BookingForm() {
                           >
                             <span className="text-xl">{shape.label}</span>
                             <span className="text-xs font-medium">{shape.main}</span>
-                            <span className="text-[10px] text-gray-500">{shape.helper}</span>
                           </button>
                         ))}
                       </div>
@@ -902,11 +902,6 @@ export default function BookingForm() {
                       max="100"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
-                    {formData.age_group && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        {formData.age_group}로 분류됩니다. 예시 값이 자동으로 조정됩니다.
-                      </p>
-                    )}
                   </div>
                 </div>
               )}
