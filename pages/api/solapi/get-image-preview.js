@@ -67,13 +67,11 @@ export default async function handler(req, res) {
     }
 
     // 방법 2: image_metadata 테이블에서 Solapi imageId로 직접 이미지 찾기
-    // (이미지 업로드 시 Solapi imageId를 메타데이터로 저장했다고 가정)
-    // ⭐ 수정: solapi-{imageId} 태그로 찾기 (더 정확)
+    // ⭐ 수정: upload_source 조건 제거하여 더 많은 이미지 찾기
     const { data: metadataImages2, error: metadataError2 } = await supabase
       .from('image_metadata')
       .select('image_url, folder_path')
       .contains('tags', [`solapi-${imageId}`])
-      .eq('upload_source', 'solapi-permanent')
       .order('created_at', { ascending: true }) // 가장 오래된 것 우선 (중복 방지)
       .limit(1);
 
@@ -122,12 +120,11 @@ export default async function handler(req, res) {
           const arrayBuffer = await downloadResponse.arrayBuffer();
           const buffer = Buffer.from(arrayBuffer);
           
-          // ⭐ 중복 방지: 같은 imageId의 이미지가 이미 있는지 먼저 확인
+          // ⭐ 중복 방지: 같은 imageId의 이미지가 이미 있는지 먼저 확인 (upload_source 조건 제거)
           const { data: existingImages } = await supabase
             .from('image_metadata')
             .select('image_url, folder_path')
             .contains('tags', [`solapi-${imageId}`])
-            .eq('upload_source', 'solapi-permanent')
             .limit(1);
 
           if (existingImages && existingImages.length > 0) {
