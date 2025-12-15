@@ -7827,27 +7827,43 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
       )}
 
       {/* 통합 GalleryPicker 모달 */}
-      {showUnifiedPicker && (
-        <GalleryPicker
-          isOpen={showUnifiedPicker}
-          onClose={() => setShowUnifiedPicker(false)}
-          featuredUrl={formData.featured_image}
-          keepOpenAfterSelect={true} // 선택 후 모달 유지
-          onSelect={(url, options) => {
-            const preferredUrl = forceHttps(url);
-            if (pendingEditorImageInsert) (pendingEditorImageInsert as any)(preferredUrl, options || {});
-            // 모달을 닫지 않음 (keepOpenAfterSelect=true)
-          }}
-          onSelectMultiple={(urls, options) => {
-            // 다중 이미지 삽입
-            urls.forEach(url => {
+      {showUnifiedPicker && (() => {
+        // 블로그 글 ID 기반 폴더 경로 계산
+        let autoFilterFolder = '';
+        if (formData.id && (formData.published_at || formData.created_at)) {
+          const publishDate = formData.published_at ? new Date(formData.published_at) : (formData.created_at ? new Date(formData.created_at) : null);
+          if (publishDate) {
+            const year = publishDate.getFullYear();
+            const month = String(publishDate.getMonth() + 1).padStart(2, '0');
+            const dateFolder = `${year}-${month}`;
+            autoFilterFolder = `originals/blog/${dateFolder}/${formData.id}`;
+            console.log('📁 블로그 글 폴더 자동 필터링:', autoFilterFolder);
+          }
+        }
+        
+        return (
+          <GalleryPicker
+            isOpen={showUnifiedPicker}
+            onClose={() => setShowUnifiedPicker(false)}
+            featuredUrl={formData.featured_image}
+            keepOpenAfterSelect={true} // 선택 후 모달 유지
+            autoFilterFolder={autoFilterFolder || undefined} // 블로그 글 폴더 자동 필터링
+            onSelect={(url, options) => {
               const preferredUrl = forceHttps(url);
               if (pendingEditorImageInsert) (pendingEditorImageInsert as any)(preferredUrl, options || {});
-            });
-            // 모달을 닫지 않음 (keepOpenAfterSelect=true)
-          }}
-        />
-      )}
+              // 모달을 닫지 않음 (keepOpenAfterSelect=true)
+            }}
+            onSelectMultiple={(urls, options) => {
+              // 다중 이미지 삽입
+              urls.forEach(url => {
+                const preferredUrl = forceHttps(url);
+                if (pendingEditorImageInsert) (pendingEditorImageInsert as any)(preferredUrl, options || {});
+              });
+              // 모달을 닫지 않음 (keepOpenAfterSelect=true)
+            }}
+          />
+        );
+      })()}
 
 
       {/* 블로그 마이그레이션 탭 */}

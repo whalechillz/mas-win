@@ -68,74 +68,117 @@ export default function SurveyLanding() {
         <meta name="description" content="설문 조사만 해도 MASSGOO X MUZIIK 콜라보 모자 20명에게 증정! 마쓰구 신모델 샤프트 선호도 조사에 참여하세요." />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
         {/* 히어로 섹션 */}
-        <section className="relative py-20 px-4">
-          <div className="max-w-6xl mx-auto">
+        <section className="relative py-12 md:py-20 px-4 overflow-hidden">
+          {/* 배경 장식 요소 */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-yellow-400/20 to-yellow-600/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-br from-red-500/20 to-red-700/10 rounded-full blur-3xl"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-yellow-400/10 to-red-500/10 rounded-full blur-3xl"></div>
+          </div>
+
+          <div className="relative z-10 max-w-6xl mx-auto">
             {/* PRO3 MUZIIK 제품 이미지 */}
-            <div className="mb-8 flex justify-center">
-              <div className="relative w-full max-w-md aspect-square rounded-xl overflow-hidden shadow-2xl">
+            <div className="mb-8 md:mb-12 flex justify-center">
+              <div className="relative w-full max-w-md aspect-square rounded-2xl overflow-hidden shadow-2xl border-4 border-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 group hover:scale-105 transition-transform duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 via-transparent to-red-500/20 pointer-events-none"></div>
                 <Image
                   src="/main/products/pro3-muziik/secret-force-pro-3-muziik-03.webp"
                   alt="시크리트포스 PRO3 MUZIIK"
                   fill
-                  className="object-contain"
+                  className="object-contain p-4"
                   priority
                 />
+                {/* 골드 글로우 효과 */}
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/0 via-yellow-400/10 to-yellow-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </div>
             </div>
 
-            <div className="text-center mb-12">
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                MASSGOO X MUZIIK
+            <div className="text-center mb-8 md:mb-12">
+              {/* 배지 */}
+              <div className="mb-4 md:mb-6">
+                <span className="inline-block bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 text-gray-900 px-4 py-1.5 md:px-6 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg animate-pulse">
+                  🎁 연말 특별 이벤트
+                </span>
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 leading-[1.2] tracking-tight">
+                <span className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 bg-clip-text text-transparent">
+                  MASSGOO X MUZIIK
+                </span>
               </h1>
-              <h2 className="text-2xl md:text-3xl font-semibold text-yellow-600 mb-4">
-                샤프트 선호도 조사
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold mb-4 md:mb-6">
+                <span className="bg-gradient-to-r from-red-500 via-red-400 to-red-500 bg-clip-text text-transparent">
+                  샤프트 선호도 조사
+                </span>
               </h2>
-              <p className="text-lg text-gray-600 mb-6">
+              <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-6 md:mb-8 max-w-2xl mx-auto">
                 어떤 샤프트가 당신에게 맞을까요?
               </p>
               
-              {/* 이벤트 문구 */}
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 max-w-2xl mx-auto mb-8">
-                <p className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
-                  설문 조사만 해도
-                </p>
-                <p className="text-2xl md:text-3xl font-bold text-blue-600 mb-2">
-                  MASSGOO X MUZIIK 콜라보 모자 증정
-                </p>
-                <p className="text-lg md:text-xl font-semibold text-gray-700">
-                  버킷햇 10명 · 골프모자 10명 (선착순 20명)
-                </p>
+              {/* 이벤트 문구 - 골드/레드 그라데이션 + 펄스 애니메이션 */}
+              <div className="relative bg-gradient-to-br from-yellow-500/20 via-yellow-400/30 to-red-500/20 border-2 border-yellow-400/50 rounded-2xl p-6 md:p-8 max-w-2xl mx-auto mb-8 md:mb-12 shadow-2xl overflow-hidden animate-pulse">
+                {/* 배경 패턴 */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-0 left-0 w-32 h-32 bg-yellow-400 rounded-full blur-3xl"></div>
+                  <div className="absolute bottom-0 right-0 w-32 h-32 bg-red-500 rounded-full blur-3xl"></div>
+                </div>
+                
+                <div className="relative z-10">
+                  <p className="text-lg md:text-xl font-bold text-gray-100 mb-2">
+                    설문 조사만 해도
+                  </p>
+                  <p className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">
+                    <span className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 bg-clip-text text-transparent">
+                      MASSGOO X MUZIIK
+                    </span>
+                    <br />
+                    <span className="bg-gradient-to-r from-red-400 via-red-300 to-red-400 bg-clip-text text-transparent">
+                      콜라보 모자 증정
+                    </span>
+                  </p>
+                  <div className="inline-block bg-gradient-to-r from-yellow-500 to-red-500 text-white px-4 py-2 rounded-full text-sm md:text-base font-bold shadow-lg">
+                    버킷햇 10명 · 골프모자 10명 (선착순 20명)
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* 모자 이미지 롤링 갤러리 (2개 영역 분리) */}
-            <div className="mb-12">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            <div className="mb-12 md:mb-16">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
                 {/* 버킷햇 롤링 영역 */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 text-center">버킷햇</h3>
+                  <h3 className="text-lg md:text-xl font-semibold text-center">
+                    <span className="bg-gradient-to-r from-yellow-400 to-yellow-300 bg-clip-text text-transparent">
+                      버킷햇
+                    </span>
+                  </h3>
                   <div
-                    className="relative aspect-square rounded-lg overflow-hidden shadow-lg border-2 border-blue-200"
+                    className="relative aspect-square rounded-2xl overflow-hidden shadow-2xl border-2 border-yellow-400/30 bg-gradient-to-br from-gray-800 to-gray-900 group hover:border-yellow-400 hover:-translate-y-2 transition-all duration-500"
                     onMouseEnter={() => setIsHovering(prev => ({ ...prev, bucket: true }))}
                     onMouseLeave={() => setIsHovering(prev => ({ ...prev, bucket: false }))}
                   >
+                    {/* 골드 글로우 효과 */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/0 via-yellow-400/10 to-yellow-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <Image
                       src={bucketHatImages[bucketHatIndex]?.src || '/main/products/goods/good-reviews/bucket-hat-muziik-1.webp'}
                       alt={bucketHatImages[bucketHatIndex]?.alt || '버킷햇'}
                       fill
-                      className="object-contain transition-opacity duration-500"
+                      className="object-contain p-4 transition-transform duration-500 group-hover:scale-110"
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />
                     {/* 썸네일 인디케이터 */}
-                    <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
+                    <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 z-10">
                       {bucketHatImages.map((_, index) => (
                         <button
                           key={index}
                           onClick={() => setBucketHatIndex(index)}
-                          className={`w-2 h-2 rounded-full transition-all ${
-                            bucketHatIndex === index ? 'bg-blue-600 w-6' : 'bg-gray-400'
+                          className={`h-2 rounded-full transition-all ${
+                            bucketHatIndex === index 
+                              ? 'bg-gradient-to-r from-yellow-400 to-yellow-300 w-8 shadow-lg' 
+                              : 'bg-gray-500/50 w-2 hover:bg-gray-400'
                           }`}
                           aria-label={`버킷햇 ${index + 1}`}
                         />
@@ -146,27 +189,35 @@ export default function SurveyLanding() {
 
                 {/* 골프모자 롤링 영역 */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 text-center">골프모자</h3>
+                  <h3 className="text-lg md:text-xl font-semibold text-center">
+                    <span className="bg-gradient-to-r from-red-400 to-red-300 bg-clip-text text-transparent">
+                      골프모자
+                    </span>
+                  </h3>
                   <div
-                    className="relative aspect-square rounded-lg overflow-hidden shadow-lg border-2 border-blue-200"
+                    className="relative aspect-square rounded-2xl overflow-hidden shadow-2xl border-2 border-red-400/30 bg-gradient-to-br from-gray-800 to-gray-900 group hover:border-red-400 hover:-translate-y-2 transition-all duration-500"
                     onMouseEnter={() => setIsHovering(prev => ({ ...prev, golf: true }))}
                     onMouseLeave={() => setIsHovering(prev => ({ ...prev, golf: false }))}
                   >
+                    {/* 레드 글로우 효과 */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-red-400/0 via-red-400/10 to-red-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <Image
                       src={golfCapImages[golfCapIndex]?.src || '/main/products/goods/good-reviews/golf-hat-muziik-1.webp'}
                       alt={golfCapImages[golfCapIndex]?.alt || '골프모자'}
                       fill
-                      className="object-contain transition-opacity duration-500"
+                      className="object-contain p-4 transition-transform duration-500 group-hover:scale-110"
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />
                     {/* 썸네일 인디케이터 */}
-                    <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
+                    <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 z-10">
                       {golfCapImages.map((_, index) => (
                         <button
                           key={index}
                           onClick={() => setGolfCapIndex(index)}
-                          className={`w-2 h-2 rounded-full transition-all ${
-                            golfCapIndex === index ? 'bg-blue-600 w-6' : 'bg-gray-400'
+                          className={`h-2 rounded-full transition-all ${
+                            golfCapIndex === index 
+                              ? 'bg-gradient-to-r from-red-400 to-red-300 w-8 shadow-lg' 
+                              : 'bg-gray-500/50 w-2 hover:bg-gray-400'
                           }`}
                           aria-label={`골프모자 ${index + 1}`}
                         />
@@ -175,59 +226,82 @@ export default function SurveyLanding() {
                   </div>
                 </div>
               </div>
-              <p className="text-center text-sm text-gray-500 mt-4">
+              <p className="text-center text-sm md:text-base text-gray-400 mt-4 md:mt-6">
                 버킷햇, 골프모자 중 선택 가능
               </p>
             </div>
 
             {/* CTA 버튼 */}
-            <div className="flex flex-col gap-4 justify-center items-center mb-12">
-              {/* 메인 CTA */}
+            <div className="flex flex-col gap-4 md:gap-6 justify-center items-center mb-12 md:mb-16">
+              {/* 메인 CTA - 골드/레드 그라데이션 */}
               <button
                 onClick={handleStartSurvey}
-                className="w-full sm:w-auto px-12 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg transition-colors shadow-lg hover:shadow-xl"
+                className="group relative w-full sm:w-auto px-8 md:px-12 py-4 md:py-5 bg-gradient-to-r from-yellow-500 via-yellow-400 to-red-500 hover:from-yellow-400 hover:via-yellow-300 hover:to-red-400 text-gray-900 font-bold text-base md:text-lg rounded-xl transition-all duration-300 shadow-2xl hover:shadow-yellow-500/50 hover:scale-105 overflow-hidden"
               >
-                설문 조사 시작하기
+                {/* 배경 애니메이션 */}
+                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-yellow-300 to-red-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  설문 조사 시작하기
+                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </span>
               </button>
               
               {/* 보조 CTA */}
-              <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4 w-full sm:w-auto">
                 <Link
                   href="/products/pro3-muziik"
-                  className="w-full sm:w-auto px-8 py-3 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded-lg transition-colors shadow-lg hover:shadow-xl text-center"
+                  className="group w-full sm:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white font-semibold rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 text-center flex items-center justify-center gap-2"
                 >
-                  제품보기 (PRO3 MUZIIK)
+                  제품보기
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </Link>
                 <a
                   href="tel:080-028-8888"
-                  className="w-full sm:w-auto px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors shadow-lg hover:shadow-xl text-center"
+                  className="group w-full sm:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-semibold rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 text-center flex items-center justify-center gap-2"
                 >
-                  전화 상담 (080-028-8888)
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  전화 상담
                 </a>
               </div>
             </div>
 
             {/* 이벤트 안내 */}
-            <div className="bg-blue-50 rounded-lg p-6 max-w-3xl mx-auto">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">이벤트 안내</h3>
-              <ul className="space-y-2 text-gray-700">
-                <li className="flex items-start">
-                  <span className="text-blue-600 mr-2">•</span>
-                  <span>설문 조사만 해도 모자 증정 (선착순 20명: 버킷햇 10명, 골프모자 10명)</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-blue-600 mr-2">•</span>
-                  <span>마쓰구 신모델에 장착할 샤프트 선호도 조사에 참여해주세요</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-blue-600 mr-2">•</span>
-                  <span>설문 완료 후 주소를 입력하시면 모자를 배송해드립니다</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-blue-600 mr-2">•</span>
-                  <span>모자 종류: 버킷햇 (화이트, 블랙), 골프모자 (화이트, 베이지, 네이비, 블랙)</span>
-                </li>
-              </ul>
+            <div className="relative bg-gradient-to-br from-gray-800/80 via-gray-800/60 to-gray-900/80 backdrop-blur-sm border border-yellow-400/30 rounded-2xl p-6 md:p-8 max-w-3xl mx-auto shadow-2xl">
+              {/* 배경 장식 */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/10 rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl"></div>
+              
+              <div className="relative z-10">
+                <h3 className="text-xl md:text-2xl font-semibold mb-4 md:mb-6">
+                  <span className="bg-gradient-to-r from-yellow-400 to-yellow-300 bg-clip-text text-transparent">
+                    이벤트 안내
+                  </span>
+                </h3>
+                <ul className="space-y-3 md:space-y-4 text-gray-300">
+                  <li className="flex items-start gap-3">
+                    <span className="text-yellow-400 text-xl font-bold mt-0.5">•</span>
+                    <span className="text-sm md:text-base">설문 조사만 해도 모자 증정 (선착순 20명: 버킷햇 10명, 골프모자 10명)</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-yellow-400 text-xl font-bold mt-0.5">•</span>
+                    <span className="text-sm md:text-base">마쓰구 신모델에 장착할 샤프트 선호도 조사에 참여해주세요</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-yellow-400 text-xl font-bold mt-0.5">•</span>
+                    <span className="text-sm md:text-base">설문 완료 후 주소를 입력하시면 모자를 배송해드립니다</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-yellow-400 text-xl font-bold mt-0.5">•</span>
+                    <span className="text-sm md:text-base">모자 종류: 버킷햇 (화이트, 블랙), 골프모자 (화이트, 베이지, 네이비, 블랙)</span>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </section>

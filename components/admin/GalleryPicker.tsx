@@ -79,9 +79,11 @@ const GalleryPicker: React.FC<Props> = ({
         params.append('prefix', folderFilter);
         // originals/daily-branding/kakao 또는 originals/mms로 시작하는 경로인 경우 하위 폴더 포함
         // 날짜별 폴더(YYYY-MM-DD 패턴)가 포함된 경우에도 하위 폴더 포함
+        // originals/blog/YYYY-MM/{blog-id} 폴더인 경우 하위 폴더 포함 (이미지가 해당 폴더 안에 있음)
         const isKakaoFolder = folderFilter.startsWith('originals/daily-branding/kakao');
         const isMmsFolder = folderFilter.startsWith('originals/mms');
-        const includeChildren = (isKakaoFolder || isMmsFolder) ? 'true' : 'false';
+        const isBlogFolder = folderFilter.startsWith('originals/blog/');
+        const includeChildren = (isKakaoFolder || isMmsFolder || isBlogFolder) ? 'true' : 'false';
         params.append('includeChildren', includeChildren);
       }
       
