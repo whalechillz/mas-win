@@ -85,7 +85,21 @@ export default function SMSAdmin() {
 
   const fetchLatestPreview = useCallback(async (smsId: number) => {
     try {
-      // 먼저 image_metadata에서 찾기
+      // 1순위: formData.imageUrl 이 Solapi imageId 인 경우 → Solapi 프리뷰만 사용
+      if (formData.imageUrl && formData.imageUrl.startsWith('ST01FZ')) {
+        const previewResponse = await fetch(
+          `/api/solapi/get-image-preview?imageId=${formData.imageUrl}&messageId=${smsId}`,
+        );
+        if (previewResponse.ok) {
+          const previewData = await previewResponse.json();
+          if (previewData.success && previewData.imageUrl) {
+            setImagePreviewUrl(previewData.imageUrl);
+            return;
+          }
+        }
+      }
+
+      // 2순위: (보조) image_metadata 기반 mms-images API
       const response = await fetch(`/api/admin/mms-images?messageId=${smsId}&limit=1`);
       if (response.ok) {
         const data = await response.json();
@@ -93,18 +107,6 @@ export default function SMSAdmin() {
         if (previewUrl) {
           setImagePreviewUrl(previewUrl);
           return;
-        }
-      }
-      
-      // image_metadata에서 못 찾은 경우, formData.imageUrl이 Solapi imageId인지 확인
-      if (formData.imageUrl && formData.imageUrl.startsWith('ST01FZ')) {
-        const previewResponse = await fetch(`/api/solapi/get-image-preview?imageId=${formData.imageUrl}&messageId=${smsId}`);
-        if (previewResponse.ok) {
-          const previewData = await previewResponse.json();
-          if (previewData.success && previewData.imageUrl) {
-            setImagePreviewUrl(previewData.imageUrl);
-            return;
-          }
         }
       }
     } catch (err) {
