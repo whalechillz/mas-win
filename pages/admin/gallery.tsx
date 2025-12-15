@@ -4699,13 +4699,39 @@ export default function GalleryAdmin() {
           <div className="relative max-w-7xl max-h-[90vh] w-full h-full flex flex-col">
             {/* 헤더 */}
             <div className="flex justify-between items-center p-4 bg-white bg-opacity-90 rounded-t-lg">
-              <div className="flex items-center gap-4">
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {selectedImageForZoom.name}
-                </h3>
-                <span className="text-sm text-gray-500">
-                  {selectedImageForZoom.size ? `${(selectedImageForZoom.size / 1024 / 1024).toFixed(1)}MB` : ''}
-                </span>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-4">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    {selectedImageForZoom.name}
+                  </h3>
+                  <span className="text-sm text-gray-500">
+                    {selectedImageForZoom.size ? `${(selectedImageForZoom.size / 1024 / 1024).toFixed(1)}MB` : ''}
+                  </span>
+                </div>
+                {/* 경로 표시 */}
+                <div className="text-xs text-gray-400">
+                  {(() => {
+                    // Supabase Storage 경로가 있으면 표시
+                    if (selectedImageForZoom.folder_path) {
+                      return `📁 ${selectedImageForZoom.folder_path}`;
+                    }
+                    // 파일명에서 Solapi imageId 추출 시도
+                    const solapiMatch = selectedImageForZoom.name.match(/solapi-(ST01FZ[A-Z0-9a-z]+)/);
+                    if (solapiMatch) {
+                      return `📦 Solapi: ${solapiMatch[1]}`;
+                    }
+                    // URL이 Solapi imageId인 경우
+                    if (selectedImageForZoom.url && selectedImageForZoom.url.startsWith('ST01FZ')) {
+                      return `📦 Solapi: ${selectedImageForZoom.url}`;
+                    }
+                    // URL에서 Solapi imageId 추출 시도 (get-image-preview URL인 경우)
+                    const urlMatch = selectedImageForZoom.url?.match(/imageId=([ST01FZ][A-Z0-9a-z]+)/);
+                    if (urlMatch) {
+                      return `📦 Solapi: ${urlMatch[1]}`;
+                    }
+                    return '경로 정보 없음';
+                  })()}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 {/* 액션 버튼들 */}
