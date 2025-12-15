@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { sendSlackNotification } from '@/lib/slackNotify';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
@@ -192,6 +193,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         message: '설문 저장에 실패했습니다.',
         error: surveyError.message,
       });
+    }
+
+    // 슬랙 알림 (실패해도 설문 저장은 유지)
+    try {
+      const formattedDate = new Date(survey.created_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+      const factorNames = (survey.important_factors || []).map((f: string) => {
+        const factorMap: Record<string, string> = {
+          distance: '비거리',
+          direction: '방향성',
+          feel: '타구감',
+        };
+        return factorMap[f] || f;
+      });
+
+      const lines = [
+        ':memo: 신규 설문 접수',
+        `• 이름: ${survey.name}`,
+        `• 연락처: ${survey.phone}`,
+        `• 연령대: ${survey.age_group || '미입력'}`,
+        `• 선택 모델: ${survey.selected_model}`,
+        `• 중요 요소: ${factorNames.join(', ') || '미입력'}`,
+        `• 기타 의견: ${survey.additional_feedback || '없음'}`,
+        `• 주소: ${survey.address || '미입력'}`,
+        `• 제출시각: ${formattedDate}`,
+      ];
+
+      await sendSlackNotification(lines.join('\n'));
+    } catch (slackError) {
+      console.error('슬랙 알림 오류 (무시):', slackError);
     }
 
     return res.status(200).json({

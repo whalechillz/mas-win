@@ -30,6 +30,7 @@ export default function SurveysPage() {
   const [editingSurvey, setEditingSurvey] = useState<Survey | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState<Partial<Survey>>({});
+  const [viewSurvey, setViewSurvey] = useState<Survey | null>(null);
 
   const fetchSurveys = async () => {
     setLoading(true);
@@ -425,7 +426,15 @@ export default function SurveysPage() {
                             />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {survey.name}
+                            <button
+                              type="button"
+                              onClick={() => setViewSurvey(survey)}
+                              className="text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                              role="button"
+                              tabIndex={0}
+                            >
+                              {survey.name}
+                            </button>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {survey.phone}
@@ -440,7 +449,7 @@ export default function SurveysPage() {
                             {getFactorNames(survey.important_factors)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(survey.created_at).toLocaleDateString('ko-KR')}
+                            {new Date(survey.created_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex gap-2">
@@ -667,6 +676,81 @@ export default function SurveysPage() {
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isEditing ? '저장 중...' : '저장'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 상세 보기 모달 */}
+      {viewSurvey && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">설문 상세</h2>
+                <button
+                  onClick={() => setViewSurvey(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-4 text-sm text-gray-700">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-gray-500">이름</div>
+                    <div className="font-medium text-gray-900">{viewSurvey.name}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500">연락처</div>
+                    <div className="font-medium text-gray-900">{viewSurvey.phone}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500">연령대</div>
+                    <div className="font-medium text-gray-900">{viewSurvey.age_group || '-'}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500">선택 모델</div>
+                    <div className="font-medium text-gray-900">{getModelName(viewSurvey.selected_model)}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500">중요 요소</div>
+                    <div className="font-medium text-gray-900">{getFactorNames(viewSurvey.important_factors)}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500">제출시각</div>
+                    <div className="font-medium text-gray-900">
+                      {new Date(viewSurvey.created_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-gray-500">주소</div>
+                  <div className="font-medium text-gray-900 whitespace-pre-line">
+                    {viewSurvey.address || '-'}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-gray-500">추가 의견</div>
+                  <div className="font-medium text-gray-900 whitespace-pre-line">
+                    {viewSurvey.additional_feedback || '없음'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={() => setViewSurvey(null)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  닫기
                 </button>
               </div>
             </div>
