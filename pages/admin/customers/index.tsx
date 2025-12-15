@@ -708,6 +708,10 @@ function CustomerFormModal({ mode, customer, onClose, onSuccess }: {
   const [lastContactDate, setLastContactDate] = useState(formatDate(customer?.last_contact_date));
   const [saving, setSaving] = useState(false);
 
+  // 날짜 문자열(YYYY-MM-DD)을 KST 자정 ISO로 변환하여 UTC 저장 시 날짜가 당겨지지 않도록 처리
+  const toKstIso = (dateStr?: string | null) =>
+    dateStr ? new Date(`${dateStr}T00:00:00+09:00`).toISOString() : null;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !phone) {
@@ -719,28 +723,28 @@ function CustomerFormModal({ mode, customer, onClose, onSuccess }: {
     try {
       const url = mode === 'create' ? '/api/admin/customers' : '/api/admin/customers';
       const method = mode === 'create' ? 'POST' : 'PATCH';
-      const body = mode === 'create' ? {
+    const body = mode === 'create' ? {
+      name,
+      phone,
+      address: address || null,
+      first_inquiry_date: toKstIso(firstInquiryDate),
+      first_purchase_date: toKstIso(firstPurchaseDate),
+      last_purchase_date: toKstIso(lastPurchaseDate),
+      last_service_date: toKstIso(lastServiceDate),
+      last_contact_date: toKstIso(lastContactDate),
+    } : {
+      id: customer!.id,
+      update: {
         name,
         phone,
         address: address || null,
-        first_inquiry_date: firstInquiryDate || null,
-        first_purchase_date: firstPurchaseDate || null,
-        last_purchase_date: lastPurchaseDate || null,
-        last_service_date: lastServiceDate || null,
-        last_contact_date: lastContactDate || null,
-      } : {
-        id: customer!.id,
-        update: {
-          name,
-          phone,
-          address: address || null,
-          first_inquiry_date: firstInquiryDate || null,
-          first_purchase_date: firstPurchaseDate || null,
-          last_purchase_date: lastPurchaseDate || null,
-          last_service_date: lastServiceDate || null,
-          last_contact_date: lastContactDate || null,
-        }
-      };
+        first_inquiry_date: toKstIso(firstInquiryDate),
+        first_purchase_date: toKstIso(firstPurchaseDate),
+        last_purchase_date: toKstIso(lastPurchaseDate),
+        last_service_date: toKstIso(lastServiceDate),
+        last_contact_date: toKstIso(lastContactDate),
+      }
+    };
 
       const res = await fetch(url, {
         method,
