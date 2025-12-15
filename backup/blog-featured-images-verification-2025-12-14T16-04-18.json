@@ -1,0 +1,126 @@
+{
+  "batchInfo": {
+    "startIndex": 10,
+    "count": 10,
+    "timestamp": "2025-12-14T16-04-18"
+  },
+  "results": [
+    {
+      "blogPostId": 120,
+      "title": "[골프용품 #업체탐방] 마쓰구골프",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-08/120/complete-migration-1757771526185-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 296,
+      "title": "[Mas9Golf] 마점장님! 경주 안강레전드GC 다녀오다!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-09/296/complete-migration-1757777481025-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 295,
+      "title": "[Mas9Golf] 고반발드라이버/개그맨김은우씨의 골프대회 소식^^",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-09/295/complete-migration-1757777466560-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 294,
+      "title": "[Mas9Golf] 마쓰구골프 김종철 사진작가와 콜라보 프로모션 !",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-09/294/complete-migration-1757777450001-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 293,
+      "title": "마쓰구 고반발 골프공 출시예정!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-09/293/complete-migration-1757777427630-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 292,
+      "title": "[Mas9Golf] 충북경제단체 골프친선대회 협찬행사^^",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-09/292/complete-migration-1757777407083-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 291,
+      "title": "골프공, 소모품이 아니다",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-10/291/complete-migration-1757777387450-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 290,
+      "title": "4피스 고반발 골프공 / 마쓰구",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-10/290/complete-migration-1757777370074-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 289,
+      "title": "마쓰구골프 고객님들♥",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-10/289/complete-migration-1757777357296-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 119,
+      "title": "♥마쓰구 네이버 스토어팜 오픈♥",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-11/119/complete-migration-1757769587763-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "hasFeaturedImage": 10,
+    "broken": 0,
+    "fixed": 0,
+    "noFeaturedImage": 0
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "batchInfo": {
+    "startIndex": 60,
+    "count": 10,
+    "timestamp": "2025-12-14T16-05-22"
+  },
+  "results": [
+    {
+      "blogPostId": 250,
+      "title": "농구계의 스타 김동광, 마쓰구골프 고반발드라이버와 골프에 빠지다.",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776416629-1.webp",
+      "isBroken": true,
+      "fixed": true,
+      "newFeaturedImage": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2020-12/250/complete-migration-1757776418042-3.webp",
+      "errors": []
+    },
+    {
+      "blogPostId": 248,
+      "title": "마쓰구골프, 고반발 드라이버 신제품 출시 - 샤프트 무상교환 서비스 제공",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2021-02/248/complete-migration-1757776378058-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 247,
+      "title": "시니어 골퍼 주목! 마쓰구 고반발 드라이버 골드 신상 출시, 자체발광으로 눈에 띄네!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2021-02/247/complete-migration-1757776354749-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 246,
+      "title": "시니어 골퍼 필수 아이템, 마쓰구 고반발 드라이버 완판! 리오더 중, 시니어 골퍼 드라이버 추천",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2021-06/246/complete-migration-1757776332719-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 245,
+      "title": "김은우의 아이러브골프TV, 마쓰구 고반발 드라이버와 함께 유튜브 채널 개국",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2021-06/245/complete-migration-1757776307302-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 244,
+      "title": "리얼 후기: 골프 프로와 와이프도 반한 마쓰구 드라이버 - 비거리 월등한 고반발 드라이버",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2021-06/244/complete-migration-1757776278125-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 242,
+      "title": "임진한 프로와 김은우의 아이러브골프TV 마쓰구 드라이버 체험",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2021-08/242/complete-migration-1757776217730-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 241,
+      "title": "시니어 골퍼가 갖고 싶은 그 드라이버, 마쓰구 시크리트웨폰4.1 온라인 구매 리얼후기 대공개!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776192299-1.webp",
+      "isBroken": true,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 240,
+      "title": "시니어 골퍼를 위한 인생 드라이버, 마쓰구 고반발로 골프가 즐거워진다! 라운딩 리얼후기 대공개",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2021-08/240/complete-migration-1757776168827-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 239,
+      "title": "시니어 골퍼의 티샷 고민 해결! 마쓰구 고반발 드라이버 시크리트포스 10도 완판 기록",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2021-10/239/complete-migration-1757776145518-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "hasFeaturedImage": 10,
+    "broken": 2,
+    "fixed": 1,
+    "noFeaturedImage": 0
+  }
+}

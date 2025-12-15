@@ -1,0 +1,60 @@
+{
+  "batchInfo": {
+    "startIndex": 160,
+    "count": 4,
+    "timestamp": "2025-12-14T16-07-05"
+  },
+  "results": [
+    {
+      "blogPostId": 100,
+      "title": "비거리 향상을 위한 최고의 선택 - 마쓰구골프 시크리트포스 고반발 드라이버",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-05/100/complete-migration-1757769165552-2.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 184,
+      "title": "시니어 골퍼 양용호의 마쓰구골프 '골드2' 드라이버 후기",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-06/184/complete-migration-1757774818664-3.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 264,
+      "title": "인스타그램 셀럽들 사이에서도 핫한 아이템, 마쓰구골프 드라이버! 1",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2019-06/264/complete-migration-1757776788878-5.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 167,
+      "title": "마쓰구 골프와 함께한 7년: 맞춤형 피팅을 통한 고객 만족 스토리",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-11/167/complete-migration-1757774364228-4.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "hasFeaturedImage": 4,
+    "broken": 0,
+    "fixed": 0,
+    "noFeaturedImage": 0
+  }
+}

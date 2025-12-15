@@ -1,0 +1,1714 @@
+{
+  "success": true,
+  "dryRun": true,
+  "summary": {
+    "totalBlogPosts": 164,
+    "totalUniqueImageUrls": 519,
+    "totalImagesProcessed": 519,
+    "totalImagesNotProcessed": 0,
+    "totalImagesFoundInStorage": 451,
+    "totalImagesNotFoundInStorage": 62,
+    "totalExternalUrls": 6,
+    "totalExtractionFailed": 6,
+    "duplicateGroupsCount": 3,
+    "totalDuplicateImages": 6,
+    "unlinkedImagesCount": 0,
+    "unlinkedStorageImagesCount": 0
+  },
+  "duplicateGroups": [
+    {
+      "filename": "IMG_8012.jpg",
+      "count": 2,
+      "hasBlogConnection": true,
+      "keepCount": 2,
+      "removeCount": 0,
+      "images": [
+        {
+          "path": "originals/blog/2025-11/482/IMG_8012.jpg",
+          "fileName": "IMG_8012.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2025-11/482/IMG_8012.jpg",
+          "blogPostIds": [
+            482
+          ],
+          "blogPostTitles": [
+            "천안 직산에서 찾은 부드러운 스윙의 비밀, 마쓰구골프 고객 후기 공개!"
+          ],
+          "keep": true,
+          "storageExists": true
+        },
+        {
+          "path": "scraped-images/2025-11-14/IMG_8012.jpg",
+          "fileName": "IMG_8012.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/scraped-images/2025-11-14/IMG_8012.jpg",
+          "blogPostIds": [
+            483
+          ],
+          "blogPostTitles": [
+            "마쓰구 드라이버 vs 마제스티, 20m 더 긴 비거리의 비밀은?"
+          ],
+          "keep": true,
+          "storageExists": false
+        }
+      ]
+    },
+    {
+      "filename": "IMG_8014.jpg",
+      "count": 2,
+      "hasBlogConnection": true,
+      "keepCount": 2,
+      "removeCount": 0,
+      "images": [
+        {
+          "path": "originals/blog/2025-11/482/IMG_8014.jpg",
+          "fileName": "IMG_8014.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2025-11/482/IMG_8014.jpg",
+          "blogPostIds": [
+            482
+          ],
+          "blogPostTitles": [
+            "천안 직산에서 찾은 부드러운 스윙의 비밀, 마쓰구골프 고객 후기 공개!"
+          ],
+          "keep": true,
+          "storageExists": true
+        },
+        {
+          "path": "scraped-images/2025-11-14/IMG_8014.jpg",
+          "fileName": "IMG_8014.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/scraped-images/2025-11-14/IMG_8014.jpg",
+          "blogPostIds": [
+            483
+          ],
+          "blogPostTitles": [
+            "마쓰구 드라이버 vs 마제스티, 20m 더 긴 비거리의 비밀은?"
+          ],
+          "keep": true,
+          "storageExists": false
+        }
+      ]
+    },
+    {
+      "filename": "ai-generated-senior-emotional-feed-1764420646146-1-1.jpg",
+      "count": 2,
+      "hasBlogConnection": true,
+      "keepCount": 2,
+      "removeCount": 0,
+      "images": [
+        {
+          "path": "originals/ai-generated/2025-11-29/ai-generated-senior-emotional-feed-1764420646146-1-1.jpg",
+          "fileName": "ai-generated-senior-emotional-feed-1764420646146-1-1.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/ai-generated/2025-11-29/ai-generated-senior-emotional-feed-1764420646146-1-1.jpg",
+          "blogPostIds": [
+            302
+          ],
+          "blogPostTitles": [
+            "MASSGOO - 살다보면 한두번은 비공인 드라이버가 꼭 필요해져요"
+          ],
+          "keep": true,
+          "storageExists": false
+        },
+        {
+          "path": "originals/blog/2017-03/302/ai-generated-senior-emotional-feed-1764420646146-1-1.jpg",
+          "fileName": "ai-generated-senior-emotional-feed-1764420646146-1-1.jpg",
+          "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-03/302/ai-generated-senior-emotional-feed-1764420646146-1-1.jpg",
+          "blogPostIds": [
+            302
+          ],
+          "blogPostTitles": [
+            "MASSGOO - 살다보면 한두번은 비공인 드라이버가 꼭 필요해져요"
+          ],
+          "keep": true,
+          "storageExists": true
+        }
+      ]
+    }
+  ],
+  "unlinkedImages": [],
+  "unlinkedStorageImages": [],
+  "externalUrls": [
+    {
+      "url": "http://img.youtube.com/vi/pdXs9OgRbFU/maxresdefault.jpg",
+      "blogPostIds": [
+        303
+      ],
+      "blogPostTitles": [
+        "스타와 함께 마쓰구와 함께"
+      ],
+      "types": [
+        "featured"
+      ],
+      "sources": [
+        "featured_image"
+      ],
+      "path": null,
+      "fileName": "maxresdefault.jpg",
+      "storageExists": false,
+      "storageUrl": null,
+      "isExternalUrl": true,
+      "extractionFailed": true
+    },
+    {
+      "url": "이미지URL",
+      "blogPostIds": [
+        254,
+        114,
+        267,
+        285,
+        119,
+        188,
+        279,
+        274,
+        118,
+        101,
+        273,
+        280,
+        186,
+        296,
+        207,
+        289,
+        157,
+        283,
+        234,
+        229,
+        242,
+        248,
+        113,
+        276,
+        259,
+        278,
+        286,
+        262,
+        293,
+        270,
+        301,
+        275,
+        287,
+        237,
+        291,
+        246,
+        272,
+        190,
+        300,
+        121,
+        290
+      ],
+      "blogPostTitles": [
+        "마쓰구 고반발 드라이버로 더욱 업그레이드된 '세상에 없던 골프수업 시즌4'",
+        "일요일 저녁은 꼬마 챔피언의 귀여운 골프 수업과 함께'",
+        "[세상에없던골프수업]세골맨의 마쓰구드라이버 활약을 볼수있습니다♡",
+        "개그맨 김은우님이 추천하는 고반발드라이버는?",
+        "♥마쓰구 네이버 스토어팜 오픈♥",
+        "다운스윙을 위한 스윙 팁: 비거리 증진과 골프 드라이버 최적화를 위한 방법",
+        "마쓰구 드라이버로 생애 첫 이글 기회를 가지다.",
+        "고반발 드라이버 잘치는 방법②!!",
+        "카이로프랙틱 추천 척추측만증 예방, 척추건강을 위한 고반발 드라이버",
+        "드로우, 페이드 커스터마이징 가능 - 마쓰구골프 시크리트포스 고반발 드라이버",
+        "개그맨 김은우님이 알려주는 고반발드라이버 잘치는 방법 1",
+        "♡고반발 드라이버 가격 할인♡ 마쓰구 골프 2018 코리아세일페스타",
+        "다운스윙 후 릴리즈 향상을 위한 스윙 팁",
+        "[Mas9Golf] 마점장님! 경주 안강레전드GC 다녀오다!",
+        "마쓰구골프코리아 - 고반발 드라이버 빠른 배송과 완벽한 포장 서비스",
+        "마쓰구골프 고객님들♥",
+        "2025 MAS GOLF 드라이버 출시! 비거리 +30m 초고반발 성능",
+        "즐거운 추석 명절 되세요 ♥고반발드라이버마쓰구♥",
+        "고반발드라이버 마쓰구 MBC 드라마 진출 - 차화연, 이태성, 오지은, 김유석 사용",
+        "마쓰구골프 고반발 드라이버로 봄 골프 시즌 첫 티샷 날리세요! 비거리 업그레이드 &amp; 탁월한 관용성",
+        "임진한 프로와 김은우의 아이러브골프TV 마쓰구 드라이버 체험",
+        "마쓰구골프, 고반발 드라이버 신제품 출시 - 샤프트 무상교환 서비스 제공",
+        "마쓰구 신제품 '시크리트포스' 고반발 드라이버 출시",
+        "골프계의 전설 임진한, 마쓰구골프를 알리다.",
+        "마쓰구 골프 인수 싱싱골프투어 - 국내외 프리미엄 골프여행의 새 장을 엽니다.",
+        "마쓰구골프 고반발드라이버로 실력 수직 상승!",
+        "좋은 고반발드라이버를 고르는 방법!",
+        "'토종 기업' 마쓰구 골프 &quot;일본 불매운동 계속돼야&quot; | 고반발 드라이버 마쓰구 골프",
+        "마쓰구 고반발 골프공 출시예정!",
+        "개그맨 김은우님 &quot;마쓰구골프를 인정합니다.&quot;",
+        "Mas9Popup: 좋은 경험은 나눌수록 더 좋아요",
+        "고반발 드라이버 잘치는 방법①!!",
+        "(#세골 작정하고 홍보영상) 세상에없던골프수업 마쓰구 고반발 드라이버",
+        "시니어 골퍼를 위한 마쓰구 고반발 드라이버 - 영상으로 확인하는 청아한 타구음과 비거리 향상!",
+        "골프공, 소모품이 아니다",
+        "시니어 골퍼 필수 아이템, 마쓰구 고반발 드라이버 완판! 리오더 중, 시니어 골퍼 드라이버 추천",
+        "개그맨 김은우님이 알려주는 고반발드라이버 잘치는 방법 2",
+        "비거리 증가 팁: 백스윙 상단 자세로 비거리 극대화",
+        "기간 한정 세일 - Spring is Coming! 4월 21일 오후 5시 종료",
+        "Mas 9 Golf Store (마쓰구 골프 스토어) 사이니지 디자인 수상작",
+        "4피스 고반발 골프공 / 마쓰구"
+      ],
+      "types": [
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content"
+      ],
+      "sources": [
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown"
+      ],
+      "path": null,
+      "fileName": "이미지URL",
+      "storageExists": false,
+      "storageUrl": null,
+      "isExternalUrl": true,
+      "extractionFailed": true
+    },
+    {
+      "url": "http://www.loud.kr/contest/view/19430",
+      "blogPostIds": [
+        298
+      ],
+      "blogPostTitles": [
+        "2017 Mas9golf (마쓰구골프) 간판 디자인 콘테스트"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": null,
+      "fileName": "19430",
+      "storageExists": false,
+      "storageUrl": null,
+      "isExternalUrl": true,
+      "extractionFailed": true
+    },
+    {
+      "url": "드라이버디자인URL",
+      "blogPostIds": [
+        255
+      ],
+      "blogPostTitles": [
+        "마쓰구 2020 신제품 출시 - 시크리트 포스2 탄생"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": null,
+      "fileName": "드라이버디자인URL",
+      "storageExists": false,
+      "storageUrl": null,
+      "isExternalUrl": true,
+      "extractionFailed": true
+    },
+    {
+      "url": "https://www.mas9golf.com",
+      "blogPostIds": [
+        271
+      ],
+      "blogPostTitles": [
+        "고반발드라이버 마쓰구가 여러분의 티샷을 책임지겠습니다!"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": null,
+      "fileName": "www.mas9golf.com",
+      "storageExists": false,
+      "storageUrl": null,
+      "isExternalUrl": true,
+      "extractionFailed": true
+    },
+    {
+      "url": "드라이버이미지URL",
+      "blogPostIds": [
+        268
+      ],
+      "blogPostTitles": [
+        "나에게 가장 잘 어울리는 드라이버는?"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": null,
+      "fileName": "드라이버이미지URL",
+      "storageExists": false,
+      "storageUrl": null,
+      "isExternalUrl": true,
+      "extractionFailed": true
+    }
+  ],
+  "extractionFailed": [
+    {
+      "url": "http://img.youtube.com/vi/pdXs9OgRbFU/maxresdefault.jpg",
+      "blogPostIds": [
+        303
+      ],
+      "blogPostTitles": [
+        "스타와 함께 마쓰구와 함께"
+      ],
+      "types": [
+        "featured"
+      ],
+      "sources": [
+        "featured_image"
+      ],
+      "path": null,
+      "fileName": "maxresdefault.jpg",
+      "storageExists": false,
+      "storageUrl": null,
+      "isExternalUrl": true,
+      "extractionFailed": true
+    },
+    {
+      "url": "이미지URL",
+      "blogPostIds": [
+        254,
+        114,
+        267,
+        285,
+        119,
+        188,
+        279,
+        274,
+        118,
+        101,
+        273,
+        280,
+        186,
+        296,
+        207,
+        289,
+        157,
+        283,
+        234,
+        229,
+        242,
+        248,
+        113,
+        276,
+        259,
+        278,
+        286,
+        262,
+        293,
+        270,
+        301,
+        275,
+        287,
+        237,
+        291,
+        246,
+        272,
+        190,
+        300,
+        121,
+        290
+      ],
+      "blogPostTitles": [
+        "마쓰구 고반발 드라이버로 더욱 업그레이드된 '세상에 없던 골프수업 시즌4'",
+        "일요일 저녁은 꼬마 챔피언의 귀여운 골프 수업과 함께'",
+        "[세상에없던골프수업]세골맨의 마쓰구드라이버 활약을 볼수있습니다♡",
+        "개그맨 김은우님이 추천하는 고반발드라이버는?",
+        "♥마쓰구 네이버 스토어팜 오픈♥",
+        "다운스윙을 위한 스윙 팁: 비거리 증진과 골프 드라이버 최적화를 위한 방법",
+        "마쓰구 드라이버로 생애 첫 이글 기회를 가지다.",
+        "고반발 드라이버 잘치는 방법②!!",
+        "카이로프랙틱 추천 척추측만증 예방, 척추건강을 위한 고반발 드라이버",
+        "드로우, 페이드 커스터마이징 가능 - 마쓰구골프 시크리트포스 고반발 드라이버",
+        "개그맨 김은우님이 알려주는 고반발드라이버 잘치는 방법 1",
+        "♡고반발 드라이버 가격 할인♡ 마쓰구 골프 2018 코리아세일페스타",
+        "다운스윙 후 릴리즈 향상을 위한 스윙 팁",
+        "[Mas9Golf] 마점장님! 경주 안강레전드GC 다녀오다!",
+        "마쓰구골프코리아 - 고반발 드라이버 빠른 배송과 완벽한 포장 서비스",
+        "마쓰구골프 고객님들♥",
+        "2025 MAS GOLF 드라이버 출시! 비거리 +30m 초고반발 성능",
+        "즐거운 추석 명절 되세요 ♥고반발드라이버마쓰구♥",
+        "고반발드라이버 마쓰구 MBC 드라마 진출 - 차화연, 이태성, 오지은, 김유석 사용",
+        "마쓰구골프 고반발 드라이버로 봄 골프 시즌 첫 티샷 날리세요! 비거리 업그레이드 &amp; 탁월한 관용성",
+        "임진한 프로와 김은우의 아이러브골프TV 마쓰구 드라이버 체험",
+        "마쓰구골프, 고반발 드라이버 신제품 출시 - 샤프트 무상교환 서비스 제공",
+        "마쓰구 신제품 '시크리트포스' 고반발 드라이버 출시",
+        "골프계의 전설 임진한, 마쓰구골프를 알리다.",
+        "마쓰구 골프 인수 싱싱골프투어 - 국내외 프리미엄 골프여행의 새 장을 엽니다.",
+        "마쓰구골프 고반발드라이버로 실력 수직 상승!",
+        "좋은 고반발드라이버를 고르는 방법!",
+        "'토종 기업' 마쓰구 골프 &quot;일본 불매운동 계속돼야&quot; | 고반발 드라이버 마쓰구 골프",
+        "마쓰구 고반발 골프공 출시예정!",
+        "개그맨 김은우님 &quot;마쓰구골프를 인정합니다.&quot;",
+        "Mas9Popup: 좋은 경험은 나눌수록 더 좋아요",
+        "고반발 드라이버 잘치는 방법①!!",
+        "(#세골 작정하고 홍보영상) 세상에없던골프수업 마쓰구 고반발 드라이버",
+        "시니어 골퍼를 위한 마쓰구 고반발 드라이버 - 영상으로 확인하는 청아한 타구음과 비거리 향상!",
+        "골프공, 소모품이 아니다",
+        "시니어 골퍼 필수 아이템, 마쓰구 고반발 드라이버 완판! 리오더 중, 시니어 골퍼 드라이버 추천",
+        "개그맨 김은우님이 알려주는 고반발드라이버 잘치는 방법 2",
+        "비거리 증가 팁: 백스윙 상단 자세로 비거리 극대화",
+        "기간 한정 세일 - Spring is Coming! 4월 21일 오후 5시 종료",
+        "Mas 9 Golf Store (마쓰구 골프 스토어) 사이니지 디자인 수상작",
+        "4피스 고반발 골프공 / 마쓰구"
+      ],
+      "types": [
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content",
+        "content"
+      ],
+      "sources": [
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown",
+        "content_markdown"
+      ],
+      "path": null,
+      "fileName": "이미지URL",
+      "storageExists": false,
+      "storageUrl": null,
+      "isExternalUrl": true,
+      "extractionFailed": true
+    },
+    {
+      "url": "http://www.loud.kr/contest/view/19430",
+      "blogPostIds": [
+        298
+      ],
+      "blogPostTitles": [
+        "2017 Mas9golf (마쓰구골프) 간판 디자인 콘테스트"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": null,
+      "fileName": "19430",
+      "storageExists": false,
+      "storageUrl": null,
+      "isExternalUrl": true,
+      "extractionFailed": true
+    },
+    {
+      "url": "드라이버디자인URL",
+      "blogPostIds": [
+        255
+      ],
+      "blogPostTitles": [
+        "마쓰구 2020 신제품 출시 - 시크리트 포스2 탄생"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": null,
+      "fileName": "드라이버디자인URL",
+      "storageExists": false,
+      "storageUrl": null,
+      "isExternalUrl": true,
+      "extractionFailed": true
+    },
+    {
+      "url": "https://www.mas9golf.com",
+      "blogPostIds": [
+        271
+      ],
+      "blogPostTitles": [
+        "고반발드라이버 마쓰구가 여러분의 티샷을 책임지겠습니다!"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": null,
+      "fileName": "www.mas9golf.com",
+      "storageExists": false,
+      "storageUrl": null,
+      "isExternalUrl": true,
+      "extractionFailed": true
+    },
+    {
+      "url": "드라이버이미지URL",
+      "blogPostIds": [
+        268
+      ],
+      "blogPostTitles": [
+        "나에게 가장 잘 어울리는 드라이버는?"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": null,
+      "fileName": "드라이버이미지URL",
+      "storageExists": false,
+      "storageUrl": null,
+      "isExternalUrl": true,
+      "extractionFailed": true
+    }
+  ],
+  "notFoundInStorage": [
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/scraped-images/2025-11-14/IMG_8012.jpg",
+      "blogPostIds": [
+        483
+      ],
+      "blogPostTitles": [
+        "마쓰구 드라이버 vs 마제스티, 20m 더 긴 비거리의 비밀은?"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "scraped-images/2025-11-14/IMG_8012.jpg",
+      "fileName": "IMG_8012.jpg",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/scraped-images/2025-11-14/IMG_8014.jpg",
+      "blogPostIds": [
+        483
+      ],
+      "blogPostTitles": [
+        "마쓰구 드라이버 vs 마제스티, 20m 더 긴 비거리의 비밀은?"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "scraped-images/2025-11-14/IMG_8014.jpg",
+      "fileName": "IMG_8014.jpg",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/ai-generated/2025-11-29/ai-generated-senior-emotional-feed-1764420646146-1-1.jpg",
+      "blogPostIds": [
+        302
+      ],
+      "blogPostTitles": [
+        "MASSGOO - 살다보면 한두번은 비공인 드라이버가 꼭 필요해져요"
+      ],
+      "types": [
+        "featured"
+      ],
+      "sources": [
+        "featured_image"
+      ],
+      "path": "originals/ai-generated/2025-11-29/ai-generated-senior-emotional-feed-1764420646146-1-1.jpg",
+      "fileName": "ai-generated-senior-emotional-feed-1764420646146-1-1.jpg",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776688944-4.webp",
+      "blogPostIds": [
+        261
+      ],
+      "blogPostTitles": [
+        "이천마이다스 골프대회 마쓰구 드라이버와 함께 개그맨 김은우 출격"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757776688944-4.webp",
+      "fileName": "complete-migration-1757776688944-4.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776689367-5.webp",
+      "blogPostIds": [
+        261
+      ],
+      "blogPostTitles": [
+        "이천마이다스 골프대회 마쓰구 드라이버와 함께 개그맨 김은우 출격"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757776689367-5.webp",
+      "fileName": "complete-migration-1757776689367-5.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776690178-7.webp",
+      "blogPostIds": [
+        261
+      ],
+      "blogPostTitles": [
+        "이천마이다스 골프대회 마쓰구 드라이버와 함께 개그맨 김은우 출격"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757776690178-7.webp",
+      "fileName": "complete-migration-1757776690178-7.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776690929-9.webp",
+      "blogPostIds": [
+        261
+      ],
+      "blogPostTitles": [
+        "이천마이다스 골프대회 마쓰구 드라이버와 함께 개그맨 김은우 출격"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757776690929-9.webp",
+      "fileName": "complete-migration-1757776690929-9.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757773323652-2.webp",
+      "blogPostIds": [
+        151
+      ],
+      "blogPostTitles": [
+        "[종합] 드라이버 비거리 증진을 위한 완벽한 셋업 및 어드레스 체크리스트와 팁"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757773323652-2.webp",
+      "fileName": "complete-migration-1757773323652-2.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757773324616-3.webp",
+      "blogPostIds": [
+        151
+      ],
+      "blogPostTitles": [
+        "[종합] 드라이버 비거리 증진을 위한 완벽한 셋업 및 어드레스 체크리스트와 팁"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757773324616-3.webp",
+      "fileName": "complete-migration-1757773324616-3.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757773325562-4.webp",
+      "blogPostIds": [
+        151
+      ],
+      "blogPostTitles": [
+        "[종합] 드라이버 비거리 증진을 위한 완벽한 셋업 및 어드레스 체크리스트와 팁"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757773325562-4.webp",
+      "fileName": "complete-migration-1757773325562-4.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757773326570-5.webp",
+      "blogPostIds": [
+        151
+      ],
+      "blogPostTitles": [
+        "[종합] 드라이버 비거리 증진을 위한 완벽한 셋업 및 어드레스 체크리스트와 팁"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757773326570-5.webp",
+      "fileName": "complete-migration-1757773326570-5.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757774973943-3.webp",
+      "blogPostIds": [
+        192
+      ],
+      "blogPostTitles": [
+        "드라이버 비거리 증진을 위한 클럽페이스 및 각도 설정 방법"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757774973943-3.webp",
+      "fileName": "complete-migration-1757774973943-3.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "/campaigns/2025-07/hero-summer-golf-mas.jpg",
+      "blogPostIds": [
+        88
+      ],
+      "blogPostTitles": [
+        "뜨거운 여름, 품격 있는 완벽한 스윙을 위한 준비 - 7월 한정 로얄살루트 증정"
+      ],
+      "types": [
+        "featured"
+      ],
+      "sources": [
+        "featured_image"
+      ],
+      "path": "campaigns/2025-07/hero-summer-golf-mas.jpg",
+      "fileName": "hero-summer-golf-mas.jpg",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "/campaigns/2025-07/SALUTE21-01.jpg",
+      "blogPostIds": [
+        88
+      ],
+      "blogPostTitles": [
+        "뜨거운 여름, 품격 있는 완벽한 스윙을 위한 준비 - 7월 한정 로얄살루트 증정"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "campaigns/2025-07/SALUTE21-01.jpg",
+      "fileName": "SALUTE21-01.jpg",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "/campaigns/2025-07/cooling-sleeves.jpg",
+      "blogPostIds": [
+        88
+      ],
+      "blogPostTitles": [
+        "뜨거운 여름, 품격 있는 완벽한 스윙을 위한 준비 - 7월 한정 로얄살루트 증정"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "campaigns/2025-07/cooling-sleeves.jpg",
+      "fileName": "cooling-sleeves.jpg",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "/campaigns/2025-07/golfer_avatar_512x512_01.jpg",
+      "blogPostIds": [
+        88
+      ],
+      "blogPostTitles": [
+        "뜨거운 여름, 품격 있는 완벽한 스윙을 위한 준비 - 7월 한정 로얄살루트 증정"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "campaigns/2025-07/golfer_avatar_512x512_01.jpg",
+      "fileName": "golfer_avatar_512x512_01.jpg",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "/campaigns/2025-07/golfer_avatar_512x512_02.jpg",
+      "blogPostIds": [
+        88
+      ],
+      "blogPostTitles": [
+        "뜨거운 여름, 품격 있는 완벽한 스윙을 위한 준비 - 7월 한정 로얄살루트 증정"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "campaigns/2025-07/golfer_avatar_512x512_02.jpg",
+      "fileName": "golfer_avatar_512x512_02.jpg",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "/campaigns/2025-07/golfer_avatar_512x512_03.jpg",
+      "blogPostIds": [
+        88
+      ],
+      "blogPostTitles": [
+        "뜨거운 여름, 품격 있는 완벽한 스윙을 위한 준비 - 7월 한정 로얄살루트 증정"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "campaigns/2025-07/golfer_avatar_512x512_03.jpg",
+      "fileName": "golfer_avatar_512x512_03.jpg",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "/campaigns/2025-07/hero-summer-golf-mas-wide.jpg",
+      "blogPostIds": [
+        88
+      ],
+      "blogPostTitles": [
+        "뜨거운 여름, 품격 있는 완벽한 스윙을 위한 준비 - 7월 한정 로얄살루트 증정"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "campaigns/2025-07/hero-summer-golf-mas-wide.jpg",
+      "fileName": "hero-summer-golf-mas-wide.jpg",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757775244593-3.webp",
+      "blogPostIds": [
+        202
+      ],
+      "blogPostTitles": [
+        "고반발드라이버 전문 브랜드 마쓰구골프 고객 방문 스토리"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757775244593-3.webp",
+      "fileName": "complete-migration-1757775244593-3.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776786082-1.webp",
+      "blogPostIds": [
+        264
+      ],
+      "blogPostTitles": [
+        "인스타그램 셀럽들 사이에서도 핫한 아이템, 마쓰구골프 드라이버! 1"
+      ],
+      "types": [
+        "featured"
+      ],
+      "sources": [
+        "featured_image"
+      ],
+      "path": "complete-migration-1757776786082-1.webp",
+      "fileName": "complete-migration-1757776786082-1.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776787787-4.webp",
+      "blogPostIds": [
+        264
+      ],
+      "blogPostTitles": [
+        "인스타그램 셀럽들 사이에서도 핫한 아이템, 마쓰구골프 드라이버! 1"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757776787787-4.webp",
+      "fileName": "complete-migration-1757776787787-4.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757774263039-3.webp",
+      "blogPostIds": [
+        163
+      ],
+      "blogPostTitles": [
+        "시크리트웨폰 블랙 - 초 고반발 드라이버로 30m 비거리 증가 | Massgoo Golf"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757774263039-3.webp",
+      "fileName": "complete-migration-1757774263039-3.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757774264158-7.webp",
+      "blogPostIds": [
+        163
+      ],
+      "blogPostTitles": [
+        "시크리트웨폰 블랙 - 초 고반발 드라이버로 30m 비거리 증가 | Massgoo Golf"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757774264158-7.webp",
+      "fileName": "complete-migration-1757774264158-7.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757774363035-1.webp",
+      "blogPostIds": [
+        167
+      ],
+      "blogPostTitles": [
+        "마쓰구 골프와 함께한 7년: 맞춤형 피팅을 통한 고객 만족 스토리"
+      ],
+      "types": [
+        "featured"
+      ],
+      "sources": [
+        "featured_image"
+      ],
+      "path": "complete-migration-1757774363035-1.webp",
+      "fileName": "complete-migration-1757774363035-1.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757774483429-9.webp",
+      "blogPostIds": [
+        172
+      ],
+      "blogPostTitles": [
+        "80대 시니어 골퍼의 비거리 30M 증가 - 마쓰구골프 피팅 비결 공개"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757774483429-9.webp",
+      "fileName": "complete-migration-1757774483429-9.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757769164959-1.webp",
+      "blogPostIds": [
+        100
+      ],
+      "blogPostTitles": [
+        "비거리 향상을 위한 최고의 선택 - 마쓰구골프 시크리트포스 고반발 드라이버"
+      ],
+      "types": [
+        "featured"
+      ],
+      "sources": [
+        "featured_image"
+      ],
+      "path": "complete-migration-1757769164959-1.webp",
+      "fileName": "complete-migration-1757769164959-1.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757774659634-3.webp",
+      "blogPostIds": [
+        178
+      ],
+      "blogPostTitles": [
+        "마쓰구 드라이버로 60대에 250미터 비거리 회복 - 최석호 고객의 스윙 꿀팁"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757774659634-3.webp",
+      "fileName": "complete-migration-1757774659634-3.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757774660053-4.webp",
+      "blogPostIds": [
+        178
+      ],
+      "blogPostTitles": [
+        "마쓰구 드라이버로 60대에 250미터 비거리 회복 - 최석호 고객의 스윙 꿀팁"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757774660053-4.webp",
+      "fileName": "complete-migration-1757774660053-4.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776032188-1.webp",
+      "blogPostIds": [
+        234
+      ],
+      "blogPostTitles": [
+        "고반발드라이버 마쓰구 MBC 드라마 진출 - 차화연, 이태성, 오지은, 김유석 사용"
+      ],
+      "types": [
+        "featured"
+      ],
+      "sources": [
+        "featured_image"
+      ],
+      "path": "complete-migration-1757776032188-1.webp",
+      "fileName": "complete-migration-1757776032188-1.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776192299-1.webp",
+      "blogPostIds": [
+        241
+      ],
+      "blogPostTitles": [
+        "시니어 골퍼가 갖고 싶은 그 드라이버, 마쓰구 시크리트웨폰4.1 온라인 구매 리얼후기 대공개!"
+      ],
+      "types": [
+        "featured"
+      ],
+      "sources": [
+        "featured_image"
+      ],
+      "path": "complete-migration-1757776192299-1.webp",
+      "fileName": "complete-migration-1757776192299-1.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776192663-2.webp",
+      "blogPostIds": [
+        241
+      ],
+      "blogPostTitles": [
+        "시니어 골퍼가 갖고 싶은 그 드라이버, 마쓰구 시크리트웨폰4.1 온라인 구매 리얼후기 대공개!"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757776192663-2.webp",
+      "fileName": "complete-migration-1757776192663-2.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776192891-3.webp",
+      "blogPostIds": [
+        241
+      ],
+      "blogPostTitles": [
+        "시니어 골퍼가 갖고 싶은 그 드라이버, 마쓰구 시크리트웨폰4.1 온라인 구매 리얼후기 대공개!"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757776192891-3.webp",
+      "fileName": "complete-migration-1757776192891-3.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776193178-4.webp",
+      "blogPostIds": [
+        241
+      ],
+      "blogPostTitles": [
+        "시니어 골퍼가 갖고 싶은 그 드라이버, 마쓰구 시크리트웨폰4.1 온라인 구매 리얼후기 대공개!"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757776193178-4.webp",
+      "fileName": "complete-migration-1757776193178-4.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776193520-5.webp",
+      "blogPostIds": [
+        241
+      ],
+      "blogPostTitles": [
+        "시니어 골퍼가 갖고 싶은 그 드라이버, 마쓰구 시크리트웨폰4.1 온라인 구매 리얼후기 대공개!"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757776193520-5.webp",
+      "fileName": "complete-migration-1757776193520-5.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776193828-6.webp",
+      "blogPostIds": [
+        241
+      ],
+      "blogPostTitles": [
+        "시니어 골퍼가 갖고 싶은 그 드라이버, 마쓰구 시크리트웨폰4.1 온라인 구매 리얼후기 대공개!"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757776193828-6.webp",
+      "fileName": "complete-migration-1757776193828-6.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757772544303-1.webp",
+      "blogPostIds": [
+        128
+      ],
+      "blogPostTitles": [
+        "2025 한정판 골프 선물 세트, 지금 바로 만나보세요!"
+      ],
+      "types": [
+        "featured"
+      ],
+      "sources": [
+        "featured_image"
+      ],
+      "path": "complete-migration-1757772544303-1.webp",
+      "fileName": "complete-migration-1757772544303-1.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757775927878-1.webp",
+      "blogPostIds": [
+        230
+      ],
+      "blogPostTitles": [
+        "고반발 드라이버의 정점! 마쓰구 시크리트웨폰4로 비거리 한계 극복하세요"
+      ],
+      "types": [
+        "featured"
+      ],
+      "sources": [
+        "featured_image"
+      ],
+      "path": "complete-migration-1757775927878-1.webp",
+      "fileName": "complete-migration-1757775927878-1.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757775929164-2.webp",
+      "blogPostIds": [
+        230
+      ],
+      "blogPostTitles": [
+        "고반발 드라이버의 정점! 마쓰구 시크리트웨폰4로 비거리 한계 극복하세요"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757775929164-2.webp",
+      "fileName": "complete-migration-1757775929164-2.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757775929995-3.webp",
+      "blogPostIds": [
+        230
+      ],
+      "blogPostTitles": [
+        "고반발 드라이버의 정점! 마쓰구 시크리트웨폰4로 비거리 한계 극복하세요"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757775929995-3.webp",
+      "fileName": "complete-migration-1757775929995-3.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757775932223-5.webp",
+      "blogPostIds": [
+        230
+      ],
+      "blogPostTitles": [
+        "고반발 드라이버의 정점! 마쓰구 시크리트웨폰4로 비거리 한계 극복하세요"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757775932223-5.webp",
+      "fileName": "complete-migration-1757775932223-5.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757769501006-1.webp",
+      "blogPostIds": [
+        113
+      ],
+      "blogPostTitles": [
+        "마쓰구 신제품 '시크리트포스' 고반발 드라이버 출시"
+      ],
+      "types": [
+        "featured"
+      ],
+      "sources": [
+        "featured_image"
+      ],
+      "path": "complete-migration-1757769501006-1.webp",
+      "fileName": "complete-migration-1757769501006-1.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776670557-3.webp",
+      "blogPostIds": [
+        260
+      ],
+      "blogPostTitles": [
+        "이천 마이다스CC 친선 골프대회에서 마쓰구 고반발 드라이버 홍보 모델 개그맨 김은우와 함께"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757776670557-3.webp",
+      "fileName": "complete-migration-1757776670557-3.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776671069-4.webp",
+      "blogPostIds": [
+        260
+      ],
+      "blogPostTitles": [
+        "이천 마이다스CC 친선 골프대회에서 마쓰구 고반발 드라이버 홍보 모델 개그맨 김은우와 함께"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757776671069-4.webp",
+      "fileName": "complete-migration-1757776671069-4.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757774817682-1.webp",
+      "blogPostIds": [
+        184
+      ],
+      "blogPostTitles": [
+        "시니어 골퍼 양용호의 마쓰구골프 '골드2' 드라이버 후기"
+      ],
+      "types": [
+        "featured"
+      ],
+      "sources": [
+        "featured_image"
+      ],
+      "path": "complete-migration-1757774817682-1.webp",
+      "fileName": "complete-migration-1757774817682-1.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757774819294-4.webp",
+      "blogPostIds": [
+        184
+      ],
+      "blogPostTitles": [
+        "시니어 골퍼 양용호의 마쓰구골프 '골드2' 드라이버 후기"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757774819294-4.webp",
+      "fileName": "complete-migration-1757774819294-4.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776416629-1.webp",
+      "blogPostIds": [
+        250
+      ],
+      "blogPostTitles": [
+        "농구계의 스타 김동광, 마쓰구골프 고반발드라이버와 골프에 빠지다."
+      ],
+      "types": [
+        "featured"
+      ],
+      "sources": [
+        "featured_image"
+      ],
+      "path": "complete-migration-1757776416629-1.webp",
+      "fileName": "complete-migration-1757776416629-1.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776418428-4.webp",
+      "blogPostIds": [
+        250
+      ],
+      "blogPostTitles": [
+        "농구계의 스타 김동광, 마쓰구골프 고반발드라이버와 골프에 빠지다."
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757776418428-4.webp",
+      "fileName": "complete-migration-1757776418428-4.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757774992794-3.webp",
+      "blogPostIds": [
+        193
+      ],
+      "blogPostTitles": [
+        "드라이버 비거리 극대화: 시니어 골퍼를 위한 테이크어웨이 가이드"
+      ],
+      "types": [
+        "content"
+      ],
+      "sources": [
+        "content_markdown"
+      ],
+      "path": "complete-migration-1757774992794-3.webp",
+      "fileName": "complete-migration-1757774992794-3.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    },
+    {
+      "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757774539923-1.webp",
+      "blogPostIds": [
+        174
+      ],
+      "blogPostTitles": [
+        "마쓰구골프 VIP 고객 가을 이벤트 - 비거리 체험과 싱싱골프투어 안내"
+      ],
+      "types": [
+        "featured"
+      ],
+      "sources": [
+        "featured_image"
+      ],
+      "path": "complete-migration-1757774539923-1.webp",
+      "fileName": "complete-migration-1757774539923-1.webp",
+      "storageExists": false,
+      "isExternalUrl": false,
+      "extractionFailed": false
+    }
+  ],
+  "hasMore": {
+    "duplicateGroups": false,
+    "unlinkedImages": false,
+    "unlinkedStorageImages": false,
+    "externalUrls": false,
+    "extractionFailed": false,
+    "notFoundInStorage": true
+  },
+  "message": "분석 완료 (드라이런 모드 - 실제 변경 없음)"
+}

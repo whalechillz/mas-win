@@ -1,0 +1,137 @@
+{
+  "batchInfo": {
+    "startIndex": 40,
+    "count": 10,
+    "timestamp": "2025-12-14T15-22-55"
+  },
+  "results": [
+    {
+      "blogPostId": 270,
+      "success": true,
+      "title": "개그맨 김은우님 &quot;마쓰구골프를 인정합니다.&quot;",
+      "folderName": "originals/blog/2019-01/270",
+      "totalExtractedImages": 1,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 114,
+      "success": true,
+      "title": "일요일 저녁은 꼬마 챔피언의 귀여운 골프 수업과 함께'",
+      "folderName": "originals/blog/2019-01/114",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 269,
+      "success": true,
+      "title": "&quot;나에게 가장 잘 어울리는 드라이버를 찾자&quot;",
+      "folderName": "originals/blog/2019-02/269",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 268,
+      "success": true,
+      "title": "나에게 가장 잘 어울리는 드라이버는?",
+      "folderName": "originals/blog/2019-02/268",
+      "totalExtractedImages": 1,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 267,
+      "success": true,
+      "title": "[세상에없던골프수업]세골맨의 마쓰구드라이버 활약을 볼수있습니다♡",
+      "folderName": "originals/blog/2019-03/267",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 266,
+      "success": true,
+      "title": "브라보퍼블릭스크린에서도 고반발 마쓰구 드라이버를 체험해보세요!",
+      "folderName": "originals/blog/2019-03/266",
+      "totalExtractedImages": 6,
+      "totalImages": 6,
+      "movedCount": 6,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 265,
+      "success": true,
+      "title": "청각장애우수술비 1000만원 마련 자선골프대회 (고반발 드라이버 마쓰구 참가)",
+      "folderName": "originals/blog/2019-05/265",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 264,
+      "success": true,
+      "title": "인스타그램 셀럽들 사이에서도 핫한 아이템, 마쓰구골프 드라이버! 1",
+      "folderName": "originals/blog/2019-06/264",
+      "totalExtractedImages": 5,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 263,
+      "success": true,
+      "title": "인스타그램 셀럽들 사이에서도 핫한 아이템, 마쓰구골프 드라이버! 2",
+      "folderName": "originals/blog/2019-06/263",
+      "totalExtractedImages": 5,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 262,
+      "success": true,
+      "title": "'토종 기업' 마쓰구 골프 &quot;일본 불매운동 계속돼야&quot; | 고반발 드라이버 마쓰구 골프",
+      "folderName": "originals/blog/2019-09/262",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "success": 10,
+    "failed": 0,
+    "totalImages": 23,
+    "totalMoved": 23,
+    "totalSkipped": 0
+  }
+}

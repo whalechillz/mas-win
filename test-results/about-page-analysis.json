@@ -1,0 +1,187 @@
+{
+  "hero": {
+    "h1": {
+      "text": "22년 전, 하나의 꿈이 시작되었습니다",
+      "fontSize": "48px",
+      "lineHeight": "60px",
+      "width": 358,
+      "height": 120,
+      "lines": 2
+    },
+    "paragraphs": [
+      {
+        "text": "정직함과 정확성으로 골프의 미래를 새롭게 정의하는 여정",
+        "fontSize": "20px",
+        "width": 358,
+        "lines": 2
+      },
+      {
+        "text": "2003년, 일본 장인 정신과 혁신 기술력이 만나 MASSGOO가 탄생했습니다.지금까지 골",
+        "fontSize": "18px",
+        "width": 358,
+        "lines": 4
+      },
+      {
+        "text": "우리는 정직함을 가장 중요한 가치로 여깁니다. 과장된 마케팅이나 허위의 약속 대신, 실제로",
+        "fontSize": "18px",
+        "width": 358,
+        "lines": 4
+      }
+    ]
+  },
+  "sections": [
+    {
+      "index": 0,
+      "h2": null,
+      "height": 591,
+      "padding": {
+        "top": "0px",
+        "bottom": "0px"
+      }
+    },
+    {
+      "index": 1,
+      "h2": {
+        "text": "브랜드 철학",
+        "fontSize": "36px"
+      },
+      "height": 935,
+      "padding": {
+        "top": "80px",
+        "bottom": "80px"
+      }
+    },
+    {
+      "index": 2,
+      "h2": {
+        "text": "혁신의 시작",
+        "fontSize": "36px"
+      },
+      "height": 897,
+      "padding": {
+        "top": "80px",
+        "bottom": "80px"
+      }
+    },
+    {
+      "index": 3,
+      "h2": {
+        "text": "차별화된 기술력",
+        "fontSize": "36px"
+      },
+      "height": 1836,
+      "padding": {
+        "top": "80px",
+        "bottom": "80px"
+      }
+    },
+    {
+      "index": 4,
+      "h2": {
+        "text": "프리미엄 샤프트 콜라보",
+        "fontSize": "36px"
+      },
+      "height": 1324,
+      "padding": {
+        "top": "80px",
+        "bottom": "80px"
+      }
+    },
+    {
+      "index": 5,
+      "h2": {
+        "text": "글로벌 여정",
+        "fontSize": "36px"
+      },
+      "height": 1535,
+      "padding": {
+        "top": "80px",
+        "bottom": "80px"
+      }
+    },
+    {
+      "index": 6,
+      "h2": {
+        "text": "22년간 함께한 골퍼들의 이야기",
+        "fontSize": "36px"
+      },
+      "height": 1092,
+      "padding": {
+        "top": "80px",
+        "bottom": "80px"
+      }
+    },
+    {
+      "index": 7,
+      "h2": {
+        "text": "프리미엄 드라이버 시리즈",
+        "fontSize": "36px"
+      },
+      "height": 1581,
+      "padding": {
+        "top": "80px",
+        "bottom": "80px"
+      }
+    },
+    {
+      "index": 8,
+      "h2": {
+        "text": "서비스 보증",
+        "fontSize": "36px"
+      },
+      "height": 1029,
+      "padding": {
+        "top": "80px",
+        "bottom": "80px"
+      }
+    },
+    {
+      "index": 9,
+      "h2": {
+        "text": "골프의 미래를 함께 만들어갑니다",
+        "fontSize": "36px"
+      },
+      "height": 550,
+      "padding": {
+        "top": "80px",
+        "bottom": "80px"
+      }
+    }
+  ],
+  "buttons": [
+    {
+      "text": "MASSGOO",
+      "fontSize": "16px",
+      "width": 140,
+      "height": 32
+    },
+    {
+      "text": "드라이버",
+      "fontSize": "16px",
+      "width": 0,
+      "height": 0
+    },
+    {
+      "text": "기술력",
+      "fontSize": "16px",
+      "width": 0,
+      "height": 0
+    },
+    {
+      "text": "고객후기",
+      "fontSize": "16px",
+      "width": 0,
+      "height": 0
+    },
+    {
+      "text": "브랜드 스토리",
+      "fontSize": "16px",
+      "width": 0,
+      "height": 0
+    }
+  ],
+  "viewport": {
+    "width": 390,
+    "height": 844
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "batchInfo": {
+    "startIndex": 80,
+    "count": 10,
+    "timestamp": "2025-12-14T16-05-45"
+  },
+  "results": [
+    {
+      "blogPostId": 226,
+      "title": "마쓰구 드라이버로 젝시오 대비 30M 비거리 향상 - 성귀애 고객님 라운딩 후기",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-02/226/complete-migration-1757775840904-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 225,
+      "title": "골프 엘보 예방과 치료를 위한 스트레칭 팁 - 카이로프랙틱 의사 추천 마쓰구 고반발 드라이버",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-03/225/complete-migration-1757775820174-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 224,
+      "title": "68세 골퍼 후기 마쓰구 드라이버로 200m→230m UP! 놀라운 변신의 비결은?",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-06/224/complete-migration-1757775804217-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 105,
+      "title": "박진욱님, 마쓰구 고반발 드라이버로 25m UP! 60대 골퍼도 장타 가능",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-09/105/complete-migration-1757769271208-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 222,
+      "title": "하종천님, 마쓰구 고반발 드라이버로 20m UP! 50대 골퍼도 장타 가능",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-09/222/complete-migration-1757775744148-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 221,
+      "title": "황인석님, 마쓰구 드라이버로 282야드 몬스터샷 &amp; 원온 달성!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-09/221/complete-migration-1757775719694-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 220,
+      "title": "김석구님, 마쓰구 드라이버로 벙커 탈출 &amp; 253야드 장타 성공!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-09/220/complete-migration-1757775695556-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 219,
+      "title": "박중진님, 마쓰구 드라이버로 15m 장타 도전 성공! 거리와 디자인 모두 만족",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-09/219/complete-migration-1757775670542-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 218,
+      "title": "채문석님, 마쓰구 드라이버로 테일러메이드 205m 넘어서다! 놀라운 비거리 UP 비결은?",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-09/218/complete-migration-1757775646862-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 217,
+      "title": "스크린골프 전설 이수원님, 마쓰구 골프와 함께 홀인원 106회 &amp; 알바트로스 6회 달성!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-09/217/complete-migration-1757775617104-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "hasFeaturedImage": 10,
+    "broken": 0,
+    "fixed": 0,
+    "noFeaturedImage": 0
+  }
+}

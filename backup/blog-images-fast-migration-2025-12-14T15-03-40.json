@@ -1,0 +1,137 @@
+{
+  "batchInfo": {
+    "startIndex": 10,
+    "count": 10,
+    "timestamp": "2025-12-14T15-03-40"
+  },
+  "results": [
+    {
+      "blogPostId": 121,
+      "success": true,
+      "title": "Mas 9 Golf Store (마쓰구 골프 스토어) 사이니지 디자인 수상작",
+      "folderName": "originals/blog/2017-05/121",
+      "totalExtractedImages": 1,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 120,
+      "success": true,
+      "title": "[골프용품 #업체탐방] 마쓰구골프",
+      "folderName": "originals/blog/2017-08/120",
+      "totalExtractedImages": 9,
+      "totalImages": 9,
+      "movedCount": 9,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 296,
+      "success": true,
+      "title": "[Mas9Golf] 마점장님! 경주 안강레전드GC 다녀오다!",
+      "folderName": "originals/blog/2017-09/296",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 295,
+      "success": true,
+      "title": "[Mas9Golf] 고반발드라이버/개그맨김은우씨의 골프대회 소식^^",
+      "folderName": "originals/blog/2017-09/295",
+      "totalExtractedImages": 1,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 294,
+      "success": true,
+      "title": "[Mas9Golf] 마쓰구골프 김종철 사진작가와 콜라보 프로모션 !",
+      "folderName": "originals/blog/2017-09/294",
+      "totalExtractedImages": 2,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 293,
+      "success": true,
+      "title": "마쓰구 고반발 골프공 출시예정!",
+      "folderName": "originals/blog/2017-09/293",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 292,
+      "success": true,
+      "title": "[Mas9Golf] 충북경제단체 골프친선대회 협찬행사^^",
+      "folderName": "originals/blog/2017-09/292",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 291,
+      "success": true,
+      "title": "골프공, 소모품이 아니다",
+      "folderName": "originals/blog/2017-10/291",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 290,
+      "success": true,
+      "title": "4피스 고반발 골프공 / 마쓰구",
+      "folderName": "originals/blog/2017-10/290",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 289,
+      "success": true,
+      "title": "마쓰구골프 고객님들♥",
+      "folderName": "originals/blog/2017-10/289",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "success": 10,
+    "failed": 0,
+    "totalImages": 21,
+    "totalMoved": 21,
+    "totalSkipped": 0
+  }
+}

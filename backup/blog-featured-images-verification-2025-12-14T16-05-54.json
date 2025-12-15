@@ -1,0 +1,126 @@
+{
+  "batchInfo": {
+    "startIndex": 90,
+    "count": 10,
+    "timestamp": "2025-12-14T16-05-54"
+  },
+  "results": [
+    {
+      "blogPostId": 216,
+      "title": "60대 김영필님, 마쓰구 드라이버로 20m 비거리 UP! 놀라운 변신의 비결",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-09/216/complete-migration-1757775589592-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 215,
+      "title": "마쓰구골프 | 여성 골퍼가 남성용 드라이버를? 김선옥님의 선택!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-09/215/complete-migration-1757775566950-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 214,
+      "title": "마쓰구골프 | 60대 김영진님, 핑에서 마쓰구로 갈아타더니 230m 이상 비거리 UP!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-09/214/complete-migration-1757775540749-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 213,
+      "title": "마쓰구골프 | 퇴직 후 골프 시작한 조성대님, 비거리 20m 늘리다!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-09/213/complete-migration-1757775509801-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 212,
+      "title": "마쓰구골프 | 김한구님, 맞춤 드라이버로 프로급 샷 완성!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-09/212/complete-migration-1757775493921-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 211,
+      "title": "마쓰구골프 | 68세 조보현님, 드로우 커스텀 드라이버로 15m 더 멀리!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-09/211/complete-migration-1757775474218-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 210,
+      "title": "마쓰구골프 | 190m에서 215m로, 이강석님의 25m 비거리 향상 비결은?",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-09/210/complete-migration-1757775449690-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 209,
+      "title": "마쓰구골프 | 민호식님, 1시간 무료 시타로 장타력 18m 상승!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-09/209/complete-migration-1757775419569-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 208,
+      "title": "심원섭님, 20년 묵은 드라이버 버리고 40m 장타 달성!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-09/208/complete-migration-1757775395408-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 207,
+      "title": "마쓰구골프코리아 - 고반발 드라이버 빠른 배송과 완벽한 포장 서비스",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-10/207/complete-migration-1757775379805-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "hasFeaturedImage": 10,
+    "broken": 0,
+    "fixed": 0,
+    "noFeaturedImage": 0
+  }
+}

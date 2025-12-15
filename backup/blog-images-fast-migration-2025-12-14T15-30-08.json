@@ -1,0 +1,137 @@
+{
+  "batchInfo": {
+    "startIndex": 70,
+    "count": 10,
+    "timestamp": "2025-12-14T15-30-08"
+  },
+  "results": [
+    {
+      "blogPostId": 240,
+      "success": true,
+      "title": "시니어 골퍼를 위한 인생 드라이버, 마쓰구 고반발로 골프가 즐거워진다! 라운딩 리얼후기 대공개",
+      "folderName": "originals/blog/2021-08/240",
+      "totalExtractedImages": 3,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 239,
+      "success": true,
+      "title": "시니어 골퍼의 티샷 고민 해결! 마쓰구 고반발 드라이버 시크리트포스 10도 완판 기록",
+      "folderName": "originals/blog/2021-10/239",
+      "totalExtractedImages": 3,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 238,
+      "success": true,
+      "title": "김은우와 최병서, 아이러브골프TV에서 마쓰구 드라이버 체험",
+      "folderName": "originals/blog/2021-11/238",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 237,
+      "success": true,
+      "title": "시니어 골퍼를 위한 마쓰구 고반발 드라이버 - 영상으로 확인하는 청아한 타구음과 비거리 향상!",
+      "folderName": "originals/blog/2022-03/237",
+      "totalExtractedImages": 1,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 236,
+      "success": true,
+      "title": "마쓰구 고반발 골프공 3피스 출시 - 비거리와 정확성을 동시에",
+      "folderName": "originals/blog/2022-07/236",
+      "totalExtractedImages": 2,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 235,
+      "success": true,
+      "title": "김은우와 정미연, 아이러브골프에서 고반발 드라이버 체험",
+      "folderName": "originals/blog/2022-07/235",
+      "totalExtractedImages": 8,
+      "totalImages": 8,
+      "movedCount": 8,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 234,
+      "success": true,
+      "title": "고반발드라이버 마쓰구 MBC 드라마 진출 - 차화연, 이태성, 오지은, 김유석 사용",
+      "folderName": "originals/blog/2022-07/234",
+      "totalExtractedImages": 2,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 233,
+      "success": true,
+      "title": "마쓰구 고반발 드라이버 시크리트포스V2 완판! 2차 입고로 다시 만나는 기회",
+      "folderName": "originals/blog/2022-07/233",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 107,
+      "success": true,
+      "title": "[공지] 마쓰구 7월 휴무 안내",
+      "folderName": "originals/blog/2022-07/107",
+      "totalExtractedImages": 1,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 106,
+      "success": true,
+      "title": "고반발 드라이버 체험기 - 마쓰구 광교 본점 방문기 및 신제품 시크리트포스V2 소개",
+      "folderName": "originals/blog/2022-10/106",
+      "totalExtractedImages": 4,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "success": 10,
+    "failed": 0,
+    "totalImages": 26,
+    "totalMoved": 26,
+    "totalSkipped": 0
+  }
+}

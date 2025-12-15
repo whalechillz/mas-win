@@ -1,0 +1,126 @@
+{
+  "batchInfo": {
+    "startIndex": 130,
+    "count": 10,
+    "timestamp": "2025-12-14T16-06-37"
+  },
+  "results": [
+    {
+      "blogPostId": 174,
+      "title": "마쓰구골프 VIP 고객 가을 이벤트 - 비거리 체험과 싱싱골프투어 안내",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757774539923-1.webp",
+      "isBroken": true,
+      "fixed": true,
+      "newFeaturedImage": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-10/174/complete-migration-1757774543146-7.webp",
+      "errors": []
+    },
+    {
+      "blogPostId": 173,
+      "title": "시크리트포스 골드 2 - VIP 한정판 럭셔리 고반발 드라이버",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-10/173/complete-migration-1757774509584-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 172,
+      "title": "80대 시니어 골퍼의 비거리 30M 증가 - 마쓰구골프 피팅 비결 공개",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-10/172/complete-migration-1757774479727-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 141,
+      "title": "77세 실버골퍼의 204M 드라이버샷 - 마쓰구골프 VIP 이남구님의 성공 스토리",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-10/141/complete-migration-1757772939710-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 170,
+      "title": "40M 더 나아간 비거리 - 마쓰구 SFG R2로 일본 브랜드 드라이버와의 비교 테스트 결과",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-11/170/complete-migration-1757774435361-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 169,
+      "title": "시크리트포스 골드 2 - VIP 전용 혜택으로 비거리 혁신을 경험하세요",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-11/169/complete-migration-1757774408332-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 168,
+      "title": "4년 만의 업그레이드 – 시크리트웨폰 4.1의 새로운 도전 | 마쓰구골프",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-11/168/complete-migration-1757774385042-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 167,
+      "title": "마쓰구 골프와 함께한 7년: 맞춤형 피팅을 통한 고객 만족 스토리",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757774363035-1.webp",
+      "isBroken": true,
+      "fixed": true,
+      "newFeaturedImage": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-11/167/complete-migration-1757774364228-4.webp",
+      "errors": []
+    },
+    {
+      "blogPostId": 166,
+      "title": "2년의 피팅 스토리 – 권성수 고객님의 V2에서 V3로의 비거리 향상 이야기",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-11/166/complete-migration-1757774339089-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 93,
+      "title": "시크리트포스 V3 블랙 시리즈 - 한계를 넘는 비거리 혁신",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-12/93/complete-migration-1757768803211-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "hasFeaturedImage": 10,
+    "broken": 2,
+    "fixed": 2,
+    "noFeaturedImage": 0
+  }
+}

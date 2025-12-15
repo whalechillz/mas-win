@@ -1,0 +1,137 @@
+{
+  "batchInfo": {
+    "startIndex": 80,
+    "count": 10,
+    "timestamp": "2025-12-14T15-31-57"
+  },
+  "results": [
+    {
+      "blogPostId": 231,
+      "success": true,
+      "title": "시니어 골퍼를 위한 크리스마스 선물, 마쓰구 고반발 드라이버 1+1 이벤트 놓치지 마세요!",
+      "folderName": "originals/blog/2022-12/231",
+      "totalExtractedImages": 3,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 230,
+      "success": true,
+      "title": "고반발 드라이버의 정점! 마쓰구 시크리트웨폰4로 비거리 한계 극복하세요",
+      "folderName": "originals/blog/2023-01/230",
+      "totalExtractedImages": 6,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 229,
+      "success": true,
+      "title": "마쓰구골프 고반발 드라이버로 봄 골프 시즌 첫 티샷 날리세요! 비거리 업그레이드 &amp; 탁월한 관용성",
+      "folderName": "originals/blog/2023-02/229",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 228,
+      "success": true,
+      "title": "마쓰구 시크리트웨폰4 고반발 드라이버 1차 물량 완판! 차기 시리즈에 대한 기대감 증폭",
+      "folderName": "originals/blog/2023-02/228",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 227,
+      "success": true,
+      "title": "김은우 프로의 아이러브골프TV: 마쓰구 고반발 드라이버 성능 분석 및 평가",
+      "folderName": "originals/blog/2023-02/227",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 226,
+      "success": true,
+      "title": "마쓰구 드라이버로 젝시오 대비 30M 비거리 향상 - 성귀애 고객님 라운딩 후기",
+      "folderName": "originals/blog/2023-02/226",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 225,
+      "success": true,
+      "title": "골프 엘보 예방과 치료를 위한 스트레칭 팁 - 카이로프랙틱 의사 추천 마쓰구 고반발 드라이버",
+      "folderName": "originals/blog/2023-03/225",
+      "totalExtractedImages": 3,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 224,
+      "success": true,
+      "title": "68세 골퍼 후기 마쓰구 드라이버로 200m→230m UP! 놀라운 변신의 비결은?",
+      "folderName": "originals/blog/2023-06/224",
+      "totalExtractedImages": 1,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 105,
+      "success": true,
+      "title": "박진욱님, 마쓰구 고반발 드라이버로 25m UP! 60대 골퍼도 장타 가능",
+      "folderName": "originals/blog/2023-09/105",
+      "totalExtractedImages": 1,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 222,
+      "success": true,
+      "title": "하종천님, 마쓰구 고반발 드라이버로 20m UP! 50대 골퍼도 장타 가능",
+      "folderName": "originals/blog/2023-09/222",
+      "totalExtractedImages": 3,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "success": 10,
+    "failed": 0,
+    "totalImages": 26,
+    "totalMoved": 26,
+    "totalSkipped": 0
+  }
+}

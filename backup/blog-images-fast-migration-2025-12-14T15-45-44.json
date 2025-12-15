@@ -1,0 +1,137 @@
+{
+  "batchInfo": {
+    "startIndex": 130,
+    "count": 10,
+    "timestamp": "2025-12-14T15-45-44"
+  },
+  "results": [
+    {
+      "blogPostId": 151,
+      "success": true,
+      "title": "[종합] 드라이버 비거리 증진을 위한 완벽한 셋업 및 어드레스 체크리스트와 팁",
+      "folderName": "originals/blog/2024-08/151",
+      "totalExtractedImages": 5,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 150,
+      "success": true,
+      "title": "드라이버 샷의 비밀: 비거리와 정확성 동시에 잡는 법",
+      "folderName": "originals/blog/2024-08/150",
+      "totalExtractedImages": 7,
+      "totalImages": 7,
+      "movedCount": 7,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 179,
+      "success": true,
+      "title": "아이언 샷의 비밀: 비거리와 정확성 동시에 잡는 법",
+      "folderName": "originals/blog/2024-09/179",
+      "totalExtractedImages": 7,
+      "totalImages": 7,
+      "movedCount": 7,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 178,
+      "success": true,
+      "title": "마쓰구 드라이버로 60대에 250미터 비거리 회복 - 최석호 고객의 스윙 꿀팁",
+      "folderName": "originals/blog/2024-09/178",
+      "totalExtractedImages": 6,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 147,
+      "success": true,
+      "title": "65세 골퍼의 도전 - 시크리트포스 골드 2로 비거리 증가와 골프의 즐거움 찾기",
+      "folderName": "originals/blog/2024-10/147",
+      "totalExtractedImages": 6,
+      "totalImages": 6,
+      "movedCount": 6,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 176,
+      "success": true,
+      "title": "67세 골퍼의 비거리 200야드 달성 - 마쓰구골프 고객 후기와 드라이버 추천",
+      "folderName": "originals/blog/2024-10/176",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 175,
+      "success": true,
+      "title": "65세 골퍼 비거리 증가 - 시니어 골퍼의 변신 사례",
+      "folderName": "originals/blog/2024-10/175",
+      "totalExtractedImages": 12,
+      "totalImages": 12,
+      "movedCount": 12,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 174,
+      "success": true,
+      "title": "마쓰구골프 VIP 고객 가을 이벤트 - 비거리 체험과 싱싱골프투어 안내",
+      "folderName": "originals/blog/2024-10/174",
+      "totalExtractedImages": 7,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 173,
+      "success": true,
+      "title": "시크리트포스 골드 2 - VIP 한정판 럭셔리 고반발 드라이버",
+      "folderName": "originals/blog/2024-10/173",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 172,
+      "success": true,
+      "title": "80대 시니어 골퍼의 비거리 30M 증가 - 마쓰구골프 피팅 비결 공개",
+      "folderName": "originals/blog/2024-10/172",
+      "totalExtractedImages": 11,
+      "totalImages": 10,
+      "movedCount": 10,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "success": 10,
+    "failed": 0,
+    "totalImages": 59,
+    "totalMoved": 59,
+    "totalSkipped": 0
+  }
+}

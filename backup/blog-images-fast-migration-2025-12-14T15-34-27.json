@@ -1,0 +1,137 @@
+{
+  "batchInfo": {
+    "startIndex": 90,
+    "count": 10,
+    "timestamp": "2025-12-14T15-34-27"
+  },
+  "results": [
+    {
+      "blogPostId": 221,
+      "success": true,
+      "title": "황인석님, 마쓰구 드라이버로 282야드 몬스터샷 &amp; 원온 달성!",
+      "folderName": "originals/blog/2023-09/221",
+      "totalExtractedImages": 2,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 220,
+      "success": true,
+      "title": "김석구님, 마쓰구 드라이버로 벙커 탈출 &amp; 253야드 장타 성공!",
+      "folderName": "originals/blog/2023-09/220",
+      "totalExtractedImages": 1,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 219,
+      "success": true,
+      "title": "박중진님, 마쓰구 드라이버로 15m 장타 도전 성공! 거리와 디자인 모두 만족",
+      "folderName": "originals/blog/2023-09/219",
+      "totalExtractedImages": 2,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 218,
+      "success": true,
+      "title": "채문석님, 마쓰구 드라이버로 테일러메이드 205m 넘어서다! 놀라운 비거리 UP 비결은?",
+      "folderName": "originals/blog/2023-09/218",
+      "totalExtractedImages": 2,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 217,
+      "success": true,
+      "title": "스크린골프 전설 이수원님, 마쓰구 골프와 함께 홀인원 106회 &amp; 알바트로스 6회 달성!",
+      "folderName": "originals/blog/2023-09/217",
+      "totalExtractedImages": 3,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 216,
+      "success": true,
+      "title": "60대 김영필님, 마쓰구 드라이버로 20m 비거리 UP! 놀라운 변신의 비결",
+      "folderName": "originals/blog/2023-09/216",
+      "totalExtractedImages": 1,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 215,
+      "success": true,
+      "title": "마쓰구골프 | 여성 골퍼가 남성용 드라이버를? 김선옥님의 선택!",
+      "folderName": "originals/blog/2023-09/215",
+      "totalExtractedImages": 3,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 214,
+      "success": true,
+      "title": "마쓰구골프 | 60대 김영진님, 핑에서 마쓰구로 갈아타더니 230m 이상 비거리 UP!",
+      "folderName": "originals/blog/2023-09/214",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 213,
+      "success": true,
+      "title": "마쓰구골프 | 퇴직 후 골프 시작한 조성대님, 비거리 20m 늘리다!",
+      "folderName": "originals/blog/2023-09/213",
+      "totalExtractedImages": 2,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 212,
+      "success": true,
+      "title": "마쓰구골프 | 김한구님, 맞춤 드라이버로 프로급 샷 완성!",
+      "folderName": "originals/blog/2023-09/212",
+      "totalExtractedImages": 3,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "success": 10,
+    "failed": 0,
+    "totalImages": 23,
+    "totalMoved": 23,
+    "totalSkipped": 0
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "batchInfo": {
+    "startIndex": 50,
+    "count": 10,
+    "timestamp": "2025-12-14T16-05-10"
+  },
+  "results": [
+    {
+      "blogPostId": 260,
+      "title": "이천 마이다스CC 친선 골프대회에서 마쓰구 고반발 드라이버 홍보 모델 개그맨 김은우와 함께",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2019-12/260/complete-migration-1757776668343-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 259,
+      "title": "마쓰구 골프 인수 싱싱골프투어 - 국내외 프리미엄 골프여행의 새 장을 엽니다.",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2020-02/259/complete-migration-1757776651593-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 258,
+      "title": "세상에 없던 골프수업 시즌4 - 고반발 드라이버 마쓰구와 함께",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2020-02/258/complete-migration-1757776627727-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 257,
+      "title": "마쓰구 신문기사 - 세상에 없던 골프수업 시즌4와 고반발 드라이버",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2020-02/257/complete-migration-1757776598241-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 256,
+      "title": "가지고 싶은 드라이버 - 마쓰구 고반발 드라이버 온라인 구매 후기",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2020-03/256/complete-migration-1757776576265-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 255,
+      "title": "마쓰구 2020 신제품 출시 - 시크리트 포스2 탄생",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2020-03/255/complete-migration-1757776557276-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 254,
+      "title": "마쓰구 고반발 드라이버로 더욱 업그레이드된 '세상에 없던 골프수업 시즌4'",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2020-04/254/complete-migration-1757776531268-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 253,
+      "title": "MBC 드라마 '황금정원'에 마쓰구골프 제품이 출연했다?",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2020-05/253/complete-migration-1757776485269-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 252,
+      "title": "시니어 골퍼 사로잡은 마쓰구 고반발 드라이버, 혼마 베레스 제치고 비거리 추월! 방향성까지 굿!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2020-09/252/complete-migration-1757776465623-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 110,
+      "title": "최석호 고객님의 마쓰구 드라이버 체험기: 60대에 다시 찾은 250미터 비거리!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2020-11/110/complete-migration-1757769413809-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "hasFeaturedImage": 10,
+    "broken": 0,
+    "fixed": 0,
+    "noFeaturedImage": 0
+  }
+}

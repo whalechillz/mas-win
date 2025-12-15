@@ -1,0 +1,137 @@
+{
+  "batchInfo": {
+    "startIndex": 140,
+    "count": 10,
+    "timestamp": "2025-12-14T15-48-57"
+  },
+  "results": [
+    {
+      "blogPostId": 141,
+      "success": true,
+      "title": "77세 실버골퍼의 204M 드라이버샷 - 마쓰구골프 VIP 이남구님의 성공 스토리",
+      "folderName": "originals/blog/2024-10/141",
+      "totalExtractedImages": 5,
+      "totalImages": 5,
+      "movedCount": 5,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 170,
+      "success": true,
+      "title": "40M 더 나아간 비거리 - 마쓰구 SFG R2로 일본 브랜드 드라이버와의 비교 테스트 결과",
+      "folderName": "originals/blog/2024-11/170",
+      "totalExtractedImages": 5,
+      "totalImages": 5,
+      "movedCount": 5,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 169,
+      "success": true,
+      "title": "시크리트포스 골드 2 - VIP 전용 혜택으로 비거리 혁신을 경험하세요",
+      "folderName": "originals/blog/2024-11/169",
+      "totalExtractedImages": 2,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 168,
+      "success": true,
+      "title": "4년 만의 업그레이드 – 시크리트웨폰 4.1의 새로운 도전 | 마쓰구골프",
+      "folderName": "originals/blog/2024-11/168",
+      "totalExtractedImages": 8,
+      "totalImages": 8,
+      "movedCount": 8,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 167,
+      "success": true,
+      "title": "마쓰구 골프와 함께한 7년: 맞춤형 피팅을 통한 고객 만족 스토리",
+      "folderName": "originals/blog/2024-11/167",
+      "totalExtractedImages": 4,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 166,
+      "success": true,
+      "title": "2년의 피팅 스토리 – 권성수 고객님의 V2에서 V3로의 비거리 향상 이야기",
+      "folderName": "originals/blog/2024-11/166",
+      "totalExtractedImages": 5,
+      "totalImages": 5,
+      "movedCount": 5,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 93,
+      "success": true,
+      "title": "시크리트포스 V3 블랙 시리즈 - 한계를 넘는 비거리 혁신",
+      "folderName": "originals/blog/2024-12/93",
+      "totalExtractedImages": 5,
+      "totalImages": 5,
+      "movedCount": 5,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 164,
+      "success": true,
+      "title": "60대에도 비거리가 20m 증가! 시크리트포스 PRO3 고반발 드라이버 체험기 | 마쓰구 골프",
+      "folderName": "originals/blog/2024-12/164",
+      "totalExtractedImages": 5,
+      "totalImages": 5,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 1,
+      "errors": []
+    },
+    {
+      "blogPostId": 163,
+      "success": true,
+      "title": "시크리트웨폰 블랙 - 초 고반발 드라이버로 30m 비거리 증가 | Massgoo Golf",
+      "folderName": "originals/blog/2024-12/163",
+      "totalExtractedImages": 8,
+      "totalImages": 6,
+      "movedCount": 6,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 132,
+      "success": true,
+      "title": "시크리트웨폰 블랙: 시니어 골퍼를 위한 완벽한 고반발 드라이버 | 마쓰구골프",
+      "folderName": "originals/blog/2024-12/132",
+      "totalExtractedImages": 5,
+      "totalImages": 5,
+      "movedCount": 5,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "success": 10,
+    "failed": 0,
+    "totalImages": 49,
+    "totalMoved": 48,
+    "totalSkipped": 0
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "batchInfo": {
+    "startIndex": 120,
+    "count": 10,
+    "timestamp": "2025-12-14T15-39-44"
+  },
+  "results": [
+    {
+      "blogPostId": 192,
+      "success": true,
+      "title": "드라이버 비거리 증진을 위한 클럽페이스 및 각도 설정 방법",
+      "folderName": "originals/blog/2024-06/192",
+      "totalExtractedImages": 3,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 191,
+      "success": true,
+      "title": "비거리 증진을 위한 백스윙 팁: 시니어 골퍼를 위한 완벽 가이드",
+      "folderName": "originals/blog/2024-06/191",
+      "totalExtractedImages": 0,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 190,
+      "success": true,
+      "title": "비거리 증가 팁: 백스윙 상단 자세로 비거리 극대화",
+      "folderName": "originals/blog/2024-06/190",
+      "totalExtractedImages": 1,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 189,
+      "success": true,
+      "title": "클럽 샤프트의 위치 설정: 백스윙 상단에서 비거리와 정확성을 극대화하기",
+      "folderName": "originals/blog/2024-06/189",
+      "totalExtractedImages": 1,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 188,
+      "success": true,
+      "title": "다운스윙을 위한 스윙 팁: 비거리 증진과 골프 드라이버 최적화를 위한 방법",
+      "folderName": "originals/blog/2024-06/188",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 186,
+      "success": true,
+      "title": "다운스윙 후 릴리즈 향상을 위한 스윙 팁",
+      "folderName": "originals/blog/2024-06/186",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 184,
+      "success": true,
+      "title": "시니어 골퍼 양용호의 마쓰구골프 '골드2' 드라이버 후기",
+      "folderName": "originals/blog/2024-06/184",
+      "totalExtractedImages": 4,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 96,
+      "success": true,
+      "title": "마쓰구골프, '시크리트포스 골드2' 출시 기념 이벤트 - 골프공 및 추가 커버 증정",
+      "folderName": "originals/blog/2024-07/96",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 182,
+      "success": true,
+      "title": "마쓰구골프 시크리트웨폰 블랙 드라이버 후기: 60대 골퍼, 비거리 15미터 향상 비결",
+      "folderName": "originals/blog/2024-07/182",
+      "totalExtractedImages": 3,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 181,
+      "success": true,
+      "title": "65세 골퍼의 마쓰구골프 시크리트웨폰 4.1 드라이버 사용 후기 - 비거리와 스코어 향상!",
+      "folderName": "originals/blog/2024-07/181",
+      "totalExtractedImages": 3,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "success": 10,
+    "failed": 0,
+    "totalImages": 17,
+    "totalMoved": 17,
+    "totalSkipped": 0
+  }
+}

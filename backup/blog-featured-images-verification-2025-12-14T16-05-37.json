@@ -1,0 +1,126 @@
+{
+  "batchInfo": {
+    "startIndex": 70,
+    "count": 10,
+    "timestamp": "2025-12-14T16-05-37"
+  },
+  "results": [
+    {
+      "blogPostId": 237,
+      "title": "시니어 골퍼를 위한 마쓰구 고반발 드라이버 - 영상으로 확인하는 청아한 타구음과 비거리 향상!",
+      "success": true,
+      "hasFeaturedImage": false,
+      "featuredImageUrl": "",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 236,
+      "title": "마쓰구 고반발 골프공 3피스 출시 - 비거리와 정확성을 동시에",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2022-07/236/complete-migration-1757776084575-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 235,
+      "title": "김은우와 정미연, 아이러브골프에서 고반발 드라이버 체험",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2022-07/235/complete-migration-1757776050610-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 234,
+      "title": "고반발드라이버 마쓰구 MBC 드라마 진출 - 차화연, 이태성, 오지은, 김유석 사용",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776032188-1.webp",
+      "isBroken": true,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 233,
+      "title": "마쓰구 고반발 드라이버 시크리트포스V2 완판! 2차 입고로 다시 만나는 기회",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2022-07/233/complete-migration-1757775995658-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 107,
+      "title": "[공지] 마쓰구 7월 휴무 안내",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2022-07/107/complete-migration-1757769319881-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 106,
+      "title": "고반발 드라이버 체험기 - 마쓰구 광교 본점 방문기 및 신제품 시크리트포스V2 소개",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757769296615-1.webp",
+      "isBroken": true,
+      "fixed": true,
+      "newFeaturedImage": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2022-10/106/complete-migration-1757769298765-3.webp",
+      "errors": []
+    },
+    {
+      "blogPostId": 231,
+      "title": "시니어 골퍼를 위한 크리스마스 선물, 마쓰구 고반발 드라이버 1+1 이벤트 놓치지 마세요!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2022-12/231/complete-migration-1757775956225-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 230,
+      "title": "고반발 드라이버의 정점! 마쓰구 시크리트웨폰4로 비거리 한계 극복하세요",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757775927878-1.webp",
+      "isBroken": true,
+      "fixed": true,
+      "newFeaturedImage": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-01/230/complete-migration-1757775933151-6.webp",
+      "errors": []
+    },
+    {
+      "blogPostId": 229,
+      "title": "마쓰구골프 고반발 드라이버로 봄 골프 시즌 첫 티샷 날리세요! 비거리 업그레이드 &amp; 탁월한 관용성",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-02/229/complete-migration-1757775909498-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "hasFeaturedImage": 9,
+    "broken": 3,
+    "fixed": 2,
+    "noFeaturedImage": 1
+  }
+}

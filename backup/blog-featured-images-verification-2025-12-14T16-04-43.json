@@ -1,0 +1,126 @@
+{
+  "batchInfo": {
+    "startIndex": 20,
+    "count": 10,
+    "timestamp": "2025-12-14T16-04-43"
+  },
+  "results": [
+    {
+      "blogPostId": 118,
+      "title": "카이로프랙틱 추천 척추측만증 예방, 척추건강을 위한 고반발 드라이버",
+      "success": true,
+      "hasFeaturedImage": false,
+      "featuredImageUrl": "",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 288,
+      "title": "제13회 김은우의 아이러브골프TV 청각장애어린이 수술비 마련 채리티에 마쓰구골프도 동참!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2018-04/288/complete-migration-1757777338144-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 287,
+      "title": "(#세골 작정하고 홍보영상) 세상에없던골프수업 마쓰구 고반발 드라이버",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2018-07/287/complete-migration-1757777323333-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 285,
+      "title": "개그맨 김은우님이 추천하는 고반발드라이버는?",
+      "success": true,
+      "hasFeaturedImage": false,
+      "featuredImageUrl": "",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 286,
+      "title": "좋은 고반발드라이버를 고르는 방법!",
+      "success": true,
+      "hasFeaturedImage": false,
+      "featuredImageUrl": "",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 284,
+      "title": "명품 고반발 드라이버",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2018-09/284/complete-migration-1757777274540-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 283,
+      "title": "즐거운 추석 명절 되세요 ♥고반발드라이버마쓰구♥",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2018-09/283/complete-migration-1757777255368-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 282,
+      "title": "고반발 드라이버 마쓰구 2018 충북경제단체 친선골프대회 참가",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2018-10/282/complete-migration-1757777218183-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 281,
+      "title": "마쓰구, 2018 코리아세일페스타 참가…최대 40% 파격 할인",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2018-10/281/complete-migration-1757777202878-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 280,
+      "title": "♡고반발 드라이버 가격 할인♡ 마쓰구 골프 2018 코리아세일페스타",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2018-10/280/complete-migration-1757777187966-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "hasFeaturedImage": 7,
+    "broken": 0,
+    "fixed": 0,
+    "noFeaturedImage": 3
+  }
+}

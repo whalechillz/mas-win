@@ -1,0 +1,140 @@
+{
+  "batchInfo": {
+    "startIndex": 20,
+    "count": 10,
+    "timestamp": "2025-12-14T15-59-13"
+  },
+  "results": [
+    {
+      "blogPostId": 119,
+      "success": true,
+      "title": "",
+      "totalImages": 0,
+      "existsInStorage": 0,
+      "accessible": 0,
+      "hasMetadata": 0,
+      "allValid": false,
+      "issues": [],
+      "errors": []
+    },
+    {
+      "blogPostId": 118,
+      "success": true,
+      "title": "",
+      "totalImages": 0,
+      "existsInStorage": 0,
+      "accessible": 0,
+      "hasMetadata": 0,
+      "allValid": false,
+      "issues": [],
+      "errors": []
+    },
+    {
+      "blogPostId": 288,
+      "success": true,
+      "title": "",
+      "totalImages": 0,
+      "existsInStorage": 0,
+      "accessible": 0,
+      "hasMetadata": 0,
+      "allValid": false,
+      "issues": [],
+      "errors": []
+    },
+    {
+      "blogPostId": 287,
+      "success": true,
+      "title": "",
+      "totalImages": 0,
+      "existsInStorage": 0,
+      "accessible": 0,
+      "hasMetadata": 0,
+      "allValid": false,
+      "issues": [],
+      "errors": []
+    },
+    {
+      "blogPostId": 285,
+      "success": true,
+      "title": "",
+      "totalImages": 0,
+      "existsInStorage": 0,
+      "accessible": 0,
+      "hasMetadata": 0,
+      "allValid": false,
+      "issues": [],
+      "errors": []
+    },
+    {
+      "blogPostId": 286,
+      "success": true,
+      "title": "",
+      "totalImages": 0,
+      "existsInStorage": 0,
+      "accessible": 0,
+      "hasMetadata": 0,
+      "allValid": false,
+      "issues": [],
+      "errors": []
+    },
+    {
+      "blogPostId": 284,
+      "success": true,
+      "title": "",
+      "totalImages": 0,
+      "existsInStorage": 0,
+      "accessible": 0,
+      "hasMetadata": 0,
+      "allValid": false,
+      "issues": [],
+      "errors": []
+    },
+    {
+      "blogPostId": 283,
+      "success": true,
+      "title": "",
+      "totalImages": 0,
+      "existsInStorage": 0,
+      "accessible": 0,
+      "hasMetadata": 0,
+      "allValid": false,
+      "issues": [],
+      "errors": []
+    },
+    {
+      "blogPostId": 282,
+      "success": true,
+      "title": "",
+      "totalImages": 0,
+      "existsInStorage": 0,
+      "accessible": 0,
+      "hasMetadata": 0,
+      "allValid": false,
+      "issues": [],
+      "errors": []
+    },
+    {
+      "blogPostId": 281,
+      "success": true,
+      "title": "",
+      "totalImages": 0,
+      "existsInStorage": 0,
+      "accessible": 0,
+      "hasMetadata": 0,
+      "allValid": false,
+      "issues": [],
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "success": 10,
+    "failed": 0,
+    "allValid": 0,
+    "hasIssues": 0,
+    "totalImages": 0,
+    "totalExistsInStorage": 0,
+    "totalAccessible": 0,
+    "totalHasMetadata": 0
+  }
+}

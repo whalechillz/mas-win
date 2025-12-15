@@ -1,0 +1,126 @@
+{
+  "batchInfo": {
+    "startIndex": 0,
+    "count": 10,
+    "timestamp": "2025-12-14T16-04-03"
+  },
+  "results": [
+    {
+      "blogPostId": 123,
+      "title": "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다.",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2015-08/123/complete-migration-1757771588300-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 122,
+      "title": "마쓰구골프 드라이버를 사용하는 세계적인 골프지도자 김구식 선생님을 소개합니다.",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2015-09/122/complete-migration-1757771572213-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 305,
+      "title": "연기경력 33년, 골프경력 33년 배우 이경영님의 마쓰구골프 체험",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2015-09/305/complete-migration-1757777699935-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 304,
+      "title": "STORYTELLING: 마쓰구 탄생 스토리",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-03/304/complete-migration-1757777679401-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 303,
+      "title": "스타와 함께 마쓰구와 함께",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "http://img.youtube.com/vi/pdXs9OgRbFU/maxresdefault.jpg",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 302,
+      "title": "MASSGOO - 살다보면 한두번은 비공인 드라이버가 꼭 필요해져요",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/ai-generated/2025-11-29/ai-generated-senior-emotional-feed-1764420646146-1-1.jpg",
+      "isBroken": true,
+      "fixed": true,
+      "newFeaturedImage": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-03/302/composed-1-v3-1764459204434.png",
+      "errors": []
+    },
+    {
+      "blogPostId": 301,
+      "title": "Mas9Popup: 좋은 경험은 나눌수록 더 좋아요",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-03/301/complete-migration-1757777565254-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 300,
+      "title": "기간 한정 세일 - Spring is Coming! 4월 21일 오후 5시 종료",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-04/300/complete-migration-1757777552860-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 299,
+      "title": "지구의 날 기념 이벤트 - Back To The Green!",
+      "success": true,
+      "hasFeaturedImage": false,
+      "featuredImageUrl": "",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 298,
+      "title": "2017 Mas9golf (마쓰구골프) 간판 디자인 콘테스트",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-05/298/complete-migration-1757777522233-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "hasFeaturedImage": 9,
+    "broken": 1,
+    "fixed": 1,
+    "noFeaturedImage": 1
+  }
+}

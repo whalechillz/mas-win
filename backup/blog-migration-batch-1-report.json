@@ -1,0 +1,91 @@
+{
+  "batch": "1-10",
+  "timestamp": "2025-12-14T22:15:34.159801",
+  "total": 10,
+  "results": [
+    {
+      "id": 123,
+      "title": "MBC 표준FM의 싱글벙글쇼 MC 강석, 시크리트웨폰 모델과 함께하다.",
+      "published_at": "",
+      "folder": "originals/blog/2015-08/123",
+      "totalImages": 7,
+      "totalExtractedImages": 7
+    },
+    {
+      "id": 122,
+      "title": "마쓰구골프 드라이버를 사용하는 세계적인 골프지도자 김구식 선생님을 소개합니다.",
+      "published_at": "",
+      "folder": "originals/blog/2015-09/122",
+      "totalImages": 2,
+      "totalExtractedImages": 2
+    },
+    {
+      "id": 305,
+      "title": "연기경력 33년, 골프경력 33년 배우 이경영님의 마쓰구골프 체험",
+      "published_at": "",
+      "folder": "originals/blog/2015-09/305",
+      "totalImages": 3,
+      "totalExtractedImages": 3
+    },
+    {
+      "id": 304,
+      "title": "STORYTELLING: 마쓰구 탄생 스토리",
+      "published_at": "",
+      "folder": "originals/blog/2017-03/304",
+      "totalImages": 1,
+      "totalExtractedImages": 1
+    },
+    {
+      "id": 303,
+      "title": "스타와 함께 마쓰구와 함께",
+      "published_at": "",
+      "folder": "originals/blog/2017-03/303",
+      "totalImages": 0,
+      "totalExtractedImages": 1
+    },
+    {
+      "id": 302,
+      "title": "MASSGOO - 살다보면 한두번은 비공인 드라이버가 꼭 필요해져요",
+      "published_at": "",
+      "folder": "originals/blog/2017-03/302",
+      "totalImages": 2,
+      "totalExtractedImages": 3
+    },
+    {
+      "id": 301,
+      "title": "Mas9Popup: 좋은 경험은 나눌수록 더 좋아요",
+      "published_at": "",
+      "folder": "originals/blog/2017-03/301",
+      "totalImages": 1,
+      "totalExtractedImages": 2
+    },
+    {
+      "id": 300,
+      "title": "기간 한정 세일 - Spring is Coming! 4월 21일 오후 5시 종료",
+      "published_at": "",
+      "folder": "originals/blog/2017-04/300",
+      "totalImages": 1,
+      "totalExtractedImages": 2
+    },
+    {
+      "id": 299,
+      "title": "지구의 날 기념 이벤트 - Back To The Green!",
+      "published_at": "",
+      "folder": "originals/blog/2017-04/299",
+      "totalImages": 0,
+      "totalExtractedImages": 0
+    },
+    {
+      "id": 298,
+      "title": "2017 Mas9golf (마쓰구골프) 간판 디자인 콘테스트",
+      "published_at": "",
+      "folder": "originals/blog/2017-05/298",
+      "totalImages": 2,
+      "totalExtractedImages": 2
+    }
+  ],
+  "summary": {
+    "totalImages": 19,
+    "totalExtractedImages": 23
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "batchInfo": {
+    "startIndex": 30,
+    "count": 10,
+    "timestamp": "2025-12-14T15-21-06"
+  },
+  "results": [
+    {
+      "blogPostId": 280,
+      "success": true,
+      "title": "♡고반발 드라이버 가격 할인♡ 마쓰구 골프 2018 코리아세일페스타",
+      "folderName": "originals/blog/2018-10/280",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 279,
+      "success": true,
+      "title": "마쓰구 드라이버로 생애 첫 이글 기회를 가지다.",
+      "folderName": "originals/blog/2018-10/279",
+      "totalExtractedImages": 1,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 278,
+      "success": true,
+      "title": "마쓰구골프 고반발드라이버로 실력 수직 상승!",
+      "folderName": "originals/blog/2018-10/278",
+      "totalExtractedImages": 1,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 277,
+      "success": true,
+      "title": "여전히 제자리 걸음 중인 당신의 골프 실력, ‘마쓰구 고반발 맞춤 드라이버’로 수직 상승",
+      "folderName": "originals/blog/2018-10/277",
+      "totalExtractedImages": 6,
+      "totalImages": 6,
+      "movedCount": 6,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 276,
+      "success": true,
+      "title": "골프계의 전설 임진한, 마쓰구골프를 알리다.",
+      "folderName": "originals/blog/2018-10/276",
+      "totalExtractedImages": 1,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 275,
+      "success": true,
+      "title": "고반발 드라이버 잘치는 방법①!!",
+      "folderName": "originals/blog/2018-12/275",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 274,
+      "success": true,
+      "title": "고반발 드라이버 잘치는 방법②!!",
+      "folderName": "originals/blog/2019-01/274",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 273,
+      "success": true,
+      "title": "개그맨 김은우님이 알려주는 고반발드라이버 잘치는 방법 1",
+      "folderName": "originals/blog/2019-01/273",
+      "totalExtractedImages": 1,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 272,
+      "success": true,
+      "title": "개그맨 김은우님이 알려주는 고반발드라이버 잘치는 방법 2",
+      "folderName": "originals/blog/2019-01/272",
+      "totalExtractedImages": 1,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 271,
+      "success": true,
+      "title": "고반발드라이버 마쓰구가 여러분의 티샷을 책임지겠습니다!",
+      "folderName": "originals/blog/2019-01/271",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "success": 10,
+    "failed": 0,
+    "totalImages": 10,
+    "totalMoved": 10,
+    "totalSkipped": 0
+  }
+}

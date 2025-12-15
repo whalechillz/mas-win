@@ -51,16 +51,18 @@ async function phase1AnalyzeAllBlogImages() {
     console.log('✅ 분석 완료!');
     console.log(`📁 결과 저장: ${analysisFile}\n`);
     
-    // 요약 출력
+    // 요약 출력 (API 응답 구조에 맞게 수정)
     const summary = data.summary || {};
     console.log('📊 분석 결과 요약:');
-    console.log(`  - 총 블로그 글 수: ${summary.totalPosts || 0}`);
-    console.log(`  - 총 이미지 URL 수 (고유): ${summary.uniqueImageUrls || 0}`);
-    console.log(`  - Storage에서 찾은 이미지: ${summary.foundInStorage || 0}`);
-    console.log(`  - Storage에서 못 찾은 이미지: ${summary.notFoundInStorage || 0}`);
-    console.log(`  - 외부 URL 이미지: ${summary.externalUrls || 0}`);
-    console.log(`  - 중복 이미지 그룹 수: ${summary.duplicateGroups || 0}`);
-    console.log(`  - 연결되지 않은 이미지: ${summary.unlinkedImages || 0}\n`);
+    console.log(`  - 총 블로그 글 수: ${summary.totalBlogPosts || summary.totalPosts || 0}`);
+    console.log(`  - 총 이미지 URL 수 (고유): ${summary.totalUniqueImageUrls || summary.uniqueImageUrls || 0}`);
+    console.log(`  - 처리된 이미지: ${summary.totalImagesProcessed || 0}`);
+    console.log(`  - Storage에서 찾은 이미지: ${summary.totalImagesFoundInStorage || summary.foundInStorage || 0}`);
+    console.log(`  - Storage에서 못 찾은 이미지: ${summary.totalImagesNotFoundInStorage || summary.notFoundInStorage || 0}`);
+    console.log(`  - 외부 URL 이미지: ${summary.totalExternalUrls || summary.externalUrls || 0}`);
+    console.log(`  - 중복 이미지 그룹 수: ${summary.duplicateGroupsCount || summary.duplicateGroups || 0}`);
+    console.log(`  - 중복 이미지 수: ${summary.totalDuplicateImages || 0}`);
+    console.log(`  - 연결되지 않은 이미지: ${summary.unlinkedImagesCount || summary.unlinkedImages || 0}\n`);
     
     return data;
   } catch (error) {

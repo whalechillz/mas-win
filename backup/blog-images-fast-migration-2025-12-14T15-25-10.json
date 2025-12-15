@@ -1,0 +1,137 @@
+{
+  "batchInfo": {
+    "startIndex": 50,
+    "count": 10,
+    "timestamp": "2025-12-14T15-25-10"
+  },
+  "results": [
+    {
+      "blogPostId": 113,
+      "success": true,
+      "title": "마쓰구 신제품 '시크리트포스' 고반발 드라이버 출시",
+      "folderName": "originals/blog/2019-11/113",
+      "totalExtractedImages": 2,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 261,
+      "success": true,
+      "title": "이천마이다스 골프대회 마쓰구 드라이버와 함께 개그맨 김은우 출격",
+      "folderName": "originals/blog/2019-12/261",
+      "totalExtractedImages": 12,
+      "totalImages": 8,
+      "movedCount": 8,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 260,
+      "success": true,
+      "title": "이천 마이다스CC 친선 골프대회에서 마쓰구 고반발 드라이버 홍보 모델 개그맨 김은우와 함께",
+      "folderName": "originals/blog/2019-12/260",
+      "totalExtractedImages": 4,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 259,
+      "success": true,
+      "title": "마쓰구 골프 인수 싱싱골프투어 - 국내외 프리미엄 골프여행의 새 장을 엽니다.",
+      "folderName": "originals/blog/2020-02/259",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 258,
+      "success": true,
+      "title": "세상에 없던 골프수업 시즌4 - 고반발 드라이버 마쓰구와 함께",
+      "folderName": "originals/blog/2020-02/258",
+      "totalExtractedImages": 3,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 257,
+      "success": true,
+      "title": "마쓰구 신문기사 - 세상에 없던 골프수업 시즌4와 고반발 드라이버",
+      "folderName": "originals/blog/2020-02/257",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 256,
+      "success": true,
+      "title": "가지고 싶은 드라이버 - 마쓰구 고반발 드라이버 온라인 구매 후기",
+      "folderName": "originals/blog/2020-03/256",
+      "totalExtractedImages": 6,
+      "totalImages": 6,
+      "movedCount": 6,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 255,
+      "success": true,
+      "title": "마쓰구 2020 신제품 출시 - 시크리트 포스2 탄생",
+      "folderName": "originals/blog/2020-03/255",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 254,
+      "success": true,
+      "title": "마쓰구 고반발 드라이버로 더욱 업그레이드된 '세상에 없던 골프수업 시즌4'",
+      "folderName": "originals/blog/2020-04/254",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 253,
+      "success": true,
+      "title": "MBC 드라마 '황금정원'에 마쓰구골프 제품이 출연했다?",
+      "folderName": "originals/blog/2020-05/253",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "success": 10,
+    "failed": 0,
+    "totalImages": 30,
+    "totalMoved": 30,
+    "totalSkipped": 0
+  }
+}

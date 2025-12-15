@@ -1,0 +1,65 @@
+{
+  "batchInfo": {
+    "startIndex": 160,
+    "count": 4,
+    "timestamp": "2025-12-14T15-51-43"
+  },
+  "results": [
+    {
+      "blogPostId": 483,
+      "success": true,
+      "title": "마쓰구 드라이버 vs 마제스티, 20m 더 긴 비거리의 비밀은?",
+      "folderName": "originals/blog/2025-11/483",
+      "totalExtractedImages": 3,
+      "totalImages": 1,
+      "movedCount": 0,
+      "skippedCount": 1,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 480,
+      "success": true,
+      "title": "자동으로 25미터 더 비거리 향상? 내 스윙이 달라진 이유",
+      "folderName": "originals/blog/2025-11/480",
+      "totalExtractedImages": 6,
+      "totalImages": 6,
+      "movedCount": 0,
+      "skippedCount": 6,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 481,
+      "success": true,
+      "title": "많은 50대 골퍼들이 PRO3 드라이버로 만난 놀라운 비거리 증가! 재구매 후기 공개",
+      "folderName": "originals/blog/2025-11/481",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 0,
+      "skippedCount": 4,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 482,
+      "success": true,
+      "title": "천안 직산에서 찾은 부드러운 스윙의 비밀, 마쓰구골프 고객 후기 공개!",
+      "folderName": "originals/blog/2025-11/482",
+      "totalExtractedImages": 6,
+      "totalImages": 6,
+      "movedCount": 0,
+      "skippedCount": 6,
+      "errorCount": 0,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "success": 4,
+    "failed": 0,
+    "totalImages": 17,
+    "totalMoved": 0,
+    "totalSkipped": 17
+  }
+}

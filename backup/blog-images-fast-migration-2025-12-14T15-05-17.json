@@ -1,0 +1,137 @@
+{
+  "batchInfo": {
+    "startIndex": 20,
+    "count": 10,
+    "timestamp": "2025-12-14T15-05-17"
+  },
+  "results": [
+    {
+      "blogPostId": 119,
+      "success": true,
+      "title": "♥마쓰구 네이버 스토어팜 오픈♥",
+      "folderName": "originals/blog/2017-11/119",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 118,
+      "success": true,
+      "title": "카이로프랙틱 추천 척추측만증 예방, 척추건강을 위한 고반발 드라이버",
+      "folderName": "originals/blog/2017-11/118",
+      "totalExtractedImages": 1,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 288,
+      "success": true,
+      "title": "제13회 김은우의 아이러브골프TV 청각장애어린이 수술비 마련 채리티에 마쓰구골프도 동참!",
+      "folderName": "originals/blog/2018-04/288",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 287,
+      "success": true,
+      "title": "(#세골 작정하고 홍보영상) 세상에없던골프수업 마쓰구 고반발 드라이버",
+      "folderName": "originals/blog/2018-07/287",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 285,
+      "success": true,
+      "title": "개그맨 김은우님이 추천하는 고반발드라이버는?",
+      "folderName": "originals/blog/2018-09/285",
+      "totalExtractedImages": 1,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 286,
+      "success": true,
+      "title": "좋은 고반발드라이버를 고르는 방법!",
+      "folderName": "originals/blog/2018-09/286",
+      "totalExtractedImages": 1,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 284,
+      "success": true,
+      "title": "명품 고반발 드라이버",
+      "folderName": "originals/blog/2018-09/284",
+      "totalExtractedImages": 2,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 283,
+      "success": true,
+      "title": "즐거운 추석 명절 되세요 ♥고반발드라이버마쓰구♥",
+      "folderName": "originals/blog/2018-09/283",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 282,
+      "success": true,
+      "title": "고반발 드라이버 마쓰구 2018 충북경제단체 친선골프대회 참가",
+      "folderName": "originals/blog/2018-10/282",
+      "totalExtractedImages": 9,
+      "totalImages": 9,
+      "movedCount": 9,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 281,
+      "success": true,
+      "title": "마쓰구, 2018 코리아세일페스타 참가…최대 40% 파격 할인",
+      "folderName": "originals/blog/2018-10/281",
+      "totalExtractedImages": 2,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "success": 10,
+    "failed": 0,
+    "totalImages": 20,
+    "totalMoved": 20,
+    "totalSkipped": 0
+  }
+}

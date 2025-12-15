@@ -1,0 +1,137 @@
+{
+  "batchInfo": {
+    "startIndex": 100,
+    "count": 10,
+    "timestamp": "2025-12-14T15-36-23"
+  },
+  "results": [
+    {
+      "blogPostId": 211,
+      "success": true,
+      "title": "마쓰구골프 | 68세 조보현님, 드로우 커스텀 드라이버로 15m 더 멀리!",
+      "folderName": "originals/blog/2023-09/211",
+      "totalExtractedImages": 3,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 210,
+      "success": true,
+      "title": "마쓰구골프 | 190m에서 215m로, 이강석님의 25m 비거리 향상 비결은?",
+      "folderName": "originals/blog/2023-09/210",
+      "totalExtractedImages": 1,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 209,
+      "success": true,
+      "title": "마쓰구골프 | 민호식님, 1시간 무료 시타로 장타력 18m 상승!",
+      "folderName": "originals/blog/2023-09/209",
+      "totalExtractedImages": 6,
+      "totalImages": 6,
+      "movedCount": 6,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 208,
+      "success": true,
+      "title": "심원섭님, 20년 묵은 드라이버 버리고 40m 장타 달성!",
+      "folderName": "originals/blog/2023-09/208",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 207,
+      "success": true,
+      "title": "마쓰구골프코리아 - 고반발 드라이버 빠른 배송과 완벽한 포장 서비스",
+      "folderName": "originals/blog/2023-10/207",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 206,
+      "success": true,
+      "title": "마쓰구골프 | 54세 김찬기님, 25m 비거리 향상! 무료 시타로 맞춤 드라이버 GET",
+      "folderName": "originals/blog/2023-10/206",
+      "totalExtractedImages": 2,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 205,
+      "success": true,
+      "title": "마쓰구골프 | 강병부님 비거리 20m 향상 성공기 - 시크리트 포스 Pro 드라이버",
+      "folderName": "originals/blog/2023-10/205",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 204,
+      "success": true,
+      "title": "마쓰구골프 | 조영수님 비거리 향상 성공기 - 초고반발 드라이버 전문업체",
+      "folderName": "originals/blog/2024-01/204",
+      "totalExtractedImages": 3,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 101,
+      "success": true,
+      "title": "드로우, 페이드 커스터마이징 가능 - 마쓰구골프 시크리트포스 고반발 드라이버",
+      "folderName": "originals/blog/2024-03/101",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 100,
+      "success": true,
+      "title": "비거리 향상을 위한 최고의 선택 - 마쓰구골프 시크리트포스 고반발 드라이버",
+      "folderName": "originals/blog/2024-05/100",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "success": 10,
+    "failed": 0,
+    "totalImages": 26,
+    "totalMoved": 26,
+    "totalSkipped": 0
+  }
+}

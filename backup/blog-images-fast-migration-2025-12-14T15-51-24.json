@@ -1,0 +1,137 @@
+{
+  "batchInfo": {
+    "startIndex": 150,
+    "count": 10,
+    "timestamp": "2025-12-14T15-51-24"
+  },
+  "results": [
+    {
+      "blogPostId": 161,
+      "success": true,
+      "title": "227m 비거리 회복! 시크릿 웨폰 블랙 고반발 드라이버로 골프 자신감 되찾기 | 마쓰구 골프",
+      "folderName": "originals/blog/2024-12/161",
+      "totalExtractedImages": 5,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 130,
+      "success": true,
+      "title": "새해 특별 혜택! 프리미엄 골프 드라이버와 액세서리 단 30분께만 증정!",
+      "folderName": "originals/blog/2024-12/130",
+      "totalExtractedImages": 9,
+      "totalImages": 7,
+      "movedCount": 7,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 159,
+      "success": true,
+      "title": "청아한 타구음과 프리미엄 성능: 마쓰구 시크리트포스 4.1 드라이버 리뷰",
+      "folderName": "originals/blog/2025-01/159",
+      "totalExtractedImages": 4,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 128,
+      "success": true,
+      "title": "2025 한정판 골프 선물 세트, 지금 바로 만나보세요!",
+      "folderName": "originals/blog/2025-01/128",
+      "totalExtractedImages": 3,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 157,
+      "success": true,
+      "title": "2025 MAS GOLF 드라이버 출시! 비거리 +30m 초고반발 성능",
+      "folderName": "originals/blog/2025-01/157",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 126,
+      "success": true,
+      "title": "MASGOLF: 혁신과 신뢰의 초고반발 골프 드라이버 브랜드",
+      "folderName": "originals/blog/2025-03/126",
+      "totalExtractedImages": 2,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 89,
+      "success": true,
+      "title": "시니어 롱기스트 드라이버 찾는다면? MASGOLF 고반발로 인생 황금기 완성",
+      "folderName": "originals/blog/2025-06/89",
+      "totalExtractedImages": 5,
+      "totalImages": 5,
+      "movedCount": 5,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 88,
+      "success": true,
+      "title": "뜨거운 여름, 품격 있는 완벽한 스윙을 위한 준비 - 7월 한정 로얄살루트 증정",
+      "folderName": "originals/blog/2025-07/88",
+      "totalExtractedImages": 7,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 308,
+      "success": true,
+      "title": "휴가철 골프 휴양지 필수템! MASGOLF 고반발드라이버로 완벽한 스윙 완성",
+      "folderName": "originals/blog/2025-08/308",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 0,
+      "skippedCount": 4,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 309,
+      "success": true,
+      "title": "가을 골프 시즌 특가! MASGOLF 마쓰구 고반발드라이버 + Royal Salute 위스키 증정",
+      "folderName": "originals/blog/2025-09/309",
+      "totalExtractedImages": 13,
+      "totalImages": 13,
+      "movedCount": 0,
+      "skippedCount": 13,
+      "errorCount": 0,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "success": 10,
+    "failed": 0,
+    "totalImages": 40,
+    "totalMoved": 23,
+    "totalSkipped": 17
+  }
+}

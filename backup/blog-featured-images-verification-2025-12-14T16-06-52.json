@@ -1,0 +1,126 @@
+{
+  "batchInfo": {
+    "startIndex": 140,
+    "count": 10,
+    "timestamp": "2025-12-14T16-06-52"
+  },
+  "results": [
+    {
+      "blogPostId": 132,
+      "title": "시크리트웨폰 블랙: 시니어 골퍼를 위한 완벽한 고반발 드라이버 | 마쓰구골프",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-12/132/complete-migration-1757772656228-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 161,
+      "title": "227m 비거리 회복! 시크릿 웨폰 블랙 고반발 드라이버로 골프 자신감 되찾기 | 마쓰구 골프",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757774214510-1.webp",
+      "isBroken": true,
+      "fixed": true,
+      "newFeaturedImage": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-12/161/complete-migration-1757774216472-5.webp",
+      "errors": []
+    },
+    {
+      "blogPostId": 130,
+      "title": "새해 특별 혜택! 프리미엄 골프 드라이버와 액세서리 단 30분께만 증정!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-12/130/complete-migration-1757772599348-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 159,
+      "title": "청아한 타구음과 프리미엄 성능: 마쓰구 시크리트포스 4.1 드라이버 리뷰",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757774172694-1.webp",
+      "isBroken": true,
+      "fixed": true,
+      "newFeaturedImage": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2025-01/159/complete-migration-1757774174268-4.webp",
+      "errors": []
+    },
+    {
+      "blogPostId": 128,
+      "title": "2025 한정판 골프 선물 세트, 지금 바로 만나보세요!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757772544303-1.webp",
+      "isBroken": true,
+      "fixed": true,
+      "newFeaturedImage": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2025-01/128/complete-migration-1757772547852-4.webp",
+      "errors": []
+    },
+    {
+      "blogPostId": 157,
+      "title": "2025 MAS GOLF 드라이버 출시! 비거리 +30m 초고반발 성능",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2025-01/157/complete-migration-1757774140328-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 126,
+      "title": "MASGOLF: 혁신과 신뢰의 초고반발 골프 드라이버 브랜드",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2025-03/126/complete-migration-1757772497773-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 89,
+      "title": "시니어 롱기스트 드라이버 찾는다면? MASGOLF 고반발로 인생 황금기 완성",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2025-06/89/complete-migration-1757768423130-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 88,
+      "title": "뜨거운 여름, 품격 있는 완벽한 스윙을 위한 준비 - 7월 한정 로얄살루트 증정",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "/campaigns/2025-07/hero-summer-golf-mas.jpg",
+      "isBroken": true,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 308,
+      "title": "휴가철 골프 휴양지 필수템! MASGOLF 고반발드라이버로 완벽한 스윙 완성",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2025-08/308/blog-upload-1758725230271-channel-perfume-1024x1024.png",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "hasFeaturedImage": 10,
+    "broken": 4,
+    "fixed": 3,
+    "noFeaturedImage": 0
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "batchInfo": {
+    "startIndex": 110,
+    "count": 10,
+    "timestamp": "2025-12-14T15-38-02"
+  },
+  "results": [
+    {
+      "blogPostId": 202,
+      "success": true,
+      "title": "고반발드라이버 전문 브랜드 마쓰구골프 고객 방문 스토리",
+      "folderName": "originals/blog/2024-05/202",
+      "totalExtractedImages": 4,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 201,
+      "success": true,
+      "title": "드라이버 비거리 증진을 위한 완벽 가이드: 공의 위치, 높이, 그리고 산악 지형에서의 팁",
+      "folderName": "originals/blog/2024-06/201",
+      "totalExtractedImages": 6,
+      "totalImages": 6,
+      "movedCount": 6,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 200,
+      "success": true,
+      "title": "드라이버 비거리 증진을 위한 발 플레어링 활용 가이드",
+      "folderName": "originals/blog/2024-06/200",
+      "totalExtractedImages": 3,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 199,
+      "success": true,
+      "title": "스탠스와 정렬: 시니어 골퍼를 위한 드라이버 비거리와 샷 구질 향상",
+      "folderName": "originals/blog/2024-06/199",
+      "totalExtractedImages": 1,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 198,
+      "success": true,
+      "title": "시니어 골퍼를 위한 드라이버 비거리 증대 및 그립 방법",
+      "folderName": "originals/blog/2024-06/198",
+      "totalExtractedImages": 1,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 197,
+      "success": true,
+      "title": "시니어 골퍼를 위한 드라이버 비거리 향상과 올바른 무릎 굽힘 가이드",
+      "folderName": "originals/blog/2024-06/197",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 196,
+      "success": true,
+      "title": "시니어 골퍼를 위한 비거리 증가: 올바른 척추 세팅 방법",
+      "folderName": "originals/blog/2024-06/196",
+      "totalExtractedImages": 2,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 195,
+      "success": true,
+      "title": "시니어 골퍼를 위한 비거리 증가: 올바른 턱 위치 설정 방법",
+      "folderName": "originals/blog/2024-06/195",
+      "totalExtractedImages": 1,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 194,
+      "success": true,
+      "title": "드라이버 비거리 증진을 위한 테이크어웨이 체크리스트와 팁",
+      "folderName": "originals/blog/2024-06/194",
+      "totalExtractedImages": 3,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 193,
+      "success": true,
+      "title": "드라이버 비거리 극대화: 시니어 골퍼를 위한 테이크어웨이 가이드",
+      "folderName": "originals/blog/2024-06/193",
+      "totalExtractedImages": 3,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "success": 10,
+    "failed": 0,
+    "totalImages": 26,
+    "totalMoved": 26,
+    "totalSkipped": 0
+  }
+}

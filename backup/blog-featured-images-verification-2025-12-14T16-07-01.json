@@ -1,0 +1,126 @@
+{
+  "batchInfo": {
+    "startIndex": 150,
+    "count": 10,
+    "timestamp": "2025-12-14T16-07-01"
+  },
+  "results": [
+    {
+      "blogPostId": 481,
+      "title": "많은 50대 골퍼들이 PRO3 드라이버로 만난 놀라운 비거리 증가! 재구매 후기 공개",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2025-11/481/1763099777019_IMG_3010.jpg",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 482,
+      "title": "천안 직산에서 찾은 부드러운 스윙의 비밀, 마쓰구골프 고객 후기 공개!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2025-11/482/IMG_8012.jpg",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 128,
+      "title": "2025 한정판 골프 선물 세트, 지금 바로 만나보세요!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2025-01/128/complete-migration-1757772547852-4.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 230,
+      "title": "고반발 드라이버의 정점! 마쓰구 시크리트웨폰4로 비거리 한계 극복하세요",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-01/230/complete-migration-1757775933151-6.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 302,
+      "title": "MASSGOO - 살다보면 한두번은 비공인 드라이버가 꼭 필요해져요",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2017-03/302/composed-1-v3-1764459204434.png",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 250,
+      "title": "농구계의 스타 김동광, 마쓰구골프 고반발드라이버와 골프에 빠지다.",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2020-12/250/complete-migration-1757776418042-3.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 161,
+      "title": "227m 비거리 회복! 시크릿 웨폰 블랙 고반발 드라이버로 골프 자신감 되찾기 | 마쓰구 골프",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-12/161/complete-migration-1757774216472-5.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 106,
+      "title": "고반발 드라이버 체험기 - 마쓰구 광교 본점 방문기 및 신제품 시크리트포스V2 소개",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2022-10/106/complete-migration-1757769298765-3.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 174,
+      "title": "마쓰구골프 VIP 고객 가을 이벤트 - 비거리 체험과 싱싱골프투어 안내",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-10/174/complete-migration-1757774543146-7.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 159,
+      "title": "청아한 타구음과 프리미엄 성능: 마쓰구 시크리트포스 4.1 드라이버 리뷰",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2025-01/159/complete-migration-1757774174268-4.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "hasFeaturedImage": 10,
+    "broken": 0,
+    "fixed": 0,
+    "noFeaturedImage": 0
+  }
+}

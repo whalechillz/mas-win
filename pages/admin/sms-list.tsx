@@ -852,6 +852,9 @@ export default function SMSListAdmin() {
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
                         타입
                       </th>
+                      <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-14 whitespace-nowrap">
+                        이미지
+                      </th>
                       <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-20 whitespace-nowrap">
                         수신자
                       </th>
@@ -911,6 +914,32 @@ export default function SMSListAdmin() {
                         {/* 타입 */}
                         <td className="px-3 py-2">
                           {getMessageTypeBadge(message.message_type)}
+                        </td>
+                        
+                        {/* 이미지 썸네일 (MMS인 경우만) */}
+                        <td className="px-2 py-2 text-center">
+                          {message.message_type === 'MMS' && message.image_url ? (
+                            <div className="relative w-10 h-10 bg-gray-100 rounded overflow-hidden border border-gray-300 mx-auto">
+                              <img
+                                src={message.image_url.startsWith('ST01FZ') 
+                                  ? `/api/solapi/get-image-preview?imageId=${message.image_url}`
+                                  : message.image_url
+                                }
+                                alt="MMS 이미지"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  const parent = target.parentElement;
+                                  if (parent) {
+                                    parent.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-400 text-xs">-</div>';
+                                  }
+                                }}
+                              />
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 text-xs">-</span>
+                          )}
                         </td>
                         
                         {/* 수신자 */}

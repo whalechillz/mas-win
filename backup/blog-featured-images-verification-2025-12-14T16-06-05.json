@@ -1,0 +1,126 @@
+{
+  "batchInfo": {
+    "startIndex": 100,
+    "count": 10,
+    "timestamp": "2025-12-14T16-06-05"
+  },
+  "results": [
+    {
+      "blogPostId": 206,
+      "title": "마쓰구골프 | 54세 김찬기님, 25m 비거리 향상! 무료 시타로 맞춤 드라이버 GET",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-10/206/complete-migration-1757775350480-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 205,
+      "title": "마쓰구골프 | 강병부님 비거리 20m 향상 성공기 - 시크리트 포스 Pro 드라이버",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2023-10/205/complete-migration-1757775323498-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 204,
+      "title": "마쓰구골프 | 조영수님 비거리 향상 성공기 - 초고반발 드라이버 전문업체",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-01/204/complete-migration-1757775297705-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 101,
+      "title": "드로우, 페이드 커스터마이징 가능 - 마쓰구골프 시크리트포스 고반발 드라이버",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-03/101/complete-migration-1757769182830-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 100,
+      "title": "비거리 향상을 위한 최고의 선택 - 마쓰구골프 시크리트포스 고반발 드라이버",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757769164959-1.webp",
+      "isBroken": true,
+      "fixed": true,
+      "newFeaturedImage": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-05/100/complete-migration-1757769165552-2.webp",
+      "errors": []
+    },
+    {
+      "blogPostId": 202,
+      "title": "고반발드라이버 전문 브랜드 마쓰구골프 고객 방문 스토리",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-05/202/complete-migration-1757775242688-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 201,
+      "title": "드라이버 비거리 증진을 위한 완벽 가이드: 공의 위치, 높이, 그리고 산악 지형에서의 팁",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-06/201/complete-migration-1757775209970-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 200,
+      "title": "드라이버 비거리 증진을 위한 발 플레어링 활용 가이드",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-06/200/complete-migration-1757775174618-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 199,
+      "title": "스탠스와 정렬: 시니어 골퍼를 위한 드라이버 비거리와 샷 구질 향상",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-06/199/complete-migration-1757775149883-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 198,
+      "title": "시니어 골퍼를 위한 드라이버 비거리 증대 및 그립 방법",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-06/198/complete-migration-1757775120581-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "hasFeaturedImage": 10,
+    "broken": 1,
+    "fixed": 1,
+    "noFeaturedImage": 0
+  }
+}

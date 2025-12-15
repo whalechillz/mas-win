@@ -1,0 +1,126 @@
+{
+  "batchInfo": {
+    "startIndex": 110,
+    "count": 10,
+    "timestamp": "2025-12-14T16-06-13"
+  },
+  "results": [
+    {
+      "blogPostId": 196,
+      "title": "시니어 골퍼를 위한 비거리 증가: 올바른 척추 세팅 방법",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-06/196/complete-migration-1757775063124-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 195,
+      "title": "시니어 골퍼를 위한 비거리 증가: 올바른 턱 위치 설정 방법",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-06/195/complete-migration-1757775046448-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 194,
+      "title": "드라이버 비거리 증진을 위한 테이크어웨이 체크리스트와 팁",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-06/194/complete-migration-1757775023426-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 193,
+      "title": "드라이버 비거리 극대화: 시니어 골퍼를 위한 테이크어웨이 가이드",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-06/193/complete-migration-1757774992223-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 192,
+      "title": "드라이버 비거리 증진을 위한 클럽페이스 및 각도 설정 방법",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-06/192/complete-migration-1757774972852-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 191,
+      "title": "비거리 증진을 위한 백스윙 팁: 시니어 골퍼를 위한 완벽 가이드",
+      "success": true,
+      "hasFeaturedImage": false,
+      "featuredImageUrl": "",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 190,
+      "title": "비거리 증가 팁: 백스윙 상단 자세로 비거리 극대화",
+      "success": true,
+      "hasFeaturedImage": false,
+      "featuredImageUrl": "",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 189,
+      "title": "클럽 샤프트의 위치 설정: 백스윙 상단에서 비거리와 정확성을 극대화하기",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-06/189/complete-migration-1757774917471-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 188,
+      "title": "다운스윙을 위한 스윙 팁: 비거리 증진과 골프 드라이버 최적화를 위한 방법",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-06/188/complete-migration-1757774895686-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 186,
+      "title": "다운스윙 후 릴리즈 향상을 위한 스윙 팁",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-06/186/complete-migration-1757774858108-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "hasFeaturedImage": 8,
+    "broken": 0,
+    "fixed": 0,
+    "noFeaturedImage": 2
+  }
+}

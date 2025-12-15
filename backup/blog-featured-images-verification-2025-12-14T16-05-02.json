@@ -1,0 +1,126 @@
+{
+  "batchInfo": {
+    "startIndex": 40,
+    "count": 10,
+    "timestamp": "2025-12-14T16-05-02"
+  },
+  "results": [
+    {
+      "blogPostId": 114,
+      "title": "일요일 저녁은 꼬마 챔피언의 귀여운 골프 수업과 함께'",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2019-01/114/complete-migration-1757769518820-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 269,
+      "title": "&quot;나에게 가장 잘 어울리는 드라이버를 찾자&quot;",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2019-02/269/complete-migration-1757776984071-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 268,
+      "title": "나에게 가장 잘 어울리는 드라이버는?",
+      "success": true,
+      "hasFeaturedImage": false,
+      "featuredImageUrl": "",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 267,
+      "title": "[세상에없던골프수업]세골맨의 마쓰구드라이버 활약을 볼수있습니다♡",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2019-03/267/complete-migration-1757776951568-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 266,
+      "title": "브라보퍼블릭스크린에서도 고반발 마쓰구 드라이버를 체험해보세요!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2019-03/266/complete-migration-1757776854753-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 265,
+      "title": "청각장애우수술비 1000만원 마련 자선골프대회 (고반발 드라이버 마쓰구 참가)",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2019-05/265/complete-migration-1757776814964-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 264,
+      "title": "인스타그램 셀럽들 사이에서도 핫한 아이템, 마쓰구골프 드라이버! 1",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757776786082-1.webp",
+      "isBroken": true,
+      "fixed": true,
+      "newFeaturedImage": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2019-06/264/complete-migration-1757776788878-5.webp",
+      "errors": []
+    },
+    {
+      "blogPostId": 263,
+      "title": "인스타그램 셀럽들 사이에서도 핫한 아이템, 마쓰구골프 드라이버! 2",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2019-06/263/complete-migration-1757776740232-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 262,
+      "title": "'토종 기업' 마쓰구 골프 &quot;일본 불매운동 계속돼야&quot; | 고반발 드라이버 마쓰구 골프",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2019-09/262/complete-migration-1757776716043-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 113,
+      "title": "마쓰구 신제품 '시크리트포스' 고반발 드라이버 출시",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757769501006-1.webp",
+      "isBroken": true,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "hasFeaturedImage": 9,
+    "broken": 2,
+    "fixed": 1,
+    "noFeaturedImage": 1
+  }
+}

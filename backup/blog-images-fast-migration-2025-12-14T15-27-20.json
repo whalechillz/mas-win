@@ -1,0 +1,137 @@
+{
+  "batchInfo": {
+    "startIndex": 60,
+    "count": 10,
+    "timestamp": "2025-12-14T15-27-20"
+  },
+  "results": [
+    {
+      "blogPostId": 252,
+      "success": true,
+      "title": "시니어 골퍼 사로잡은 마쓰구 고반발 드라이버, 혼마 베레스 제치고 비거리 추월! 방향성까지 굿!",
+      "folderName": "originals/blog/2020-09/252",
+      "totalExtractedImages": 1,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 110,
+      "success": true,
+      "title": "최석호 고객님의 마쓰구 드라이버 체험기: 60대에 다시 찾은 250미터 비거리!",
+      "folderName": "originals/blog/2020-11/110",
+      "totalExtractedImages": 5,
+      "totalImages": 5,
+      "movedCount": 5,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 250,
+      "success": true,
+      "title": "농구계의 스타 김동광, 마쓰구골프 고반발드라이버와 골프에 빠지다.",
+      "folderName": "originals/blog/2020-12/250",
+      "totalExtractedImages": 4,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 248,
+      "success": true,
+      "title": "마쓰구골프, 고반발 드라이버 신제품 출시 - 샤프트 무상교환 서비스 제공",
+      "folderName": "originals/blog/2021-02/248",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 247,
+      "success": true,
+      "title": "시니어 골퍼 주목! 마쓰구 고반발 드라이버 골드 신상 출시, 자체발광으로 눈에 띄네!",
+      "folderName": "originals/blog/2021-02/247",
+      "totalExtractedImages": 4,
+      "totalImages": 4,
+      "movedCount": 4,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 246,
+      "success": true,
+      "title": "시니어 골퍼 필수 아이템, 마쓰구 고반발 드라이버 완판! 리오더 중, 시니어 골퍼 드라이버 추천",
+      "folderName": "originals/blog/2021-06/246",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 245,
+      "success": true,
+      "title": "김은우의 아이러브골프TV, 마쓰구 고반발 드라이버와 함께 유튜브 채널 개국",
+      "folderName": "originals/blog/2021-06/245",
+      "totalExtractedImages": 3,
+      "totalImages": 3,
+      "movedCount": 3,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 244,
+      "success": true,
+      "title": "리얼 후기: 골프 프로와 와이프도 반한 마쓰구 드라이버 - 비거리 월등한 고반발 드라이버",
+      "folderName": "originals/blog/2021-06/244",
+      "totalExtractedImages": 2,
+      "totalImages": 2,
+      "movedCount": 2,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 242,
+      "success": true,
+      "title": "임진한 프로와 김은우의 아이러브골프TV 마쓰구 드라이버 체험",
+      "folderName": "originals/blog/2021-08/242",
+      "totalExtractedImages": 2,
+      "totalImages": 1,
+      "movedCount": 1,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "blogPostId": 241,
+      "success": true,
+      "title": "시니어 골퍼가 갖고 싶은 그 드라이버, 마쓰구 시크리트웨폰4.1 온라인 구매 리얼후기 대공개!",
+      "folderName": "originals/blog/2021-08/241",
+      "totalExtractedImages": 6,
+      "totalImages": 0,
+      "movedCount": 0,
+      "skippedCount": 0,
+      "errorCount": 0,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "success": 10,
+    "failed": 0,
+    "totalImages": 20,
+    "totalMoved": 20,
+    "totalSkipped": 0
+  }
+}

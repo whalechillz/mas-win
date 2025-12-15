@@ -1,0 +1,126 @@
+{
+  "batchInfo": {
+    "startIndex": 120,
+    "count": 10,
+    "timestamp": "2025-12-14T16-06-23"
+  },
+  "results": [
+    {
+      "blogPostId": 184,
+      "title": "시니어 골퍼 양용호의 마쓰구골프 '골드2' 드라이버 후기",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/complete-migration-1757774817682-1.webp",
+      "isBroken": true,
+      "fixed": true,
+      "newFeaturedImage": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-06/184/complete-migration-1757774818664-3.webp",
+      "errors": []
+    },
+    {
+      "blogPostId": 96,
+      "title": "마쓰구골프, '시크리트포스 골드2' 출시 기념 이벤트 - 골프공 및 추가 커버 증정",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-07/96/complete-migration-1757769040934-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 182,
+      "title": "마쓰구골프 시크리트웨폰 블랙 드라이버 후기: 60대 골퍼, 비거리 15미터 향상 비결",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-07/182/complete-migration-1757774769021-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 181,
+      "title": "65세 골퍼의 마쓰구골프 시크리트웨폰 4.1 드라이버 사용 후기 - 비거리와 스코어 향상!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-07/181/complete-migration-1757774748593-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 151,
+      "title": "[종합] 드라이버 비거리 증진을 위한 완벽한 셋업 및 어드레스 체크리스트와 팁",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-08/151/complete-migration-1757773322809-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 150,
+      "title": "드라이버 샷의 비밀: 비거리와 정확성 동시에 잡는 법",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-08/150/complete-migration-1757773291708-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 179,
+      "title": "아이언 샷의 비밀: 비거리와 정확성 동시에 잡는 법",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-09/179/complete-migration-1757774691636-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 178,
+      "title": "마쓰구 드라이버로 60대에 250미터 비거리 회복 - 최석호 고객의 스윙 꿀팁",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-09/178/complete-migration-1757774658186-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 147,
+      "title": "65세 골퍼의 도전 - 시크리트포스 골드 2로 비거리 증가와 골프의 즐거움 찾기",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-10/147/complete-migration-1757773180777-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 176,
+      "title": "67세 골퍼의 비거리 200야드 달성 - 마쓰구골프 고객 후기와 드라이버 추천",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2024-10/176/complete-migration-1757774607475-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "hasFeaturedImage": 10,
+    "broken": 1,
+    "fixed": 1,
+    "noFeaturedImage": 0
+  }
+}

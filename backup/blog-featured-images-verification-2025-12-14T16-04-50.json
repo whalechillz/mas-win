@@ -1,0 +1,126 @@
+{
+  "batchInfo": {
+    "startIndex": 30,
+    "count": 10,
+    "timestamp": "2025-12-14T16-04-50"
+  },
+  "results": [
+    {
+      "blogPostId": 279,
+      "title": "마쓰구 드라이버로 생애 첫 이글 기회를 가지다.",
+      "success": true,
+      "hasFeaturedImage": false,
+      "featuredImageUrl": "",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 278,
+      "title": "마쓰구골프 고반발드라이버로 실력 수직 상승!",
+      "success": true,
+      "hasFeaturedImage": false,
+      "featuredImageUrl": "",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 277,
+      "title": "여전히 제자리 걸음 중인 당신의 골프 실력, ‘마쓰구 고반발 맞춤 드라이버’로 수직 상승",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2018-10/277/complete-migration-1757777130900-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 276,
+      "title": "골프계의 전설 임진한, 마쓰구골프를 알리다.",
+      "success": true,
+      "hasFeaturedImage": false,
+      "featuredImageUrl": "",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 275,
+      "title": "고반발 드라이버 잘치는 방법①!!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2018-12/275/complete-migration-1757777097336-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 274,
+      "title": "고반발 드라이버 잘치는 방법②!!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2019-01/274/complete-migration-1757777080308-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 273,
+      "title": "개그맨 김은우님이 알려주는 고반발드라이버 잘치는 방법 1",
+      "success": true,
+      "hasFeaturedImage": false,
+      "featuredImageUrl": "",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 272,
+      "title": "개그맨 김은우님이 알려주는 고반발드라이버 잘치는 방법 2",
+      "success": true,
+      "hasFeaturedImage": false,
+      "featuredImageUrl": "",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 271,
+      "title": "고반발드라이버 마쓰구가 여러분의 티샷을 책임지겠습니다!",
+      "success": true,
+      "hasFeaturedImage": true,
+      "featuredImageUrl": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/blog/2019-01/271/complete-migration-1757777026304-1.webp",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    },
+    {
+      "blogPostId": 270,
+      "title": "개그맨 김은우님 &quot;마쓰구골프를 인정합니다.&quot;",
+      "success": true,
+      "hasFeaturedImage": false,
+      "featuredImageUrl": "",
+      "isBroken": false,
+      "fixed": false,
+      "newFeaturedImage": "",
+      "errors": []
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "hasFeaturedImage": 4,
+    "broken": 0,
+    "fixed": 0,
+    "noFeaturedImage": 6
+  }
+}
