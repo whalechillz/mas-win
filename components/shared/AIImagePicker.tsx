@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 
 // 갤러리 피커는 동적 로드
@@ -10,6 +10,7 @@ interface AIImagePickerProps {
   channelType: 'blog' | 'sms' | 'kakao' | 'naver';
   className?: string;
   autoFilterFolder?: string; // 자동 필터링할 폴더 경로
+  initialSolapiId?: string; // Solapi ID 입력란 초기값 (sms 전용)
 }
 
 export const AIImagePicker: React.FC<AIImagePickerProps> = ({
@@ -17,7 +18,8 @@ export const AIImagePicker: React.FC<AIImagePickerProps> = ({
   onImageSelect,
   channelType,
   className = '',
-  autoFilterFolder
+  autoFilterFolder,
+  initialSolapiId
 }) => {
   const [showGallery, setShowGallery] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -25,7 +27,14 @@ export const AIImagePicker: React.FC<AIImagePickerProps> = ({
   const [imageLoadError, setImageLoadError] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [showSolapiInput, setShowSolapiInput] = useState(false);
-  const [solapiImageId, setSolapiImageId] = useState('');
+  const [solapiImageId, setSolapiImageId] = useState(initialSolapiId || '');
+
+  // 외부에서 현재 Solapi ID(formData.imageUrl)가 바뀌면 입력란도 동기화
+  useEffect(() => {
+    if (initialSolapiId && initialSolapiId.startsWith('ST01FZ')) {
+      setSolapiImageId(initialSolapiId);
+    }
+  }, [initialSolapiId]);
 
   // 채널별 이미지 크기 정보
   const getChannelImageInfo = () => {

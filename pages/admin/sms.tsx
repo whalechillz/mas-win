@@ -2371,6 +2371,7 @@ export default function SMSAdmin() {
                       selectedImage={imagePreviewUrl || (isHttpUrl(formData.imageUrl) ? formData.imageUrl : '')}
                       onImageSelect={handleGalleryImageSelect}
                       channelType="sms"
+                      initialSolapiId={formData.imageUrl?.startsWith('ST01FZ') ? formData.imageUrl : ''}
                     />
                     {formData.imageUrl && (
                       <div className="flex items-center gap-2">
