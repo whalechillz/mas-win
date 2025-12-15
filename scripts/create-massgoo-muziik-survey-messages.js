@@ -9,8 +9,8 @@ require('dotenv').config({ path: '.env.local' });
 const { chromium } = require('playwright');
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.PRODUCTION_URL || 'https://win.masgolf.co.kr';
-const ADMIN_LOGIN = process.env.ADMIN_EMAIL || process.env.ADMIN_LOGIN || '010-6669-9000';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+const ADMIN_LOGIN = process.env.ADMIN_EMAIL || process.env.ADMIN_LOGIN || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 // 메시지 내용 (옵션 2: 간결 버전)
 const MESSAGE_CONTENT = `[MASSGOO X MUZIIK] 콜라보 기념 설문 조사
@@ -370,8 +370,8 @@ require('dotenv').config({ path: '.env.local' });
 const { chromium } = require('playwright');
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.PRODUCTION_URL || 'https://win.masgolf.co.kr';
-const ADMIN_LOGIN = process.env.ADMIN_EMAIL || process.env.ADMIN_LOGIN || '010-6669-9000';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+const ADMIN_LOGIN = process.env.ADMIN_EMAIL || process.env.ADMIN_LOGIN || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 // 메시지 내용 (옵션 2: 간결 버전)
 const MESSAGE_CONTENT = `[MASSGOO X MUZIIK] 콜라보 기념 설문 조사
@@ -731,8 +731,8 @@ require('dotenv').config({ path: '.env.local' });
 const { chromium } = require('playwright');
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.PRODUCTION_URL || 'https://win.masgolf.co.kr';
-const ADMIN_LOGIN = process.env.ADMIN_EMAIL || process.env.ADMIN_LOGIN || '010-6669-9000';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+const ADMIN_LOGIN = process.env.ADMIN_EMAIL || process.env.ADMIN_LOGIN || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 // 메시지 내용 (옵션 2: 간결 버전)
 const MESSAGE_CONTENT = `[MASSGOO X MUZIIK] 콜라보 기념 설문 조사
@@ -1092,8 +1092,8 @@ require('dotenv').config({ path: '.env.local' });
 const { chromium } = require('playwright');
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.PRODUCTION_URL || 'https://win.masgolf.co.kr';
-const ADMIN_LOGIN = process.env.ADMIN_EMAIL || process.env.ADMIN_LOGIN || '010-6669-9000';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+const ADMIN_LOGIN = process.env.ADMIN_EMAIL || process.env.ADMIN_LOGIN || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 // 메시지 내용 (옵션 2: 간결 버전)
 const MESSAGE_CONTENT = `[MASSGOO X MUZIIK] 콜라보 기념 설문 조사
@@ -1453,8 +1453,8 @@ require('dotenv').config({ path: '.env.local' });
 const { chromium } = require('playwright');
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.PRODUCTION_URL || 'https://win.masgolf.co.kr';
-const ADMIN_LOGIN = process.env.ADMIN_EMAIL || process.env.ADMIN_LOGIN || '010-6669-9000';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+const ADMIN_LOGIN = process.env.ADMIN_EMAIL || process.env.ADMIN_LOGIN || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 // 메시지 내용 (옵션 2: 간결 버전)
 const MESSAGE_CONTENT = `[MASSGOO X MUZIIK] 콜라보 기념 설문 조사

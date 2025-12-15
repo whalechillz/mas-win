@@ -11,6 +11,6 @@ CREATE TABLE IF NOT EXISTS user_auth (
 -- 인덱스 생성
 CREATE INDEX idx_user_auth_team_member_id ON user_auth(team_member_id);
 
--- 초기 비밀번호 설정 (bcrypt hash of '1234')
+-- 초기 비밀번호 설정 (bcrypt hash of 기본 비밀번호)
 -- 실제로는 bcrypt를 사용해서 해시해야 함
--- $2a$10$xxxxxxxxxxx는 '1234'의 bcrypt 해시값
+-- $2a$10$xxxxxxxxxxx는 샘플 비밀번호의 bcrypt 해시값

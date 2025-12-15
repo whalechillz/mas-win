@@ -4,7 +4,7 @@ const path = require('path');
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 const ADMIN_LOGIN = process.env.PLAYWRIGHT_ADMIN_LOGIN || 'admin';
-const ADMIN_PASSWORD = process.env.PLAYWRIGHT_ADMIN_PASSWORD || '1234';
+const ADMIN_PASSWORD = process.env.PLAYWRIGHT_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD || '';
 const HEADLESS =
   process.env.PLAYWRIGHT_HEADLESS === 'true'
     ? true

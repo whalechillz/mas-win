@@ -31,7 +31,7 @@ export const TeamMemberManagement: React.FC<TeamMemberManagementProps> = ({ supa
     email: '',
     role: 'writer',
     excel_code: '',
-    password: '1234',
+    password: '',
     is_active: true
   });
 
@@ -85,7 +85,7 @@ export const TeamMemberManagement: React.FC<TeamMemberManagementProps> = ({ supa
         email: '',
         role: 'writer',
         excel_code: '',
-        password: '1234',
+        password: '',
         is_active: true
       });
       loadTeamMembers();
@@ -157,7 +157,7 @@ export const TeamMemberManagement: React.FC<TeamMemberManagementProps> = ({ supa
       const { error } = await supabase
         .from('team_members')
         .update({
-          password: '1234',
+          password: '',
           must_change_password: true,
           password_changed_at: null
         })
@@ -208,7 +208,7 @@ export const TeamMemberManagement: React.FC<TeamMemberManagementProps> = ({ supa
                 email: '',
                 role: 'writer',
                 excel_code: '',
-                password: '1234',
+                password: '',
                 is_active: true
               });
               setShowAddModal(true);
@@ -392,7 +392,7 @@ export const TeamMemberManagement: React.FC<TeamMemberManagementProps> = ({ supa
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
-                  placeholder={showAddModal ? '1234' : '변경하지 않으려면 비워두세요'}
+                  placeholder={showAddModal ? '초기 비밀번호를 입력하세요' : '변경하지 않으려면 비워두세요'}
                 />
               </div>
 

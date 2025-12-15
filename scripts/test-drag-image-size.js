@@ -9,8 +9,8 @@ const fs = require('fs');
 const path = require('path');
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '010-6669-9000';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.ADMIN_LOGIN || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 async function testDragImageSize() {
   console.log('🧪 드래그 이미지 크기 테스트 시작...\n');
@@ -355,8 +355,8 @@ const fs = require('fs');
 const path = require('path');
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '010-6669-9000';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.ADMIN_LOGIN || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 async function testDragImageSize() {
   console.log('🧪 드래그 이미지 크기 테스트 시작...\n');
@@ -701,8 +701,8 @@ const fs = require('fs');
 const path = require('path');
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '010-6669-9000';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.ADMIN_LOGIN || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 async function testDragImageSize() {
   console.log('🧪 드래그 이미지 크기 테스트 시작...\n');
@@ -1047,8 +1047,8 @@ const fs = require('fs');
 const path = require('path');
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '010-6669-9000';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.ADMIN_LOGIN || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 async function testDragImageSize() {
   console.log('🧪 드래그 이미지 크기 테스트 시작...\n');
@@ -1393,8 +1393,8 @@ const fs = require('fs');
 const path = require('path');
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '010-6669-9000';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.ADMIN_LOGIN || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 async function testDragImageSize() {
   console.log('🧪 드래그 이미지 크기 테스트 시작...\n');

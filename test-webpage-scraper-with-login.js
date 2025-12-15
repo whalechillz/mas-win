@@ -34,7 +34,8 @@ async function testWebpageScraperWithLogin() {
       
       if (emailVisible && passwordVisible && submitVisible) {
         await emailInput.fill('admin@example.com');
-        await passwordInput.fill('1234');
+        const password = process.env.ADMIN_PASSWORD || '';
+        await passwordInput.fill(password);
         await submitButton.click();
         
         console.log('✅ 로그인 시도 완료');

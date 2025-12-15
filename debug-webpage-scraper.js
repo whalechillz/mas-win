@@ -16,7 +16,7 @@ async function debugWebpageScraper() {
     if (currentUrl.includes('/admin/login')) {
       console.log('🔑 로그인 페이지 감지, 로그인 시도...');
       await page.fill('input[type="email"]', 'admin@example.com');
-      await page.fill('input[type="password"]', '1234');
+      const password = process.env.ADMIN_PASSWORD || ''; await page.fill('input[type="password"]', password);
       await page.click('button[type="submit"]');
       await page.waitForLoadState('networkidle');
     }

@@ -12,7 +12,7 @@ async function findPassword() {
   
   // 테스트할 패스워드 목록
   const passwords = [
-    '1234',
+    'DUMMY_PASSWORD',
     'Masgolf!!',
     'admin123',
     'password',

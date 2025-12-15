@@ -13,8 +13,8 @@
 const { chromium } = require('playwright');
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-const ADMIN_LOGIN = process.env.ADMIN_LOGIN || '010-6669-9000';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+const ADMIN_LOGIN = process.env.ADMIN_LOGIN || process.env.ADMIN_EMAIL || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 async function testFullProductComposition() {
   console.log('🚀 AI 이미지 제품 합성 전체 플로우 테스트 시작\n');

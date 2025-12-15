@@ -26,7 +26,7 @@ async function testBlogAnalytics() {
     const loginForm = await page.locator('input[type="password"]').isVisible();
     if (loginForm) {
       console.log('🔐 로그인 필요 - 비밀번호 입력...');
-      await page.fill('input[type="password"]', '1234');
+      const password = process.env.ADMIN_PASSWORD || ''; await page.fill('input[type="password"]', password);
       await page.click('button[type="submit"]');
       await page.waitForLoadState('networkidle');
     }

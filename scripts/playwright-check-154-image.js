@@ -6,8 +6,8 @@ require('dotenv').config({ path: '.env.local' });
 const { chromium } = require('playwright');
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-const ADMIN_LOGIN = '010-6669-9000';
-const ADMIN_PASSWORD = '66699000';
+const ADMIN_LOGIN = process.env.ADMIN_LOGIN || process.env.ADMIN_EMAIL || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 async function check154Image() {
   console.log('🔍 Playwright로 154번 메시지 이미지 조회 확인...\n');
@@ -200,8 +200,8 @@ require('dotenv').config({ path: '.env.local' });
 const { chromium } = require('playwright');
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-const ADMIN_LOGIN = '010-6669-9000';
-const ADMIN_PASSWORD = '66699000';
+const ADMIN_LOGIN = process.env.ADMIN_LOGIN || process.env.ADMIN_EMAIL || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 async function check154Image() {
   console.log('🔍 Playwright로 154번 메시지 이미지 조회 확인...\n');
@@ -394,8 +394,8 @@ require('dotenv').config({ path: '.env.local' });
 const { chromium } = require('playwright');
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-const ADMIN_LOGIN = '010-6669-9000';
-const ADMIN_PASSWORD = '66699000';
+const ADMIN_LOGIN = process.env.ADMIN_LOGIN || process.env.ADMIN_EMAIL || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 async function check154Image() {
   console.log('🔍 Playwright로 154번 메시지 이미지 조회 확인...\n');
@@ -588,8 +588,8 @@ require('dotenv').config({ path: '.env.local' });
 const { chromium } = require('playwright');
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-const ADMIN_LOGIN = '010-6669-9000';
-const ADMIN_PASSWORD = '66699000';
+const ADMIN_LOGIN = process.env.ADMIN_LOGIN || process.env.ADMIN_EMAIL || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 async function check154Image() {
   console.log('🔍 Playwright로 154번 메시지 이미지 조회 확인...\n');
@@ -782,8 +782,8 @@ require('dotenv').config({ path: '.env.local' });
 const { chromium } = require('playwright');
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-const ADMIN_LOGIN = '010-6669-9000';
-const ADMIN_PASSWORD = '66699000';
+const ADMIN_LOGIN = process.env.ADMIN_LOGIN || process.env.ADMIN_EMAIL || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 async function check154Image() {
   console.log('🔍 Playwright로 154번 메시지 이미지 조회 확인...\n');

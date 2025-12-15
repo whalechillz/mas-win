@@ -1,8 +1,8 @@
 const { chromium } = require('playwright');
 
 const LOCAL_URL = process.env.TEST_URL || 'http://localhost:3000';
-const ADMIN_LOGIN = process.env.ADMIN_LOGIN || '010-6669-9000';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+const ADMIN_LOGIN = process.env.ADMIN_LOGIN || process.env.ADMIN_EMAIL || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 // 테스트 사용자 정보
 const TEST_USER = {
@@ -278,8 +278,8 @@ testBookingConfirmationFlow();
 
 
 const LOCAL_URL = process.env.TEST_URL || 'http://localhost:3000';
-const ADMIN_LOGIN = process.env.ADMIN_LOGIN || '010-6669-9000';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+const ADMIN_LOGIN = process.env.ADMIN_LOGIN || process.env.ADMIN_EMAIL || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 // 테스트 사용자 정보
 const TEST_USER = {
@@ -555,8 +555,8 @@ testBookingConfirmationFlow();
 
 
 const LOCAL_URL = process.env.TEST_URL || 'http://localhost:3000';
-const ADMIN_LOGIN = process.env.ADMIN_LOGIN || '010-6669-9000';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+const ADMIN_LOGIN = process.env.ADMIN_LOGIN || process.env.ADMIN_EMAIL || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 // 테스트 사용자 정보
 const TEST_USER = {
@@ -832,8 +832,8 @@ testBookingConfirmationFlow();
 
 
 const LOCAL_URL = process.env.TEST_URL || 'http://localhost:3000';
-const ADMIN_LOGIN = process.env.ADMIN_LOGIN || '010-6669-9000';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+const ADMIN_LOGIN = process.env.ADMIN_LOGIN || process.env.ADMIN_EMAIL || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 // 테스트 사용자 정보
 const TEST_USER = {
@@ -1109,8 +1109,8 @@ testBookingConfirmationFlow();
 
 
 const LOCAL_URL = process.env.TEST_URL || 'http://localhost:3000';
-const ADMIN_LOGIN = process.env.ADMIN_LOGIN || '010-6669-9000';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+const ADMIN_LOGIN = process.env.ADMIN_LOGIN || process.env.ADMIN_EMAIL || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 // 테스트 사용자 정보
 const TEST_USER = {

@@ -23,7 +23,7 @@ async function testAdminLogin() {
     // 3. 로그인 정보 입력
     console.log('🔑 로그인 정보 입력 중...');
     await page.fill('input[type="text"]', 'admin');
-    await page.fill('input[type="password"]', '1234');
+    const password = process.env.ADMIN_PASSWORD || ''; await page.fill('input[type="password"]', password);
     
     // 4. 로그인 버튼 클릭
     console.log('👆 로그인 버튼 클릭...');

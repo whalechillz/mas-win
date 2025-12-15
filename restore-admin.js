@@ -21,7 +21,8 @@ async function restoreAdminSystem() {
     // 2. 로그인
     console.log('2️⃣ 로그인...');
     await page.fill('input[type="text"]', 'admin');
-    await page.fill('input[type="password"]', '1234');
+    const password = process.env.ADMIN_PASSWORD || '';
+    await page.fill('input[type="password"]', password);
     await page.click('button[type="submit"]');
     
     // 3. 대시보드 로딩 대기

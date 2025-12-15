@@ -91,7 +91,7 @@ async function fixIconIssues() {
     try {
       // 로그인 시도
       await page.fill('input[type="text"]', 'admin');
-      await page.fill('input[type="password"]', '1234');
+      const password = process.env.ADMIN_PASSWORD || ''; await page.fill('input[type="password"]', password);
       await page.click('button[type="submit"]');
       
       await page.waitForSelector('h1:has-text("MASGOLF 관리자")', { timeout: 10000 });

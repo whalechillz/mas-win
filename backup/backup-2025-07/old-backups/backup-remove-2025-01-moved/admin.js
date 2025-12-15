@@ -65,7 +65,7 @@ export default function Admin() {
     const password = e.target.password.value;
 
     // 간단한 비밀번호 인증
-    if (password === '1234') {  // .env.local의 ADMIN_PASS와 동일
+    if (password === process.env.ADMIN_PASS) {
       setIsAuthenticated(true);
       sessionStorage.setItem('adminAuth', 'true');
       fetchData();

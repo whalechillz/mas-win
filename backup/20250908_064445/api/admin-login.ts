@@ -9,7 +9,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   
   // 환경변수가 없을 경우 기본값 사용
   const ADMIN_USER = process.env.ADMIN_USER || 'admin';
-  const ADMIN_PASS = process.env.ADMIN_PASS || '1234';
+  const ADMIN_PASS = process.env.ADMIN_PASS || '';
   
   console.log('Auth check:', { 
     provided: { username, password },
