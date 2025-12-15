@@ -956,7 +956,7 @@ export default function SMSListAdmin() {
                               <div className="relative w-10 h-10 bg-gray-100 rounded overflow-hidden border border-gray-300">
                                 <img
                                   src={message.image_url.startsWith('ST01FZ') 
-                                    ? `/api/solapi/get-image-preview?imageId=${message.image_url}&messageId=${message.id}&ts=${Date.now()}`
+                                    ? `/api/solapi/get-image-preview?imageId=${message.image_url}&messageId=${message.id}&redirect=true&ts=${Date.now()}`
                                     : message.image_url
                                   }
                                   alt="MMS 이미지"

@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
 
-  const { imageId } = req.query;
+  const { imageId, messageId, redirect } = req.query;
 
   if (!imageId) {
     return res.status(400).json({ success: false, message: 'imageId가 필요합니다.' });
@@ -58,6 +58,9 @@ export default async function handler(req, res) {
         .limit(1);
 
       if (!metadataError && metadataImages && metadataImages.length > 0) {
+        if (redirect === 'true') {
+          return res.redirect(metadataImages[0].image_url);
+        }
         return res.status(200).json({
           success: true,
           imageUrl: metadataImages[0].image_url,
@@ -80,6 +83,9 @@ export default async function handler(req, res) {
       // Supabase URL인지 확인
       if (existingImageUrl && existingImageUrl.includes('supabase.co')) {
         console.log('✅ 기존 Solapi 이미지 재사용:', existingImageUrl);
+        if (redirect === 'true') {
+          return res.redirect(existingImageUrl);
+        }
         return res.status(200).json({
           success: true,
           imageUrl: existingImageUrl,
@@ -131,6 +137,9 @@ export default async function handler(req, res) {
             const existingUrl = existingImages[0].image_url;
             if (existingUrl && existingUrl.includes('supabase.co')) {
               console.log('✅ 기존 Solapi 이미지 재사용 (다운로드 전):', existingUrl);
+              if (redirect === 'true') {
+                return res.redirect(existingUrl);
+              }
               return res.status(200).json({
                 success: true,
                 imageUrl: existingUrl,
@@ -164,6 +173,9 @@ export default async function handler(req, res) {
               finalUrl = urlData?.publicUrl;
               shouldUpload = false;
               console.log('✅ 기존 Solapi 이미지 파일 재사용:', finalUrl);
+              if (redirect === 'true' && finalUrl) {
+                return res.redirect(finalUrl);
+              }
             }
           }
 
@@ -249,6 +261,9 @@ export default async function handler(req, res) {
               console.error('⚠️ 메타데이터 저장 오류 (무시):', err.message);
             }
 
+            if (redirect === 'true') {
+              return res.redirect(finalUrl);
+            }
             return res.status(200).json({
               success: true,
               imageUrl: finalUrl,
