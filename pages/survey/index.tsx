@@ -103,11 +103,59 @@ export default function SurveyLanding() {
                 </span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 leading-[1.2] tracking-tight">
-                <span className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 bg-clip-text text-transparent">
-                  MASSGOO X MUZIIK
-                </span>
-              </h1>
+              {/* 로고 이미지 - MASSGOO X MUZIIK (위아래 배치) */}
+              <div className="flex flex-col items-center justify-center gap-2 md:gap-3 mb-4 md:mb-6">
+                {/* MASSGOO 로고 */}
+                <div className="relative w-48 sm:w-56 md:w-64 lg:w-72 h-auto">
+                  <Image
+                    src="/main/logo/massgoo_logo_white.png"
+                    alt="MASSGOO"
+                    width={280}
+                    height={80}
+                    className="w-full h-auto object-contain"
+                    priority
+                    onError={(e) => {
+                      // Fallback: 텍스트로 대체
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent && !parent.querySelector('.fallback-text')) {
+                        const fallback = document.createElement('span');
+                        fallback.className = 'fallback-text bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 bg-clip-text text-transparent text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold';
+                        fallback.textContent = 'MASSGOO';
+                        parent.appendChild(fallback);
+                      }
+                    }}
+                  />
+                </div>
+                
+                {/* X 기호 */}
+                <span className="text-yellow-400 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">×</span>
+                
+                {/* MUZIIK 로고 */}
+                <div className="relative w-48 sm:w-56 md:w-64 lg:w-72 h-auto">
+                  <Image
+                    src="/muziik/brand/muziik-logo2.webp"
+                    alt="MUZIIK"
+                    width={280}
+                    height={80}
+                    className="w-full h-auto object-contain"
+                    priority
+                    onError={(e) => {
+                      // Fallback: 텍스트로 대체
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent && !parent.querySelector('.fallback-text')) {
+                        const fallback = document.createElement('span');
+                        fallback.className = 'fallback-text bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 bg-clip-text text-transparent text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold';
+                        fallback.textContent = 'MUZIIK';
+                        parent.appendChild(fallback);
+                      }
+                    }}
+                  />
+                </div>
+              </div>
               <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold mb-4 md:mb-6">
                 <span className="bg-gradient-to-r from-red-500 via-red-400 to-red-500 bg-clip-text text-transparent">
                   샤프트 선호도 조사
