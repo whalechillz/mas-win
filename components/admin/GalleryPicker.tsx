@@ -47,6 +47,7 @@ const GalleryPicker: React.FC<Props> = ({
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [imageSource, setImageSource] = useState<'supabase' | 'solapi'>('supabase'); // 이미지 소스 탭
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [currentFeatured, setCurrentFeatured] = useState<string | undefined>(featuredUrl);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -62,8 +63,72 @@ const GalleryPicker: React.FC<Props> = ({
   const [showCopyLinkModal, setShowCopyLinkModal] = useState(false);
   const [pendingImageDrop, setPendingImageDrop] = useState<{ imageData: any; targetFolder: string } | null>(null);
 
+  // Solapi 이미지 로드 함수
+  const fetchSolapiImages = async (resetPage = false) => {
+    try {
+      setIsLoading(true);
+      const currentPage = resetPage ? 1 : page;
+      const offset = (currentPage - 1) * pageSize;
+      
+      const params = new URLSearchParams({
+        limit: pageSize.toString(),
+        offset: offset.toString(),
+      });
+      
+      if (query) {
+        params.append('search', query);
+      }
+      
+      const apiUrl = `/api/admin/solapi-images?${params.toString()}`;
+      console.log('🔍 GalleryPicker Solapi 이미지 로드 요청:', apiUrl);
+      
+      const res = await fetch(apiUrl);
+      
+      if (!res.ok) {
+        console.error('❌ Solapi 이미지 로드 실패:', res.status, res.statusText);
+        const errorText = await res.text().catch(() => 'Unknown error');
+        console.error('에러 상세:', errorText);
+        setAllImages([]);
+        setTotal(0);
+        return;
+      }
+      
+      const data = await res.json();
+      console.log('✅ Solapi 이미지 로드 성공:', {
+        count: data.images?.length || 0,
+        total: data.total || 0
+      });
+      
+      // ImageItem 형식으로 변환
+      const images = (data.images || []).map((img: any) => ({
+        name: img.name,
+        url: img.url,
+        folder_path: 'solapi',
+        usage_count: 0,
+        is_liked: false,
+        imageId: img.imageId, // Solapi imageId 저장
+        is_solapi: true
+      }));
+      
+      setAllImages(images);
+      setTotal(data.total || 0);
+      if (resetPage) setPage(1);
+    } catch (error) {
+      console.error('❌ Solapi 이미지 로드 중 오류:', error);
+      setAllImages([]);
+      setTotal(0);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // 이미지 로드 함수
   const fetchImages = async (resetPage = false) => {
+    // Solapi 탭이면 Solapi 이미지 로드
+    if (imageSource === 'solapi') {
+      return fetchSolapiImages(resetPage);
+    }
+    
     try {
       setIsLoading(true);
       const currentPage = resetPage ? 1 : page;
@@ -129,6 +194,12 @@ const GalleryPicker: React.FC<Props> = ({
       setIsLoading(false);
     }
   };
+
+  // 이미지 소스 변경 시 이미지 다시 로드
+  useEffect(() => {
+    if (!isOpen) return;
+    fetchImages(true);
+  }, [imageSource]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -413,7 +484,15 @@ const GalleryPicker: React.FC<Props> = ({
 
   // 단일 이미지 선택 처리
   const handleSingleSelect = (img: ImageItem) => {
-    onSelect(img.url, { alt: altText || img.name });
+    // Solapi 이미지인 경우 imageId를 직접 전달 (업로드 불필요)
+    const solapiImageId = (img as any).imageId;
+    if (solapiImageId && solapiImageId.startsWith('ST01FZ')) {
+      // Solapi imageId를 직접 전달 (업로드 없이 즉시 사용)
+      onSelect(solapiImageId, { alt: altText || img.name });
+    } else {
+      // Supabase 이미지는 기존대로 URL 전달
+      onSelect(img.url, { alt: altText || img.name });
+    }
     if (!keepOpenAfterSelect) {
       onClose();
     }
@@ -654,6 +733,37 @@ const GalleryPicker: React.FC<Props> = ({
         <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-gray-50 to-blue-50">
           <div className="flex items-center gap-3 flex-1">
             <h3 className="text-xl font-bold text-gray-800">🖼️ 갤러리에서 이미지 선택</h3>
+            {/* 이미지 소스 탭 */}
+            <div className="flex items-center gap-2 ml-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setImageSource('supabase');
+                  setPage(1);
+                }}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  imageSource === 'supabase'
+                    ? 'bg-blue-500 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                ☁️ Supabase
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setImageSource('solapi');
+                  setPage(1);
+                }}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  imageSource === 'solapi'
+                    ? 'bg-blue-500 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                📦 Solapi
+              </button>
+            </div>
             {/* 브레드크럼 네비게이션 */}
             {folderFilter && (
               <nav className="flex items-center gap-1 text-sm" aria-label="폴더 경로">

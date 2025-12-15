@@ -24,6 +24,8 @@ export const AIImagePicker: React.FC<AIImagePickerProps> = ({
   const [imagePrompt, setImagePrompt] = useState('');
   const [imageLoadError, setImageLoadError] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(true);
+  const [showSolapiInput, setShowSolapiInput] = useState(false);
+  const [solapiImageId, setSolapiImageId] = useState('');
 
   // 채널별 이미지 크기 정보
   const getChannelImageInfo = () => {
@@ -239,6 +241,66 @@ export const AIImagePicker: React.FC<AIImagePickerProps> = ({
           <span>갤러리에서 선택</span>
         </button>
       </div>
+
+      {/* Solapi imageId 직접 입력 (SMS만) */}
+      {channelType === 'sms' && (
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setShowSolapiInput(!showSolapiInput)}
+            className="w-full px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors flex items-center justify-center gap-2"
+          >
+            <span>📦</span>
+            <span>Solapi ID 입력</span>
+          </button>
+          
+          {showSolapiInput && (
+            <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs font-semibold text-purple-800">Solapi ImageId</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSolapiInput(false);
+                    setSolapiImageId('');
+                  }}
+                  className="ml-auto text-purple-600 hover:text-purple-800 text-sm"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={solapiImageId}
+                  onChange={(e) => setSolapiImageId(e.target.value)}
+                  placeholder="ST01FZ..."
+                  className="flex-1 px-3 py-2 text-sm border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (solapiImageId && solapiImageId.startsWith('ST01FZ')) {
+                      onImageSelect(solapiImageId);
+                      setShowSolapiInput(false);
+                      setSolapiImageId('');
+                      alert('✅ Solapi imageId가 선택되었습니다. (업로드 불필요)');
+                    } else {
+                      alert('❌ 올바른 Solapi imageId를 입력해주세요. (ST01FZ로 시작)');
+                    }
+                  }}
+                  className="px-3 py-2 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                >
+                  적용
+                </button>
+              </div>
+              <p className="mt-2 text-xs text-purple-600">
+                💡 Solapi에 이미 업로드된 imageId를 입력하면 즉시 사용할 수 있습니다.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* AI 이미지 생성 */}
       <div className="space-y-3">

@@ -114,9 +114,9 @@ export default async function handler(req, res) {
           const arrayBuffer = await downloadResponse.arrayBuffer();
           const buffer = Buffer.from(arrayBuffer);
           
-          // 임시 파일명 생성
+          // 영구 저장 파일명 생성
           const fileName = `solapi-${imageId}-${Date.now()}.jpg`;
-          const storagePath = `temp/solapi/${fileName}`;
+          const storagePath = `originals/mms/solapi/${fileName}`;
 
           // Supabase Storage에 업로드
           const { data: uploadData, error: uploadError } = await supabase.storage
@@ -150,9 +150,9 @@ export default async function handler(req, res) {
                   channel: 'sms',
                   file_size: buffer.length,
                   format: 'jpg',
-                  upload_source: 'solapi-temp',
-                  tags: [tag, 'solapi-temp', `solapi-${imageId}`],
-                  title: `MMS 이미지 (메시지 #${messageId}) - Solapi 임시`,
+                  upload_source: 'solapi-permanent',
+                  tags: [tag, 'solapi-permanent', `solapi-${imageId}`],
+                  title: `MMS 이미지 (메시지 #${messageId}) - Solapi`,
                   alt_text: `MMS 이미지`,
                   updated_at: new Date().toISOString()
                 };

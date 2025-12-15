@@ -415,6 +415,56 @@ export default function SMSAdmin() {
       return;
     }
 
+    // ⭐ Solapi imageId인 경우 즉시 사용 (업로드 불필요)
+    if (selectedUrl.startsWith('ST01FZ')) {
+      console.log('✅ Solapi imageId 직접 사용:', selectedUrl);
+      setImageId(selectedUrl);
+      setImagePreviewUrl(''); // 프리뷰는 get-image-preview API로 로드
+      
+      // 프리뷰 URL 로드
+      try {
+        const previewResponse = await fetch(`/api/solapi/get-image-preview?imageId=${selectedUrl}${currentSmsNumericId ? `&messageId=${currentSmsNumericId}` : ''}`);
+        if (previewResponse.ok) {
+          const previewData = await previewResponse.json();
+          if (previewData.success && previewData.imageUrl) {
+            setImagePreviewUrl(previewData.imageUrl);
+          }
+        }
+      } catch (error) {
+        console.error('프리뷰 로드 오류:', error);
+      }
+      
+      updateFormData({ 
+        imageUrl: selectedUrl, // Solapi imageId 직접 저장
+        messageType: formData.messageType
+      });
+      
+      // DB 저장
+      if (currentSmsNumericId) {
+        try {
+          const saveResponse = await fetch(`/api/admin/sms`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: currentSmsNumericId,
+              imageUrl: selectedUrl,
+              type: formData.messageType
+            })
+          });
+          
+          if (!saveResponse.ok) {
+            console.warn('⚠️ DB 저장 실패 (무시하고 계속 진행)');
+          }
+        } catch (error) {
+          console.error('DB 저장 오류:', error);
+        }
+      }
+      
+      alert('Solapi 이미지가 선택되었습니다. (업로드 불필요)');
+      return;
+    }
+
+    // Supabase 이미지인 경우 기존 로직 (압축 및 업로드)
     try {
       setIsUploadingImage(true);
       
