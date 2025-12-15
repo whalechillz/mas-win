@@ -104,9 +104,9 @@ export default function SurveyLanding() {
               </div>
 
               {/* 로고 이미지 - MASSGOO X MUZIIK (위아래 배치) */}
-              <div className="flex flex-col items-center justify-center gap-2 md:gap-3 mb-4 md:mb-6">
+              <div className="flex flex-col items-center justify-center mb-4 md:mb-6">
                 {/* MASSGOO 로고 */}
-                <div className="relative w-48 sm:w-56 md:w-64 lg:w-72 h-auto">
+                <div className="relative w-48 sm:w-56 md:w-64 lg:w-72 h-auto mb-2 md:mb-3">
                   <Image
                     src="/main/logo/massgoo_logo_white.png"
                     alt="MASSGOO"
@@ -129,16 +129,20 @@ export default function SurveyLanding() {
                   />
                 </div>
                 
-                {/* X 기호 */}
-                <span className="text-yellow-400 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold">×</span>
+                {/* X 기호 - 개선 */}
+                <div className="my-2 md:my-3">
+                  <span className="text-yellow-400 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold drop-shadow-lg">
+                    ×
+                  </span>
+                </div>
                 
-                {/* MUZIIK 로고 */}
-                <div className="relative w-48 sm:w-56 md:w-64 lg:w-72 h-auto">
+                {/* MUZIIK 로고 - 75% 크기 */}
+                <div className="relative w-36 sm:w-40 md:w-48 lg:w-56 h-auto mt-2 md:mt-3">
                   <Image
                     src="/muziik/brand/muziik-logo2.webp"
                     alt="MUZIIK"
-                    width={280}
-                    height={80}
+                    width={224}
+                    height={64}
                     className="w-full h-auto object-contain"
                     priority
                     onError={(e) => {
