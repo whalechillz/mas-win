@@ -1088,9 +1088,20 @@ export default async function handler(req, res) {
               
               // 링크된 이미지를 imageUrls 형식으로 변환
               linkedImages = linkedMetadata.map(meta => {
-                // image_url에서 파일명 추출
-                const urlParts = meta.image_url.split('/');
-                const fileName = urlParts[urlParts.length - 1];
+                // ⭐ image_url이 Solapi imageId인 경우 처리
+                let displayUrl = meta.image_url;
+                let fileName = 'solapi-image.jpg';
+                
+                if (meta.image_url && meta.image_url.startsWith('ST01FZ')) {
+                  // Solapi imageId인 경우
+                  displayUrl = `/api/solapi/get-image-preview?imageId=${meta.image_url}`;
+                  fileName = `solapi-${meta.image_url.substring(0, 20)}.jpg`;
+                } else {
+                  // Supabase URL인 경우 파일명 추출
+                  const urlParts = meta.image_url.split('/');
+                  fileName = urlParts[urlParts.length - 1];
+                }
+                
                 const folderPath = meta.folder_path || '';
                 
                 return {
@@ -1101,7 +1112,8 @@ export default async function handler(req, res) {
                     id: null, // 링크된 이미지는 파일 ID가 없음
                     isLinked: true // 링크된 이미지 플래그
                   },
-                  url: meta.image_url,
+                  url: displayUrl, // ⭐ 프리뷰 API URL 또는 Supabase URL
+                  original_url: meta.image_url, // ⭐ 원본 URL (Solapi imageId 또는 Supabase URL)
                   fullPath: folderPath ? `${folderPath}/${fileName}` : fileName,
                   isLinked: true, // 링크된 이미지 플래그
                   originalFolder: folderPath // 원본 폴더 경로
@@ -1623,13 +1635,24 @@ export default async function handler(req, res) {
           }
         }
 
+        // ⭐ Solapi imageId인 경우 프리뷰 API URL로 변환
+        let displayUrl = url;
+        if (metadata?.image_url && metadata.image_url.startsWith('ST01FZ')) {
+          // image_metadata의 image_url이 Solapi imageId인 경우
+          displayUrl = `/api/solapi/get-image-preview?imageId=${metadata.image_url}`;
+        } else if (url && url.startsWith('ST01FZ')) {
+          // url 자체가 Solapi imageId인 경우 (링크된 이미지)
+          displayUrl = `/api/solapi/get-image-preview?imageId=${url}`;
+        }
+
         return {
           id: imageAssetId, // image_assets 테이블의 id 사용
           name: file.name,
           size: file.metadata?.size || 0,
           created_at: file.created_at,
           updated_at: file.updated_at,
-          url: url,
+          url: displayUrl, // ⭐ Solapi imageId인 경우 프리뷰 API URL
+          original_url: url, // ⭐ 원본 URL 저장 (Solapi imageId 또는 Supabase URL)
           folder_path: file.folderPath || '',
           // 🔗 링크된 이미지 정보
           is_linked: isLinked || false,

@@ -68,18 +68,26 @@ export default async function handler(req, res) {
 
     // 방법 2: image_metadata 테이블에서 Solapi imageId로 직접 이미지 찾기
     // (이미지 업로드 시 Solapi imageId를 메타데이터로 저장했다고 가정)
+    // ⭐ 수정: solapi-{imageId} 태그로 찾기 (더 정확)
     const { data: metadataImages2, error: metadataError2 } = await supabase
       .from('image_metadata')
-      .select('image_url')
-      .or(`tags.cs.{solapi-${imageId}},metadata->>solapiImageId.eq.${imageId}`)
+      .select('image_url, folder_path')
+      .contains('tags', [`solapi-${imageId}`])
+      .eq('upload_source', 'solapi-permanent')
+      .order('created_at', { ascending: true }) // 가장 오래된 것 우선 (중복 방지)
       .limit(1);
 
     if (!metadataError2 && metadataImages2 && metadataImages2.length > 0) {
-      return res.status(200).json({
-        success: true,
-        imageUrl: metadataImages2[0].image_url,
-        source: 'metadata'
-      });
+      const existingImageUrl = metadataImages2[0].image_url;
+      // Supabase URL인지 확인
+      if (existingImageUrl && existingImageUrl.includes('supabase.co')) {
+        console.log('✅ 기존 Solapi 이미지 재사용:', existingImageUrl);
+        return res.status(200).json({
+          success: true,
+          imageUrl: existingImageUrl,
+          source: 'metadata-existing'
+        });
+      }
     }
 
     // 방법 2: Solapi Storage API를 통해 이미지 다운로드
@@ -114,45 +122,121 @@ export default async function handler(req, res) {
           const arrayBuffer = await downloadResponse.arrayBuffer();
           const buffer = Buffer.from(arrayBuffer);
           
-          // 영구 저장 파일명 생성
-          const fileName = `solapi-${imageId}-${Date.now()}.jpg`;
-          const storagePath = `originals/mms/solapi/${fileName}`;
+          // ⭐ 중복 방지: 같은 imageId의 이미지가 이미 있는지 먼저 확인
+          const { data: existingImages } = await supabase
+            .from('image_metadata')
+            .select('image_url, folder_path')
+            .contains('tags', [`solapi-${imageId}`])
+            .eq('upload_source', 'solapi-permanent')
+            .limit(1);
 
-          // Supabase Storage에 업로드
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('blog-images')
-            .upload(storagePath, buffer, {
-              contentType: 'image/jpeg',
-              upsert: true
-            });
-
-          if (uploadError) {
-            console.error('Supabase 업로드 오류:', uploadError);
-            continue;
+          if (existingImages && existingImages.length > 0) {
+            const existingUrl = existingImages[0].image_url;
+            if (existingUrl && existingUrl.includes('supabase.co')) {
+              console.log('✅ 기존 Solapi 이미지 재사용 (다운로드 전):', existingUrl);
+              return res.status(200).json({
+                success: true,
+                imageUrl: existingUrl,
+                source: 'metadata-existing'
+              });
+            }
           }
 
-          // 공개 URL 생성
-          const { data: urlData } = supabase.storage
-            .from('blog-images')
-            .getPublicUrl(storagePath);
+          // 파일명 생성 (타임스탬프 제거하여 중복 방지)
+          const fileName = `solapi-${imageId}.jpg`;
+          const storagePath = `originals/mms/solapi/${fileName}`;
 
-          if (urlData?.publicUrl) {
-            // image_metadata에 임시 저장 (태그 포함)
+          // ⭐ 중복 확인: 같은 파일명이 이미 있는지 확인
+          const { data: existingFiles } = await supabase.storage
+            .from('blog-images')
+            .list('originals/mms/solapi', {
+              limit: 1000
+            });
+
+          let finalUrl = null;
+          let shouldUpload = true;
+
+          // 같은 파일명이 있는지 확인
+          if (existingFiles) {
+            const existingFile = existingFiles.find(f => f.name === fileName);
+            if (existingFile) {
+              // 기존 파일이 있으면 재사용
+              const { data: urlData } = supabase.storage
+                .from('blog-images')
+                .getPublicUrl(storagePath);
+              finalUrl = urlData?.publicUrl;
+              shouldUpload = false;
+              console.log('✅ 기존 Solapi 이미지 파일 재사용:', finalUrl);
+            }
+          }
+
+          if (shouldUpload) {
+            // 새로 업로드
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('blog-images')
+              .upload(storagePath, buffer, {
+                contentType: 'image/jpeg',
+                upsert: true
+              });
+
+            if (uploadError) {
+              console.error('Supabase 업로드 오류:', uploadError);
+              continue;
+            }
+
+            const { data: urlData } = supabase.storage
+              .from('blog-images')
+              .getPublicUrl(storagePath);
+            finalUrl = urlData?.publicUrl;
+          }
+
+          if (finalUrl) {
+
+            // image_metadata에 저장 (태그 포함, 중복 방지)
             // messageId가 query에 있으면 태그 추가
             const { messageId } = req.query;
-            if (messageId) {
-              try {
-                const tag = `sms-${messageId}`;
+            try {
+              const tags = ['solapi-permanent', `solapi-${imageId}`];
+              if (messageId) {
+                tags.push(`sms-${messageId}`);
+              }
+
+              // ⭐ 중복 확인: 같은 imageId의 메타데이터가 이미 있는지 확인
+              const { data: existingMetadata } = await supabase
+                .from('image_metadata')
+                .select('id, tags')
+                .contains('tags', [`solapi-${imageId}`])
+                .eq('image_url', finalUrl)
+                .limit(1);
+
+              if (existingMetadata && existingMetadata.length > 0) {
+                // 기존 메타데이터가 있으면 태그만 업데이트
+                const existingTags = existingMetadata[0].tags || [];
+                const newTags = [...new Set([...existingTags, ...tags])];
+                
+                await supabase
+                  .from('image_metadata')
+                  .update({
+                    tags: newTags,
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq('id', existingMetadata[0].id);
+                
+                console.log('✅ 기존 메타데이터 태그 업데이트');
+              } else {
+                // 새 메타데이터 생성
                 const metadataPayload = {
-                  image_url: urlData.publicUrl,
+                  image_url: finalUrl,
                   folder_path: storagePath,
                   source: 'mms',
                   channel: 'sms',
                   file_size: buffer.length,
                   format: 'jpg',
                   upload_source: 'solapi-permanent',
-                  tags: [tag, 'solapi-permanent', `solapi-${imageId}`],
-                  title: `MMS 이미지 (메시지 #${messageId}) - Solapi`,
+                  tags: tags,
+                  title: messageId 
+                    ? `MMS 이미지 (메시지 #${messageId}) - Solapi`
+                    : `MMS 이미지 - Solapi`,
                   alt_text: `MMS 이미지`,
                   updated_at: new Date().toISOString()
                 };
@@ -163,14 +247,14 @@ export default async function handler(req, res) {
                   .catch(err => {
                     console.error('⚠️ image_metadata 저장 실패 (무시):', err.message);
                   });
-              } catch (err) {
-                // 메타데이터 저장 실패는 무시 (임시 파일이므로)
               }
+            } catch (err) {
+              console.error('⚠️ 메타데이터 저장 오류 (무시):', err.message);
             }
 
             return res.status(200).json({
               success: true,
-              imageUrl: urlData.publicUrl,
+              imageUrl: finalUrl,
               source: 'solapi-download'
             });
           }
