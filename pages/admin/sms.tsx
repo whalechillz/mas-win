@@ -85,19 +85,32 @@ export default function SMSAdmin() {
 
   const fetchLatestPreview = useCallback(async (smsId: number) => {
     try {
+      // 먼저 image_metadata에서 찾기
       const response = await fetch(`/api/admin/mms-images?messageId=${smsId}&limit=1`);
-      if (!response.ok) {
-        return;
+      if (response.ok) {
+        const data = await response.json();
+        const previewUrl = data?.images?.[0]?.url;
+        if (previewUrl) {
+          setImagePreviewUrl(previewUrl);
+          return;
+        }
       }
-      const data = await response.json();
-      const previewUrl = data?.images?.[0]?.url;
-      if (previewUrl) {
-        setImagePreviewUrl(previewUrl);
+      
+      // image_metadata에서 못 찾은 경우, formData.imageUrl이 Solapi imageId인지 확인
+      if (formData.imageUrl && formData.imageUrl.startsWith('ST01FZ')) {
+        const previewResponse = await fetch(`/api/solapi/get-image-preview?imageId=${formData.imageUrl}&messageId=${smsId}`);
+        if (previewResponse.ok) {
+          const previewData = await previewResponse.json();
+          if (previewData.success && previewData.imageUrl) {
+            setImagePreviewUrl(previewData.imageUrl);
+            return;
+          }
+        }
       }
     } catch (err) {
       console.error('MMS 이미지 프리뷰 조회 오류:', err);
     }
-  }, []);
+  }, [formData.imageUrl]);
 
   // 한국 시간대 상수 (UTC+9)
   const KST_OFFSET_MS = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
@@ -586,8 +599,28 @@ export default function SMSAdmin() {
             });
             if (sms.image_url) {
               if (isHttpUrl(sms.image_url)) {
+                // HTTP URL이면 바로 설정
                 setImagePreviewUrl(sms.image_url);
+              } else if (sms.image_url.startsWith('ST01FZ')) {
+                // Solapi imageId인 경우 get-image-preview API 사용
+                try {
+                  const previewResponse = await fetch(`/api/solapi/get-image-preview?imageId=${sms.image_url}&messageId=${sms.id}`);
+                  if (previewResponse.ok) {
+                    const previewData = await previewResponse.json();
+                    if (previewData.success && previewData.imageUrl) {
+                      setImagePreviewUrl(previewData.imageUrl);
+                      console.log('✅ Solapi imageId 프리뷰 로드 성공');
+                    } else {
+                      console.warn('⚠️ Solapi imageId 프리뷰 조회 실패:', previewData.message);
+                    }
+                  } else {
+                    console.warn('⚠️ get-image-preview API 오류:', previewResponse.status);
+                  }
+                } catch (error) {
+                  console.error('❌ Solapi 이미지 프리뷰 조회 오류:', error);
+                }
               } else if (sms.id) {
+                // 기존 로직: image_metadata에서 찾기
                 fetchLatestPreview(sms.id);
               }
             } else if (sms.id) {
@@ -669,11 +702,27 @@ export default function SMSAdmin() {
     // formData.imageUrl이 HTTP URL이면 imagePreviewUrl 설정
     if (isHttpUrl(formData.imageUrl)) {
       setImagePreviewUrl(formData.imageUrl);
+    } else if (formData.imageUrl && formData.imageUrl.startsWith('ST01FZ')) {
+      // Solapi imageId인 경우 get-image-preview API 사용
+      const loadSolapiPreview = async () => {
+        try {
+          const previewResponse = await fetch(`/api/solapi/get-image-preview?imageId=${formData.imageUrl}${currentSmsNumericId ? `&messageId=${currentSmsNumericId}` : ''}`);
+          if (previewResponse.ok) {
+            const previewData = await previewResponse.json();
+            if (previewData.success && previewData.imageUrl) {
+              setImagePreviewUrl(previewData.imageUrl);
+            }
+          }
+        } catch (error) {
+          console.error('Solapi 이미지 프리뷰 조회 오류:', error);
+        }
+      };
+      loadSolapiPreview();
     } else if (!formData.imageUrl && imagePreviewUrl) {
       // imageUrl이 없어지면 imagePreviewUrl도 초기화
       setImagePreviewUrl('');
     }
-  }, [formData.imageUrl, imagePreviewUrl]);
+  }, [formData.imageUrl, currentSmsNumericId]);
 
   // 인증 확인
   if (status === 'loading') {
@@ -2267,11 +2316,34 @@ export default function SMSAdmin() {
               {formData.messageType === 'MMS' && (
                 <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
                   {/* 이미지 선택 */}
-                  <AIImagePicker
-                    selectedImage={imagePreviewUrl || (isHttpUrl(formData.imageUrl) ? formData.imageUrl : '')}
-                    onImageSelect={handleGalleryImageSelect}
-                    channelType="sms"
-                  />
+                  <div className="space-y-2">
+                    <AIImagePicker
+                      selectedImage={imagePreviewUrl || (isHttpUrl(formData.imageUrl) ? formData.imageUrl : '')}
+                      onImageSelect={handleGalleryImageSelect}
+                      channelType="sms"
+                    />
+                    {formData.imageUrl && (
+                      <div className="flex items-center gap-2">
+                        {formData.imageUrl.startsWith('ST01FZ') ? (
+                          <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-700 border border-blue-300" title="Solapi Storage에 저장된 이미지">
+                            📦 Solapi
+                          </span>
+                        ) : formData.imageUrl.includes('supabase.co') ? (
+                          <span className="px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-700 border border-green-300" title="Supabase Storage에 저장된 이미지">
+                            ☁️ Supabase
+                          </span>
+                        ) : null}
+                        <span className="text-xs text-gray-500">
+                          {formData.imageUrl.startsWith('ST01FZ') 
+                            ? 'Solapi Storage에 저장된 이미지입니다.'
+                            : formData.imageUrl.includes('supabase.co')
+                            ? 'Supabase Storage에 저장된 이미지입니다.'
+                            : '이미지가 선택되었습니다.'
+                          }
+                        </span>
+                      </div>
+                    )}
+                  </div>
                   
                   {/* 모바일 미리보기 (실시간 표시) */}
                   <div className="border-t border-gray-200 pt-4">
@@ -2293,11 +2365,26 @@ export default function SMSAdmin() {
                             {formData.shortLink && `\n\n링크: ${formData.shortLink}`}
                           </div>
                           {mobileImagePreview && (
-                            <img
-                              src={mobileImagePreview}
-                              alt="MMS 이미지"
-                              className="mt-2 w-full h-auto max-h-64 object-contain rounded"
-                            />
+                            <div className="relative mt-2">
+                              <img
+                                src={mobileImagePreview}
+                                alt="MMS 이미지"
+                                className="w-full h-auto max-h-64 object-contain rounded"
+                              />
+                              {formData.imageUrl && (
+                                <div className="absolute top-2 right-2">
+                                  {formData.imageUrl.startsWith('ST01FZ') ? (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-semibold rounded bg-blue-100 text-blue-700 border border-blue-300">
+                                      Solapi
+                                    </span>
+                                  ) : formData.imageUrl.includes('supabase.co') ? (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-semibold rounded bg-green-100 text-green-700 border border-green-300">
+                                      Supabase
+                                    </span>
+                                  ) : null}
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
                         <div className="text-xs text-gray-500">
