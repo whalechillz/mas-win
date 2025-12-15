@@ -150,12 +150,13 @@ export default async function handler(req, res) {
 
           // 파일명 생성 (타임스탬프 제거하여 중복 방지)
           const fileName = `solapi-${imageId}.jpg`;
-          const storagePath = `originals/mms/solapi/${fileName}`;
+          // ✅ Solapi 이미지는 solapi/ 폴더를 canonical 위치로 사용
+          const storagePath = `solapi/${fileName}`;
 
           // ⭐ 중복 확인: 같은 파일명이 이미 있는지 확인
           const { data: existingFiles } = await supabase.storage
             .from('blog-images')
-            .list('originals/mms/solapi', {
+            .list('solapi', {
               limit: 1000
             });
 
