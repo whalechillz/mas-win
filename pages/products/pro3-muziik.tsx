@@ -175,7 +175,6 @@ export default function Pro3MuziikProduct() {
                   </p>
                   <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
                     <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-red-600 whitespace-nowrap">1,700,000원</span>
-                    <span className="text-sm text-gray-500 line-through">1,150,000원</span>
                   </div>
                 </div>
 
