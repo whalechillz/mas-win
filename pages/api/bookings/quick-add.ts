@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 필수 필드 검증
     if (!name || !phone || !date || !time || !club) {
       return res.status(400).json({ 
-        error: '이름, 전화번호, 날짜, 시간, 희망 클럽은 필수입니다.' 
+        error: '이름, 전화번호, 날짜, 시간, 희망 모델은 필수입니다.' 
       });
     }
     
@@ -92,18 +92,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     } else {
       // 기존 고객의 방문 횟수 업데이트
-      await supabase.rpc('increment_customer_visit_count', {
-        customer_phone: normalizedPhone,
-      }).catch(() => {
-        // 함수가 없으면 직접 업데이트
-        supabase
+      try {
+        const { error: rpcError } = await supabase.rpc('increment_customer_visit_count', {
+          customer_phone: normalizedPhone,
+        });
+        
+        if (rpcError) {
+          // 함수가 없으면 직접 업데이트
+          const { data: currentCustomer } = await supabase
+            .from('customers')
+            .select('visit_count')
+            .eq('phone', normalizedPhone)
+            .single();
+          
+          const newVisitCount = (currentCustomer?.visit_count || 0) + 1;
+          
+          await supabase
+            .from('customers')
+            .update({ 
+              visit_count: newVisitCount,
+              last_visit_date: date,
+            })
+            .eq('phone', normalizedPhone);
+        }
+      } catch (rpcError) {
+        // RPC 함수가 없거나 오류 발생 시 직접 업데이트
+        const { data: currentCustomer } = await supabase
+          .from('customers')
+          .select('visit_count')
+          .eq('phone', normalizedPhone)
+          .single();
+        
+        const newVisitCount = (currentCustomer?.visit_count || 0) + 1;
+        
+        await supabase
           .from('customers')
           .update({ 
-            visit_count: supabase.raw('visit_count + 1'),
+            visit_count: newVisitCount,
             last_visit_date: date,
           })
           .eq('phone', normalizedPhone);
-      });
+      }
     }
     
     return res.status(201).json({ booking });

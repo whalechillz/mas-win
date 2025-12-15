@@ -308,14 +308,14 @@ export default function QuickAddBookingModal({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                희망 클럽 <span className="text-red-500">*</span>
+                희망 모델 <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.club}
                 onChange={(e) => setFormData({ ...formData, club: e.target.value })}
                 required
-                placeholder="예: 드라이버, 아이언 등"
+                placeholder="예: 시크리트포스 PRO3, 드라이버 등"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
               />
             </div>
