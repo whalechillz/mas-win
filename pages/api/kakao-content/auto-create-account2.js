@@ -12,19 +12,26 @@ export default async function handler(req, res) {
   try {
     const { date, forceRegenerate = false, brandStrategy } = req.body;
     if (!date) {
+      return res.status(400).json({ error: 'date is required' });
+    }
 
     // brandStrategy 헬퍼 함수
     const getBrandStrategyConfig = (brandStrategy, accountType) => {
       if (brandStrategy) {
         return {
-          customerpersona: brandStrategy.persona || brandStrategy.customerpersona || (accountType === 'account1' ? 'senior_fitting' : 'tech_enthusiast'),
-          customerChannel: brandStrategy.channel || brandStrategy.customerChannel || 'local_customers',
-          brandWeight: brandStrategy.brandStrength || brandStrategy.brandWeight || '중간',
+          customerpersona:
+            brandStrategy.persona ||
+            brandStrategy.customerpersona ||
+            (accountType === 'account1' ? 'senior_fitting' : 'tech_enthusiast'),
+          customerChannel:
+            brandStrategy.channel || brandStrategy.customerChannel || 'local_customers',
+          brandWeight:
+            brandStrategy.brandStrength || brandStrategy.brandWeight || '중간',
           audienceTemperature: brandStrategy.audienceTemperature || 'warm',
           audienceWeight: brandStrategy.audienceWeight || '높음'
         };
       }
-      
+
       // 기본값
       return {
         customerpersona: accountType === 'account1' ? 'senior_fitting' : 'tech_enthusiast',
@@ -34,10 +41,8 @@ export default async function handler(req, res) {
         audienceWeight: '높음'
       };
     };
-    
+
     const brandStrategyConfig = getBrandStrategyConfig(brandStrategy, 'account2');
-      return res.status(400).json({ error: 'date is required' });
-    }
 
     const supabase = createServerSupabase();
     const monthStr = date.substring(0, 7); // YYYY-MM
