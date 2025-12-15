@@ -23,6 +23,7 @@ export default function QuickAddBookingModal({
     email: '',
     service_type: '마쓰구 드라이버 시타서비스',
     location: 'Massgoo Studio',
+    club: '',
     notes: '',
   });
   const [customerInfo, setCustomerInfo] = useState<any>(null);
@@ -303,6 +304,20 @@ export default function QuickAddBookingModal({
                 <option value="만족스런 비거리를 점검해 보세요">만족스런 비거리를 점검해 보세요</option>
                 <option value="시타 신청하기">시타 신청하기</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                희망 클럽 <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.club}
+                onChange={(e) => setFormData({ ...formData, club: e.target.value })}
+                required
+                placeholder="예: 드라이버, 아이언 등"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+              />
             </div>
 
             <div>

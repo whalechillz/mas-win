@@ -12,12 +12,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   
   try {
-    const { name, phone, date, time, service_type, location, notes } = req.body;
+    const { name, phone, date, time, service_type, location, club, notes } = req.body;
     
     // 필수 필드 검증
-    if (!name || !phone || !date || !time) {
+    if (!name || !phone || !date || !time || !club) {
       return res.status(400).json({ 
-        error: '이름, 전화번호, 날짜, 시간은 필수입니다.' 
+        error: '이름, 전화번호, 날짜, 시간, 희망 클럽은 필수입니다.' 
       });
     }
     
@@ -42,6 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       phone: normalizedPhone,
       date,
       time,
+      club,
       service_type: service_type || '마쓰구 드라이버 시타서비스',
       location: location || 'Massgoo Studio',
       duration: 60,
