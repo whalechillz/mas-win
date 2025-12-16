@@ -4,10 +4,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { formatBrandDistanceResearch } from '../../lib/brand-utils';
 
-// 날짜 포맷팅 함수
+// 날짜 포맷팅 함수 (안전한 처리)
 function formatDate(dateString) {
+  if (!dateString) return '날짜 정보 없음';
   try {
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '날짜 정보 없음';
     return date.toLocaleDateString('ko-KR', {
       year: 'numeric',
       month: 'long',

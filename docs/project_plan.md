@@ -33,6 +33,44 @@
 
 # 🎯 프로젝트 진행 현황
 
+## ✅ 최근 작업: 허브 시스템 연결 안정화 및 순번 표시 추가 (2025-12-16)
+
+### 완료된 작업
+- **허브 콘텐츠 테이블에 순번 컬럼 추가** ✅:
+  - 테이블 헤더에 "순번" 컬럼 추가
+  - 페이지네이션을 고려한 순번 계산: `(page - 1) * limit + index + 1`
+  - colSpan 값 5 → 6으로 수정
+- **블로그 삭제 API에서 허브 상태 완전 동기화** ✅:
+  - 블로그 삭제 시 `blog_post_id`와 `channel_status.blog` 모두 업데이트
+  - `sync-channel-status` API 대신 직접 Supabase 업데이트로 변경
+  - 다른 채널 상태는 그대로 유지
+- **SMS 삭제 API에서 허브 상태 완전 동기화** ✅:
+  - SMS 삭제 시 `calendar_id` 확인 후 허브 상태 동기화
+  - 동적 채널 키(`sms_1234567890`) 자동 삭제
+  - 기본 SMS 채널 삭제 시 다른 SMS가 있으면 첫 번째 SMS로 업데이트
+  - 다른 채널 상태는 그대로 유지
+- **"천안 직산" 허브 콘텐츠와 블로그 재연결** ✅:
+  - 재연결 스크립트 생성 및 실행 완료
+  - 허브 ID: `20abf004-daba-479f-84aa-b5644294a640`
+  - 블로그 ID: `482`
+- **변경 파일**:
+  - `pages/admin/content-calendar-hub.tsx` (순번 컬럼 추가)
+  - `pages/api/admin/blog/[id].js` (블로그 삭제 시 완전 동기화)
+  - `pages/api/channels/sms/delete.js` (SMS 삭제 시 완전 동기화)
+  - `scripts/reconnect-cheonan-jiksan-hub.js` (재연결 스크립트)
+
+## ✅ 최근 작업: 진행 상황 표시 개선 (2025-12-16)
+
+### 완료된 작업
+- **진행 상황 표시를 전체 기준(타입별)으로 개선** ✅:
+  - `totalDates/completedDates` → `totalItems/completedItems`로 변경
+  - 날짜 × 계정 × 타입(배경, 프로필, 피드) 기준으로 진행 상황 표시
+  - 3일치 생성 시: 0/18 → 1/18 (배경) → 2/18 (프로필) → 3/18 (피드) → ...
+  - 현재 생성 중인 타입(배경/프로필/피드) 표시 추가
+  - `generateForSingleDate`에 `onProgress` 콜백 추가하여 타입별 진행 상황 추적
+- **변경 파일**:
+  - `pages/admin/kakao-content.tsx` (진행 상황 표시 로직 개선)
+
 ## ✅ 최근 작업: 피드 캡션·이미지 생성 시스템 개선 (2025-12-16)
 
 ### 완료된 작업

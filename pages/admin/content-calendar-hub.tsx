@@ -1499,6 +1499,7 @@ export default function ContentCalendarHub() {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">순번</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">제목</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">요약</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">날짜</th>
@@ -1509,15 +1510,18 @@ export default function ContentCalendarHub() {
                     <tbody className="bg-white divide-y divide-gray-200">
                       {loading ? (
                         <tr>
-                          <td colSpan={5} className="px-6 py-4 text-center text-gray-500">로딩 중...</td>
+                          <td colSpan={6} className="px-6 py-4 text-center text-gray-500">로딩 중...</td>
                         </tr>
                       ) : contents.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="px-6 py-4 text-center text-gray-500">허브 콘텐츠가 없습니다.</td>
+                          <td colSpan={6} className="px-6 py-4 text-center text-gray-500">허브 콘텐츠가 없습니다.</td>
                         </tr>
                       ) : (
-                        contents.map((content) => (
+                        contents.map((content, index) => (
                           <tr key={content.id}>
+                            <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center w-16">
+                              {(pagination.page - 1) * pagination.limit + index + 1}
+                            </td>
                             <td className="px-6 py-3 whitespace-normal align-top w-2/5">
                               <div className="text-sm font-medium text-gray-900 break-words" title={content.title}>
                                 {content.title}

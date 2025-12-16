@@ -31,6 +31,28 @@ export default function SurveysPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState<Partial<Survey>>({});
   const [viewSurvey, setViewSurvey] = useState<Survey | null>(null);
+  const [messageModal, setMessageModal] = useState<{
+    open: boolean;
+    survey: Survey | null;
+    message: string;
+    customerNeeds: any;
+    loading: boolean;
+  }>({
+    open: false,
+    survey: null,
+    message: '',
+    customerNeeds: null,
+    loading: false,
+  });
+  const [analysisModal, setAnalysisModal] = useState<{
+    open: boolean;
+    loading: boolean;
+    data: any;
+  }>({
+    open: false,
+    loading: false,
+    data: null,
+  });
 
   const fetchSurveys = async () => {
     setLoading(true);
@@ -233,6 +255,91 @@ export default function SurveysPage() {
     return '80대 이상';
   };
 
+  // 메시지 생성
+  const handleGenerateMessage = async (survey: Survey) => {
+    setMessageModal({
+      open: true,
+      survey,
+      message: '',
+      customerNeeds: null,
+      loading: true,
+    });
+
+    try {
+      const response = await fetch('/api/survey/generate-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ surveyId: survey.id, messageType: 'sms' }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setMessageModal({
+          open: true,
+          survey,
+          message: result.data.message,
+          customerNeeds: result.data.customerNeeds,
+          loading: false,
+        });
+      } else {
+        alert(result.message || '메시지 생성에 실패했습니다.');
+        setMessageModal(prev => ({ ...prev, open: false }));
+      }
+    } catch (error) {
+      console.error('메시지 생성 오류:', error);
+      alert('메시지 생성 중 오류가 발생했습니다.');
+      setMessageModal(prev => ({ ...prev, open: false }));
+    }
+  };
+
+  // 일괄 분석
+  const handleBulkAnalyze = async () => {
+    if (selectedIds.length === 0) {
+      alert('분석할 설문을 선택해주세요.');
+      return;
+    }
+
+    setAnalysisModal({
+      open: true,
+      loading: true,
+      data: null,
+    });
+
+    try {
+      const response = await fetch('/api/survey/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ surveyIds: selectedIds }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setAnalysisModal({
+          open: true,
+          loading: false,
+          data: result.data,
+        });
+      } else {
+        alert(result.message || '분석에 실패했습니다.');
+        setAnalysisModal(prev => ({ ...prev, open: false }));
+      }
+    } catch (error) {
+      console.error('분석 오류:', error);
+      alert('분석 중 오류가 발생했습니다.');
+      setAnalysisModal(prev => ({ ...prev, open: false }));
+    }
+  };
+
+  // 메시지 복사
+  const handleCopyMessage = () => {
+    if (messageModal.message) {
+      navigator.clipboard.writeText(messageModal.message);
+      alert('메시지가 클립보드에 복사되었습니다.');
+    }
+  };
+
   // 일괄 삭제
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) {
@@ -352,19 +459,28 @@ export default function SurveysPage() {
               </div>
             </div>
             
-            {/* 일괄 삭제 버튼 */}
+            {/* 일괄 작업 버튼 */}
             {selectedIds.length > 0 && (
               <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                 <span className="text-sm text-gray-700">
                   {selectedIds.length}개 항목 선택됨
                 </span>
-                <button
-                  onClick={handleBulkDelete}
-                  disabled={isDeleting}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                >
-                  {isDeleting ? '삭제 중...' : `선택한 ${selectedIds.length}개 삭제`}
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleBulkAnalyze}
+                    disabled={analysisModal.loading}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                  >
+                    {analysisModal.loading ? '분석 중...' : `선택한 ${selectedIds.length}개 분석`}
+                  </button>
+                  <button
+                    onClick={handleBulkDelete}
+                    disabled={isDeleting}
+                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                  >
+                    {isDeleting ? '삭제 중...' : `선택한 ${selectedIds.length}개 삭제`}
                 </button>
+                </div>
               </div>
             )}
           </div>
@@ -453,6 +569,13 @@ export default function SurveysPage() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex gap-2">
+                              <button
+                                onClick={() => handleGenerateMessage(survey)}
+                                className="text-green-600 hover:text-green-900 font-medium"
+                                title="맞춤형 메시지 생성"
+                              >
+                                메시지
+                              </button>
                               <button
                                 onClick={() => handleEdit(survey)}
                                 className="text-blue-600 hover:text-blue-900"
@@ -753,6 +876,254 @@ export default function SurveysPage() {
                   닫기
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 메시지 생성 모달 */}
+      {messageModal.open && messageModal.survey && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">맞춤형 메시지 생성</h2>
+                <button
+                  onClick={() => setMessageModal({ open: false, survey: null, message: '', customerNeeds: null, loading: false })}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {messageModal.loading ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <p className="mt-4 text-gray-600">메시지를 생성하고 있습니다...</p>
+                </div>
+              ) : (
+                <>
+                  {/* 고객 정보 */}
+                  <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <h3 className="font-semibold text-gray-900 mb-3">고객 정보</h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-600">이름:</span>
+                        <span className="ml-2 font-medium">{messageModal.survey.name}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">전화번호:</span>
+                        <span className="ml-2 font-medium">{messageModal.survey.phone}</span>
+                      </div>
+                      {messageModal.customerNeeds && (
+                        <>
+                          <div>
+                            <span className="text-gray-600">중요 요소:</span>
+                            <span className="ml-2 font-medium">
+                              {messageModal.customerNeeds.primaryFactors.join(', ')}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">선택 모델:</span>
+                            <span className="ml-2 font-medium">
+                              {messageModal.customerNeeds.selectedModel}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 생성된 메시지 */}
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        생성된 메시지
+                      </label>
+                      <button
+                        onClick={handleCopyMessage}
+                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                      >
+                        복사
+                      </button>
+                    </div>
+                    <textarea
+                      value={messageModal.message}
+                      onChange={(e) => setMessageModal(prev => ({ ...prev, message: e.target.value }))}
+                      rows={15}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                    />
+                  </div>
+
+                  {/* 전화 유도 포인트 */}
+                  {messageModal.customerNeeds && (
+                    <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                      <h3 className="font-semibold text-gray-900 mb-3">전화 유도 포인트</h3>
+                      <ul className="space-y-2 text-sm">
+                        {messageModal.customerNeeds.primaryFactors.includes('비거리') && (
+                          <li className="flex items-start">
+                            <span className="text-blue-600 mr-2">•</span>
+                            <span>한 번의 시타로 30m 비거리 증가를 직접 체험 가능</span>
+                          </li>
+                        )}
+                        {messageModal.customerNeeds.primaryFactors.includes('방향성') && (
+                          <li className="flex items-start">
+                            <span className="text-blue-600 mr-2">•</span>
+                            <span>정확한 샷을 위한 맞춤 피팅 상담</span>
+                          </li>
+                        )}
+                        {messageModal.customerNeeds.primaryFactors.includes('타구감') && (
+                          <li className="flex items-start">
+                            <span className="text-blue-600 mr-2">•</span>
+                            <span>프리미엄 타구감 체험 - 가벼운 스윙으로도 강력한 임팩트</span>
+                          </li>
+                        )}
+                        {messageModal.customerNeeds.selectedModel && (
+                          <li className="flex items-start">
+                            <span className="text-blue-600 mr-2">•</span>
+                            <span>{messageModal.customerNeeds.selectedModel} 모델 특별 체험</span>
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => setMessageModal({ open: false, survey: null, message: '', customerNeeds: null, loading: false })}
+                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    >
+                      닫기
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 일괄 분석 모달 */}
+      {analysisModal.open && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">설문 조사 분석 결과</h2>
+                <button
+                  onClick={() => setAnalysisModal({ open: false, loading: false, data: null })}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {analysisModal.loading ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <p className="mt-4 text-gray-600">분석 중입니다...</p>
+                </div>
+              ) : analysisModal.data ? (
+                <>
+                  {/* 전체 통계 */}
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-gray-900 mb-4">전체 통계</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="text-sm text-gray-600">총 설문 수</div>
+                        <div className="text-2xl font-bold text-gray-900">
+                          {analysisModal.data.overallStats.totalCount}
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="text-sm text-gray-600">비거리 관심</div>
+                        <div className="text-2xl font-bold text-gray-900">
+                          {analysisModal.data.overallStats.factorDistribution.distance || 0}
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="text-sm text-gray-600">방향성 관심</div>
+                        <div className="text-2xl font-bold text-gray-900">
+                          {analysisModal.data.overallStats.factorDistribution.direction || 0}
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="text-sm text-gray-600">타구감 관심</div>
+                        <div className="text-2xl font-bold text-gray-900">
+                          {analysisModal.data.overallStats.factorDistribution.feel || 0}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 개별 분석 결과 */}
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-gray-900 mb-4">개별 분석 결과</h3>
+                    <div className="space-y-4 max-h-96 overflow-y-auto">
+                      {analysisModal.data.analyses.map((analysis: any, index: number) => (
+                        <div key={analysis.surveyId} className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h4 className="font-medium text-gray-900">{analysis.name}</h4>
+                              <p className="text-sm text-gray-600">{analysis.phone}</p>
+                            </div>
+                            <button
+                              onClick={() => {
+                                const survey = surveys.find(s => s.id === analysis.surveyId);
+                                if (survey) {
+                                  handleGenerateMessage(survey);
+                                  setAnalysisModal({ open: false, loading: false, data: null });
+                                }
+                              }}
+                              className="px-3 py-1 text-sm bg-green-600 text-white rounded-md hover:bg-green-700"
+                            >
+                              메시지 생성
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-600">중요 요소:</span>
+                              <span className="ml-2 font-medium">
+                                {analysis.customerNeeds.primaryFactors.join(', ')}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">선택 모델:</span>
+                              <span className="ml-2 font-medium">
+                                {analysis.customerNeeds.selectedModel}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="mt-3">
+                            <span className="text-gray-600 text-sm">전화 유도 포인트:</span>
+                            <ul className="mt-2 space-y-1">
+                              {analysis.callToActionPoints.map((point: string, idx: number) => (
+                                <li key={idx} className="text-sm text-gray-700 flex items-start">
+                                  <span className="text-blue-600 mr-2">•</span>
+                                  <span>{point}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => setAnalysisModal({ open: false, loading: false, data: null })}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                      닫기
+                    </button>
+                  </div>
+                </>
+              ) : null}
             </div>
           </div>
         </div>

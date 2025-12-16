@@ -158,24 +158,45 @@ export default async function handler(req, res) {
         });
       }
       
-      // 허브 상태 동기화 (블로그 삭제 시 상태를 미발행으로 변경)
+      // ✅ 허브 상태 완전 동기화 (블로그 삭제 시 blog_post_id + channel_status 모두 업데이트)
       if (blogData?.calendar_id) {
         try {
-          const syncResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/sync-channel-status`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              hubContentId: blogData.calendar_id,
-              channel: 'blog',
-              channelContentId: null,
-              status: '미발행'
-            })
-          });
+          // 허브 콘텐츠 조회
+          const { data: hubContent, error: hubFetchError } = await supabase
+            .from('cc_content_calendar')
+            .select('channel_status, blog_post_id')
+            .eq('id', blogData.calendar_id)
+            .single();
           
-          if (syncResponse.ok) {
-            console.log('✅ 블로그 삭제 후 허브 상태 동기화 완료');
+          if (!hubFetchError && hubContent) {
+            // channel_status에서 blog 채널 제거/업데이트
+            const currentChannels = hubContent.channel_status || {};
+            const updatedChannels = { ...currentChannels };
+            
+            // blog 채널 상태를 미발행으로 변경
+            updatedChannels['blog'] = {
+              status: '미발행',
+              post_id: null,
+              updated_at: new Date().toISOString()
+            };
+            
+            // ✅ 허브 콘텐츠 업데이트 (blog_post_id도 null로, channel_status도 업데이트)
+            const { error: updateError } = await supabase
+              .from('cc_content_calendar')
+              .update({
+                blog_post_id: null,
+                channel_status: updatedChannels,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', blogData.calendar_id);
+            
+            if (updateError) {
+              console.error('❌ 블로그 삭제 후 허브 상태 업데이트 실패:', updateError);
+            } else {
+              console.log('✅ 블로그 삭제 후 허브 상태 완전 동기화 완료 (blog_post_id + channel_status)');
+            }
           } else {
-            console.error('❌ 블로그 삭제 후 허브 상태 동기화 실패');
+            console.error('❌ 허브 콘텐츠 조회 실패:', hubFetchError);
           }
         } catch (syncError) {
           console.error('❌ 블로그 삭제 후 허브 상태 동기화 오류:', syncError);
