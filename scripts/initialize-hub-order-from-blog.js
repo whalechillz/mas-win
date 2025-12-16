@@ -116,8 +116,8 @@ async function initializeHubOrderFromBlog() {
       return b.date.getTime() - a.date.getTime();
     });
     
-    // 4. hub_order 할당 (1부터 시작, 최신이 1번)
-    let order = 1;
+    // 4. hub_order 할당 (최신이 높은 숫자, 오래된 것이 1번)
+    let order = allHubs.length; // 총 개수부터 시작 (최신 = 166번)
     const updates = [];
     
     for (const item of allHubs) {
@@ -130,7 +130,7 @@ async function initializeHubOrderFromBlog() {
           source: item.source
         });
       }
-      order++;
+      order--; // 역순으로 할당 (최신 = 166, 오래된 것 = 1)
     }
     
     console.log(`🔄 ${updates.length}개 항목 업데이트 예정...\n`);
@@ -158,8 +158,8 @@ async function initializeHubOrderFromBlog() {
     console.log(`   ✅ 성공: ${successCount}개`);
     console.log(`   ❌ 실패: ${failCount}개`);
     console.log(`   📊 총 허브 콘텐츠: ${hubContents.length}개`);
-    console.log(`   📊 최신 순번: 1번 (가장 최근 발행일)`);
-    console.log(`   📊 오래된 순번: ${hubContents.length}번 (가장 오래된 발행일)\n`);
+    console.log(`   📊 최신 순번: ${hubContents.length}번 (가장 최근 발행일)`);
+    console.log(`   📊 오래된 순번: 1번 (가장 오래된 발행일)\n`);
     
   } catch (error) {
     console.error('❌ 초기화 오류:', error);
