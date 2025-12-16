@@ -1619,19 +1619,65 @@ export default function ContentCalendarHub() {
                                 {/* 기본 채널들만 표시 (중복 제거) */}
                                 <div className="space-y-1">
                                   {/* 블로그 채널 */}
-                                  <div className="flex items-center space-x-2">
-                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getBlogStatusDisplay(content))}`}>
-                                      홈피: {getBlogCount(content) > 0 ? `${getBlogCount(content)}개 연결` : getBlogStatusDisplay(content)}
-                                    </span>
-                                    {getChannelActionButton(content, 'blog')}
+                                  <div className="space-y-1">
+                                    {blogDataMap[content.id] && blogDataMap[content.id].length > 0 ? (
+                                      blogDataMap[content.id].map((blog) => (
+                                        <div key={blog.id} className="flex items-center gap-2 p-1.5 bg-gray-50 rounded border border-gray-200 hover:bg-gray-100 transition-colors">
+                                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200 whitespace-nowrap">
+                                            ID: {blog.id}
+                                          </span>
+                                          <span className={`px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap ${
+                                            blog.status === 'published' ? 'bg-green-100 text-green-800' :
+                                            blog.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
+                                            'bg-gray-100 text-gray-800'
+                                          }`}>
+                                            {blog.status === 'published' ? '발행됨' : 
+                                             blog.status === 'draft' ? '수정중' : '미발행'}
+                                          </span>
+                                          <span className="flex-1 text-xs text-gray-700 truncate min-w-0" title={blog.title}>
+                                            {blog.title}
+                                          </span>
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <div className="flex items-center space-x-2">
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getBlogStatusDisplay(content))}`}>
+                                          홈피: {getBlogStatusDisplay(content)}
+                                        </span>
+                                        {getChannelActionButton(content, 'blog')}
+                                      </div>
+                                    )}
                                   </div>
                                   
                                   {/* SMS 채널 */}
-                                  <div className="flex items-center space-x-2">
-                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'sms'))}`}>
-                                      SMS: {getSMSCount(content) > 0 ? `${getSMSCount(content)}개 연결` : getChannelStatus(content, 'sms')}
-                                    </span>
-                                    {getChannelActionButton(content, 'sms')}
+                                  <div className="space-y-1">
+                                    {smsDataMap[content.id] && smsDataMap[content.id].length > 0 ? (
+                                      smsDataMap[content.id].map((sms, index) => (
+                                        <div key={sms.id} className="flex items-center gap-2 p-1.5 bg-gray-50 rounded border border-gray-200 hover:bg-gray-100 transition-colors">
+                                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-bold whitespace-nowrap">
+                                            {index + 1}
+                                          </span>
+                                          <span className={`px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap ${
+                                            sms.status === 'sent' ? 'bg-green-100 text-green-800' :
+                                            sms.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
+                                            'bg-gray-100 text-gray-800'
+                                          }`}>
+                                            {sms.status === 'sent' ? '발행됨' : 
+                                             sms.status === 'draft' ? '수정중' : '미발행'}
+                                          </span>
+                                          <span className="flex-1 text-xs text-gray-700 truncate min-w-0" title={sms.title || sms.content || sms.message || '제목 없음'}>
+                                            {sms.title || sms.content || sms.message || '제목 없음'}
+                                          </span>
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <div className="flex items-center space-x-2">
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'sms'))}`}>
+                                          SMS: {getChannelStatus(content, 'sms')}
+                                        </span>
+                                        {getChannelActionButton(content, 'sms')}
+                                      </div>
+                                    )}
                                   </div>
                                   
                                   {/* 네이버 채널 */}
