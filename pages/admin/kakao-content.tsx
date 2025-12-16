@@ -112,8 +112,9 @@ export default function KakaoContentPage() {
     isRunning: boolean;
     currentDate: string | null;
     currentAccount: 'account1' | 'account2' | null;
-    totalDates: number;
-    completedDates: number;
+    currentType: 'background' | 'profile' | 'feed' | null;
+    totalItems: number;
+    completedItems: number;
     estimatedTimeRemaining: number; // 초 단위
   } | null>(null);
   // 이미지 선택 모달 상태
@@ -748,7 +749,12 @@ export default function KakaoContentPage() {
   };
 
   // 단일 날짜에 대한 자동 생성 (API 호출)
-  const generateForSingleDate = async (date: string, account: 'account1' | 'account2', forceRegenerate: boolean = false): Promise<boolean> => {
+  const generateForSingleDate = async (
+    date: string, 
+    account: 'account1' | 'account2', 
+    forceRegenerate: boolean = false,
+    onProgress?: (type: 'background' | 'profile' | 'feed') => void
+  ): Promise<boolean> => {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
         (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
@@ -770,9 +776,21 @@ export default function KakaoContentPage() {
 
       const data = await response.json();
       
-      // 실제 생성 결과 확인
+      // 실제 생성 결과 확인 및 타입별 진행 상황 추적
       if (data.success && data.results) {
         const results = data.results;
+        const types: Array<'background' | 'profile' | 'feed'> = ['background', 'profile', 'feed'];
+        
+        // 각 타입별로 진행 상황 업데이트
+        for (const type of types) {
+          if (results[type]?.success && results[type]?.imageUrl) {
+            // 각 타입 생성 완료 시 콜백 호출
+            if (onProgress) {
+              onProgress(type);
+            }
+          }
+        }
+        
         const hasNewImages = 
           (results.background?.success && results.background?.imageUrl) ||
           (results.profile?.success && results.profile?.imageUrl) ||
@@ -845,9 +863,10 @@ export default function KakaoContentPage() {
         isRunning: true,
         currentDate: null,
         currentAccount: null,
-        totalDates: datesToGenerate.length * 2, // account1 + account2
-        completedDates: 0,
-        estimatedTimeRemaining: datesToGenerate.length * 2 * 60 // 1일치당 1분 (2계정)
+        currentType: null,
+        totalItems: datesToGenerate.length * 2 * 3, // 날짜 × 계정 × 타입(배경, 프로필, 피드)
+        completedItems: 0,
+        estimatedTimeRemaining: datesToGenerate.length * 2 * 3 * 20 // 타입당 약 20초
       });
 
       let successCount = 0;
@@ -933,27 +952,32 @@ export default function KakaoContentPage() {
           ...prev,
           currentDate: date,
           currentAccount: 'account1',
-          completedDates: prev.completedDates,
-          estimatedTimeRemaining: (prev.totalDates - prev.completedDates) * 60
+          currentType: null,
+          completedItems: prev.completedItems,
+          estimatedTimeRemaining: (prev.totalItems - prev.completedItems) * 20
         } : null);
 
         try {
-          await generateForSingleDate(date, 'account1');
+          await generateForSingleDate(date, 'account1', false, (type) => {
+            // 각 타입 생성 완료 시 진행 상황 업데이트
+            setGenerationProgress(prev => prev ? {
+              ...prev,
+              currentType: type,
+              completedItems: prev.completedItems + 1,
+              estimatedTimeRemaining: (prev.totalItems - prev.completedItems - 1) * 20
+            } : null);
+          });
           successCount++;
-          setGenerationProgress(prev => prev ? {
-            ...prev,
-            completedDates: prev.completedDates + 1,
-            estimatedTimeRemaining: (prev.totalDates - prev.completedDates - 1) * 60
-          } : null);
           
           // 1초 대기 (API 부하 방지)
           await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (error: any) {
           errorCount++;
           errors.push({ date, account: 'account1', error: error.message });
+          // 실패해도 3개 타입 모두 실패한 것으로 간주하고 진행 상황 업데이트
           setGenerationProgress(prev => prev ? {
             ...prev,
-            completedDates: prev.completedDates + 1
+            completedItems: prev.completedItems + 3
           } : null);
         }
 
@@ -962,26 +986,31 @@ export default function KakaoContentPage() {
           ...prev,
           currentDate: date,
           currentAccount: 'account2',
-          estimatedTimeRemaining: (prev.totalDates - prev.completedDates) * 60
+          currentType: null,
+          estimatedTimeRemaining: (prev.totalItems - prev.completedItems) * 20
         } : null);
 
         try {
-          await generateForSingleDate(date, 'account2');
+          await generateForSingleDate(date, 'account2', false, (type) => {
+            // 각 타입 생성 완료 시 진행 상황 업데이트
+            setGenerationProgress(prev => prev ? {
+              ...prev,
+              currentType: type,
+              completedItems: prev.completedItems + 1,
+              estimatedTimeRemaining: (prev.totalItems - prev.completedItems - 1) * 20
+            } : null);
+          });
           successCount++;
-          setGenerationProgress(prev => prev ? {
-            ...prev,
-            completedDates: prev.completedDates + 1,
-            estimatedTimeRemaining: (prev.totalDates - prev.completedDates - 1) * 60
-          } : null);
           
           // 1초 대기 (API 부하 방지)
           await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (error: any) {
           errorCount++;
           errors.push({ date, account: 'account2', error: error.message });
+          // 실패해도 3개 타입 모두 실패한 것으로 간주하고 진행 상황 업데이트
           setGenerationProgress(prev => prev ? {
             ...prev,
-            completedDates: prev.completedDates + 1
+            completedItems: prev.completedItems + 3
           } : null);
         }
       }
@@ -1348,7 +1377,7 @@ export default function KakaoContentPage() {
                     <span className="font-medium text-blue-900">생성 진행 중...</span>
                   </div>
                   <span className="text-sm text-blue-700">
-                    {generationProgress.completedDates} / {generationProgress.totalDates} 완료
+                    {generationProgress.completedItems} / {generationProgress.totalItems} 완료
                   </span>
                 </div>
                 <div className="mb-2">
@@ -1356,7 +1385,7 @@ export default function KakaoContentPage() {
                     <div 
                       className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                       style={{ 
-                        width: `${(generationProgress.completedDates / generationProgress.totalDates) * 100}%` 
+                        width: `${(generationProgress.completedItems / generationProgress.totalItems) * 100}%` 
                       }}
                     />
                   </div>
@@ -1367,6 +1396,15 @@ export default function KakaoContentPage() {
                     <div>
                       계정: {generationProgress.currentAccount === 'account1' ? '대표폰 (시니어)' : '업무폰 (테크)'}
                     </div>
+                    {generationProgress.currentType && (
+                      <div>
+                        타입: {
+                          generationProgress.currentType === 'background' ? '배경 이미지' :
+                          generationProgress.currentType === 'profile' ? '프로필 이미지' :
+                          '피드 이미지'
+                        }
+                      </div>
+                    )}
                     <div className="text-xs text-blue-600 mt-1">
                       예상 남은 시간: 약 {Math.ceil(generationProgress.estimatedTimeRemaining / 60)}분
                     </div>
