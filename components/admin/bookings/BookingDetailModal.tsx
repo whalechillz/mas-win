@@ -754,19 +754,57 @@ export default function BookingDetailModal({
                   const scheduledAtKST = scheduledAtUTC ? convertUTCToKST(existingReminder.scheduled_at) : null;
                   const sentAtKST = sentAtUTC ? convertUTCToKST(existingReminder.sent_at) : null;
                   
-                  // ⭐ 개선: 실제 발송 여부를 정확히 판단 (UTC 밀리초로 비교)
-                  // 1. sent_at이 있고 현재 시간보다 과거면 → 발송됨
-                  // 2. status가 'sent' 또는 'partial'이고 sent_at이 있으면 → 발송됨
+                  // ⭐ 핵심 수정: scheduled_at과 sent_at을 비교하여 실제 발송 여부 판단
+                  // 1. scheduled_at이 과거이고 sent_at이 있고, sent_at이 scheduled_at 이후면 → 발송됨
+                  // 2. scheduled_at이 미래인데 sent_at이 있으면 → 잘못된 상태 (다른 메시지의 발송 시간)
                   // 3. scheduled_at이 현재보다 과거이고 sent_at이 없고 status가 'draft'면 → 발송 시간 지남
                   // 4. scheduled_at이 현재보다 미래면 → 예정
                   
                   const nowTime = now.getTime();
-                  const isActuallySent = sentAtUTC && sentAtUTC.getTime() <= nowTime;
-                  const isStatusSent = (existingReminder.status === 'sent' || existingReminder.status === 'partial') && sentAtUTC;
-                  const isPast = scheduledAtUTC && scheduledAtUTC.getTime() < nowTime && !sentAtUTC && existingReminder.status === 'draft';
-                  const isScheduled = scheduledAtUTC && scheduledAtUTC.getTime() > nowTime;
+                  const scheduledTime = scheduledAtUTC ? scheduledAtUTC.getTime() : null;
+                  const sentTime = sentAtUTC ? sentAtUTC.getTime() : null;
                   
-                  if (isActuallySent || isStatusSent) {
+                  // ⭐ 실제 발송 여부: scheduled_at이 과거이고 sent_at이 있고, sent_at이 scheduled_at 이후면 발송됨
+                  // scheduled_at이 미래인데 sent_at이 있으면 → 잘못된 상태 (다른 메시지의 발송 시간)
+                  const isActuallySent = scheduledTime && sentTime && 
+                                         scheduledTime <= nowTime && 
+                                         sentTime <= nowTime &&
+                                         sentTime >= scheduledTime; // sent_at이 scheduled_at 이후여야 함
+                  
+                  // scheduled_at이 미래인데 sent_at이 있으면 → 잘못된 상태
+                  const isInvalidState = scheduledTime && scheduledTime > nowTime && sentTime;
+                  
+                  // scheduled_at이 현재보다 과거이고 sent_at이 없고 status가 'draft'면 → 발송 시간 지남
+                  const isPast = scheduledTime && scheduledTime < nowTime && !sentTime && existingReminder.status === 'draft';
+                  
+                  // scheduled_at이 현재보다 미래면 → 예정
+                  const isScheduled = scheduledTime && scheduledTime > nowTime;
+                  
+                  // ⭐ 잘못된 상태는 표시하지 않음
+                  if (isInvalidState) {
+                    return (
+                      <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded text-xs">
+                        <p className="text-gray-800 font-medium">⚠️ 메시지 상태 확인 필요</p>
+                        <p className="text-gray-600 text-[10px] mt-1">
+                          예정 시간이 미래인데 발송 시간이 기록되어 있습니다. 이는 다른 메시지의 발송 시간일 수 있습니다.
+                        </p>
+                        {scheduledAtKST && (
+                          <p className="text-gray-600 text-[10px] mt-1">
+                            예정 시간: {scheduledAtKST.toLocaleString('ko-KR', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              timeZone: 'Asia/Seoul'
+                            })}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  }
+                  
+                  if (isActuallySent) {
                     return (
                       <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs">
                         <p className="text-green-800 font-medium">✓ 메시지가 발송되었습니다.</p>
