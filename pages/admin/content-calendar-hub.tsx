@@ -76,6 +76,7 @@ export default function ContentCalendarHub() {
   // 편집 상태
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingContent, setEditingContent] = useState<HubContent | null>(null);
+  const [activeEditTab, setActiveEditTab] = useState<'basic' | 'channels' | 'preview'>('basic');
 
   // 연간 콘텐츠 자동생성 상태
   const [showAnnualModal, setShowAnnualModal] = useState(false);
@@ -233,9 +234,47 @@ export default function ContentCalendarHub() {
 
   // 허브 콘텐츠 편집
   const editContent = (content: HubContent) => {
-    setEditingContent(content);
+    setEditingContent({...content});
     setShowEditModal(true);
+    setActiveEditTab('basic');
   };
+
+  // 연결된 채널 총 개수 계산
+  const getTotalChannelCount = (content: HubContent) => {
+    const blogCount = blogDataMap[content.id]?.length || 0;
+    const smsCount = smsDataMap[content.id]?.length || 0;
+    const naverCount = naverBlogDataMap[content.id]?.length || 0;
+    return blogCount + smsCount + naverCount;
+  };
+
+  // 키보드 단축키 처리
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (showEditModal && editingContent) {
+        // Esc: 모달 닫기
+        if (e.key === 'Escape') {
+          setShowEditModal(false);
+        }
+        // Cmd/Ctrl + S: 저장
+        if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+          e.preventDefault();
+          if (editingContent) {
+            updateContent();
+          }
+        }
+        // Enter (Ctrl/Cmd + Enter): 저장
+        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+          e.preventDefault();
+          if (editingContent) {
+            updateContent();
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showEditModal, editingContent]);
 
   // 블로그 개수 계산 (다중 연결 지원)
   const getBlogCount = (content: HubContent) => {
@@ -1550,15 +1589,23 @@ export default function ContentCalendarHub() {
                       ) : (
                         contents.map((content, index) => (
                           <tr key={content.id}>
-                            <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center w-16">
+                            <td 
+                              className="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center w-16 cursor-pointer hover:text-blue-600 hover:underline transition-colors"
+                              onClick={() => editContent(content)}
+                              title="클릭하여 편집"
+                            >
                               {(() => {
                                 const order = content.hub_order || ((pagination.page - 1) * pagination.limit + index + 1);
                                 const totalDigits = pagination.total.toString().length;
                                 return String(order).padStart(Math.max(3, totalDigits), '0');
                               })()}
                             </td>
-                            <td className="px-6 py-3 whitespace-normal align-top w-2/5">
-                              <div className="text-sm font-medium text-gray-900 break-words" title={content.title}>
+                            <td 
+                              className="px-6 py-3 whitespace-normal align-top w-2/5 cursor-pointer hover:text-blue-600 transition-colors"
+                              onClick={() => editContent(content)}
+                              title="클릭하여 편집"
+                            >
+                              <div className="text-sm font-medium text-gray-900 break-words">
                                 {content.title}
                               </div>
                             </td>
@@ -1778,19 +1825,26 @@ export default function ContentCalendarHub() {
                                 {renderDynamicChannelsCollapsed(content)}
                               </div>
                             </td>
-                            <td className="px-6 py-3 whitespace-nowrap text-sm font-medium align-top w-28">
-                              <button
-                                onClick={() => editContent(content)}
-                                className="text-blue-600 hover:text-blue-900 mr-3"
-                              >
-                                편집
-                              </button>
-                              <button
-                                onClick={() => deleteContent(content.id)}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                삭제
-                              </button>
+                            <td className="px-6 py-3 whitespace-nowrap text-sm font-medium align-top w-28 group">
+                              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                  onClick={() => editContent(content)}
+                                  className="text-blue-600 hover:text-blue-900"
+                                  title="편집"
+                                >
+                                  편집
+                                </button>
+                                <button
+                                  onClick={() => deleteContent(content.id)}
+                                  className="text-red-600 hover:text-red-900"
+                                  title="삭제"
+                                >
+                                  삭제
+                                </button>
+                              </div>
+                              <div className="opacity-100 group-hover:opacity-0 transition-opacity">
+                                <span className="text-gray-400 text-xs">호버</span>
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -1988,69 +2042,273 @@ export default function ContentCalendarHub() {
           </div>
         )}
 
-        {/* 편집 모달 */}
+        {/* 개선된 편집 모달 */}
         {showEditModal && editingContent && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-              <div className="mt-3">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">허브 콘텐츠 편집</h3>
-                
-                <div className="space-y-4">
+            <div className="relative top-10 mx-auto p-6 border w-11/12 md:w-4/5 lg:max-w-4xl shadow-lg rounded-md bg-white">
+              {/* 헤더 */}
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">허브 콘텐츠 편집</h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    순번: {editingContent.hub_order || 'N/A'} | 
+                    ID: {editingContent.id.substring(0, 8)}...
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                  title="닫기 (Esc)"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* 탭 메뉴 */}
+              <div className="border-b border-gray-200 mb-6">
+                <nav className="flex space-x-8">
+                  <button
+                    onClick={() => setActiveEditTab('basic')}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                      activeEditTab === 'basic'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    기본 정보
+                  </button>
+                  <button
+                    onClick={() => setActiveEditTab('channels')}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                      activeEditTab === 'channels'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    연결된 채널 ({getTotalChannelCount(editingContent)})
+                  </button>
+                  <button
+                    onClick={() => setActiveEditTab('preview')}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                      activeEditTab === 'preview'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    미리보기
+                  </button>
+                </nav>
+              </div>
+
+              {/* 탭 콘텐츠 */}
+              {activeEditTab === 'basic' && (
+                <div className="space-y-6">
+                  {/* 제목 */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">제목</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      제목 *
+                    </label>
                     <input
                       type="text"
                       value={editingContent.title}
                       onChange={(e) => setEditingContent({...editingContent, title: e.target.value})}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="허브 콘텐츠 제목을 입력하세요"
                     />
                   </div>
-                  
+
+                  {/* 요약 */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">요약 (다른 채널 활용용)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      요약 (다른 채널 활용용) *
+                    </label>
                     <textarea
                       value={editingContent.summary || ''}
                       onChange={(e) => setEditingContent({...editingContent, summary: e.target.value})}
-                      rows={3}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      rows={4}
+                      className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="SMS, 네이버 블로그 등에서 활용할 요약 내용을 입력하세요"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      이 요약은 다른 채널 콘텐츠 생성 시 활용됩니다.
+                    </p>
                   </div>
-                  
+
+                  {/* 간단한 개요 */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">간단한 개요</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      간단한 개요
+                    </label>
                     <textarea
                       value={editingContent.content_body || ''}
                       onChange={(e) => setEditingContent({...editingContent, content_body: e.target.value})}
-                      rows={4}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      rows={6}
+                      className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="허브 콘텐츠의 상세 내용을 입력하세요"
                     />
                   </div>
-                  
+
+                  {/* 콘텐츠 날짜 */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">콘텐츠 날짜</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      콘텐츠 날짜 *
+                    </label>
                     <input
                       type="date"
                       value={editingContent.content_date}
                       onChange={(e) => setEditingContent({...editingContent, content_date: e.target.value})}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                 </div>
-                
-                <div className="flex gap-3 mt-6">
-                  <button
-                    onClick={updateContent}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                  >
-                    수정
-                  </button>
-                  <button
-                    onClick={() => setShowEditModal(false)}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-                  >
-                    취소
-                  </button>
+              )}
+
+              {activeEditTab === 'channels' && (
+                <div className="space-y-4">
+                  {/* 연결된 블로그 */}
+                  {blogDataMap[editingContent.id] && blogDataMap[editingContent.id].length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold bg-black text-white">홈</span>
+                        블로그 (홈피)
+                      </h4>
+                      <div className="space-y-2">
+                        {blogDataMap[editingContent.id].map((blog) => (
+                          <div key={blog.id} className="flex items-center justify-between p-3 bg-gray-50 rounded border hover:bg-gray-100 transition-colors">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs font-semibold whitespace-nowrap">
+                                ID: {blog.id}
+                              </span>
+                              <span className="text-sm text-gray-900 truncate">{blog.title}</span>
+                              <span className={`px-2 py-1 rounded-full text-xs whitespace-nowrap ${
+                                blog.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {blog.status === 'published' ? '발행됨' : '수정중'}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => window.open(`/admin/blog?edit=${blog.id}&hub=${editingContent.id}`, '_blank')}
+                              className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 whitespace-nowrap ml-3"
+                            >
+                              편집
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 연결된 SMS */}
+                  {smsDataMap[editingContent.id] && smsDataMap[editingContent.id].length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold bg-gray-600 text-white">메</span>
+                        SMS
+                      </h4>
+                      <div className="space-y-2">
+                        {smsDataMap[editingContent.id].map((sms, index) => (
+                          <div key={sms.id} className="flex items-center justify-between p-3 bg-gray-50 rounded border hover:bg-gray-100 transition-colors">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-semibold whitespace-nowrap">
+                                #{index + 1}
+                              </span>
+                              <span className="text-sm text-gray-900 truncate">
+                                {sms.title || sms.content || sms.message || '제목 없음'}
+                              </span>
+                              <span className={`px-2 py-1 rounded-full text-xs whitespace-nowrap ${
+                                sms.status === 'sent' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {sms.status === 'sent' ? '발행됨' : '수정중'}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => window.open(`/admin/sms?edit=${sms.id}&mode=edit`, '_blank')}
+                              className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 whitespace-nowrap ml-3"
+                            >
+                              편집
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 연결된 네이버 블로그 */}
+                  {naverBlogDataMap[editingContent.id] && naverBlogDataMap[editingContent.id].length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold text-white" style={{ backgroundColor: '#03C75A' }}>네</span>
+                        네이버 블로그
+                      </h4>
+                      <div className="space-y-2">
+                        {naverBlogDataMap[editingContent.id].map((naverBlog) => (
+                          <div key={naverBlog.id} className="flex items-center justify-between p-3 bg-gray-50 rounded border hover:bg-gray-100 transition-colors">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-semibold whitespace-nowrap">
+                                ID: {naverBlog.id}
+                              </span>
+                              <span className="text-sm text-gray-900 truncate">{naverBlog.title || '제목 없음'}</span>
+                              <span className={`px-2 py-1 rounded-full text-xs whitespace-nowrap ${
+                                naverBlog.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {naverBlog.status === 'published' ? '발행됨' : '초안'}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => window.open(`/admin/naver-blog-advanced?edit=${naverBlog.id}&hub=${editingContent.id}`, '_blank')}
+                              className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 whitespace-nowrap ml-3"
+                            >
+                              편집
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 연결된 채널이 없는 경우 */}
+                  {!blogDataMap[editingContent.id]?.length && 
+                   !smsDataMap[editingContent.id]?.length && 
+                   !naverBlogDataMap[editingContent.id]?.length && (
+                    <div className="text-center py-8 text-gray-500">
+                      <p className="text-sm">연결된 채널이 없습니다.</p>
+                      <p className="text-xs mt-1">채널별 "초안 생성" 버튼을 사용하여 콘텐츠를 생성하세요.</p>
+                    </div>
+                  )}
                 </div>
+              )}
+
+              {activeEditTab === 'preview' && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-gray-50 rounded border">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">제목</h4>
+                    <p className="text-base text-gray-900">{editingContent.title}</p>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded border">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">요약</h4>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{editingContent.summary || '요약 없음'}</p>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded border">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">간단한 개요</h4>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{editingContent.content_body || '내용 없음'}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* 하단 버튼 */}
+              <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                >
+                  취소 (Esc)
+                </button>
+                <button
+                  onClick={updateContent}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  수정 (Cmd/Ctrl + S)
+                </button>
               </div>
             </div>
           </div>
