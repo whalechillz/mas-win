@@ -1631,7 +1631,7 @@ export default function ContentCalendarHub() {
                                       blogDataMap[content.id].map((blog) => (
                                         <div key={blog.id} className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded border border-gray-200 hover:bg-gray-100 transition-colors group">
                                           {/* 채널 약자 뱃지 */}
-                                          <span className="inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold bg-black text-white flex-shrink-0">
+                                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold bg-black text-white flex-shrink-0">
                                             홈
                                           </span>
                                           {/* ID 뱃지 (클릭 가능) */}
@@ -1663,13 +1663,6 @@ export default function ContentCalendarHub() {
                                               title="보기"
                                             >
                                               👁️
-                                            </button>
-                                            <button
-                                              onClick={() => handleBlogDelete(blog.id, content.id)}
-                                              className="px-1.5 py-0.5 text-xs bg-red-500 text-white rounded hover:bg-red-600"
-                                              title="삭제"
-                                            >
-                                              🗑️
                                             </button>
                                           </div>
                                         </div>
@@ -1825,8 +1818,8 @@ export default function ContentCalendarHub() {
                                 {renderDynamicChannelsCollapsed(content)}
                               </div>
                             </td>
-                            <td className="px-6 py-3 whitespace-nowrap text-sm font-medium align-top w-28 group">
-                              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <td className="px-6 py-3 whitespace-nowrap text-sm font-medium align-top w-28">
+                              <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => editContent(content)}
                                   className="text-blue-600 hover:text-blue-900"
@@ -1841,9 +1834,6 @@ export default function ContentCalendarHub() {
                                 >
                                   삭제
                                 </button>
-                              </div>
-                              <div className="opacity-100 group-hover:opacity-0 transition-opacity">
-                                <span className="text-gray-400 text-xs">호버</span>
                               </div>
                             </td>
                           </tr>
