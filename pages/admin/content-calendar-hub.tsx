@@ -52,8 +52,8 @@ export default function ContentCalendarHub() {
   // 뷰 모드 (리스트/달력)
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   
-  // 탭 모드 (콘텐츠 허브/데일리 브랜딩)
-  const [activeTab, setActiveTab] = useState<'hub' | 'dailyBranding'>('hub');
+  // 탭 모드 (콘텐츠 허브/데일리 브랜딩/가이드)
+  const [activeTab, setActiveTab] = useState<'hub' | 'dailyBranding' | 'guide'>('hub');
   
   // 페이지네이션 상태
   const [pagination, setPagination] = useState({
@@ -1498,6 +1498,16 @@ export default function ContentCalendarHub() {
               >
                 📅 데일리 브랜딩
               </button>
+              <button
+                onClick={() => setActiveTab('guide')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'guide'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                📚 가이드
+              </button>
             </nav>
           </div>
           
@@ -1956,6 +1966,219 @@ export default function ContentCalendarHub() {
                   카카오톡 콘텐츠 관리 →
                 </a>
                 <p className="text-xs text-gray-400 mt-4">다른 채널(당근, 인스타, 쓰레드, 그록)은 곧 추가될 예정입니다.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 가이드 탭 */}
+        {activeTab === 'guide' && (
+          <div className="bg-white shadow rounded-lg p-8">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">📚 주간 허브 콘텐츠 전략 가이드</h2>
+              
+              <div className="prose prose-lg max-w-none">
+                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                  <h3 className="text-xl font-semibold text-blue-900 mb-2">개요</h3>
+                  <ul className="list-disc list-inside space-y-2 text-gray-700">
+                    <li><strong>발행 주기</strong>: 월화수목금 (주 5일)</li>
+                    <li><strong>총 허브 콘텐츠</strong>: 주당 5개 (월 20개, 연간 약 260개)</li>
+                    <li><strong>타겟 페르소나</strong>: 피팅 선호 시니어 (50-70대), 테크 선호 얼리어답터 (30-50대)</li>
+                  </ul>
+                </div>
+
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">요일별 콘텐츠 구성 전략</h3>
+                  
+                  <div className="space-y-6">
+                    <div className="border-l-4 border-blue-500 pl-4">
+                      <h4 className="text-xl font-semibold text-gray-900 mb-2">월요일: 킬러 콘텐츠 - 드라이버 비거리 늘리기 비법 (시리즈)</h4>
+                      <p className="text-gray-700 mb-2">하나의 허브로 시리즈 연재 (1편, 2편, 3편...)</p>
+                      <p className="text-sm text-gray-600">소스: golfdistillery.com, golfclubsadvisor.com</p>
+                      <div className="mt-3 space-y-1">
+                        <p className="text-sm font-medium text-gray-700">베리에이션:</p>
+                        <ul className="list-disc list-inside text-sm text-gray-600 space-y-1 ml-4">
+                          <li>블로그: 상세 가이드 (2000-3000자)</li>
+                          <li>SMS: 핵심 팁 요약 (200자)</li>
+                          <li>네이버 블로그: SEO 최적화 버전</li>
+                          <li>카카오톡: 인포그래픽 + 요약</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="border-l-4 border-green-500 pl-4">
+                      <h4 className="text-xl font-semibold text-gray-900 mb-2">화요일: 유용한 정보 - 건강/안전/보험</h4>
+                      <p className="text-gray-700 mb-2">제품 정보가 아닌 유용한 정보</p>
+                      <div className="mt-3 space-y-1">
+                        <p className="text-sm font-medium text-gray-700">예시 주제:</p>
+                        <ul className="list-disc list-inside text-sm text-gray-600 space-y-1 ml-4">
+                          <li>골프채 파손 보험 가입 가이드</li>
+                          <li>골프장에서의 건강 관리법</li>
+                          <li>시니어 골퍼를 위한 운동 가이드</li>
+                          <li>골프 부상 예방법</li>
+                          <li>골프 장비 관리와 수명 연장</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="border-l-4 border-blue-500 pl-4">
+                      <h4 className="text-xl font-semibold text-gray-900 mb-2">수요일: 킬러 콘텐츠 - 드라이버 비거리 늘리기 비법 (시리즈)</h4>
+                      <p className="text-gray-700">월요일 시리즈 연속</p>
+                    </div>
+
+                    <div className="border-l-4 border-purple-500 pl-4">
+                      <h4 className="text-xl font-semibold text-gray-900 mb-2">목요일: 제품/브랜드 콘텐츠</h4>
+                      <p className="text-gray-700 mb-2">MUZIIK 콜라보 제품, 시타 후기, 네이버 스마트 스토어 소개</p>
+                      <div className="mt-3 space-y-1">
+                        <p className="text-sm font-medium text-gray-700">예시 주제 (순환):</p>
+                        <ul className="list-disc list-inside text-sm text-gray-600 space-y-1 ml-4">
+                          <li>MUZIIK 콜라보 제품 소개 (weapon-beryl, gold2-sapphire, pro3-muziik)</li>
+                          <li>시타 후기 (제품별 각 2개씩, 총 6개)</li>
+                          <li>네이버 스마트 스토어 이용 가이드</li>
+                          <li>MUZIIK 티타늄 샤프트 기술 소개</li>
+                          <li>설문 결과 기반 제품 추천</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="border-l-4 border-blue-500 pl-4">
+                      <h4 className="text-xl font-semibold text-gray-900 mb-2">금요일: 킬러 콘텐츠 - 드라이버 비거리 늘리기 비법 (시리즈)</h4>
+                      <p className="text-gray-700">월/수 시리즈 연속</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-8 bg-gray-50 p-6 rounded-lg">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">주간 콘텐츠 개수 계산</h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">주당 허브 콘텐츠</p>
+                      <p className="text-2xl font-bold text-blue-600">5개</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">월간 허브 콘텐츠</p>
+                      <p className="text-2xl font-bold text-green-600">20개</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">연간 허브 콘텐츠</p>
+                      <p className="text-2xl font-bold text-purple-600">240-260개</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">킬러 콘텐츠: 드라이버 비거리 늘리기 비법 시리즈</h3>
+                  <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-4">
+                    <p className="text-sm font-medium text-yellow-900 mb-2">시리즈 구조</p>
+                    <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                      <li>하나의 허브 콘텐츠로 시리즈 연재 (관리 편의성)</li>
+                      <li>각 편은 독립적인 블로그 포스트로 발행</li>
+                      <li>허브에서 시리즈 전체 관리</li>
+                    </ul>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 mt-4">
+                    <div className="bg-blue-50 p-4 rounded">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Phase 1: 기초편 (1-4주)</p>
+                      <ul className="text-xs text-gray-600 space-y-1">
+                        <li>1. 스윙 속도 향상의 5가지 비법</li>
+                        <li>2. 임팩트 포인트 최적화</li>
+                        <li>3. 시니어 골퍼 특별 가이드</li>
+                        <li>4. 헤드 스피드 측정과 개선</li>
+                      </ul>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Phase 2: 중급편 (5-8주)</p>
+                      <ul className="text-xs text-gray-600 space-y-1">
+                        <li>5. 스윙 궤적과 비거리</li>
+                        <li>6. 백스윙에서 비거리 만들기</li>
+                        <li>7. 다운스윙 가속화 기술</li>
+                        <li>8. 임팩트 순간 파워 전달</li>
+                      </ul>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Phase 3: 고급편 (9-12주)</p>
+                      <ul className="text-xs text-gray-600 space-y-1">
+                        <li>9. 클럽 피팅과 비거리</li>
+                        <li>10. 샤프트 선택의 영향</li>
+                        <li>11. 헤드 로프트와 비거리</li>
+                        <li>12. 시니어 골퍼 사례 연구</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">채널별 베리에이션 전략</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="border border-gray-200 p-4 rounded">
+                      <h4 className="font-semibold text-gray-900 mb-2">블로그 (홈피)</h4>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>길이: 2000-3000자</li>
+                        <li>이미지: 3-5장</li>
+                        <li>SEO 최적화</li>
+                        <li>CTA: 시타 체험 예약</li>
+                      </ul>
+                    </div>
+                    <div className="border border-gray-200 p-4 rounded">
+                      <h4 className="font-semibold text-gray-900 mb-2">SMS</h4>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>길이: 200자 이내</li>
+                        <li>핵심 정보 요약</li>
+                        <li>블로그 링크 포함</li>
+                      </ul>
+                    </div>
+                    <div className="border border-gray-200 p-4 rounded">
+                      <h4 className="font-semibold text-gray-900 mb-2">네이버 블로그</h4>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>길이: 1500-2000자</li>
+                        <li>쇼핑 최적화 버전</li>
+                        <li>스마트 스토어 링크</li>
+                      </ul>
+                    </div>
+                    <div className="border border-gray-200 p-4 rounded">
+                      <h4 className="font-semibold text-gray-900 mb-2">카카오톡</h4>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>인포그래픽 + 요약</li>
+                        <li>핵심 정보 시각화</li>
+                        <li>간결한 메시지</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-100 p-6 rounded-lg">
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">📖 상세 문서</h3>
+                  <p className="text-sm text-gray-600 mb-4">더 자세한 내용은 다음 문서를 참고하세요:</p>
+                  <ul className="space-y-2">
+                    <li>
+                      <a 
+                        href="/docs/weekly-hub-content-strategy.md" 
+                        target="_blank"
+                        className="text-blue-600 hover:text-blue-800 underline"
+                      >
+                        📄 주간 허브 콘텐츠 전략 계획
+                      </a>
+                    </li>
+                    <li>
+                      <a 
+                        href="/docs/content-calendar/weekly-schedule-2025.md" 
+                        target="_blank"
+                        className="text-blue-600 hover:text-blue-800 underline"
+                      >
+                        📅 주간 스케줄 (2025)
+                      </a>
+                    </li>
+                    <li>
+                      <a 
+                        href="/docs/content-templates/daily-content-templates.md" 
+                        target="_blank"
+                        className="text-blue-600 hover:text-blue-800 underline"
+                      >
+                        📝 요일별 콘텐츠 템플릿
+                      </a>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
