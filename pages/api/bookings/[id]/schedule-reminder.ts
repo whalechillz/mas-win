@@ -379,35 +379,81 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // DELETE: 예약 메시지 삭제
   if (req.method === 'DELETE') {
     try {
-      // note 필드로 기존 메시지 조회 후 삭제
-      const { data: existingReminders } = await supabase
-        .from('channel_sms')
-        .select('id')
-        .like('note', `%예약 당일 알림: 예약 ID ${bookingId}%`)
-        .eq('status', 'draft');
+      const bookingIdNum = typeof bookingId === 'string' ? parseInt(bookingId) : bookingId;
+      let reminderIds: string[] = [];
 
-      if (existingReminders && existingReminders.length > 0) {
-        const ids = existingReminders.map(r => r.id);
+      // 1. metadata로 조회
+      const { data: metadataReminders, error: metadataError } = await supabase
+        .from('channel_sms')
+        .select('id, metadata')
+        .in('status', ['draft', 'sent', 'partial']);
+
+      if (!metadataError && metadataReminders) {
+        const matchedReminders = metadataReminders.filter((r: any) => {
+          if (!r.metadata) return false;
+          
+          let metadata = r.metadata;
+          if (typeof metadata === 'string') {
+            try {
+              metadata = JSON.parse(metadata);
+            } catch (e) {
+              return false;
+            }
+          }
+          
+          if (metadata && typeof metadata === 'object') {
+            const metadataBookingId = metadata.booking_id;
+            const metadataBookingIdNum = typeof metadataBookingId === 'string' 
+              ? parseInt(metadataBookingId) 
+              : metadataBookingId;
+            
+            return metadataBookingIdNum === bookingIdNum && 
+                   metadata.notification_type === 'booking_reminder_2h';
+          }
+          
+          return false;
+        });
+        
+        reminderIds.push(...matchedReminders.map((r: any) => r.id));
+      }
+
+      // 2. note 필드로도 조회 (metadata로 찾지 못한 경우)
+      if (reminderIds.length === 0) {
+        const { data: noteReminders, error: noteError } = await supabase
+          .from('channel_sms')
+          .select('id')
+          .like('note', `%예약 당일 알림: 예약 ID ${bookingId}%`)
+          .in('status', ['draft', 'sent', 'partial']);
+
+        if (!noteError && noteReminders) {
+          reminderIds.push(...noteReminders.map((r: any) => r.id));
+        }
+      }
+
+      // 3. 삭제 실행
+      if (reminderIds.length > 0) {
         const { error } = await supabase
           .from('channel_sms')
           .delete()
-          .in('id', ids);
+          .in('id', reminderIds);
 
-      if (error) {
-        console.error('예약 메시지 삭제 오류:', error);
-        return res.status(500).json({
-          success: false,
-          message: '예약 메시지 삭제에 실패했습니다.',
+        if (error) {
+          console.error('예약 메시지 삭제 오류:', error);
+          return res.status(500).json({
+            success: false,
+            message: '예약 메시지 삭제에 실패했습니다.',
+          });
+        }
+
+        console.log(`[schedule-reminder] 예약 ID ${bookingId} 메시지 삭제 완료: ${reminderIds.length}개`);
+        return res.status(200).json({
+          success: true,
+          message: '예약 메시지가 취소되었습니다.',
         });
       }
 
-      return res.status(200).json({
-        success: true,
-        message: '예약 메시지가 취소되었습니다.',
-      });
-      }
-
       // 삭제할 메시지가 없으면 그대로 성공 처리
+      console.log(`[schedule-reminder] 예약 ID ${bookingId} 삭제할 메시지 없음`);
       return res.status(200).json({
         success: true,
         message: '예약 메시지가 없습니다.',

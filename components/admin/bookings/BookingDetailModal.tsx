@@ -322,35 +322,9 @@ export default function BookingDetailModal({
   };
 
   const handleSaveReminder = async () => {
+    // 체크박스가 해제된 경우는 onChange에서 처리하므로 여기서는 생성/수정만 처리
     if (!reminderEnabled) {
-      // 체크 해제 시 예약 메시지 삭제
-      if (existingReminder) {
-        setReminderSaving(true);
-        try {
-          const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
-          const response = await fetch(`/api/bookings/${bookingId}/schedule-reminder`, {
-            method: 'DELETE',
-          });
-          
-          // ⭐ 수정: 에러 응답 읽기
-          const result = await response.json().catch(() => ({ 
-            success: false, 
-            message: '응답을 읽을 수 없습니다.' 
-          }));
-
-          if (response.ok && result.success) {
-            setExistingReminder(null);
-            alert('당일 예약 메시지가 취소되었습니다.');
-          } else {
-            throw new Error(result.message || '예약 메시지 취소에 실패했습니다.');
-          }
-        } catch (error: any) {
-          console.error('예약 메시지 삭제 오류:', error);
-          alert('예약 메시지 취소에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
-        } finally {
-          setReminderSaving(false);
-        }
-      }
+      alert('체크박스를 먼저 체크해주세요.');
       return;
     }
 
@@ -682,7 +656,45 @@ export default function BookingDetailModal({
                 type="checkbox"
                 id="reminder-enabled"
                 checked={reminderEnabled}
-                onChange={(e) => setReminderEnabled(e.target.checked)}
+                onChange={async (e) => {
+                  const newValue = e.target.checked;
+                  setReminderEnabled(newValue);
+                  
+                  // 체크 해제 시 즉시 삭제 확인
+                  if (!newValue && existingReminder) {
+                    if (confirm('당일 예약 메시지를 삭제하시겠습니까?')) {
+                      setReminderSaving(true);
+                      try {
+                        const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
+                        const response = await fetch(`/api/bookings/${bookingId}/schedule-reminder`, {
+                          method: 'DELETE',
+                        });
+                        
+                        const result = await response.json().catch(() => ({ 
+                          success: false, 
+                          message: '응답을 읽을 수 없습니다.' 
+                        }));
+
+                        if (response.ok && result.success) {
+                          setExistingReminder(null);
+                          alert('✅ 당일 예약 메시지가 삭제되었습니다.');
+                        } else {
+                          // 삭제 실패 시 체크박스 다시 체크
+                          setReminderEnabled(true);
+                          throw new Error(result.message || '예약 메시지 삭제에 실패했습니다.');
+                        }
+                      } catch (error: any) {
+                        console.error('예약 메시지 삭제 오류:', error);
+                        alert('❌ 예약 메시지 삭제에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
+                      } finally {
+                        setReminderSaving(false);
+                      }
+                    } else {
+                      // 취소 시 체크박스 다시 체크
+                      setReminderEnabled(true);
+                    }
+                  }
+                }}
                 className="mt-1"
                 disabled={reminderSaving || reminderLoading}
               />
