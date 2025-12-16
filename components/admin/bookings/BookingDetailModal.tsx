@@ -106,10 +106,17 @@ export default function BookingDetailModal({
       setReminderLoading(true); // 로딩 시작
       try {
         const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
+        console.log('[BookingDetailModal] 예약 메시지 확인 시작:', { bookingId, booking });
+        
         const response = await fetch(`/api/bookings/${bookingId}/schedule-reminder`);
+        console.log('[BookingDetailModal] API 응답 상태:', response.status);
+        
         if (response.ok) {
           const data = await response.json();
+          console.log('[BookingDetailModal] API 응답 데이터:', data);
+          
           if (data.success && data.reminder) {
+            console.log('[BookingDetailModal] 기존 예약 메시지 발견:', data.reminder);
             setExistingReminder(data.reminder);
             setReminderEnabled(true); // 기존 예약 메시지가 있으면 체크
             if (data.reminder.scheduled_at) {
@@ -118,17 +125,20 @@ export default function BookingDetailModal({
               setReminderScheduledAt(formatLocalDateTime(kstDate));
             }
           } else {
+            console.log('[BookingDetailModal] 기존 예약 메시지 없음');
             // 기존 예약 메시지가 없으면 명시적으로 해제
             setExistingReminder(null);
             setReminderEnabled(false);
           }
         } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('[BookingDetailModal] API 호출 실패:', response.status, errorData);
           // API 호출 실패 시에도 명시적으로 해제
           setExistingReminder(null);
           setReminderEnabled(false);
         }
       } catch (error) {
-        console.error('예약 메시지 확인 오류:', error);
+        console.error('[BookingDetailModal] 예약 메시지 확인 오류:', error);
         setExistingReminder(null);
         setReminderEnabled(false);
       } finally {

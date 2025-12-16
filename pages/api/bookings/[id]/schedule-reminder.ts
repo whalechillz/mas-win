@@ -46,8 +46,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // 클라이언트 측에서 필터링 (metadata 필드가 없을 수 있음)
         reminders = metadataReminders.filter((r: any) => {
           if (!r.metadata) return false;
-          return r.metadata.booking_id === bookingId && 
-                 r.metadata.notification_type === 'booking_reminder_2h';
+          
+          // metadata가 문자열인 경우 파싱
+          let metadata = r.metadata;
+          if (typeof metadata === 'string') {
+            try {
+              metadata = JSON.parse(metadata);
+            } catch (e) {
+              return false;
+            }
+          }
+          
+          // booking_id 타입 불일치 해결 (숫자/문자열 모두 비교)
+          const metadataBookingId = metadata.booking_id;
+          const bookingIdNum = typeof bookingId === 'string' ? parseInt(bookingId) : bookingId;
+          const metadataBookingIdNum = typeof metadataBookingId === 'string' 
+            ? parseInt(metadataBookingId) 
+            : metadataBookingId;
+          
+          return metadataBookingIdNum === bookingIdNum && 
+                 metadata.notification_type === 'booking_reminder_2h';
         });
       } else {
         // metadata 필드가 없으면 note 필드로 조회
@@ -67,6 +85,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (error) throw error;
+
+      // ⭐ 추가: 디버깅 로그
+      console.log(`[schedule-reminder] 예약 ID ${bookingId} 조회 결과:`, {
+        found: reminders.length > 0,
+        reminders: reminders.map(r => ({
+          id: r.id,
+          status: r.status,
+          scheduled_at: r.scheduled_at,
+          metadata: r.metadata,
+          note: r.note,
+        })),
+      });
 
       if (reminders && reminders.length > 0) {
         return res.status(200).json({
