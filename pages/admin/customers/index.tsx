@@ -692,9 +692,16 @@ function CustomerFormModal({ mode, customer, onClose, onSuccess }: {
   const formatDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return '';
     try {
-      return dateStr.substring(0, 10);
+      // ISO 문자열을 KST 기준으로 파싱하여 날짜만 추출
+      const date = new Date(dateStr);
+      // KST 오프셋(+9시간)을 고려하여 날짜 추출
+      const kstYear = date.getFullYear();
+      const kstMonth = String(date.getMonth() + 1).padStart(2, '0');
+      const kstDay = String(date.getDate()).padStart(2, '0');
+      return `${kstYear}-${kstMonth}-${kstDay}`;
     } catch {
-      return '';
+      // fallback: 원래 방식
+      return dateStr.substring(0, 10);
     }
   };
 
