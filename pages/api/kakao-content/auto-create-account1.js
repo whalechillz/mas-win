@@ -90,6 +90,22 @@ export default async function handler(req, res) {
       throw feedError;
     }
 
+    // feedData가 없으면 초기화
+    if (!feedData) {
+      feedData = {
+        date,
+        account: 'account1',
+        image_category: null,
+        base_prompt: null,
+        image_prompt: null,
+        caption: null,
+        image_url: null,
+        url: null,
+        status: 'planned',
+        created: false
+      };
+    }
+
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
@@ -518,10 +534,22 @@ export default async function handler(req, res) {
             // 결과에 모든 이미지 URL 포함 (선택 가능하도록)
             results.feed.allImageUrls = imageData.imageUrls;
             results.feed.totalGenerated = imageData.imageUrls.length;
+          } else {
+            // ✅ 개선: 이미지가 생성되지 않은 경우 명확한 에러
+            throw new Error('이미지 생성은 성공했지만 URL을 받지 못했습니다.');
           }
         } else {
           const errorData = await imageResponse.json().catch(() => ({}));
-          results.feed.error = errorData.error || `HTTP ${imageResponse.status}`;
+          const errorMessage = errorData.error || `HTTP ${imageResponse.status}`;
+          
+          // ✅ 개선: 에러 타입별 처리
+          if (imageResponse.status === 402 || imageResponse.status === 403) {
+            throw new Error(`크레딧 부족: ${errorMessage}`);
+          } else if (imageResponse.status === 500) {
+            throw new Error(`서버 오류: ${errorMessage}`);
+          } else {
+            throw new Error(`이미지 생성 실패: ${errorMessage}`);
+          }
         }
       } catch (error) {
         results.feed.error = error.message;
@@ -565,6 +593,56 @@ export default async function handler(req, res) {
       if (feedUpsertError) {
         console.error('피드 데이터 저장 오류:', feedUpsertError);
         // 피드 저장 실패는 치명적이지 않으므로 계속 진행
+      } else {
+        // ✅ basePrompt를 kakao_calendar에도 동기화
+        if (feedData.base_prompt) {
+          try {
+            const { data: calendarRecord } = await supabase
+              .from('kakao_calendar')
+              .select('kakaoFeed')
+              .eq('month', monthStr)
+              .single();
+
+            if (calendarRecord?.kakaoFeed) {
+              const kakaoFeed = { ...calendarRecord.kakaoFeed };
+              if (!kakaoFeed.dailySchedule) {
+                kakaoFeed.dailySchedule = [];
+              }
+
+              const feedIndex = kakaoFeed.dailySchedule.findIndex(
+                (f) => f.date === date
+              );
+
+              if (feedIndex >= 0) {
+                // 기존 항목 업데이트
+                if (!kakaoFeed.dailySchedule[feedIndex].account1) {
+                  kakaoFeed.dailySchedule[feedIndex].account1 = {};
+                }
+                kakaoFeed.dailySchedule[feedIndex].account1.basePrompt = feedData.base_prompt;
+              } else {
+                // 새 항목 생성
+                kakaoFeed.dailySchedule.push({
+                  date,
+                  account1: { basePrompt: feedData.base_prompt },
+                  account2: {}
+                });
+              }
+
+              const { error: calendarUpdateError } = await supabase
+                .from('kakao_calendar')
+                .update({ kakaoFeed })
+                .eq('month', monthStr);
+
+              if (calendarUpdateError) {
+                console.warn('⚠️ kakao_calendar basePrompt 동기화 실패:', calendarUpdateError.message);
+              } else {
+                console.log(`✅ kakao_calendar basePrompt 동기화 완료: ${date}`);
+              }
+            }
+          } catch (calendarError) {
+            console.warn('⚠️ kakao_calendar 동기화 실패 (치명적이지 않음):', calendarError.message);
+          }
+        }
       }
     }
 

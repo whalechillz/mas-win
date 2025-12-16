@@ -90,6 +90,22 @@ export default async function handler(req, res) {
       throw feedError;
     }
 
+    // feedData가 없으면 초기화
+    if (!feedData) {
+      feedData = {
+        date,
+        account: 'account2',
+        image_category: null,
+        base_prompt: null,
+        image_prompt: null,
+        caption: null,
+        image_url: null,
+        url: null,
+        status: 'planned',
+        created: false
+      };
+    }
+
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
@@ -441,6 +457,41 @@ export default async function handler(req, res) {
           throw new Error('프롬프트 생성 실패');
         }
 
+        // 피드 캡션 생성 (이미지 생성 전에 생성 - account1과 동일한 순서)
+        let feedCaption = feedData.caption;
+        if (!feedCaption || feedCaption.trim().length === 0) {
+          try {
+            const captionResponse = await fetch(`${baseUrl}/api/kakao-content/generate-feed-caption`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageCategory: feedData.image_category || '젊은 골퍼의 스윙',
+                accountType: 'account2',
+                weeklyTheme,
+                date,
+                existingCaption: feedData.caption
+              })
+            });
+
+            const captionData = await captionResponse.json();
+            if (captionData.success && captionData.caption) {
+              feedCaption = captionData.caption;
+              feedData.caption = feedCaption;
+              console.log(`✅ 피드 캡션 생성 완료: ${feedCaption}`);
+            }
+          } catch (captionError) {
+            console.warn('⚠️ 피드 캡션 생성 실패, 기존 캡션 사용:', captionError.message);
+          }
+        }
+
+        // URL 자동 선택
+        const { getFeedUrl } = require('../../../lib/kakao-feed-url-selector');
+        const selectedUrl = getFeedUrl(
+          feedData.image_category || '젊은 골퍼의 스윙',
+          'account2',
+          date
+        );
+
         // 이미지 생성
         const imageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-images`, {
           method: 'POST',
@@ -452,7 +503,7 @@ export default async function handler(req, res) {
               account: 'account2',
               type: 'feed',
               date,
-              message: feedData.caption || ''
+              message: feedCaption || ''
             }
           })
         });
@@ -467,6 +518,9 @@ export default async function handler(req, res) {
             // 피드 데이터 업데이트
             feedData.image_url = imageData.imageUrls[0];
             feedData.image_prompt = imageData.generatedPrompts?.[0] || promptData.prompt;
+            feedData.caption = feedCaption || feedData.caption || '';
+            feedData.url = selectedUrl;
+            feedData.created = true;
             
             // 생성된 모든 이미지 URL 로깅 (나중에 image_metadata에서 조회 가능)
             if (imageData.imageUrls.length > 1) {
@@ -481,10 +535,22 @@ export default async function handler(req, res) {
             // 결과에 모든 이미지 URL 포함 (선택 가능하도록)
             results.feed.allImageUrls = imageData.imageUrls;
             results.feed.totalGenerated = imageData.imageUrls.length;
+          } else {
+            // ✅ 개선: 이미지가 생성되지 않은 경우 명확한 에러
+            throw new Error('이미지 생성은 성공했지만 URL을 받지 못했습니다.');
           }
         } else {
           const errorData = await imageResponse.json().catch(() => ({}));
-          results.feed.error = errorData.error || `HTTP ${imageResponse.status}`;
+          const errorMessage = errorData.error || `HTTP ${imageResponse.status}`;
+          
+          // ✅ 개선: 에러 타입별 처리
+          if (imageResponse.status === 402 || imageResponse.status === 403) {
+            throw new Error(`크레딧 부족: ${errorMessage}`);
+          } else if (imageResponse.status === 500) {
+            throw new Error(`서버 오류: ${errorMessage}`);
+          } else {
+            throw new Error(`이미지 생성 실패: ${errorMessage}`);
+          }
         }
       } catch (error) {
         results.feed.error = error.message;
@@ -493,42 +559,6 @@ export default async function handler(req, res) {
     } else if (feedData?.image_url && !forceRegenerate) {
       results.feed.success = true;
       results.feed.imageUrl = feedData.image_url;
-    }
-
-    // 피드 캡션 생성 (없는 경우)
-    if (feedData && (!feedData.caption || feedData.caption.trim().length === 0)) {
-      try {
-        const captionResponse = await fetch(`${baseUrl}/api/kakao-content/generate-feed-caption`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            imageCategory: feedData.image_category || '젊은 골퍼의 스윙',
-            accountType: 'account2',
-            weeklyTheme,
-            date,
-            existingCaption: feedData.caption
-          })
-        });
-
-        const captionData = await captionResponse.json();
-        if (captionData.success && captionData.caption) {
-          feedData.caption = captionData.caption;
-          console.log(`✅ 피드 캡션 생성 완료: ${feedData.caption}`);
-        }
-      } catch (captionError) {
-        console.warn('⚠️ 피드 캡션 생성 실패, 기존 캡션 사용:', captionError.message);
-      }
-    }
-
-    // URL 자동 선택
-    if (feedData && !feedData.url) {
-      const { getFeedUrl } = require('../../../lib/kakao-feed-url-selector');
-      const selectedUrl = getFeedUrl(
-        feedData.image_category || '젊은 골퍼의 스윙',
-        'account2',
-        date
-      );
-      feedData.url = selectedUrl;
     }
 
     // Supabase에 저장
@@ -564,6 +594,56 @@ export default async function handler(req, res) {
       if (feedUpsertError) {
         console.error('피드 데이터 저장 오류:', feedUpsertError);
         // 피드 저장 실패는 치명적이지 않으므로 계속 진행
+      } else {
+        // ✅ basePrompt를 kakao_calendar에도 동기화
+        if (feedData.base_prompt) {
+          try {
+            const { data: calendarRecord } = await supabase
+              .from('kakao_calendar')
+              .select('kakaoFeed')
+              .eq('month', monthStr)
+              .single();
+
+            if (calendarRecord?.kakaoFeed) {
+              const kakaoFeed = { ...calendarRecord.kakaoFeed };
+              if (!kakaoFeed.dailySchedule) {
+                kakaoFeed.dailySchedule = [];
+              }
+
+              const feedIndex = kakaoFeed.dailySchedule.findIndex(
+                (f) => f.date === date
+              );
+
+              if (feedIndex >= 0) {
+                // 기존 항목 업데이트
+                if (!kakaoFeed.dailySchedule[feedIndex].account2) {
+                  kakaoFeed.dailySchedule[feedIndex].account2 = {};
+                }
+                kakaoFeed.dailySchedule[feedIndex].account2.basePrompt = feedData.base_prompt;
+              } else {
+                // 새 항목 생성
+                kakaoFeed.dailySchedule.push({
+                  date,
+                  account1: {},
+                  account2: { basePrompt: feedData.base_prompt }
+                });
+              }
+
+              const { error: calendarUpdateError } = await supabase
+                .from('kakao_calendar')
+                .update({ kakaoFeed })
+                .eq('month', monthStr);
+
+              if (calendarUpdateError) {
+                console.warn('⚠️ kakao_calendar basePrompt 동기화 실패:', calendarUpdateError.message);
+              } else {
+                console.log(`✅ kakao_calendar basePrompt 동기화 완료: ${date}`);
+              }
+            }
+          } catch (calendarError) {
+            console.warn('⚠️ kakao_calendar 동기화 실패 (치명적이지 않음):', calendarError.message);
+          }
+        }
       }
     }
 

@@ -135,15 +135,22 @@ export default function FeedManager({
 
   // basePrompt 가져오기
   const getBasePrompt = (): string | undefined => {
+    // 1순위: calendarData에서 조회
     if (calendarData && accountKey && selectedDate) {
       const feedSchedule = calendarData.kakaoFeed?.dailySchedule || [];
       const schedule = feedSchedule.find((s: any) => s.date === selectedDate);
       if (schedule) {
-        return accountKey === 'account1' 
+        const basePrompt = accountKey === 'account1' 
           ? schedule.account1?.basePrompt || schedule.account1?.imageCategory
           : schedule.account2?.basePrompt || schedule.account2?.imageCategory;
+        
+        if (basePrompt && basePrompt !== '없음') {
+          return basePrompt;
+        }
       }
     }
+    
+    // 2순위: feedData에서 조회
     return feedData.basePrompt || feedData.imageCategory;
   };
 
