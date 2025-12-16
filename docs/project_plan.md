@@ -1,5 +1,8 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
+## 📚 관련 문서
+- **허브 시스템 아키텍처**: [`docs/hub-system-architecture.md`](./hub-system-architecture.md) - 허브 시스템 구조 및 향후 계획
+
 ## 프로젝트 개요
 **프로젝트 명**: MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
