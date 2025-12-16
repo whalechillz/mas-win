@@ -111,16 +111,21 @@ async function createWednesdayDistanceTips() {
   try {
     console.log('📝 허브 콘텐츠 생성 중...');
     
-    // 최신 hub_order 확인
-    const { data: latestHub, error: orderError } = await supabase
+    // 최신 hub_order 확인 (null 값 제외하고 최대값 찾기)
+    const { data: allHubs, error: allHubsError } = await supabase
       .from('cc_content_calendar')
       .select('hub_order')
       .eq('is_hub_content', true)
-      .order('hub_order', { ascending: false })
-      .limit(1)
-      .single();
+      .not('hub_order', 'is', null);
 
-    const nextHubOrder = latestHub?.hub_order ? latestHub.hub_order + 1 : 1;
+    let nextHubOrder = 1;
+    if (allHubs && allHubs.length > 0) {
+      const maxOrder = Math.max(...allHubs.map(h => h.hub_order || 0));
+      nextHubOrder = maxOrder + 1;
+      console.log(`📊 현재 최대 hub_order: ${maxOrder}, 다음 hub_order: ${nextHubOrder}`);
+    } else {
+      console.log('⚠️ hub_order가 있는 허브 콘텐츠가 없습니다. 1번부터 시작합니다.');
+    }
 
     const { data: newHubContent, error: hubError } = await supabase
       .from('cc_content_calendar')
