@@ -34,15 +34,43 @@ export default async function handler(req, res) {
 
     // 채널 상태 업데이트
     const currentChannelStatus = hubContent.channel_status || {};
-    const updatedChannelStatus = {
-      ...currentChannelStatus,
-      [channel]: {
-        status: status,
-        post_id: channelContentId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+    const currentChannel = currentChannelStatus[channel] || {};
+    
+    let updatedChannelStatus;
+    
+    // 블로그 채널의 경우 다중 연결 지원 (posts 배열)
+    if (channel === 'blog' && channelContentId) {
+      const existingPosts = currentChannel.posts || [];
+      const primaryPostId = currentChannel.post_id || currentChannel.primary_post_id;
+      
+      // posts 배열에 없으면 추가
+      if (!existingPosts.includes(channelContentId)) {
+        existingPosts.push(channelContentId);
       }
-    };
+      
+      updatedChannelStatus = {
+        ...currentChannelStatus,
+        [channel]: {
+          status: status,
+          post_id: primaryPostId || channelContentId, // 기존 호환성 유지
+          primary_post_id: primaryPostId || channelContentId, // 대표 블로그
+          posts: existingPosts, // 여러 블로그 ID 배열
+          created_at: currentChannel.created_at || new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      };
+    } else {
+      // 다른 채널은 기존 방식 유지
+      updatedChannelStatus = {
+        ...currentChannelStatus,
+        [channel]: {
+          status: status,
+          post_id: channelContentId,
+          created_at: currentChannel.created_at || new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      };
+    }
 
     const { data: updatedContent, error: updateError } = await supabase
       .from('cc_content_calendar')

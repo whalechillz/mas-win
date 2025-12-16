@@ -48,7 +48,7 @@ async function handleGet(req, res) {
         .select(`
           id, title, summary, content_body, content_date,
           blog_post_id, sms_id, naver_blog_id, kakao_id,
-          channel_status, is_hub_content, hub_priority,
+          channel_status, is_hub_content, hub_priority, hub_order,
           auto_derive_channels, created_at, updated_at,
           blog_posts!left(slug, status)
         `)
@@ -95,11 +95,12 @@ async function handleGet(req, res) {
       .select(`
         id, title, summary, content_body, content_date,
         blog_post_id, sms_id, naver_blog_id, kakao_id,
-        channel_status, is_hub_content, hub_priority,
+        channel_status, is_hub_content, hub_priority, hub_order,
         auto_derive_channels, created_at, updated_at,
         blog_posts!left(slug, status)
       `, { count: 'exact' })
       .eq('is_hub_content', true)
+      .order('hub_order', { ascending: true, nullsLast: true })
       .order('content_date', { ascending: false })
       .range(offset, offset + parseInt(limit) - 1);
 

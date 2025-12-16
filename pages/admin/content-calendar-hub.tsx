@@ -15,13 +15,21 @@ interface HubContent {
   naver_blog_id?: string;
   kakao_id?: string;
   channel_status: {
-    blog: { status: string; post_id: any; created_at: string | null };
+    blog: { 
+      status: string; 
+      post_id?: any; 
+      primary_post_id?: any;
+      posts?: number[]; // 다중 블로그 연결 지원
+      created_at: string | null;
+      updated_at?: string | null;
+    };
     sms: { status: string; post_id: any; created_at: string | null };
     naver_blog: { status: string; post_id: any; created_at: string | null };
     kakao: { status: string; post_id: any; created_at: string | null };
   };
   is_hub_content: boolean;
   hub_priority: number;
+  hub_order?: number;
   auto_derive_channels: string[];
   created_at: string;
   updated_at: string;
@@ -232,6 +240,44 @@ export default function ContentCalendarHub() {
   const editContent = (content: HubContent) => {
     setEditingContent(content);
     setShowEditModal(true);
+  };
+
+  // 블로그 개수 계산 (다중 연결 지원)
+  const getBlogCount = (content: HubContent) => {
+    // 1. 실제 블로그 목록 개수 (blogDataMap)
+    const actualBlogCount = blogDataMap[content.id]?.length || 0;
+    
+    // 2. channel_status의 블로그 개수 (다중 연결 지원)
+    const channelStatusBlog = content.channel_status?.blog;
+    const channelStatusCount = channelStatusBlog?.posts?.length || 
+                                (channelStatusBlog?.post_id ? 1 : 0);
+    
+    // 3. blog_post_id 필드 확인
+    const blogPostIdCount = content.blog_post_id ? 1 : 0;
+    
+    // 4. 최대값 반환 (동기화 문제 대비)
+    return Math.max(actualBlogCount, channelStatusCount, blogPostIdCount);
+  };
+
+  // SMS 개수 계산 (다중 연결 지원)
+  const getSMSCount = (content: HubContent) => {
+    // 1. 실제 SMS 목록 개수 (smsDataMap)
+    const actualSMSCount = smsDataMap[content.id]?.length || 0;
+    
+    // 2. channel_status의 SMS 채널 개수 (동적 채널 포함)
+    const channelStatusSMSCount = Object.keys(content.channel_status || {})
+      .filter(key => key.startsWith('sms_') || key === 'sms')
+      .filter(key => {
+        const channelData = content.channel_status[key];
+        // post_id가 있고 null이 아닌 채널만 카운트
+        return channelData?.post_id && channelData.post_id !== null;
+      }).length;
+    
+    // 3. sms_id 필드 확인
+    const smsIdCount = content.sms_id ? 1 : 0;
+    
+    // 4. 최대값 반환 (동기화 문제 대비)
+    return Math.max(actualSMSCount, channelStatusSMSCount, smsIdCount);
   };
 
   // 블로그 상태 표시 개선
@@ -1216,6 +1262,15 @@ export default function ContentCalendarHub() {
   const getChannelContentId = (content: HubContent, channel: string) => {
     // channel_status JSONB에서 post_id 가져오기
     const channelStatus = content.channel_status?.[channel];
+    
+    // 블로그 채널의 경우 다중 연결 지원
+    if (channel === 'blog' && channelStatus) {
+      // primary_post_id 우선, 없으면 post_id, 없으면 posts 배열의 첫 번째
+      return channelStatus.primary_post_id || 
+             channelStatus.post_id || 
+             (channelStatus.posts && channelStatus.posts.length > 0 ? channelStatus.posts[0] : null);
+    }
+    
     if (channelStatus?.post_id) {
       return channelStatus.post_id;
     }
@@ -1520,7 +1575,7 @@ export default function ContentCalendarHub() {
                         contents.map((content, index) => (
                           <tr key={content.id}>
                             <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center w-16">
-                              {(pagination.page - 1) * pagination.limit + index + 1}
+                              {content.hub_order || ((pagination.page - 1) * pagination.limit + index + 1)}
                             </td>
                             <td className="px-6 py-3 whitespace-normal align-top w-2/5">
                               <div className="text-sm font-medium text-gray-900 break-words" title={content.title}>
@@ -1546,7 +1601,7 @@ export default function ContentCalendarHub() {
                                   {/* 블로그 채널 */}
                                   <div className="flex items-center space-x-2">
                                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getBlogStatusDisplay(content))}`}>
-                                      홈피: {blogDataMap[content.id]?.length > 0 ? `${blogDataMap[content.id].length}개 연결` : getBlogStatusDisplay(content)}
+                                      홈피: {getBlogCount(content) > 0 ? `${getBlogCount(content)}개 연결` : getBlogStatusDisplay(content)}
                                     </span>
                                     {getChannelActionButton(content, 'blog')}
                                   </div>
@@ -1554,7 +1609,7 @@ export default function ContentCalendarHub() {
                                   {/* SMS 채널 */}
                                   <div className="flex items-center space-x-2">
                                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'sms'))}`}>
-                                      SMS: {smsDataMap[content.id]?.length > 0 ? `${smsDataMap[content.id].length}개 연결` : getChannelStatus(content, 'sms')}
+                                      SMS: {getSMSCount(content) > 0 ? `${getSMSCount(content)}개 연결` : getChannelStatus(content, 'sms')}
                                     </span>
                                     {getChannelActionButton(content, 'sms')}
                                   </div>
