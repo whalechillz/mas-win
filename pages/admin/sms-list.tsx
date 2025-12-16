@@ -526,6 +526,41 @@ export default function SMSListAdmin() {
     }
   };
 
+  const [autoLinking, setAutoLinking] = useState(false);
+
+  const handleAutoLinkSolapiGroups = async () => {
+    if (!confirm('솔라피에서 최근 24시간 동안 발송된 그룹들을 자동으로 연결하시겠습니까?\n\n이 작업은 솔라피 콘솔에서 직접 재발송한 메시지의 그룹 ID를 자동으로 찾아 연결합니다.')) {
+      return;
+    }
+
+    setAutoLinking(true);
+    
+    try {
+      const response = await fetch('/api/admin/auto-link-solapi-groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          hours: 24
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const { summary } = result;
+        alert(`자동 연결 완료!\n\n연결됨: ${summary.linked}개\n스킵됨: ${summary.skipped}개\n찾을 수 없음: ${summary.notFound}개\n오류: ${summary.errors}개`);
+        fetchMessages(); // 목록 새로고침
+      } else {
+        alert(`자동 연결 실패: ${result.message || '알 수 없는 오류'}`);
+      }
+    } catch (error) {
+      console.error('자동 연결 오류:', error);
+      alert('자동 연결 중 오류가 발생했습니다.');
+    } finally {
+      setAutoLinking(false);
+    }
+  };
+
   const handleSyncSolapi = async (messageId: number, groupId: string) => {
     if (!groupId) {
       alert('솔라피 그룹 ID가 없습니다.');
@@ -791,6 +826,14 @@ export default function SMSListAdmin() {
                 <p className="mt-2 text-gray-600">저장된 SMS/MMS 메시지를 관리하세요</p>
               </div>
               <div className="flex items-center space-x-3">
+                <button
+                  onClick={handleAutoLinkSolapiGroups}
+                  disabled={autoLinking}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="솔라피 콘솔에서 직접 재발송한 메시지의 그룹 ID를 자동으로 연결"
+                >
+                  {autoLinking ? '연결 중...' : '🔗 그룹 ID 자동 연결'}
+                </button>
                 <button
                 onClick={() => router.push('/admin/sms')}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"

@@ -1,8 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
+import { createSolapiSignature } from '../../../utils/solapiSignature.js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+const SOLAPI_API_KEY = process.env.SOLAPI_API_KEY || "";
+const SOLAPI_API_SECRET = process.env.SOLAPI_API_SECRET || "";
 
 export const config = {
   api: {
@@ -186,13 +190,41 @@ export default async function handler(req, res) {
         } else {
           console.log(`⚠️ 그룹 ID ${groupId}에 해당하는 메시지를 찾을 수 없습니다.`);
           
-          // 그룹 ID로 찾지 못한 경우, sent_at 시간(±5분)으로 메시지 찾기
-          try {
-            const groupTime = payload.dateCreated || payload.dateSent || payload.groupInfo?.dateCreated || payload.groupInfo?.dateSent;
-            if (groupTime) {
+          // 그룹 ID로 찾지 못한 경우, 솔라피 API로 그룹 정보 조회 후 시간 기반 매칭
+          let groupTime = payload.dateCreated || payload.dateSent || payload.groupInfo?.dateCreated || payload.groupInfo?.dateSent;
+          
+          // 웹훅에 시간 정보가 없으면 솔라피 API로 직접 조회
+          if (!groupTime) {
+            try {
+              if (SOLAPI_API_KEY && SOLAPI_API_SECRET) {
+                const authHeaders = createSolapiSignature(SOLAPI_API_KEY, SOLAPI_API_SECRET);
+                
+                const groupInfoResponse = await fetch(
+                  `https://api.solapi.com/messages/v4/groups/${groupId}`,
+                  { method: 'GET', headers: authHeaders }
+                );
+                
+                if (groupInfoResponse.ok) {
+                  const groupInfoData = await groupInfoResponse.json();
+                  const groupInfo = groupInfoData.groupInfo || groupInfoData;
+                  groupTime = groupInfo.dateCreated || groupInfo.date_created || groupInfo.createdAt || groupInfo.created_at;
+                  
+                  if (groupTime) {
+                    console.log(`✅ 솔라피 API로 그룹 생성 시간 조회: ${groupTime}`);
+                  }
+                }
+              }
+            } catch (apiError) {
+              console.warn(`솔라피 API 조회 실패 (무시하고 계속):`, apiError.message);
+            }
+          }
+          
+          // 시간 기반으로 메시지 찾기
+          if (groupTime) {
+            try {
               const searchTime = new Date(groupTime);
-              const startTime = new Date(searchTime.getTime() - 5 * 60 * 1000); // 5분 전
-              const endTime = new Date(searchTime.getTime() + 5 * 60 * 1000); // 5분 후
+              const startTime = new Date(searchTime.getTime() - 10 * 60 * 1000); // 10분 전 (범위 확대)
+              const endTime = new Date(searchTime.getTime() + 10 * 60 * 1000); // 10분 후
               
               console.log(`🔍 시간 기반 메시지 검색: ${startTime.toISOString()} ~ ${endTime.toISOString()}`);
               
@@ -268,11 +300,11 @@ export default async function handler(req, res) {
               } else {
                 console.log(`⚠️ 시간 기반 검색으로도 메시지를 찾을 수 없습니다.`);
               }
-            } else {
-              console.log(`⚠️ 웹훅 payload에 시간 정보가 없어 시간 기반 검색을 할 수 없습니다.`);
+            } catch (timeSearchError) {
+              console.error('시간 기반 메시지 검색 예외:', timeSearchError);
             }
-          } catch (timeSearchError) {
-            console.error('시간 기반 메시지 검색 예외:', timeSearchError);
+          } else {
+            console.log(`⚠️ 웹훅 payload에 시간 정보가 없고 솔라피 API로도 조회할 수 없어 시간 기반 검색을 할 수 없습니다.`);
           }
         }
       } catch (updateErr) {

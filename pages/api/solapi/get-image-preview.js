@@ -16,6 +16,55 @@ const supabase = SUPABASE_URL && SUPABASE_SERVICE_KEY
   ? createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
   : null;
 
+/**
+ * Supabase Storage URL이 실제 객체를 가리키는지 확인
+ * - blog-images 버킷 기준으로만 동작 (현재 Solapi 이미지는 blog-images에만 저장)
+ * - URL이 Storage public URL 형식이 아니면 true 반환 (검증 불가 → 그대로 사용)
+ */
+async function ensureSupabaseObjectExists(publicUrl) {
+  try {
+    if (!publicUrl || typeof publicUrl !== 'string') return false;
+
+    const match = publicUrl.match(/\/storage\/v1\/object\/public\/([^/]+)\/(.+)$/);
+    if (!match) {
+      // Supabase Storage URL 형식이 아니면 검증하지 않고 true로 취급
+      return true;
+    }
+
+    const bucket = match[1];
+    const fullPath = decodeURIComponent(match[2]);
+
+    // 현재 Solapi 이미지는 blog-images 버킷만 사용
+    if (bucket !== 'blog-images') {
+      return true;
+    }
+
+    const lastSlashIndex = fullPath.lastIndexOf('/');
+    const folderPath = lastSlashIndex > -1 ? fullPath.slice(0, lastSlashIndex) : '';
+    const fileName = lastSlashIndex > -1 ? fullPath.slice(lastSlashIndex + 1) : fullPath;
+
+    const { data: files, error } = await supabase.storage
+      .from(bucket)
+      .list(folderPath, {
+        limit: 1000
+      });
+
+    if (error) {
+      console.error('⚠️ Supabase 객체 존재 여부 확인 실패:', error.message);
+      return false;
+    }
+
+    if (!files || files.length === 0) {
+      return false;
+    }
+
+    return files.some((f) => f.name === fileName);
+  } catch (err) {
+    console.error('⚠️ Supabase 객체 존재 여부 확인 중 예외:', err.message);
+    return false;
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ success: false, message: 'Method not allowed' });
@@ -58,14 +107,25 @@ export default async function handler(req, res) {
         .limit(1);
 
       if (!metadataError && metadataImages && metadataImages.length > 0) {
+        const candidateUrl = metadataImages[0].image_url;
+        const exists = await ensureSupabaseObjectExists(candidateUrl);
+
+        if (exists) {
+          console.log('✅ 메시지 ID 기반 메타데이터 이미지 재사용:', candidateUrl);
         if (redirect === 'true') {
-          return res.redirect(metadataImages[0].image_url);
+            return res.redirect(candidateUrl);
         }
         return res.status(200).json({
           success: true,
-          imageUrl: metadataImages[0].image_url,
+            imageUrl: candidateUrl,
           source: 'metadata-by-message-id'
         });
+        }
+
+        console.warn(
+          '⚠️ 메시지 ID 기반 메타데이터가 가리키는 Supabase 객체가 존재하지 않습니다. Solapi에서 재다운로드 시도:',
+          { imageId, candidateUrl }
+        );
       }
     }
 
@@ -82,6 +142,9 @@ export default async function handler(req, res) {
       const existingImageUrl = metadataImages2[0].image_url;
       // Supabase URL인지 확인
       if (existingImageUrl && existingImageUrl.includes('supabase.co')) {
+        const exists = await ensureSupabaseObjectExists(existingImageUrl);
+
+        if (exists) {
         console.log('✅ 기존 Solapi 이미지 재사용:', existingImageUrl);
         if (redirect === 'true') {
           return res.redirect(existingImageUrl);
@@ -91,6 +154,12 @@ export default async function handler(req, res) {
           imageUrl: existingImageUrl,
           source: 'metadata-existing'
         });
+        }
+
+        console.warn(
+          '⚠️ solapi- 태그 기반 메타데이터가 가리키는 Supabase 객체가 존재하지 않습니다. Solapi에서 재다운로드 시도:',
+          { imageId, existingImageUrl }
+        );
       }
     }
 

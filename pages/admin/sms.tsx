@@ -277,7 +277,7 @@ export default function SMSAdmin() {
     }
   }, [formData.messageType, updateFormData]);
 
-  // 이미지 업로드 함수
+  // 이미지 업로드 함수 (새 이미지 업로드 → 항상 MMS로 고정)
   const handleImageUpload = async (file) => {
     try {
       setIsUploadingImage(true);
@@ -316,8 +316,11 @@ export default function SMSAdmin() {
         if (result.supabaseUrl) {
           setImagePreviewUrl(result.supabaseUrl);
         }
-        // formData에 Solapi imageId 저장 (DB에 저장될 값)
-        updateFormData({ imageUrl: imageUrlToSave });
+        // formData에 Solapi imageId 저장 + 메시지 타입을 MMS로 고정
+        updateFormData({
+          imageUrl: imageUrlToSave,
+          messageType: 'MMS',
+        });
         alert('이미지가 업로드되었습니다.');
       } else {
         alert('이미지 업로드에 실패했습니다: ' + result.message);
@@ -411,6 +414,7 @@ export default function SMSAdmin() {
     });
   };
 
+  // 갤러리에서 이미지 선택 (Solapi / Supabase 공통) → 항상 MMS로 고정
   const handleGalleryImageSelect = async (selectedUrl: string) => {
     if (!selectedUrl) {
       handleImageRemove();
@@ -438,7 +442,7 @@ export default function SMSAdmin() {
       
       updateFormData({ 
         imageUrl: selectedUrl, // Solapi imageId 직접 저장
-        messageType: formData.messageType
+        messageType: 'MMS' // Solapi 이미지를 쓰면 항상 MMS
       });
       
       // DB 저장
@@ -450,7 +454,7 @@ export default function SMSAdmin() {
             body: JSON.stringify({
               id: currentSmsNumericId,
               imageUrl: selectedUrl,
-              type: formData.messageType
+              type: 'MMS'
             })
           });
           
@@ -514,10 +518,10 @@ export default function SMSAdmin() {
       const imageUrlToSave = result.supabaseUrl || result.imageId;
       setImagePreviewUrl(result.supabaseUrl);
       
-      // ⭐ 수정: messageType을 유지하면서 imageUrl만 업데이트
+      // ⭐ Supabase 이미지를 선택해도 항상 MMS로 고정
       updateFormData({ 
         imageUrl: imageUrlToSave,
-        messageType: formData.messageType // ⭐ 메시지 타입 유지
+        messageType: 'MMS'
       });
       
       // ⭐ 추가: channel_sms 테이블 즉시 업데이트 (messageType 포함)
@@ -529,7 +533,7 @@ export default function SMSAdmin() {
             body: JSON.stringify({
               id: currentSmsNumericId,
               imageUrl: imageUrlToSave,
-              type: formData.messageType // ⭐ 메시지 타입도 함께 저장
+              type: 'MMS' // 메시지 타입을 명시적으로 MMS로 저장
             })
           });
           
