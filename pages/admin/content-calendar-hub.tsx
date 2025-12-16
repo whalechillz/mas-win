@@ -1622,10 +1622,20 @@ export default function ContentCalendarHub() {
                                   <div className="space-y-1">
                                     {blogDataMap[content.id] && blogDataMap[content.id].length > 0 ? (
                                       blogDataMap[content.id].map((blog) => (
-                                        <div key={blog.id} className="flex items-center gap-2 p-1.5 bg-gray-50 rounded border border-gray-200 hover:bg-gray-100 transition-colors">
-                                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200 whitespace-nowrap">
-                                            ID: {blog.id}
+                                        <div key={blog.id} className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded border border-gray-200 hover:bg-gray-100 transition-colors group">
+                                          {/* 채널 약자 뱃지 */}
+                                          <span className="inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold bg-black text-white flex-shrink-0">
+                                            홈
                                           </span>
+                                          {/* ID 뱃지 (클릭 가능) */}
+                                          <button
+                                            onClick={() => window.open(`/admin/blog?edit=${blog.id}&hub=${content.id}`, '_blank')}
+                                            className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200 hover:bg-indigo-200 transition-colors whitespace-nowrap cursor-pointer"
+                                            title={`ID: ${blog.id} - 클릭하여 편집`}
+                                          >
+                                            ID: {blog.id}
+                                          </button>
+                                          {/* 상태 뱃지 */}
                                           <span className={`px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap ${
                                             blog.status === 'published' ? 'bg-green-100 text-green-800' :
                                             blog.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
@@ -1634,15 +1644,34 @@ export default function ContentCalendarHub() {
                                             {blog.status === 'published' ? '발행됨' : 
                                              blog.status === 'draft' ? '수정중' : '미발행'}
                                           </span>
+                                          {/* 제목 */}
                                           <span className="flex-1 text-xs text-gray-700 truncate min-w-0" title={blog.title}>
                                             {blog.title}
                                           </span>
+                                          {/* 액션 버튼 (호버 시 표시) */}
+                                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                              onClick={() => handleBlogView(blog)}
+                                              className="px-1.5 py-0.5 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                                              title="보기"
+                                            >
+                                              👁️
+                                            </button>
+                                            <button
+                                              onClick={() => handleBlogDelete(blog.id, content.id)}
+                                              className="px-1.5 py-0.5 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                                              title="삭제"
+                                            >
+                                              🗑️
+                                            </button>
+                                          </div>
                                         </div>
                                       ))
                                     ) : (
                                       <div className="flex items-center space-x-2">
+                                        <span className="inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold bg-black text-white">홈</span>
                                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getBlogStatusDisplay(content))}`}>
-                                          홈피: {getBlogStatusDisplay(content)}
+                                          {getBlogStatusDisplay(content)}
                                         </span>
                                         {getChannelActionButton(content, 'blog')}
                                       </div>
@@ -1653,10 +1682,16 @@ export default function ContentCalendarHub() {
                                   <div className="space-y-1">
                                     {smsDataMap[content.id] && smsDataMap[content.id].length > 0 ? (
                                       smsDataMap[content.id].map((sms, index) => (
-                                        <div key={sms.id} className="flex items-center gap-2 p-1.5 bg-gray-50 rounded border border-gray-200 hover:bg-gray-100 transition-colors">
+                                        <div key={sms.id} className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded border border-gray-200 hover:bg-gray-100 transition-colors group">
+                                          {/* 채널 약자 뱃지 */}
+                                          <span className="inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold bg-gray-600 text-white flex-shrink-0">
+                                            메
+                                          </span>
+                                          {/* 번호 뱃지 */}
                                           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-bold whitespace-nowrap">
                                             {index + 1}
                                           </span>
+                                          {/* 상태 뱃지 */}
                                           <span className={`px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap ${
                                             sms.status === 'sent' ? 'bg-green-100 text-green-800' :
                                             sms.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
@@ -1665,15 +1700,41 @@ export default function ContentCalendarHub() {
                                             {sms.status === 'sent' ? '발행됨' : 
                                              sms.status === 'draft' ? '수정중' : '미발행'}
                                           </span>
+                                          {/* 제목/내용 */}
                                           <span className="flex-1 text-xs text-gray-700 truncate min-w-0" title={sms.title || sms.content || sms.message || '제목 없음'}>
                                             {sms.title || sms.content || sms.message || '제목 없음'}
                                           </span>
+                                          {/* 액션 버튼 (호버 시 표시) */}
+                                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                              onClick={() => window.open(`/admin/sms?edit=${sms.id}&mode=edit`, '_blank')}
+                                              className="px-1.5 py-0.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                                              title="편집"
+                                            >
+                                              ✏️
+                                            </button>
+                                            <button
+                                              onClick={() => handleSMSView(sms)}
+                                              className="px-1.5 py-0.5 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                                              title="보기"
+                                            >
+                                              👁️
+                                            </button>
+                                            <button
+                                              onClick={() => handleSMSDelete(sms.id, content.id)}
+                                              className="px-1.5 py-0.5 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                                              title="삭제"
+                                            >
+                                              🗑️
+                                            </button>
+                                          </div>
                                         </div>
                                       ))
                                     ) : (
                                       <div className="flex items-center space-x-2">
+                                        <span className="inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold bg-gray-600 text-white">메</span>
                                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'sms'))}`}>
-                                          SMS: {getChannelStatus(content, 'sms')}
+                                          {getChannelStatus(content, 'sms')}
                                         </span>
                                         {getChannelActionButton(content, 'sms')}
                                       </div>
@@ -1681,17 +1742,73 @@ export default function ContentCalendarHub() {
                                   </div>
                                   
                                   {/* 네이버 채널 */}
-                                  <div className="flex items-center space-x-2">
-                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getNaverBlogStatusDisplay(content))}`}>
-                                      네이버: {naverBlogDataMap[content.id]?.length > 0 ? `${naverBlogDataMap[content.id].length}개 연결` : getNaverBlogStatusDisplay(content)}
-                                    </span>
-                                    {getChannelActionButton(content, 'naver_blog')}
+                                  <div className="space-y-1">
+                                    {naverBlogDataMap[content.id] && naverBlogDataMap[content.id].length > 0 ? (
+                                      naverBlogDataMap[content.id].map((naverBlog, index) => (
+                                        <div key={naverBlog.id} className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded border border-gray-200 hover:bg-gray-100 transition-colors group">
+                                          {/* 채널 약자 뱃지 */}
+                                          <span className="inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold bg-green-600 text-white flex-shrink-0" style={{ backgroundColor: '#03C75A' }}>
+                                            네
+                                          </span>
+                                          {/* 번호 뱃지 */}
+                                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-600 text-white text-xs font-bold whitespace-nowrap" style={{ backgroundColor: '#03C75A' }}>
+                                            {index + 1}
+                                          </span>
+                                          {/* 상태 뱃지 */}
+                                          <span className={`px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap ${
+                                            naverBlog.status === 'published' ? 'bg-green-100 text-green-800' :
+                                            naverBlog.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
+                                            'bg-gray-100 text-gray-800'
+                                          }`}>
+                                            {naverBlog.status === 'published' ? '발행됨' : 
+                                             naverBlog.status === 'draft' ? '수정중' : '미발행'}
+                                          </span>
+                                          {/* 제목 */}
+                                          <span className="flex-1 text-xs text-gray-700 truncate min-w-0" title={naverBlog.title || '제목 없음'}>
+                                            {naverBlog.title || '제목 없음'}
+                                          </span>
+                                          {/* 액션 버튼 (호버 시 표시) */}
+                                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                              onClick={() => handleNaverBlogView(naverBlog)}
+                                              className="px-1.5 py-0.5 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                                              title="보기"
+                                            >
+                                              👁️
+                                            </button>
+                                            <button
+                                              onClick={() => window.open(`/admin/naver-blog-advanced?edit=${naverBlog.id}&hub=${content.id}`, '_blank')}
+                                              className="px-1.5 py-0.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                                              title="편집"
+                                            >
+                                              ✏️
+                                            </button>
+                                            <button
+                                              onClick={() => handleNaverBlogDelete(naverBlog.id, content.id)}
+                                              className="px-1.5 py-0.5 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                                              title="삭제"
+                                            >
+                                              🗑️
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <div className="flex items-center space-x-2">
+                                        <span className="inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: '#03C75A' }}>네</span>
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getNaverBlogStatusDisplay(content))}`}>
+                                          {getNaverBlogStatusDisplay(content)}
+                                        </span>
+                                        {getChannelActionButton(content, 'naver_blog')}
+                                      </div>
+                                    )}
                                   </div>
                                   
                                   {/* 카카오 채널 */}
                                   <div className="flex items-center space-x-2">
+                                    <span className="inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold bg-yellow-400 text-black flex-shrink-0" style={{ backgroundColor: '#FEE500' }}>카</span>
                                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'kakao'))}`}>
-                                      카카오: {getChannelStatus(content, 'kakao')}
+                                      {getChannelStatus(content, 'kakao')}
                                     </span>
                                     {getChannelActionButton(content, 'kakao')}
                                   </div>
