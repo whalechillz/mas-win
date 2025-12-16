@@ -55,14 +55,12 @@ export default function BookingDetailModal({
 
   const customerInfo = customers.find((c) => c.phone === booking.phone);
 
-  // ⭐ 추가: UTC → 한국 시간 변환 (명시적 처리)
+  // ⭐ 수정: UTC → 한국 시간 변환 (올바른 방법)
   const convertUTCToKST = (utcString: string): Date => {
-    // UTC 문자열을 파싱
+    // UTC 문자열을 파싱 (UTC로 해석)
     const utcDate = new Date(utcString);
-    // 한국 시간대(UTC+9)로 변환
-    const kstOffset = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
-    const kstDate = new Date(utcDate.getTime() + kstOffset);
-    return kstDate;
+    // UTC 시간의 밀리초에 9시간(9 * 60 * 60 * 1000)을 더하여 KST로 변환
+    return new Date(utcDate.getTime() + (9 * 60 * 60 * 1000));
   };
 
   // ⭐ 추가: 한국 시간 → UTC 변환 (명시적 처리)
@@ -743,25 +741,38 @@ export default function BookingDetailModal({
                   </button>
                 </div>
                 {existingReminder && (() => {
-                  // ⭐ 수정: UTC → KST 명시적 변환
+                  // ⭐ 수정: UTC → KST 명시적 변환 (표시용)
                   const now = new Date();
-                  const scheduledAtKST = existingReminder.scheduled_at 
-                    ? convertUTCToKST(existingReminder.scheduled_at) 
+                  const scheduledAtUTC = existingReminder.scheduled_at 
+                    ? new Date(existingReminder.scheduled_at)
+                    : null;
+                  const sentAtUTC = existingReminder.sent_at
+                    ? new Date(existingReminder.sent_at)
                     : null;
                   
-                  // ⭐ 수정: 현재 시간도 KST로 변환하여 비교
-                  const nowKST = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+                  // 표시용 KST 변환
+                  const scheduledAtKST = scheduledAtUTC ? convertUTCToKST(existingReminder.scheduled_at) : null;
+                  const sentAtKST = sentAtUTC ? convertUTCToKST(existingReminder.sent_at) : null;
                   
-                  const isSent = existingReminder.status === 'sent' || existingReminder.status === 'partial';
-                  const isPast = scheduledAtKST && scheduledAtKST < nowKST && existingReminder.status === 'draft';
+                  // ⭐ 개선: 실제 발송 여부를 정확히 판단 (UTC 밀리초로 비교)
+                  // 1. sent_at이 있고 현재 시간보다 과거면 → 발송됨
+                  // 2. status가 'sent' 또는 'partial'이고 sent_at이 있으면 → 발송됨
+                  // 3. scheduled_at이 현재보다 과거이고 sent_at이 없고 status가 'draft'면 → 발송 시간 지남
+                  // 4. scheduled_at이 현재보다 미래면 → 예정
                   
-                  if (isSent) {
+                  const nowTime = now.getTime();
+                  const isActuallySent = sentAtUTC && sentAtUTC.getTime() <= nowTime;
+                  const isStatusSent = (existingReminder.status === 'sent' || existingReminder.status === 'partial') && sentAtUTC;
+                  const isPast = scheduledAtUTC && scheduledAtUTC.getTime() < nowTime && !sentAtUTC && existingReminder.status === 'draft';
+                  const isScheduled = scheduledAtUTC && scheduledAtUTC.getTime() > nowTime;
+                  
+                  if (isActuallySent || isStatusSent) {
                     return (
                       <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs">
                         <p className="text-green-800 font-medium">✓ 메시지가 발송되었습니다.</p>
-                        {existingReminder.sent_at && (
+                        {sentAtKST && (
                           <p className="text-green-600 mt-1">
-                            발송 시간: {convertUTCToKST(existingReminder.sent_at).toLocaleString('ko-KR', {
+                            발송 시간: {sentAtKST.toLocaleString('ko-KR', {
                               year: 'numeric',
                               month: '2-digit',
                               day: '2-digit',
@@ -802,6 +813,21 @@ export default function BookingDetailModal({
                           {reminderSaving ? '발송 중...' : '지금 발송하기'}
                         </button>
                       </div>
+                    );
+                  }
+                  
+                  if (isScheduled) {
+                    return (
+                      <p className="text-xs text-green-600 mt-2">
+                        ✓ 예약 메시지가 설정되어 있습니다. (예정: {scheduledAtKST.toLocaleString('ko-KR', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          timeZone: 'Asia/Seoul'
+                        })})
+                      </p>
                     );
                   }
                   
