@@ -58,7 +58,7 @@ export default function ContentCalendarHub() {
   // 페이지네이션 상태
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 20,
+    limit: 50,
     total: 0,
     totalPages: 0,
     hasMore: false
@@ -171,7 +171,7 @@ export default function ContentCalendarHub() {
   const fetchContents = async (page = 1) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/content-calendar-hub?page=${page}&limit=20`);
+      const response = await fetch(`/api/admin/content-calendar-hub?page=${page}&limit=50`);
       const data = await response.json();
       if (data.success) {
         const contents = data.data || [];
@@ -179,7 +179,7 @@ export default function ContentCalendarHub() {
         setStats(data.stats || null);
         setPagination(data.pagination || {
           page: 1,
-          limit: 20,
+          limit: 50,
           total: 0,
           totalPages: 0,
           hasMore: false
@@ -280,8 +280,24 @@ export default function ContentCalendarHub() {
     return Math.max(actualSMSCount, channelStatusSMSCount, smsIdCount);
   };
 
-  // 블로그 상태 표시 개선
+  // 블로그 상태 표시 개선 (실제 블로그 포스트 status 확인)
   const getBlogStatusDisplay = (content: HubContent) => {
+    // 실제 블로그 포스트가 있는 경우, 블로그 포스트의 status를 우선 확인
+    const blogPosts = blogDataMap[content.id] || [];
+    if (blogPosts.length > 0) {
+      // 발행된 블로그가 하나라도 있으면 "발행됨"
+      const hasPublished = blogPosts.some(blog => blog.status === 'published');
+      if (hasPublished) {
+        return '발행됨';
+      }
+      // 초안 블로그가 있으면 "수정중"
+      const hasDraft = blogPosts.some(blog => blog.status === 'draft');
+      if (hasDraft) {
+        return '수정중';
+      }
+    }
+    
+    // 블로그 포스트가 없거나 상태를 확인할 수 없는 경우, channel_status 확인
     const blogStatus = getChannelStatus(content, 'blog');
     
     // 블로그 상태에 따른 표시 개선
@@ -1575,7 +1591,11 @@ export default function ContentCalendarHub() {
                         contents.map((content, index) => (
                           <tr key={content.id}>
                             <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center w-16">
-                              {content.hub_order || ((pagination.page - 1) * pagination.limit + index + 1)}
+                              {(() => {
+                                const order = content.hub_order || ((pagination.page - 1) * pagination.limit + index + 1);
+                                const totalDigits = pagination.total.toString().length;
+                                return String(order).padStart(Math.max(3, totalDigits), '0');
+                              })()}
                             </td>
                             <td className="px-6 py-3 whitespace-normal align-top w-2/5">
                               <div className="text-sm font-medium text-gray-900 break-words" title={content.title}>

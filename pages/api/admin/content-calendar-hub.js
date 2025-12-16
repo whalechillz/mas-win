@@ -37,7 +37,7 @@ async function handleGet(req, res) {
   try {
     console.log('🔍 허브 콘텐츠 조회 시작');
     
-    const { id, page = 1, limit = 20, date_from, date_to } = req.query;
+    const { id, page = 1, limit = 50, date_from, date_to } = req.query;
     const offset = (page - 1) * limit;
     
     // 특정 ID로 조회하는 경우
@@ -100,7 +100,7 @@ async function handleGet(req, res) {
         blog_posts!left(slug, status)
       `, { count: 'exact' })
       .eq('is_hub_content', true)
-      .order('hub_order', { ascending: true, nullsLast: true })
+      .order('hub_order', { ascending: false, nullsLast: true })
       .order('content_date', { ascending: false })
       .range(offset, offset + parseInt(limit) - 1);
 
