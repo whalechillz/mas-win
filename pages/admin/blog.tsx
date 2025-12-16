@@ -600,8 +600,7 @@ export default function BlogAdmin() {
           conversiongoal: post.conversion_goal || 'awareness',
           target_product: post.target_product || 'all',
           published_at: post.published_at || '',
-          created_at: post.created_at || '',
-          scheduled_at: post.scheduled_at || null
+          created_at: post.created_at || ''
         });
       } else {
         const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
@@ -5821,7 +5820,14 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
 
                 {/* 제목 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">제목 *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <span>제목 *</span>
+                    {editingPostId && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200 shadow-sm">
+                        ID: {editingPostId}
+                      </span>
+                    )}
+                  </label>
                   <div className="flex gap-2">
                   <input
                     type="text"
@@ -7830,13 +7836,13 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
       {showUnifiedPicker && (() => {
         // 블로그 글 ID 기반 폴더 경로 계산
         let autoFilterFolder = '';
-        if (formData.id && (formData.published_at || formData.created_at)) {
+        if (editingPostId && (formData.published_at || formData.created_at)) {
           const publishDate = formData.published_at ? new Date(formData.published_at) : (formData.created_at ? new Date(formData.created_at) : null);
           if (publishDate) {
             const year = publishDate.getFullYear();
             const month = String(publishDate.getMonth() + 1).padStart(2, '0');
             const dateFolder = `${year}-${month}`;
-            autoFilterFolder = `originals/blog/${dateFolder}/${formData.id}`;
+            autoFilterFolder = `originals/blog/${dateFolder}/${editingPostId}`;
             console.log('📁 블로그 글 폴더 자동 필터링:', autoFilterFolder);
           }
         }
