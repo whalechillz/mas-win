@@ -696,41 +696,40 @@ export default function BookingDetailModal({
                 {reminderLoading && (
                   <p className="text-xs text-gray-500 mt-1">예약 메시지 설정 확인 중...</p>
                 )}
-                {reminderEnabled && (
-                  <div className="mt-3">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      발송 시간
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={reminderScheduledAt}
-                      onChange={(e) => setReminderScheduledAt(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                      disabled={reminderSaving}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      기본값: 예약 시간 2시간 전 ({booking.date && booking.time ? (() => {
-                        const bookingDateTime = new Date(`${booking.date}T${booking.time}`);
-                        const reminderDateTime = new Date(bookingDateTime.getTime() - 2 * 60 * 60 * 1000);
-                        return reminderDateTime.toLocaleString('ko-KR', { 
-                          year: 'numeric', 
-                          month: '2-digit', 
-                          day: '2-digit', 
-                          hour: '2-digit', 
-                          minute: '2-digit',
-                          timeZone: 'Asia/Seoul'
-                        });
-                      })() : ''})
-                    </p>
-                    <button
-                      onClick={handleSaveReminder}
-                      disabled={reminderSaving}
-                      className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
-                    >
-                      {reminderSaving ? '저장 중...' : existingReminder ? '수정' : '설정'}
-                    </button>
-                  </div>
-                )}
+                {/* ⭐ 수정: 설정 UI를 항상 표시 (체크박스 상태에 따라 활성화/비활성화) */}
+                <div className="mt-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    발송 시간
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={reminderScheduledAt}
+                    onChange={(e) => setReminderScheduledAt(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    disabled={reminderSaving || !reminderEnabled}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    기본값: 예약 시간 2시간 전 ({booking.date && booking.time ? (() => {
+                      const bookingDateTime = new Date(`${booking.date}T${booking.time}`);
+                      const reminderDateTime = new Date(bookingDateTime.getTime() - 2 * 60 * 60 * 1000);
+                      return reminderDateTime.toLocaleString('ko-KR', { 
+                        year: 'numeric', 
+                        month: '2-digit', 
+                        day: '2-digit', 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        timeZone: 'Asia/Seoul'
+                      });
+                    })() : ''})
+                  </p>
+                  <button
+                    onClick={handleSaveReminder}
+                    disabled={reminderSaving || !reminderEnabled}
+                    className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+                  >
+                    {reminderSaving ? '저장 중...' : existingReminder ? '수정' : '설정'}
+                  </button>
+                </div>
                 {existingReminder && (() => {
                   // ⭐ 수정: UTC → KST 명시적 변환
                   const now = new Date();

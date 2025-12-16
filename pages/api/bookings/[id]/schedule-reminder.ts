@@ -35,37 +35,63 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       let reminders: any[] = [];
       let error: any = null;
 
-      // 먼저 metadata로 조회 시도
+      // ⭐ 개선: status='draft' 또는 'sent' 모두 조회 (더 넓은 범위)
       const { data: metadataReminders, error: metadataError } = await supabase
         .from('channel_sms')
         .select('*')
-        .eq('status', 'draft')
+        .in('status', ['draft', 'sent', 'partial'])
         .order('created_at', { ascending: false });
+
+      const bookingIdNum = typeof bookingId === 'string' ? parseInt(bookingId) : bookingId;
+      
+      console.log(`[schedule-reminder] 예약 ID ${bookingId} (${bookingIdNum}) 전체 조회:`, {
+        total: metadataReminders?.length || 0,
+        sample: metadataReminders?.slice(0, 3).map((r: any) => ({
+          id: r.id,
+          status: r.status,
+          note: r.note,
+          metadata: r.metadata,
+        })),
+      });
 
       if (!metadataError && metadataReminders) {
         // 클라이언트 측에서 필터링 (metadata 필드가 없을 수 있음)
         reminders = metadataReminders.filter((r: any) => {
-          if (!r.metadata) return false;
-          
-          // metadata가 문자열인 경우 파싱
-          let metadata = r.metadata;
-          if (typeof metadata === 'string') {
-            try {
-              metadata = JSON.parse(metadata);
-            } catch (e) {
-              return false;
+          // metadata로 먼저 확인
+          if (r.metadata) {
+            let metadata = r.metadata;
+            if (typeof metadata === 'string') {
+              try {
+                metadata = JSON.parse(metadata);
+              } catch (e) {
+                // 파싱 실패 시 다음 조건으로
+              }
+            }
+            
+            if (metadata && typeof metadata === 'object') {
+              // booking_id 타입 불일치 해결 (숫자/문자열 모두 비교)
+              const metadataBookingId = metadata.booking_id;
+              const metadataBookingIdNum = typeof metadataBookingId === 'string' 
+                ? parseInt(metadataBookingId) 
+                : metadataBookingId;
+              
+              if (metadataBookingIdNum === bookingIdNum && 
+                  metadata.notification_type === 'booking_reminder_2h') {
+                return true;
+              }
             }
           }
           
-          // booking_id 타입 불일치 해결 (숫자/문자열 모두 비교)
-          const metadataBookingId = metadata.booking_id;
-          const bookingIdNum = typeof bookingId === 'string' ? parseInt(bookingId) : bookingId;
-          const metadataBookingIdNum = typeof metadataBookingId === 'string' 
-            ? parseInt(metadataBookingId) 
-            : metadataBookingId;
+          // note 필드로도 확인 (예약 ID 포함 여부)
+          if (r.note && typeof r.note === 'string') {
+            if (r.note.includes(`예약 ID ${bookingId}`) || 
+                r.note.includes(`예약 ID ${bookingIdNum}`) ||
+                r.note.includes(`예약 당일 알림`)) {
+              return true;
+            }
+          }
           
-          return metadataBookingIdNum === bookingIdNum && 
-                 metadata.notification_type === 'booking_reminder_2h';
+          return false;
         });
       } else {
         // metadata 필드가 없으면 note 필드로 조회
@@ -73,14 +99,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .from('channel_sms')
           .select('*')
           .like('note', `%예약 당일 알림: 예약 ID ${bookingId}%`)
-          .eq('status', 'draft')
+          .in('status', ['draft', 'sent', 'partial'])
           .order('created_at', { ascending: false })
-          .limit(1);
+          .limit(5);
         
         if (!noteError && noteReminders) {
           reminders = noteReminders;
         } else {
-          error = noteError;
+          // note 필드로도 찾지 못하면 예약 ID만으로 검색
+          const { data: idReminders, error: idError } = await supabase
+            .from('channel_sms')
+            .select('*')
+            .like('note', `%예약 ID ${bookingId}%`)
+            .in('status', ['draft', 'sent', 'partial'])
+            .order('created_at', { ascending: false })
+            .limit(5);
+          
+          if (!idError && idReminders) {
+            reminders = idReminders;
+          } else {
+            error = idError || noteError;
+          }
         }
       }
 
