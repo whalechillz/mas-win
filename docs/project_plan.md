@@ -2,6 +2,8 @@
 
 ## 📚 관련 문서
 - **허브 시스템 아키텍처**: [`docs/hub-system-architecture.md`](./hub-system-architecture.md) - 허브 시스템 구조 및 향후 계획
+- **주간 허브 콘텐츠 전략**: [`docs/weekly-hub-content-strategy.md`](./weekly-hub-content-strategy.md) - 주 5일 발행 기준 허브 콘텐츠 전략
+- **주간 스케줄**: [`docs/content-calendar/weekly-schedule-2025.md`](./content-calendar/weekly-schedule-2025.md) - 요일별 콘텐츠 스케줄
 
 ## 프로젝트 개요
 **프로젝트 명**: MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
