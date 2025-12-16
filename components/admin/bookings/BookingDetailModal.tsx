@@ -49,6 +49,7 @@ export default function BookingDetailModal({
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderScheduledAt, setReminderScheduledAt] = useState('');
   const [reminderSaving, setReminderSaving] = useState(false);
+  const [reminderLoading, setReminderLoading] = useState(true);
   const [existingReminder, setExistingReminder] = useState<any>(null);
   const [sendingMessage, setSendingMessage] = useState(false);
 
@@ -102,6 +103,7 @@ export default function BookingDetailModal({
   // 기존 예약 메시지 확인
   useEffect(() => {
     const checkExistingReminder = async () => {
+      setReminderLoading(true); // 로딩 시작
       try {
         const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
         const response = await fetch(`/api/bookings/${bookingId}/schedule-reminder`);
@@ -109,16 +111,28 @@ export default function BookingDetailModal({
           const data = await response.json();
           if (data.success && data.reminder) {
             setExistingReminder(data.reminder);
-            setReminderEnabled(true);
+            setReminderEnabled(true); // 기존 예약 메시지가 있으면 체크
             if (data.reminder.scheduled_at) {
               // ⭐ 수정: UTC → 한국 시간 변환
               const kstDate = convertUTCToKST(data.reminder.scheduled_at);
               setReminderScheduledAt(formatLocalDateTime(kstDate));
             }
+          } else {
+            // 기존 예약 메시지가 없으면 명시적으로 해제
+            setExistingReminder(null);
+            setReminderEnabled(false);
           }
+        } else {
+          // API 호출 실패 시에도 명시적으로 해제
+          setExistingReminder(null);
+          setReminderEnabled(false);
         }
       } catch (error) {
         console.error('예약 메시지 확인 오류:', error);
+        setExistingReminder(null);
+        setReminderEnabled(false);
+      } finally {
+        setReminderLoading(false); // 로딩 종료
       }
     };
     checkExistingReminder();
@@ -373,6 +387,61 @@ export default function BookingDetailModal({
     }
   };
 
+  // ⭐ 추가: 지난 시간으로 설정된 메시지 수동 발송
+  const handleSendPastReminder = async () => {
+    if (!confirm('지난 시간으로 설정된 메시지를 지금 발송하시겠습니까?')) return;
+    
+    if (!existingReminder) return;
+    
+    setReminderSaving(true);
+    try {
+      const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
+      
+      // 메시지 상태를 'pending'으로 변경하여 즉시 발송되도록 함
+      const response = await fetch(`/api/bookings/${bookingId}/schedule-reminder`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scheduled_at: new Date().toISOString(), // 현재 시간으로 설정
+        }),
+      });
+
+      const result = await response.json().catch(() => ({ 
+        success: false, 
+        message: '응답을 읽을 수 없습니다.' 
+      }));
+
+      if (response.ok && result.success) {
+        // 수동 발송 API 호출
+        const sendResponse = await fetch('/api/admin/send-scheduled-sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (sendResponse.ok) {
+          alert('✅ 메시지가 발송되었습니다.');
+          // 상태 새로고침
+          const refreshResponse = await fetch(`/api/bookings/${bookingId}/schedule-reminder`);
+          if (refreshResponse.ok) {
+            const refreshData = await refreshResponse.json();
+            if (refreshData.success && refreshData.reminder) {
+              setExistingReminder(refreshData.reminder);
+            }
+          }
+        } else {
+          alert('⚠️ 메시지 발송에 실패했습니다. 잠시 후 다시 시도해주세요.');
+        }
+      } else {
+        throw new Error(result.message || '메시지 발송 설정에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('수동 발송 오류:', error);
+      alert('메시지 발송에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
+    } finally {
+      setReminderSaving(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!confirm('이 예약을 삭제하시겠습니까?')) return;
 
@@ -605,7 +674,7 @@ export default function BookingDetailModal({
                 checked={reminderEnabled}
                 onChange={(e) => setReminderEnabled(e.target.checked)}
                 className="mt-1"
-                disabled={reminderSaving}
+                disabled={reminderSaving || reminderLoading}
               />
               <div className="flex-1">
                 <label htmlFor="reminder-enabled" className="font-medium text-gray-900 cursor-pointer">
@@ -614,6 +683,9 @@ export default function BookingDetailModal({
                 <p className="text-sm text-gray-600 mt-1">
                   예약 시간 2시간 전에 고객에게 리마인드 메시지를 발송합니다.
                 </p>
+                {reminderLoading && (
+                  <p className="text-xs text-gray-500 mt-1">예약 메시지 설정 확인 중...</p>
+                )}
                 {reminderEnabled && (
                   <div className="mt-3">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -701,6 +773,13 @@ export default function BookingDetailModal({
                         <p className="text-yellow-600 text-[10px] mt-1">
                           메시지가 아직 발송되지 않았습니다. 수동으로 발송하거나 시간을 수정해주세요.
                         </p>
+                        <button
+                          onClick={handleSendPastReminder}
+                          disabled={reminderSaving}
+                          className="mt-2 px-3 py-1 bg-yellow-600 text-white rounded text-xs hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        >
+                          {reminderSaving ? '발송 중...' : '지금 발송하기'}
+                        </button>
                       </div>
                     );
                   }
