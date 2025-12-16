@@ -712,7 +712,10 @@ export default function ContentCalendarHub() {
 
   // 홈피 블로그 미리보기 핸들러
   const handleBlogView = (blog: any) => {
-    setBlogPreview({ show: true, blog });
+    // 블로그 포스트를 새 탭에서 열기 (관리자 권한으로)
+    const slug = blog.slug || blog.id || 'unknown';
+    const url = `/blog/${slug}?admin=true`;
+    window.open(url, '_blank');
   };
 
   // 홈피 블로그 삭제 핸들러
@@ -2146,39 +2149,42 @@ export default function ContentCalendarHub() {
                   </div>
                 </div>
 
-                <div className="bg-gray-100 p-6 rounded-lg">
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">📖 상세 문서</h3>
-                  <p className="text-sm text-gray-600 mb-4">더 자세한 내용은 다음 문서를 참고하세요:</p>
-                  <ul className="space-y-2">
-                    <li>
-                      <a 
-                        href="/docs/weekly-hub-content-strategy.md" 
-                        target="_blank"
-                        className="text-blue-600 hover:text-blue-800 underline"
-                      >
-                        📄 주간 허브 콘텐츠 전략 계획
-                      </a>
-                    </li>
-                    <li>
-                      <a 
-                        href="/docs/content-calendar/weekly-schedule-2025.md" 
-                        target="_blank"
-                        className="text-blue-600 hover:text-blue-800 underline"
-                      >
-                        📅 주간 스케줄 (2025)
-                      </a>
-                    </li>
-                    <li>
-                      <a 
-                        href="/docs/content-templates/daily-content-templates.md" 
-                        target="_blank"
-                        className="text-blue-600 hover:text-blue-800 underline"
-                      >
-                        📝 요일별 콘텐츠 템플릿
-                      </a>
-                    </li>
-                  </ul>
-                </div>
+                 <div className="bg-gray-100 p-6 rounded-lg">
+                   <h3 className="text-xl font-bold text-gray-900 mb-3">📖 상세 문서</h3>
+                   <p className="text-sm text-gray-600 mb-4">더 자세한 내용은 다음 문서를 참고하세요:</p>
+                   <ul className="space-y-2">
+                     <li>
+                       <a 
+                         href="https://github.com/whalechillz/mas-win/blob/main/docs/weekly-hub-content-strategy.md" 
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="text-blue-600 hover:text-blue-800 underline"
+                       >
+                         📄 주간 허브 콘텐츠 전략 계획
+                       </a>
+                     </li>
+                     <li>
+                       <a 
+                         href="https://github.com/whalechillz/mas-win/blob/main/docs/content-calendar/weekly-schedule-2025.md" 
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="text-blue-600 hover:text-blue-800 underline"
+                       >
+                         📅 주간 스케줄 (2025)
+                       </a>
+                     </li>
+                     <li>
+                       <a 
+                         href="https://github.com/whalechillz/mas-win/blob/main/docs/content-templates/daily-content-templates.md" 
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="text-blue-600 hover:text-blue-800 underline"
+                       >
+                         📝 요일별 콘텐츠 템플릿
+                       </a>
+                     </li>
+                   </ul>
+                 </div>
               </div>
             </div>
           </div>

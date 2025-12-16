@@ -5603,7 +5603,9 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
                           <button
                             onClick={() => {
                               const slug = post.slug || post.id || 'unknown';
-                              window.open(`/blog/${slug}`, '_blank');
+                              // 관리자 권한으로 보기 (초안도 볼 수 있도록)
+                              const url = `/blog/${slug}?admin=true`;
+                              window.open(url, '_blank');
                             }}
                             className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors flex items-center space-x-1"
                           >
