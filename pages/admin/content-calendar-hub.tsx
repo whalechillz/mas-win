@@ -504,41 +504,6 @@ export default function ContentCalendarHub() {
     }
   };
 
-  // 동적 채널 추가
-  const handleAddChannel = async (content: HubContent) => {
-    if (!newChannelType || !newChannelAccountName) {
-      alert('채널 타입과 계정명을 입력해주세요.');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/admin/manage-channels', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          hubContentId: content.id,
-          channelType: newChannelType,
-          accountName: newChannelAccountName
-        })
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        showToastMessage(`✅ 새 ${newChannelType} 채널이 추가되었습니다!`, 'success');
-        setShowAddChannelModal(false);
-        setNewChannelType('');
-        setNewChannelAccountName('');
-        // 허브 콘텐츠 목록 새로고침
-        fetchContents(pagination.page);
-      } else {
-        showToastMessage(`❌ 채널 추가 실패: ${result.message}`, 'error');
-      }
-    } catch (error) {
-      console.error('채널 추가 오류:', error);
-      showToastMessage('❌ 채널 추가 중 오류가 발생했습니다.', 'error');
-    }
-  };
 
   // 동적 채널 삭제
   const handleRemoveChannel = async (content: HubContent, channelKey: string) => {
