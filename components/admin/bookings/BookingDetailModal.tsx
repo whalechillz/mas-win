@@ -88,15 +88,16 @@ export default function BookingDetailModal({
     setIsEditing(defaultEditing);
   }, [booking, defaultEditing]);
 
-  // 예약 시간 2시간 전 계산
+  // 예약 시간 2시간 전 계산 (기존 예약 메시지가 없을 때만)
   useEffect(() => {
-    if (booking.date && booking.time) {
+    // ⭐ 수정: existingReminder가 없을 때만 기본값 설정
+    if (!existingReminder && booking.date && booking.time) {
       const bookingDateTime = new Date(`${booking.date}T${booking.time}`);
       const reminderDateTime = new Date(bookingDateTime.getTime() - 2 * 60 * 60 * 1000); // 2시간 전
       const formattedDateTime = formatLocalDateTime(reminderDateTime);
       setReminderScheduledAt(formattedDateTime);
     }
-  }, [booking.date, booking.time]);
+  }, [booking.date, booking.time, existingReminder]);
 
   // 기존 예약 메시지 확인
   useEffect(() => {
@@ -779,8 +780,35 @@ export default function BookingDetailModal({
                   const sentTime = sentAtUTC ? sentAtUTC.getTime() : null;
                   
                   // ⭐ 실제 발송 여부: scheduled_at이 과거이고 sent_at이 있고, sent_at이 scheduled_at 이후면 발송됨
-                  // scheduled_at이 미래인데 sent_at이 있으면 → 잘못된 상태 (다른 메시지의 발송 시간)
-                  const isActuallySent = scheduledTime && sentTime && 
+                  // ⭐ 추가: 같은 예약의 메시지인지 확인 (metadata.booking_id로 검증)
+                  const bookingIdNum = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
+                  let isSameBooking = true;
+                  
+                  // metadata로 같은 예약인지 확인
+                  if (existingReminder.metadata) {
+                    let metadata = existingReminder.metadata;
+                    if (typeof metadata === 'string') {
+                      try {
+                        metadata = JSON.parse(metadata);
+                      } catch (e) {
+                        // 파싱 실패 시 다음 조건으로
+                      }
+                    }
+                    
+                    if (metadata && typeof metadata === 'object') {
+                      const metadataBookingId = metadata.booking_id;
+                      const metadataBookingIdNum = typeof metadataBookingId === 'string' 
+                        ? parseInt(metadataBookingId) 
+                        : metadataBookingId;
+                      
+                      // ⭐ 같은 예약의 메시지인지 확인
+                      isSameBooking = metadataBookingIdNum === bookingIdNum;
+                    }
+                  }
+                  
+                  const isActuallySent = isSameBooking && 
+                                         scheduledTime && 
+                                         sentTime && 
                                          scheduledTime <= nowTime && 
                                          sentTime <= nowTime &&
                                          sentTime >= scheduledTime; // sent_at이 scheduled_at 이후여야 함
