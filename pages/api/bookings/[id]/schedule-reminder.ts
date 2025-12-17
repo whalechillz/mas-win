@@ -308,13 +308,89 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      // 기존 예약 메시지 조회 (note 필드로 조회)
-      const { data: existingReminders, error: findError } = await supabase
+      // ⭐ 수정: GET 요청과 동일하게 여러 상태와 metadata로도 조회
+      let existingReminders: any[] = [];
+      let findError: any = null;
+
+      const bookingIdNum = typeof bookingId === 'string' ? parseInt(bookingId) : bookingId;
+
+      // 1. metadata 필드로 조회 시도 (status: draft, sent, partial 모두)
+      const { data: metadataReminders, error: metadataError } = await supabase
         .from('channel_sms')
         .select('*')
-        .like('note', `%예약 당일 알림: 예약 ID ${bookingId}%`)
-        .eq('status', 'draft')
-        .limit(1);
+        .in('status', ['draft', 'sent', 'partial'])
+        .order('created_at', { ascending: false });
+
+      if (!metadataError && metadataReminders) {
+        // metadata로 필터링
+        existingReminders = metadataReminders.filter((r: any) => {
+          // metadata로 먼저 확인
+          if (r.metadata) {
+            let metadata = r.metadata;
+            if (typeof metadata === 'string') {
+              try {
+                metadata = JSON.parse(metadata);
+              } catch (e) {
+                // 파싱 실패 시 다음 조건으로
+              }
+            }
+            
+            if (metadata && typeof metadata === 'object') {
+              // booking_id 타입 불일치 해결 (숫자/문자열 모두 비교)
+              const metadataBookingId = metadata.booking_id;
+              const metadataBookingIdNum = typeof metadataBookingId === 'string' 
+                ? parseInt(metadataBookingId) 
+                : metadataBookingId;
+              
+              if (metadataBookingIdNum === bookingIdNum && 
+                  metadata.notification_type === 'booking_reminder_2h') {
+                return true;
+              }
+            }
+          }
+          
+          // note 필드로도 확인 (예약 ID 포함 여부)
+          if (r.note && typeof r.note === 'string') {
+            if (r.note.includes(`예약 ID ${bookingId}`) || 
+                r.note.includes(`예약 ID ${bookingIdNum}`) ||
+                r.note.includes(`예약 당일 알림`)) {
+              return true;
+            }
+          }
+          
+          return false;
+        });
+      }
+
+      // 2. metadata로 찾지 못하면 note 필드로 조회
+      if (existingReminders.length === 0) {
+        const { data: noteReminders, error: noteError } = await supabase
+          .from('channel_sms')
+          .select('*')
+          .like('note', `%예약 당일 알림: 예약 ID ${bookingId}%`)
+          .in('status', ['draft', 'sent', 'partial'])
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (!noteError && noteReminders) {
+          existingReminders = noteReminders;
+        } else {
+          // note 필드로도 찾지 못하면 예약 ID만으로 검색
+          const { data: idReminders, error: idError } = await supabase
+            .from('channel_sms')
+            .select('*')
+            .like('note', `%예약 ID ${bookingId}%`)
+            .in('status', ['draft', 'sent', 'partial'])
+            .order('created_at', { ascending: false })
+            .limit(1);
+          
+          if (!idError && idReminders) {
+            existingReminders = idReminders;
+          } else {
+            findError = idError || noteError || metadataError;
+          }
+        }
+      }
 
       if (findError) throw findError;
 
