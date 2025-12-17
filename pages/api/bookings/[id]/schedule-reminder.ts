@@ -135,7 +135,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (error) throw error;
 
       // ⭐ 추가: 디버깅 로그
-      console.log(`[schedule-reminder] 예약 ID ${bookingId} (${bookingIdNum}) 조회 결과:`, {
+      console.log('[schedule-reminder][GET] 결과', {
+        bookingId,
         found: reminders.length > 0,
         totalFiltered: reminders.length,
         reminders: reminders.map(r => {
@@ -151,8 +152,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             id: r.id,
             status: r.status,
             scheduled_at: r.scheduled_at,
+            solapi_group_id: r.solapi_group_id || null,
             metadata_booking_id: metadata?.booking_id,
-            note: r.note,
           };
         }),
       });
@@ -218,7 +219,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         reminder: null,
       });
     } catch (error: any) {
-      console.error('예약 메시지 조회 오류:', error);
+      console.error('[schedule-reminder][GET] ERROR', {
+        bookingId,
+        error: error.message,
+        stack: error.stack,
+      });
       return res.status(500).json({
         success: false,
         message: error.message || '예약 메시지 조회에 실패했습니다.',

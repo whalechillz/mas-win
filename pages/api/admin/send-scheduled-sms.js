@@ -85,7 +85,25 @@ export default async function handler(req, res) {
       // scheduled_at을 Date 객체로 변환 (Supabase가 'Z'를 제거했을 수 있으므로 명시적으로 UTC로 해석)
       const scheduledAtStr = msg.scheduled_at.endsWith('Z') ? msg.scheduled_at : msg.scheduled_at + 'Z';
       const scheduledDate = new Date(scheduledAtStr);
-      return !isNaN(scheduledDate.getTime()) && scheduledDate <= now;
+      const isValid = !isNaN(scheduledDate.getTime());
+      const shouldSend = isValid && scheduledDate <= now;
+
+      if (!isValid) {
+        console.warn('⚠️ [send-scheduled-sms] 잘못된 scheduled_at 형식으로 인해 건너뜀', {
+          id: msg.id,
+          status: msg.status,
+          scheduled_at: msg.scheduled_at,
+        });
+      } else if (!shouldSend) {
+        console.log('ℹ️ [send-scheduled-sms] 아직 발송 시간이 지나지 않아 건너뜀', {
+          id: msg.id,
+          status: msg.status,
+          scheduled_at: msg.scheduled_at,
+          now: nowISO,
+        });
+      }
+
+      return shouldSend;
     });
     
     // 디버깅: 현재 시간과 조회된 메시지 로그
@@ -126,6 +144,15 @@ export default async function handler(req, res) {
     // 각 예약 메시지 처리
     for (const sms of scheduledMessages) {
       try {
+        console.log('[send-scheduled-sms] ▶ 예약 메시지 처리 시작', {
+          id: sms.id,
+          status: sms.status,
+          scheduled_at: sms.scheduled_at,
+          message_type: sms.message_type,
+          solapi_group_id: sms.solapi_group_id || null,
+          metadata: sms.metadata || null,
+        });
+
         // 수신자 번호 파싱
         let recipientNumbers = [];
         if (sms.recipient_numbers) {
@@ -426,10 +453,20 @@ export default async function handler(req, res) {
           groupId: groupIdsString // 모든 그룹 ID 반환
         });
 
-        console.log(`✅ 메시지 ID ${sms.id} 발송 완료: 성공 ${aggregated.successCount}건, 실패 ${aggregated.failCount}건`);
+        console.log('✅ [send-scheduled-sms] 예약 메시지 발송 완료', {
+          id: sms.id,
+          finalStatus,
+          sentCount: aggregated.successCount,
+          failCount: aggregated.failCount,
+          groupIds: groupIdsString,
+        });
 
       } catch (error) {
-        console.error(`❌ 메시지 ID ${sms.id} 처리 오류:`, error);
+        console.error('❌ [send-scheduled-sms] 예약 메시지 처리 오류', {
+          id: sms.id,
+          error: error.message,
+          stack: error.stack,
+        });
         // 오류 발생 시 상태 업데이트
         await supabase
           .from('channel_sms')
