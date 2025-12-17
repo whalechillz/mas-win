@@ -830,16 +830,56 @@ export default function BookingDetailModal({
                     <button
                       type="button"
                       onClick={async () => {
-                        if (!existingReminder) {
-                          alert('먼저 예약 시간을 저장해 주세요.\n\n"예약 시간 저장" 버튼으로 당일 메시지를 한 번 이상 설정해야 합니다.');
+                        if (!reminderEnabled) {
+                          alert('먼저 "당일 예약 메세지 발송"을 체크한 뒤 발송 시간을 설정해 주세요.');
                           return;
                         }
-                        if (!confirm('지금 이 예약의 당일 안내 메시지를 바로 보내시겠습니까?\n\n(예약 시간 2시간 전 자동 발송과는 별도로, 지금 즉시 한 번 발송됩니다.)')) {
+                        if (!reminderScheduledAt) {
+                          alert('발송 시간을 먼저 설정해 주세요.\n\n예: 예약 2시간 전으로 설정한 뒤 "예약 시간 저장" 또는 "지금 당일 메시지 보내기"를 눌러주세요.');
                           return;
                         }
-                        await handleSendPastReminder();
+                        if (!confirm('지금 이 예약의 당일 안내 메시지를 바로 보내시겠습니까?\n\n(예약 시간 2시간 전 자동 발송과는 별도로, 지금 즉시 한 번 추가로 발송됩니다.)')) {
+                          return;
+                        }
+
+                        try {
+                          setReminderSaving(true);
+                          const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
+
+                          // 1) 기존 예약 메시지가 없으면, 지금 시간 기준으로 새로 생성
+                          if (!existingReminder) {
+                            const createResponse = await fetch(`/api/bookings/${bookingId}/schedule-reminder`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                scheduled_at: new Date().toISOString(), // 지금 바로 발송 대상
+                              }),
+                            });
+                            const createResult = await createResponse.json().catch(() => ({
+                              success: false,
+                              message: '응답을 읽을 수 없습니다.',
+                            }));
+
+                            if (!createResponse.ok || !createResult.success) {
+                              throw new Error(createResult.message || '당일 메시지를 생성하지 못했습니다.');
+                            }
+
+                            // 생성된 레코드를 상태에 반영
+                            if (createResult.data || createResult.reminder) {
+                              setExistingReminder(createResult.data || createResult.reminder);
+                            }
+                          }
+
+                          // 2) 지금 시간으로 scheduled_at을 맞추고, 즉시 발송 실행
+                          await handleSendPastReminder();
+                        } catch (error: any) {
+                          console.error('즉시 발송 처리 오류:', error);
+                          alert('당일 메시지 즉시 발송 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
+                        } finally {
+                          setReminderSaving(false);
+                        }
                       }}
-                      disabled={reminderSaving || !existingReminder}
+                      disabled={reminderSaving}
                       className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed text-sm"
                     >
                       {reminderSaving ? '발송 중...' : '지금 당일 메시지 보내기'}
