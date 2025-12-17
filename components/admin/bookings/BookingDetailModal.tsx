@@ -89,15 +89,19 @@ export default function BookingDetailModal({
   }, [booking, defaultEditing]);
 
   // 예약 시간 2시간 전 계산 (기존 예약 메시지가 없을 때만)
+  // ⭐ 수정: API 로딩이 완료된 후에만 기본값 설정 (충돌 방지)
   useEffect(() => {
-    // ⭐ 수정: existingReminder가 없을 때만 기본값 설정
-    if (!existingReminder && booking.date && booking.time) {
+    // ⭐ 추가: API 로딩 중이거나 existingReminder가 이미 설정되어 있으면 실행하지 않음
+    if (reminderLoading || existingReminder) return;
+    
+    // ⭐ 수정: existingReminder가 없고 로딩이 완료된 후에만 기본값 설정
+    if (booking.date && booking.time) {
       const bookingDateTime = new Date(`${booking.date}T${booking.time}`);
       const reminderDateTime = new Date(bookingDateTime.getTime() - 2 * 60 * 60 * 1000); // 2시간 전
       const formattedDateTime = formatLocalDateTime(reminderDateTime);
       setReminderScheduledAt(formattedDateTime);
     }
-  }, [booking.date, booking.time, existingReminder]);
+  }, [booking.date, booking.time, existingReminder, reminderLoading]); // ⭐ 추가: reminderLoading 의존성
 
   // ⭐ 추가: 예약 메시지 상태를 새로고침하는 함수
   const refreshReminderStatus = async () => {
@@ -120,12 +124,8 @@ export default function BookingDetailModal({
         } else {
           setExistingReminder(null);
           setReminderEnabled(false);
-          // 기본값으로 재설정
-          if (booking.date && booking.time) {
-            const bookingDateTime = new Date(`${booking.date}T${booking.time}`);
-            const reminderDateTime = new Date(bookingDateTime.getTime() - 2 * 60 * 60 * 1000);
-            setReminderScheduledAt(formatLocalDateTime(reminderDateTime));
-          }
+          // ⭐ 수정: 기본값 설정은 첫 번째 useEffect에서 처리하도록 제거 (중복 방지)
+          // refreshReminderStatus는 수동 새로고침이므로 기본값 설정 불필요
         }
       } else {
         setExistingReminder(null);
@@ -171,12 +171,8 @@ export default function BookingDetailModal({
             // 기존 예약 메시지가 없으면 명시적으로 해제
             setExistingReminder(null);
             setReminderEnabled(false);
-            // ⭐ 추가: 기본값으로 재설정
-            if (booking.date && booking.time) {
-              const bookingDateTime = new Date(`${booking.date}T${booking.time}`);
-              const reminderDateTime = new Date(bookingDateTime.getTime() - 2 * 60 * 60 * 1000);
-              setReminderScheduledAt(formatLocalDateTime(reminderDateTime));
-            }
+            // ⭐ 수정: 기본값 설정은 첫 번째 useEffect에서 처리하도록 제거 (중복 방지)
+            // API 응답 후 reminderLoading이 false가 되면 첫 번째 useEffect가 자동으로 기본값 설정
           }
         } else {
           const errorData = await response.json().catch(() => ({}));
@@ -184,13 +180,16 @@ export default function BookingDetailModal({
           // API 호출 실패 시에도 명시적으로 해제
           setExistingReminder(null);
           setReminderEnabled(false);
+          // ⭐ 수정: 기본값 설정은 첫 번째 useEffect에서 처리하도록 제거 (중복 방지)
         }
       } catch (error) {
         console.error('[BookingDetailModal] 예약 메시지 확인 오류:', error);
         setExistingReminder(null);
         setReminderEnabled(false);
+        // ⭐ 수정: 기본값 설정은 첫 번째 useEffect에서 처리하도록 제거 (중복 방지)
       } finally {
         setReminderLoading(false); // 로딩 종료
+        // ⭐ 중요: 로딩 종료 후 첫 번째 useEffect가 자동으로 기본값 설정 (existingReminder가 null이고 reminderLoading이 false일 때)
       }
     };
     checkExistingReminder();
