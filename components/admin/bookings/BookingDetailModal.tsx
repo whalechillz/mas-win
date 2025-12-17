@@ -355,8 +355,22 @@ export default function BookingDetailModal({
       }));
 
       if (response.ok && result.success) {
+        // ⭐ 수정: 업데이트 전 상태 저장
+        const wasUpdate = existingReminder !== null;
+        const wasAlreadySent = existingReminder?.sent_at !== null && existingReminder?.sent_at !== undefined;
+        
         setExistingReminder(result.data);
-        alert('당일 예약 메시지가 설정되었습니다.');
+        
+        // ⭐ 수정: 생성/수정 구분
+        if (wasUpdate) {
+          if (wasAlreadySent) {
+            alert('⚠️ 당일 예약 메시지가 수정되었습니다.\n\n(참고: 이미 발송된 메시지입니다.)');
+          } else {
+            alert('✅ 당일 예약 메시지가 수정되었습니다.');
+          }
+        } else {
+          alert('✅ 당일 예약 메시지가 설정되었습니다.');
+        }
       } else {
         // ⭐ 수정: 실제 에러 메시지 사용
         throw new Error(result.message || '예약 메시지 설정에 실패했습니다.');
@@ -816,9 +830,9 @@ export default function BookingDetailModal({
                     return (
                       <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs">
                         <p className="text-green-800 font-medium">✓ 메시지가 발송되었습니다.</p>
-                        {sentAtKST && (
+                        {sentAtUTC && (
                           <p className="text-green-600 mt-1">
-                            발송 시간: {sentAtKST.toLocaleString('ko-KR', {
+                            발송 시간: {sentAtUTC.toLocaleString('ko-KR', {
                               year: 'numeric',
                               month: '2-digit',
                               day: '2-digit',

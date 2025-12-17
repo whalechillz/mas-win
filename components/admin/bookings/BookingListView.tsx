@@ -199,6 +199,13 @@ export default function BookingListView({ bookings, customers, supabase, onUpdat
         
         return sortOrder === 'asc' ? comparison : -comparison;
       });
+    } else {
+      // ⭐ 추가: sortBy가 null인 경우에도 기본 정렬 적용 (최신 예약일순)
+      filtered = [...filtered].sort((a, b) => {
+        const dateTimeA = new Date(`${a.date}T${a.time || '00:00:00'}`).getTime();
+        const dateTimeB = new Date(`${b.date}T${b.time || '00:00:00'}`).getTime();
+        return dateTimeB - dateTimeA; // 내림차순 (최신순)
+      });
     }
 
     return filtered;
