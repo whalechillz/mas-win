@@ -84,10 +84,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           
           // note 필드로도 확인 (예약 ID 포함 여부)
           // ⭐ 수정: '예약 당일 알림' 조건 제거 (너무 넓어서 다른 예약 메시지도 매칭됨)
+          // ⭐ 추가: '스탭진 알림' 등 다른 타입의 메시지는 제외
           if (r.note && typeof r.note === 'string') {
-            // ⭐ 수정: 예약 ID가 명시적으로 포함된 경우만 매칭
-            if (r.note.includes(`예약 ID ${bookingId}`) || 
-                r.note.includes(`예약 ID ${bookingIdNum}`)) {
+            // ⭐ 수정: '예약 당일 알림'으로 시작하고 예약 ID가 포함된 경우만 매칭
+            const hasBookingId = r.note.includes(`예약 ID ${bookingId}`) || 
+                                 r.note.includes(`예약 ID ${bookingIdNum}`);
+            const isReminderMessage = r.note.includes('예약 당일 알림');
+            // ⭐ 추가: '스탭진 알림' 등 다른 타입은 제외
+            const isOtherType = r.note.includes('스탭진 알림') || 
+                               r.note.includes('확정 알림') ||
+                               r.note.includes('접수 알림');
+            
+            if (hasBookingId && isReminderMessage && !isOtherType) {
               return true;
             }
           }
@@ -151,9 +159,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // ⭐ 수정: 필터링된 결과 중에서 정확히 일치하는 것만 선택
       if (reminders && reminders.length > 0) {
-        // ⭐ 추가: booking_id가 정확히 일치하는 메시지만 선택
+        // ⭐ 추가: booking_id가 정확히 일치하고 '예약 당일 알림' 타입인 메시지만 선택
         const exactMatch = reminders.find((r: any) => {
-          // metadata로 확인
+          // metadata로 확인 (가장 정확함)
           if (r.metadata) {
             let metadata = r.metadata;
             if (typeof metadata === 'string') {
@@ -168,13 +176,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               const metadataBookingIdNum = typeof metadataBookingId === 'string' 
                 ? parseInt(metadataBookingId) 
                 : metadataBookingId;
-              return metadataBookingIdNum === bookingIdNum;
+              // ⭐ 추가: notification_type이 'booking_reminder_2h'인 경우만
+              const isReminderType = metadata.notification_type === 'booking_reminder_2h';
+              return metadataBookingIdNum === bookingIdNum && isReminderType;
             }
           }
-          // note로 확인
+          // note로 확인 (metadata가 없는 경우)
           if (r.note && typeof r.note === 'string') {
-            return r.note.includes(`예약 ID ${bookingId}`) || 
-                   r.note.includes(`예약 ID ${bookingIdNum}`);
+            const hasBookingId = r.note.includes(`예약 ID ${bookingId}`) || 
+                                 r.note.includes(`예약 ID ${bookingIdNum}`);
+            // ⭐ 추가: '예약 당일 알림'으로 시작하는 메시지만
+            const isReminderMessage = r.note.startsWith('예약 당일 알림') || 
+                                     r.note.includes('예약 당일 알림:');
+            // ⭐ 추가: 다른 타입의 메시지는 제외
+            const isOtherType = r.note.includes('스탭진 알림') || 
+                               r.note.includes('확정 알림') ||
+                               r.note.includes('접수 알림');
+            return hasBookingId && isReminderMessage && !isOtherType;
           }
           return false;
         });
@@ -402,10 +420,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           
           // note 필드로도 확인 (예약 ID 포함 여부)
           // ⭐ 수정: '예약 당일 알림' 조건 제거 (너무 넓어서 다른 예약 메시지도 매칭됨)
+          // ⭐ 추가: '스탭진 알림' 등 다른 타입의 메시지는 제외
           if (r.note && typeof r.note === 'string') {
-            // ⭐ 수정: 예약 ID가 명시적으로 포함된 경우만 매칭
-            if (r.note.includes(`예약 ID ${bookingId}`) || 
-                r.note.includes(`예약 ID ${bookingIdNum}`)) {
+            // ⭐ 수정: '예약 당일 알림'으로 시작하고 예약 ID가 포함된 경우만 매칭
+            const hasBookingId = r.note.includes(`예약 ID ${bookingId}`) || 
+                                 r.note.includes(`예약 ID ${bookingIdNum}`);
+            const isReminderMessage = r.note.includes('예약 당일 알림');
+            // ⭐ 추가: '스탭진 알림' 등 다른 타입은 제외
+            const isOtherType = r.note.includes('스탭진 알림') || 
+                               r.note.includes('확정 알림') ||
+                               r.note.includes('접수 알림');
+            
+            if (hasBookingId && isReminderMessage && !isOtherType) {
               return true;
             }
           }
