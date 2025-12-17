@@ -127,22 +127,72 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (error) throw error;
 
       // ⭐ 추가: 디버깅 로그
-      console.log(`[schedule-reminder] 예약 ID ${bookingId} 조회 결과:`, {
+      console.log(`[schedule-reminder] 예약 ID ${bookingId} (${bookingIdNum}) 조회 결과:`, {
         found: reminders.length > 0,
-        reminders: reminders.map(r => ({
-          id: r.id,
-          status: r.status,
-          scheduled_at: r.scheduled_at,
-          metadata: r.metadata,
-          note: r.note,
-        })),
+        totalFiltered: reminders.length,
+        reminders: reminders.map(r => {
+          let metadata = r.metadata;
+          if (typeof metadata === 'string') {
+            try {
+              metadata = JSON.parse(metadata);
+            } catch (e) {
+              // 파싱 실패
+            }
+          }
+          return {
+            id: r.id,
+            status: r.status,
+            scheduled_at: r.scheduled_at,
+            metadata_booking_id: metadata?.booking_id,
+            note: r.note,
+          };
+        }),
       });
 
+      // ⭐ 수정: 필터링된 결과 중에서 정확히 일치하는 것만 선택
       if (reminders && reminders.length > 0) {
-        return res.status(200).json({
-          success: true,
-          reminder: reminders[0],
+        // ⭐ 추가: booking_id가 정확히 일치하는 메시지만 선택
+        const exactMatch = reminders.find((r: any) => {
+          // metadata로 확인
+          if (r.metadata) {
+            let metadata = r.metadata;
+            if (typeof metadata === 'string') {
+              try {
+                metadata = JSON.parse(metadata);
+              } catch (e) {
+                return false;
+              }
+            }
+            if (metadata && typeof metadata === 'object') {
+              const metadataBookingId = metadata.booking_id;
+              const metadataBookingIdNum = typeof metadataBookingId === 'string' 
+                ? parseInt(metadataBookingId) 
+                : metadataBookingId;
+              return metadataBookingIdNum === bookingIdNum;
+            }
+          }
+          // note로 확인
+          if (r.note && typeof r.note === 'string') {
+            return r.note.includes(`예약 ID ${bookingId}`) || 
+                   r.note.includes(`예약 ID ${bookingIdNum}`);
+          }
+          return false;
         });
+
+        if (exactMatch) {
+          console.log(`[schedule-reminder] 정확히 일치하는 메시지 발견: ID ${exactMatch.id}`);
+          return res.status(200).json({
+            success: true,
+            reminder: exactMatch,
+          });
+        } else {
+          console.log(`[schedule-reminder] ⚠️ 필터링된 결과 중 정확히 일치하는 메시지 없음`);
+          // 정확히 일치하는 것이 없으면 null 반환
+          return res.status(200).json({
+            success: true,
+            reminder: null,
+          });
+        }
       }
 
       return res.status(200).json({
