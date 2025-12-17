@@ -99,6 +99,47 @@ export default function BookingDetailModal({
     }
   }, [booking.date, booking.time, existingReminder]);
 
+  // ⭐ 추가: 예약 메시지 상태를 새로고침하는 함수
+  const refreshReminderStatus = async () => {
+    setReminderLoading(true);
+    try {
+      const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
+      const response = await fetch(`/api/bookings/${bookingId}/schedule-reminder`, {
+        cache: 'no-store', // ⭐ 캐시 방지
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.reminder) {
+          setExistingReminder(data.reminder);
+          setReminderEnabled(true);
+          if (data.reminder.scheduled_at) {
+            const kstDate = convertUTCToKST(data.reminder.scheduled_at);
+            setReminderScheduledAt(formatLocalDateTime(kstDate));
+          }
+        } else {
+          setExistingReminder(null);
+          setReminderEnabled(false);
+          // 기본값으로 재설정
+          if (booking.date && booking.time) {
+            const bookingDateTime = new Date(`${booking.date}T${booking.time}`);
+            const reminderDateTime = new Date(bookingDateTime.getTime() - 2 * 60 * 60 * 1000);
+            setReminderScheduledAt(formatLocalDateTime(reminderDateTime));
+          }
+        }
+      } else {
+        setExistingReminder(null);
+        setReminderEnabled(false);
+      }
+    } catch (error) {
+      console.error('예약 메시지 상태 새로고침 오류:', error);
+      setExistingReminder(null);
+      setReminderEnabled(false);
+    } finally {
+      setReminderLoading(false);
+    }
+  };
+
   // 기존 예약 메시지 확인
   useEffect(() => {
     const checkExistingReminder = async () => {
@@ -107,7 +148,9 @@ export default function BookingDetailModal({
         const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
         console.log('[BookingDetailModal] 예약 메시지 확인 시작:', { bookingId, booking });
         
-        const response = await fetch(`/api/bookings/${bookingId}/schedule-reminder`);
+        const response = await fetch(`/api/bookings/${bookingId}/schedule-reminder`, {
+          cache: 'no-store', // ⭐ 캐시 방지
+        });
         console.log('[BookingDetailModal] API 응답 상태:', response.status);
         
         if (response.ok) {
@@ -128,6 +171,12 @@ export default function BookingDetailModal({
             // 기존 예약 메시지가 없으면 명시적으로 해제
             setExistingReminder(null);
             setReminderEnabled(false);
+            // ⭐ 추가: 기본값으로 재설정
+            if (booking.date && booking.time) {
+              const bookingDateTime = new Date(`${booking.date}T${booking.time}`);
+              const reminderDateTime = new Date(bookingDateTime.getTime() - 2 * 60 * 60 * 1000);
+              setReminderScheduledAt(formatLocalDateTime(reminderDateTime));
+            }
           }
         } else {
           const errorData = await response.json().catch(() => ({}));
@@ -671,7 +720,6 @@ export default function BookingDetailModal({
                 checked={reminderEnabled}
                 onChange={async (e) => {
                   const newValue = e.target.checked;
-                  setReminderEnabled(newValue);
                   
                   // 체크 해제 시 즉시 삭제 확인
                   if (!newValue && existingReminder) {
@@ -681,6 +729,7 @@ export default function BookingDetailModal({
                         const bookingId = typeof booking.id === 'number' ? booking.id : parseInt(String(booking.id));
                         const response = await fetch(`/api/bookings/${bookingId}/schedule-reminder`, {
                           method: 'DELETE',
+                          cache: 'no-store', // ⭐ 캐시 방지
                         });
                         
                         const result = await response.json().catch(() => ({ 
@@ -689,8 +738,20 @@ export default function BookingDetailModal({
                         }));
 
                         if (response.ok && result.success) {
+                          // ⭐ 수정: 삭제 성공 후 상태를 명시적으로 초기화
                           setExistingReminder(null);
+                          setReminderEnabled(false);
+                          // 기본값으로 재설정
+                          if (booking.date && booking.time) {
+                            const bookingDateTime = new Date(`${booking.date}T${booking.time}`);
+                            const reminderDateTime = new Date(bookingDateTime.getTime() - 2 * 60 * 60 * 1000);
+                            setReminderScheduledAt(formatLocalDateTime(reminderDateTime));
+                          }
                           alert('✅ 당일 예약 메시지가 삭제되었습니다.');
+                          // ⭐ 추가: 삭제 후 상태 재확인 (DB 반영 지연 대비)
+                          setTimeout(() => {
+                            refreshReminderStatus();
+                          }, 300);
                         } else {
                           // 삭제 실패 시 체크박스 다시 체크
                           setReminderEnabled(true);
@@ -699,12 +760,23 @@ export default function BookingDetailModal({
                       } catch (error: any) {
                         console.error('예약 메시지 삭제 오류:', error);
                         alert('❌ 예약 메시지 삭제에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
+                        // 에러 발생 시 체크박스 다시 체크
+                        setReminderEnabled(true);
                       } finally {
                         setReminderSaving(false);
                       }
                     } else {
                       // 취소 시 체크박스 다시 체크
                       setReminderEnabled(true);
+                    }
+                  } else {
+                    // ⭐ 추가: 체크 시 상태 업데이트 및 기본값 설정
+                    setReminderEnabled(newValue);
+                    if (newValue && !existingReminder && booking.date && booking.time) {
+                      // 체크 시 기본값 설정 (기존 예약 메시지가 없을 때만)
+                      const bookingDateTime = new Date(`${booking.date}T${booking.time}`);
+                      const reminderDateTime = new Date(bookingDateTime.getTime() - 2 * 60 * 60 * 1000);
+                      setReminderScheduledAt(formatLocalDateTime(reminderDateTime));
                     }
                   }
                 }}
