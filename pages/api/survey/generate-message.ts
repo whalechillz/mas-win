@@ -109,7 +109,7 @@ function generateCustomMessage(survey: any, messageType: string): string {
 
   // 중요 요소 기반 CTA
   if (importantFactors.includes('distance')) {
-    ctaPoints.push('한 번의 시타로 30m 비거리 증가를 직접 체험');
+    ctaPoints.push('한 번의 시타로 25m 비거리 증가를 직접 체험');
   }
   if (importantFactors.includes('direction')) {
     ctaPoints.push('정확한 샷을 위한 맞춤 피팅 상담');

@@ -130,7 +130,7 @@ function generateCallToActionPoints(
 
   // 중요 요소 기반 포인트
   if (importantFactors.includes('distance')) {
-    points.push('비거리 개선 솔루션 제공 - 한 번의 시타로 30m 비거리 증가 체험 가능');
+    points.push('비거리 개선 솔루션 제공 - 한 번의 시타로 25m 비거리 증가 체험 가능');
   }
   if (importantFactors.includes('direction')) {
     points.push('방향성 개선 맞춤 피팅 - 정확한 샷을 위한 전문 상담');

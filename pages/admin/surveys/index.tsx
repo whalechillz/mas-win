@@ -965,7 +965,7 @@ export default function SurveysPage() {
                         {messageModal.customerNeeds.primaryFactors.includes('비거리') && (
                           <li className="flex items-start">
                             <span className="text-blue-600 mr-2">•</span>
-                            <span>한 번의 시타로 30m 비거리 증가를 직접 체험 가능</span>
+                            <span>한 번의 시타로 25m 비거리 증가를 직접 체험 가능</span>
                           </li>
                         )}
                         {messageModal.customerNeeds.primaryFactors.includes('방향성') && (

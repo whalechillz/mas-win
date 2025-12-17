@@ -28,7 +28,7 @@ const SMS_TEMPLATES = {
 
 예약일시: {날짜} {시간}
 
-한 번의 시타로 30m 비거리 증가를 직접 체험하세요!
+한 번의 시타로 25m 비거리 증가를 직접 체험하세요!
 
 자세한 정보: https://www.masgolf.co.kr/
 
@@ -41,7 +41,7 @@ const SMS_TEMPLATES = {
 - 장소: 마쓰구골프 수원 본점
 - 약도 안내: https://www.masgolf.co.kr/contact
 
-한 번의 시타로 30m 비거리 증가를 직접 체험하세요!
+한 번의 시타로 25m 비거리 증가를 직접 체험하세요!
 
 편한 복장으로 방문해 주세요.
 
