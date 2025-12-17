@@ -777,8 +777,16 @@ export default function BookingDetailModal({
                   // scheduled_at이 현재보다 과거이고 sent_at이 없고 status가 'draft'면 → 발송 시간 지남
                   const isPast = scheduledTime && scheduledTime < nowTime && !sentTime && existingReminder.status === 'draft';
                   
-                  // scheduled_at이 현재보다 미래면 → 예정
-                  const isScheduled = scheduledTime && scheduledTime > nowTime;
+                  // ⭐ 추가: 5분 전 경고 (발송 시간이 5분 이내로 다가옴)
+                  const fiveMinutesInMs = 5 * 60 * 1000;
+                  const isNearTime = scheduledTime && 
+                                      scheduledTime > nowTime && 
+                                      scheduledTime <= (nowTime + fiveMinutesInMs) &&
+                                      !sentTime && 
+                                      existingReminder.status === 'draft';
+                  
+                  // scheduled_at이 현재보다 미래이고 5분 이상 남았으면 → 예정
+                  const isScheduled = scheduledTime && scheduledTime > (nowTime + fiveMinutesInMs);
                   
                   // ⭐ 잘못된 상태는 표시하지 않음
                   if (isInvalidState) {
@@ -850,6 +858,30 @@ export default function BookingDetailModal({
                         >
                           {reminderSaving ? '발송 중...' : '지금 발송하기'}
                         </button>
+                      </div>
+                    );
+                  }
+                  
+                  // ⭐ 추가: 5분 전 경고
+                  if (isNearTime) {
+                    return (
+                      <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-xs">
+                        <p className="text-orange-800 font-medium">⚠️ 발송 시간이 곧 다가옵니다 (5분 전)</p>
+                        {scheduledAtKST && (
+                          <p className="text-orange-600 mt-1">
+                            예정 시간: {scheduledAtKST.toLocaleString('ko-KR', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              timeZone: 'Asia/Seoul'
+                            })}
+                          </p>
+                        )}
+                        <p className="text-orange-600 text-[10px] mt-1">
+                          발송 시간이 5분 이내입니다. 곧 자동으로 발송됩니다.
+                        </p>
                       </div>
                     );
                   }
