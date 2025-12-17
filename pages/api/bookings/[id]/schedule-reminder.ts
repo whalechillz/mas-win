@@ -83,10 +83,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           
           // note 필드로도 확인 (예약 ID 포함 여부)
+          // ⭐ 수정: '예약 당일 알림' 조건 제거 (너무 넓어서 다른 예약 메시지도 매칭됨)
           if (r.note && typeof r.note === 'string') {
+            // ⭐ 수정: 예약 ID가 명시적으로 포함된 경우만 매칭
             if (r.note.includes(`예약 ID ${bookingId}`) || 
-                r.note.includes(`예약 ID ${bookingIdNum}`) ||
-                r.note.includes(`예약 당일 알림`)) {
+                r.note.includes(`예약 ID ${bookingIdNum}`)) {
               return true;
             }
           }
@@ -350,10 +351,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           
           // note 필드로도 확인 (예약 ID 포함 여부)
+          // ⭐ 수정: '예약 당일 알림' 조건 제거 (너무 넓어서 다른 예약 메시지도 매칭됨)
           if (r.note && typeof r.note === 'string') {
+            // ⭐ 수정: 예약 ID가 명시적으로 포함된 경우만 매칭
             if (r.note.includes(`예약 ID ${bookingId}`) || 
-                r.note.includes(`예약 ID ${bookingIdNum}`) ||
-                r.note.includes(`예약 당일 알림`)) {
+                r.note.includes(`예약 ID ${bookingIdNum}`)) {
               return true;
             }
           }
