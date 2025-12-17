@@ -818,13 +818,33 @@ export default function BookingDetailModal({
                       });
                     })() : ''})
                   </p>
-                  <button
-                    onClick={handleSaveReminder}
-                    disabled={reminderSaving || !reminderEnabled}
-                    className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
-                  >
-                    {reminderSaving ? '저장 중...' : '예약 시간 저장'}
-                  </button>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button
+                      onClick={handleSaveReminder}
+                      disabled={reminderSaving || !reminderEnabled}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+                    >
+                      {reminderSaving ? '저장 중...' : '예약 시간 저장'}
+                    </button>
+                    {/* ⭐ 항상 노출: 지금 당일 메시지 보내기 (즉시 발송) */}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!existingReminder) {
+                          alert('먼저 예약 시간을 저장해 주세요.\n\n"예약 시간 저장" 버튼으로 당일 메시지를 한 번 이상 설정해야 합니다.');
+                          return;
+                        }
+                        if (!confirm('지금 이 예약의 당일 안내 메시지를 바로 보내시겠습니까?\n\n(예약 시간 2시간 전 자동 발송과는 별도로, 지금 즉시 한 번 발송됩니다.)')) {
+                          return;
+                        }
+                        await handleSendPastReminder();
+                      }}
+                      disabled={reminderSaving || !existingReminder}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed text-sm"
+                    >
+                      {reminderSaving ? '발송 중...' : '지금 당일 메시지 보내기'}
+                    </button>
+                  </div>
                 </div>
                 {existingReminder && (() => {
                   // ⭐ 수정: UTC → KST 명시적 변환 (표시용)
