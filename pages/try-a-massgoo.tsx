@@ -296,7 +296,7 @@ export default function TryAMassgoo() {
                   <span className="text-xl mt-0.5">🕘</span>
                   <div>
                     <strong className="text-gray-900 block mb-1">운영시간</strong>
-                    <span className="text-gray-700">평일 09:00 - 18:00, 주말 예약제 운영</span>
+                    <span className="text-gray-700">평일 09:00 - 17:00, 주말 예약제 운영</span>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 pt-2 border-t border-gray-200">

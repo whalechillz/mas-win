@@ -56,7 +56,7 @@ export default function Contact() {
                   '@type': 'OpeningHoursSpecification',
                   dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
                   opens: '09:00',
-                  closes: '18:00',
+                  closes: '17:00',
                 },
               ],
             }),
@@ -192,23 +192,23 @@ export default function Contact() {
                       <div className="space-y-2 text-lg">
                         <p className="flex justify-between">
                           <span className="text-gray-700">월요일</span>
-                          <span className="text-gray-900 font-semibold">오전 9:00 - 오후 6:00</span>
+                          <span className="text-gray-900 font-semibold">오전 9:00 - 오후 5:00</span>
                         </p>
                         <p className="flex justify-between">
                           <span className="text-gray-700">화요일</span>
-                          <span className="text-gray-900 font-semibold">오전 9:00 - 오후 6:00</span>
+                          <span className="text-gray-900 font-semibold">오전 9:00 - 오후 5:00</span>
                         </p>
                         <p className="flex justify-between">
                           <span className="text-gray-700">수요일</span>
-                          <span className="text-gray-900 font-semibold">오전 9:00 - 오후 6:00</span>
+                          <span className="text-gray-900 font-semibold">오전 9:00 - 오후 5:00</span>
                         </p>
                         <p className="flex justify-between">
                           <span className="text-gray-700">목요일</span>
-                          <span className="text-gray-900 font-semibold">오전 9:00 - 오후 6:00</span>
+                          <span className="text-gray-900 font-semibold">오전 9:00 - 오후 5:00</span>
                         </p>
                         <p className="flex justify-between">
                           <span className="text-gray-700">금요일</span>
-                          <span className="text-gray-900 font-semibold">오전 9:00 - 오후 6:00</span>
+                          <span className="text-gray-900 font-semibold">오전 9:00 - 오후 5:00</span>
                         </p>
                         <p className="flex justify-between">
                           <span className="text-gray-700">토요일</span>
@@ -626,7 +626,7 @@ export default function Contact() {
                         <p>비거리 상담: 080-028-8888 (무료)</p>
                         <p>피팅 & 방문 상담: 031-215-0013</p>
                         <p>📍 수원시 영통구 법조로 149번길 200</p>
-                        <p>🕘 월-금 09:00 - 18:00 / 주말 예약제 운영</p>
+                        <p>🕘 월-금 09:00 - 17:00 / 주말 예약제 운영</p>
                       </div>
                     </div>
                     
