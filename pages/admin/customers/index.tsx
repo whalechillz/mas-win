@@ -3,6 +3,7 @@ import Head from 'next/head';
 import AdminNav from '../../../components/admin/AdminNav';
 import CustomerMessageHistoryModal from '../../../components/admin/CustomerMessageHistoryModal';
 import { useRouter } from 'next/router';
+import { createClient } from '@supabase/supabase-js';
 
 type Customer = {
   id: number;
@@ -43,7 +44,12 @@ export default function CustomersPage() {
   const [selectedCustomerForImage, setSelectedCustomerForImage] = useState<Customer | null>(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedCustomerForHistory, setSelectedCustomerForHistory] = useState<Customer | null>(null);
+  const [showGiftsModal, setShowGiftsModal] = useState(false);
+  const [selectedCustomerForGifts, setSelectedCustomerForGifts] = useState<Customer | null>(null);
   const [pendingAutoEditPhone, setPendingAutoEditPhone] = useState<string | null>(null);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [selectedCustomerForInfo, setSelectedCustomerForInfo] = useState<Customer | null>(null);
+  const [showMessageSendModal, setShowMessageSendModal] = useState(false);
 
   const fetchCustomers = async (nextPage = page, searchOverride?: string) => {
     setLoading(true);
@@ -53,7 +59,25 @@ export default function CustomersPage() {
     const res = await fetch(`/api/admin/customers?${params.toString()}`);
     const json = await res.json();
     if (json.success) {
-      setCustomers(json.data || []);
+      let customersData = json.data || [];
+      
+      // last_contact_date로 정렬할 때는 NULL 값을 맨 아래로
+      if (sortBy === 'last_contact_date') {
+        const withDate = customersData.filter((c: Customer) => c.last_contact_date);
+        const withoutDate = customersData.filter((c: Customer) => !c.last_contact_date);
+        
+        // 날짜가 있는 것들을 먼저 정렬
+        withDate.sort((a: Customer, b: Customer) => {
+          const dateA = new Date(a.last_contact_date || 0).getTime();
+          const dateB = new Date(b.last_contact_date || 0).getTime();
+          return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+        });
+        
+        // NULL인 것들을 맨 아래로
+        customersData = [...withDate, ...withoutDate];
+      }
+      
+      setCustomers(customersData);
       // count가 0보다 큰 경우에만 업데이트 (0이면 이전 값 유지)
       if (json.count !== undefined && json.count !== null) {
         setCount(json.count);
@@ -402,7 +426,17 @@ export default function CustomersPage() {
               <tbody>
                 {customers.map(c => (
                   <tr key={c.id} className="border-t">
-                    <td className="p-2">{c.name}</td>
+                    <td className="p-2">
+                      <button
+                        onClick={() => {
+                          setSelectedCustomerForInfo(c);
+                          setShowInfoModal(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                      >
+                        {c.name}
+                      </button>
+                    </td>
                     <td className="p-2">{formatPhone(c.phone)}</td>
                     <td className="p-2">{c.vip_level || 'NONE'}</td>
                     <td className="p-2">{formatDate((c as any).first_purchase_date)}</td>
@@ -432,6 +466,15 @@ export default function CustomersPage() {
                           className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
                         >
                           📱 메시지
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedCustomerForGifts(c);
+                            setShowGiftsModal(true);
+                          }}
+                          className="px-2 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                        >
+                          🎁 선물
                         </button>
                         <button onClick={() => handleDelete(c)} className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600">
                           삭제
@@ -676,6 +719,45 @@ export default function CustomersPage() {
             setSelectedCustomerForHistory(null);
           }}
           customer={selectedCustomerForHistory}
+        />
+      )}
+
+      {/* 고객 선물 / 굿즈 히스토리 모달 */}
+      {showGiftsModal && selectedCustomerForGifts && (
+        <CustomerGiftsModal
+          customer={selectedCustomerForGifts}
+          onClose={async () => {
+            setShowGiftsModal(false);
+            setSelectedCustomerForGifts(null);
+            // 선물 지급이 구매/방문과 연결될 수 있으니 목록 새로고침
+            await fetchCustomers(page);
+          }}
+        />
+      )}
+
+      {/* 고객 기본 정보 모달 */}
+      {showInfoModal && selectedCustomerForInfo && (
+        <CustomerInfoModal
+          customer={selectedCustomerForInfo}
+          onClose={() => {
+            setShowInfoModal(false);
+            setSelectedCustomerForInfo(null);
+          }}
+          onSendMessage={() => {
+            setShowInfoModal(false);
+            setShowMessageSendModal(true);
+          }}
+        />
+      )}
+
+      {/* 고객 메시지 발송 모달 */}
+      {showMessageSendModal && selectedCustomerForInfo && (
+        <CustomerMessageSendModal
+          customer={selectedCustomerForInfo}
+          onClose={() => {
+            setShowMessageSendModal(false);
+            setSelectedCustomerForInfo(null);
+          }}
         />
       )}
     </>
@@ -1119,4 +1201,732 @@ function CustomerImageModal({ customer, onClose }: {
   );
 }
 
+
+// 고객 선물 / 굿즈 히스토리 모달 컴포넌트
+function CustomerGiftsModal({ customer, onClose }: { customer: Customer; onClose: () => void }) {
+  const [giftProducts, setGiftProducts] = useState<
+    { id: number; name: string; sku?: string | null }[]
+  >([]);
+  const [gifts, setGifts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [productId, setProductId] = useState<number | null>(null);
+  const [giftText, setGiftText] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [deliveryType, setDeliveryType] = useState<'in_person' | 'courier' | 'etc'>('in_person');
+  const [deliveryStatus, setDeliveryStatus] = useState<'pending' | 'sent' | 'canceled'>('pending');
+  const [deliveryDate, setDeliveryDate] = useState('');
+  const [note, setNote] = useState('');
+  const [editingGiftId, setEditingGiftId] = useState<number | null>(null);
+  const [giftType, setGiftType] =
+    useState<'normal' | 'event' | 'promo'>('normal');
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        // 사은품으로 표시된 상품 목록
+        const productsRes = await fetch('/api/admin/products?isGift=true');
+        const productsJson = await productsRes.json();
+        if (productsJson.success) {
+          setGiftProducts(productsJson.products || []);
+        }
+        // 고객 선물 히스토리
+        const giftsRes = await fetch(`/api/admin/customer-gifts?customerId=${customer.id}`);
+        const giftsJson = await giftsRes.json();
+        if (giftsJson.success) {
+          setGifts(giftsJson.gifts || []);
+        }
+      } catch (error) {
+        console.error('고객 선물 정보 로드 오류:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [customer.id]);
+
+  const handleAddGift = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!productId && !giftText) {
+      alert('사은품을 선택하거나 메모를 입력해주세요.');
+      return;
+    }
+    setSaving(true);
+    try {
+      const isEdit = editingGiftId !== null;
+      const url = isEdit ? '/api/admin/customer-gifts' : '/api/admin/customer-gifts';
+      const method = isEdit ? 'PUT' : 'POST';
+      const body: any = {
+        customer_id: customer.id,
+        product_id: productId,
+        gift_text: giftText || null,
+        quantity,
+        delivery_type: deliveryType,
+        delivery_status: deliveryStatus,
+        delivery_date: deliveryDate || null,
+        note: note || null,
+        gift_type: giftType,
+      };
+      if (isEdit) {
+        body.id = editingGiftId;
+      }
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        alert(json.message || '선물 기록 저장에 실패했습니다.');
+        return;
+      }
+      // 목록 다시 로드
+      const giftsRes = await fetch(`/api/admin/customer-gifts?customerId=${customer.id}`);
+      const giftsJson = await giftsRes.json();
+      if (giftsJson.success) {
+        setGifts(giftsJson.gifts || []);
+      }
+      // 폼 초기화
+      setProductId(null);
+      setGiftText('');
+      setQuantity(1);
+      setDeliveryType('in_person');
+      setDeliveryStatus('pending');
+      setDeliveryDate('');
+      setNote('');
+      setEditingGiftId(null);
+      setGiftType('normal');
+      alert(isEdit ? '선물 기록이 수정되었습니다.' : '선물 기록이 추가되었습니다.');
+    } catch (error: any) {
+      console.error('선물 기록 저장 오류:', error);
+      alert(error.message || '선물 기록 저장 중 오류가 발생했습니다.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const formatDelivery = (g: any) => {
+    const typeLabel =
+      g.delivery_type === 'courier'
+        ? '택배'
+        : g.delivery_type === 'etc'
+        ? '기타'
+        : '직접수령';
+    const statusLabel =
+      g.delivery_status === 'sent'
+        ? '발송 완료'
+        : g.delivery_status === 'canceled'
+        ? '취소'
+        : '대기';
+    return `${typeLabel} / ${statusLabel}`;
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">
+              선물 / 굿즈 히스토리 - {customer.name}
+            </h2>
+            <p className="text-xs text-gray-500 mt-1">
+              설문/방문 시 제공한 모자, 버킷햇, 공, 커스터마이징팩 등의 지급 이력을 관리합니다.
+            </p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            ✕
+          </button>
+        </div>
+
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold text-gray-900 mb-2">지급 이력</h3>
+          {loading ? (
+            <div className="py-4 text-sm text-gray-500">로딩 중...</div>
+          ) : gifts.length === 0 ? (
+            <div className="py-4 text-sm text-gray-500">등록된 선물 기록이 없습니다.</div>
+          ) : (
+            <table className="w-full text-xs border rounded-lg overflow-hidden">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-2 text-left">날짜</th>
+                  <th className="p-2 text-left">사은품</th>
+                  <th className="p-2 text-left">수량</th>
+                  <th className="p-2 text-left">배송/상태</th>
+                  <th className="p-2 text-left">메모</th>
+                  <th className="p-2 text-left">관리</th>
+                </tr>
+              </thead>
+              <tbody>
+                {gifts.map((g) => (
+                  <tr key={g.id} className="border-t">
+                    <td className="p-2">
+                      {g.delivery_date
+                        ? new Date(g.delivery_date).toLocaleDateString('ko-KR')
+                        : '-'}
+                    </td>
+                    <td className="p-2">
+                      <div className="font-medium text-gray-900">
+                        {g.products?.name || g.gift_text || '사은품'}
+                      </div>
+                      {g.products?.sku && (
+                        <div className="text-[10px] text-gray-500">{g.products.sku}</div>
+                      )}
+                      {g.gift_type === 'event' && (
+                        <span className="mt-1 inline-flex px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px]">
+                          🎯 이벤트 경품
+                        </span>
+                      )}
+                      {g.gift_type === 'promo' && (
+                        <span className="mt-1 inline-flex px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px]">
+                          📢 프로모션
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-2">{g.quantity}</td>
+                    <td className="p-2">{formatDelivery(g)}</td>
+                    <td className="p-2">{g.note || '-'}</td>
+                    <td className="p-2">
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          className="px-2 py-1 text-[11px] bg-blue-500 text-white rounded hover:bg-blue-600"
+                          onClick={() => {
+                            setEditingGiftId(g.id);
+                            setProductId(g.product_id ?? null);
+                            setGiftText(g.gift_text || '');
+                            setQuantity(g.quantity || 1);
+                            setDeliveryType(
+                              (g.delivery_type as 'in_person' | 'courier' | 'etc') || 'in_person',
+                            );
+                            setDeliveryStatus(
+                              (g.delivery_status as 'pending' | 'sent' | 'canceled') || 'pending',
+                            );
+                            setDeliveryDate(g.delivery_date || '');
+                            setNote(g.note || '');
+                            setGiftType(
+                              (g.gift_type as 'normal' | 'event' | 'promo') || 'normal',
+                            );
+                          }}
+                        >
+                          수정
+                        </button>
+                        <button
+                          type="button"
+                          className="px-2 py-1 text-[11px] bg-red-500 text-white rounded hover:bg-red-600"
+                          onClick={async () => {
+                            if (!confirm('이 선물 기록을 삭제하시겠습니까?')) {
+                              return;
+                            }
+                            try {
+                              const res = await fetch(`/api/admin/customer-gifts?id=${g.id}`, {
+                                method: 'DELETE',
+                              });
+                              const json = await res.json();
+                              if (!json.success) {
+                                alert(json.message || '삭제에 실패했습니다.');
+                                return;
+                              }
+                              setGifts((prev) => prev.filter((item) => item.id !== g.id));
+                              if (editingGiftId === g.id) {
+                                setEditingGiftId(null);
+                              }
+                            } catch (error: any) {
+                              console.error('선물 기록 삭제 오류:', error);
+                              alert(error.message || '선물 기록 삭제 중 오류가 발생했습니다.');
+                            }
+                          }}
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <div className="mt-6 border-t pt-4">
+          <h3 className="text-sm font-semibold text-gray-900 mb-2">새 선물 기록 추가</h3>
+          <form onSubmit={handleAddGift} className="space-y-3 text-sm">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  사은품 선택
+                </label>
+                <select
+                  value={productId ?? ''}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    const id = v ? Number(v) : null;
+                    setProductId(id);
+                    if (id && !giftText) {
+                      const p = giftProducts.find((gp) => gp.id === id);
+                      if (p) setGiftText(p.name);
+                    }
+                  }}
+                  className="w-full px-2 py-1.5 border rounded-md"
+                >
+                  <option value="">선택 안 함</option>
+                  {giftProducts.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} {p.sku ? `(${p.sku})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  기타 메모 (색/사이즈, 상세명 등)
+                </label>
+                <input
+                  type="text"
+                  value={giftText}
+                  onChange={(e) => setGiftText(e.target.value)}
+                  className="w-full px-2 py-1.5 border rounded-md"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-4 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">수량</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
+                  className="w-full px-2 py-1.5 border rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  전달 방식
+                </label>
+                <select
+                  value={deliveryType}
+                  onChange={(e) =>
+                    setDeliveryType(e.target.value as 'in_person' | 'courier' | 'etc')
+                  }
+                  className="w-full px-2 py-1.5 border rounded-md"
+                >
+                  <option value="in_person">직접수령</option>
+                  <option value="courier">택배 발송</option>
+                  <option value="etc">기타</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  상태
+                </label>
+                <select
+                  value={deliveryStatus}
+                  onChange={(e) =>
+                    setDeliveryStatus(e.target.value as 'pending' | 'sent' | 'canceled')
+                  }
+                  className="w-full px-2 py-1.5 border rounded-md"
+                >
+                  <option value="pending">대기</option>
+                  <option value="sent">발송/지급 완료</option>
+                  <option value="canceled">취소</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  지급일
+                </label>
+                <input
+                  type="date"
+                  value={deliveryDate}
+                  onChange={(e) => setDeliveryDate(e.target.value)}
+                  className="w-full px-2 py-1.5 border rounded-md"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                선물 유형
+              </label>
+              <select
+                value={giftType}
+                onChange={(e) =>
+                  setGiftType(e.target.value as 'normal' | 'event' | 'promo')
+                }
+                className="w-full px-2 py-1.5 border rounded-md"
+              >
+                <option value="normal">일반 선물 / 시타 사은품</option>
+                <option value="event">이벤트 경품 (추첨/프로모션)</option>
+                <option value="promo">프로모션/기타</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">비고</label>
+              <input
+                type="text"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                className="w-full px-2 py-1.5 border rounded-md"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-3 py-1.5 border rounded-md text-xs hover:bg-gray-50"
+              >
+                닫기
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-3 py-1.5 bg-blue-600 text-white rounded-md text-xs hover:bg-blue-700 disabled:opacity-50"
+              >
+                {saving
+                  ? '저장 중...'
+                  : editingGiftId
+                  ? '선물 기록 수정'
+                  : '선물 기록 추가'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 고객 기본 정보 모달 컴포넌트
+function CustomerInfoModal({ customer, onClose, onSendMessage }: {
+  customer: Customer;
+  onClose: () => void;
+  onSendMessage: () => void;
+}) {
+  // 전화번호 포맷팅
+  const formatPhone = (phone: string) => {
+    if (!phone) return '';
+    const cleaned = phone.replace(/[^0-9]/g, '');
+    if (cleaned.length === 10) {
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    } else if (cleaned.length === 11) {
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(7)}`;
+    }
+    return phone;
+  };
+
+  // 날짜 포맷팅
+  const formatDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return '-';
+    try {
+      return new Date(dateStr).toLocaleDateString('ko-KR');
+    } catch {
+      return '-';
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900">고객 정보</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+
+        <div className="space-y-4">
+          {/* 고객 기본 정보 */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">이름</label>
+              <div className="text-gray-900">{customer.name}</div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">전화번호</label>
+              <div className="text-gray-900">{formatPhone(customer.phone)}</div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">주소</label>
+              <div className="text-gray-900">{customer.address || '-'}</div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">VIP 레벨</label>
+              <div className="text-gray-900">{customer.vip_level || 'NONE'}</div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">최초 구매일</label>
+              <div className="text-gray-900">{formatDate(customer.first_purchase_date)}</div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">마지막 구매일</label>
+              <div className="text-gray-900">{formatDate(customer.last_purchase_date)}</div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">최근 연락일</label>
+              <div className="text-gray-900">{formatDate(customer.last_contact_date)}</div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">수신거부</label>
+              <div className="text-gray-900">{customer.opt_out ? '예' : '아니오'}</div>
+            </div>
+          </div>
+
+          {/* 시타사이트&약도 버튼 */}
+          <div className="flex gap-2 pt-4 border-t">
+            <a
+              href="https://www.masgolf.co.kr/try-a-massgoo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+            >
+              시타사이트&약도
+            </a>
+            <button
+              onClick={onSendMessage}
+              className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              메시지 발송
+            </button>
+          </div>
+        </div>
+
+        <div className="flex justify-end mt-6">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+          >
+            닫기
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 고객 메시지 발송 모달 컴포넌트
+function CustomerMessageSendModal({ customer, onClose }: {
+  customer: Customer;
+  onClose: () => void;
+}) {
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledHour, setScheduledHour] = useState(10);
+  const [scheduledMinute, setScheduledMinute] = useState(0);
+  const [sending, setSending] = useState(false);
+
+  // datetime-local 입력값을 UTC ISO 문자열로 변환 (한국 시간 기준) - 기존 시스템과 동일
+  const convertLocalInputToUTC = (dateStr: string, hour: number, minute: number) => {
+    if (!dateStr) return null;
+    // 한국 시간대(UTC+9)를 명시적으로 지정
+    const kstString = `${dateStr}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00+09:00`;
+    const kstDate = new Date(kstString);
+    if (Number.isNaN(kstDate.getTime())) return null;
+    // toISOString()이 자동으로 UTC로 변환 (9시간 빼짐)
+    return kstDate.toISOString();
+  };
+
+  // 메시지 템플릿
+  const messageTemplate = `친애하는 ${customer.name} 고객님, 
+
+안녕하세요! 마쓰구골프입니다.
+요청하신 최대 비거리 드라이버 시타 예약과 관련하여 마쓰구 수원본점 방문 안내를 드립니다. 
+
+고객님께서 편하게 방문하실 수 있도록 최선을 다해 준비하겠습니다. 
+궁금하신 사항이 있으시면 언제든지 연락 주세요.
+
+▶ 시타 예약: https://www.masgolf.co.kr/try-a-massgoo
+▶ 약도 안내: https://www.masgolf.co.kr/contact 
+
+☎ 마쓰구 수원본점
+수원시 영통구 법조로149번길 200 마스골프
+TEL 031-215-0013
+무료 080-028-8888 (무료 상담)
+OPEN 09:00~17:00(월~금)`;
+
+  // 메시지 발송 처리
+  const handleSend = async () => {
+    // 수신거부 확인
+    if (customer.opt_out) {
+      if (!confirm('이 고객은 수신거부 상태입니다. 그래도 발송하시겠습니까?')) {
+        return;
+      }
+    }
+
+    setSending(true);
+    try {
+      // 전화번호 정규화
+      const phone = customer.phone.replace(/[\s\-]/g, '');
+      if (!phone || !/^010\d{8}$/.test(phone)) {
+        alert('유효한 전화번호가 아닙니다.');
+        setSending(false);
+        return;
+      }
+
+      // 예약 발송 시간 계산
+      const scheduledAt = scheduledDate ? convertLocalInputToUTC(scheduledDate, scheduledHour, scheduledMinute) : null;
+
+      if (scheduledAt) {
+        // 예약 발송: 현재 시간보다 미래인지 확인
+        const now = new Date();
+        const scheduledDateObj = new Date(scheduledAt);
+        if (scheduledDateObj <= now) {
+          alert('예약 시간은 현재 시간보다 미래여야 합니다.');
+          setSending(false);
+          return;
+        }
+      }
+
+      // 1단계: 메시지를 DB에 저장
+      const saveResponse = await fetch('/api/admin/sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: messageTemplate,
+          type: 'LMS', // LMS로 고정
+          status: scheduledAt ? 'draft' : 'draft', // 일단 draft로 저장 (즉시 발송도 먼저 저장 후 발송)
+          recipientNumbers: [phone],
+          scheduledAt: scheduledAt || undefined,
+          note: `고객 메시지 발송: ${customer.name} (${customer.id})`
+        })
+      });
+
+      const saveResult = await saveResponse.json();
+      if (!saveResult.success) {
+        alert(saveResult.message || '메시지 저장 실패');
+        setSending(false);
+        return;
+      }
+
+      const channelPostId = saveResult.smsId || saveResult.smsContent?.id;
+      if (!channelPostId) {
+        alert('메시지 ID를 가져올 수 없습니다.');
+        setSending(false);
+        return;
+      }
+
+      // 2단계: 예약 발송이 아닌 경우 즉시 발송
+      if (!scheduledAt) {
+        try {
+          const sendResponse = await fetch('/api/channels/sms/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              channelPostId: channelPostId,
+              messageType: 'LMS',
+              messageText: messageTemplate,
+              content: messageTemplate,
+              recipientNumbers: [phone]
+            })
+          });
+
+          const sendResult = await sendResponse.json();
+          
+          if (sendResponse.ok && (sendResult.success || sendResult.result?.successCount > 0)) {
+            alert('메시지가 발송되었습니다.');
+            onClose();
+          } else {
+            alert(sendResult.message || '발송 실패');
+          }
+        } catch (sendError: any) {
+          console.error('메시지 발송 오류:', sendError);
+          alert('메시지는 저장되었지만 발송 중 오류가 발생했습니다: ' + (sendError.message || '알 수 없는 오류'));
+        }
+      } else {
+        // 예약 발송인 경우
+        alert('예약 발송이 설정되었습니다.');
+        onClose();
+      }
+    } catch (error: any) {
+      console.error('메시지 발송 오류:', error);
+      alert(error.message || '발송 중 오류가 발생했습니다.');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // 날짜는 선택 사항이므로 기본값 설정하지 않음 (즉시 발송 가능)
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900">LMS 발송</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+
+        <div className="space-y-4">
+          {/* 고객 정보 */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">고객명</label>
+              <div className="text-gray-900">{customer.name}</div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">전화번호</label>
+              <div className="text-gray-900">{customer.phone}</div>
+            </div>
+          </div>
+
+          {/* 예약 발송 일시 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">알림톡 발송일시</label>
+            <div className="flex gap-2 items-center">
+              <input
+                type="date"
+                value={scheduledDate}
+                onChange={(e) => setScheduledDate(e.target.value)}
+                className="px-3 py-2 border rounded-md"
+              />
+              <select
+                value={scheduledHour}
+                onChange={(e) => setScheduledHour(parseInt(e.target.value))}
+                className="px-3 py-2 border rounded-md"
+              >
+                {Array.from({ length: 24 }, (_, i) => (
+                  <option key={i} value={i}>{i}시</option>
+                ))}
+              </select>
+              <select
+                value={scheduledMinute}
+                onChange={(e) => setScheduledMinute(parseInt(e.target.value))}
+                className="px-3 py-2 border rounded-md"
+              >
+                {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map(m => (
+                  <option key={m} value={m}>{m}분</option>
+                ))}
+              </select>
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              날짜를 선택하지 않으면 즉시 발송됩니다.
+            </p>
+          </div>
+
+          {/* 메시지 미리보기 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">알림톡 미리보기</label>
+            <div className="border rounded-lg p-4 bg-gray-50 whitespace-pre-wrap text-sm max-h-96 overflow-y-auto">
+              {messageTemplate}
+            </div>
+          </div>
+        </div>
+
+        {/* 버튼 */}
+        <div className="flex justify-end gap-2 mt-6">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border rounded text-gray-700 hover:bg-gray-50"
+          >
+            닫기
+          </button>
+          <button
+            onClick={handleSend}
+            disabled={sending}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          >
+            {sending ? '발송 중...' : '전송'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
