@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 
 interface FolderNode {
   name: string;
@@ -32,6 +32,7 @@ export default function FolderTree({
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['originals']));
   const [dragOverFolder, setDragOverFolder] = useState<string | null>(null);
   const [menu, setMenu] = useState<{ x: number; y: number; path: string } | null>(null);
+  const selectedFolderRef = useRef<HTMLDivElement | null>(null);
 
   // 선택된 폴더의 모든 부모 폴더를 자동으로 펼침
   useEffect(() => {
@@ -52,6 +53,17 @@ export default function FolderTree({
         parentPaths.forEach(path => newExpanded.add(path));
         return newExpanded;
       });
+      
+      // 선택된 폴더로 자동 스크롤 (DOM 업데이트 후)
+      setTimeout(() => {
+        if (selectedFolderRef.current) {
+          selectedFolderRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest'
+          });
+        }
+      }, 150);
     }
   }, [selectedFolder]);
 
@@ -175,6 +187,7 @@ export default function FolderTree({
       <div key={node.path || 'root'}>
         {node.path !== '' && (
           <div
+            ref={isSelected ? selectedFolderRef : null}
             className={`flex items-center py-1 px-2 rounded cursor-pointer text-sm transition-all ${
               isDragOver
                 ? 'bg-blue-200 border-2 border-blue-500 border-dashed'

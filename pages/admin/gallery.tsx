@@ -5771,21 +5771,27 @@ export default function GalleryAdmin() {
 
             <div className="p-4 space-y-4 overflow-y-auto flex-1">
               {activeAddTab==='upload' && (
-                <div className="space-y-3">
-                  {/* 폴더 선택 컴포넌트 */}
-                  <FolderSelector
-                    selectedPath={selectedUploadFolder}
-                    onSelectPath={setSelectedUploadFolder}
-                    defaultPath={folderFilter && folderFilter !== 'all' && folderFilter !== 'root' ? folderFilter : `uploaded/${new Date().toISOString().slice(0, 7)}/${new Date().toISOString().slice(0, 10)}`}
-                    showLabel={true}
-                    // 🔧 최적화: 이미 가져온 폴더 목록 전달 (추가 API 호출 없음)
-                    folders={availableFolders}
-                    isLoadingFolders={isLoadingFolders}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  {/* 왼쪽: 폴더 선택 (컴팩트) */}
+                  <div className="space-y-2">
+                    <FolderSelector
+                      selectedPath={selectedUploadFolder}
+                      onSelectPath={setSelectedUploadFolder}
+                      defaultPath={folderFilter && folderFilter !== 'all' && folderFilter !== 'root' ? folderFilter : `uploaded/${new Date().toISOString().slice(0, 7)}/${new Date().toISOString().slice(0, 10)}`}
+                      showLabel={true}
+                      // 🔧 최적화: 이미 가져온 폴더 목록 전달 (추가 API 호출 없음)
+                      folders={availableFolders}
+                      isLoadingFolders={isLoadingFolders}
+                    />
+                  </div>
                   
-                  {/* 드래그 앤 드롭 업로드 영역 */}
-                  <div 
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors"
+                  {/* 오른쪽: 드래그 앤 드롭 업로드 영역 (컴팩트) */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      파일 업로드
+                    </label>
+                    <div 
+                      className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors"
                     onDragOver={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -5829,23 +5835,23 @@ export default function GalleryAdmin() {
                       }
                     }}
                   >
-                    <div className="space-y-4">
-                      <div className="text-gray-500">
-                        <label htmlFor="gallery-file-upload" className="cursor-pointer">
-                          <svg className="mx-auto h-12 w-12 text-gray-400 hover:text-blue-500 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </label>
-                      </div>
-                      <div>
-                        <label htmlFor="gallery-file-upload" className="cursor-pointer">
-                          <span className="mt-2 block text-sm font-medium text-gray-900">
-                            이미지 파일을 선택하거나 드래그하세요
-                          </span>
-                          <span className="mt-1 block text-sm text-gray-500">
-                            PNG, JPG, GIF, HEIC 파일 지원
-                          </span>
-                        </label>
+                      <div className="space-y-3">
+                        <div className="text-gray-500">
+                          <label htmlFor="gallery-file-upload" className="cursor-pointer">
+                            <svg className="mx-auto h-10 w-10 text-gray-400 hover:text-blue-500 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </label>
+                        </div>
+                        <div>
+                          <label htmlFor="gallery-file-upload" className="cursor-pointer">
+                            <span className="mt-2 block text-sm font-medium text-gray-900">
+                              파일 선택 또는 드래그
+                            </span>
+                            <span className="mt-1 block text-xs text-gray-500">
+                              PNG, JPG, GIF, HEIC
+                            </span>
+                          </label>
                         <input
                           id="gallery-file-upload"
                           name="gallery-file-upload"
@@ -5877,10 +5883,11 @@ export default function GalleryAdmin() {
                             }
                           }}
                         />
+                        </div>
                       </div>
                     </div>
+                    <p className="text-xs text-gray-500">업로드 후 자동으로 메타데이터가 보강됩니다.</p>
                   </div>
-                  <p className="text-xs text-gray-500">HEIC/JPG/PNG 지원. 업로드 후 자동으로 메타데이터가 보강됩니다.</p>
                 </div>
               )}
 

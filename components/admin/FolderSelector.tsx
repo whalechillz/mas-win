@@ -26,6 +26,7 @@ export default function FolderSelector({
 }: FolderSelectorProps) {
   const [folders, setFolders] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [simpleMode, setSimpleMode] = useState(true); // 간단 모드 (기본값: true)
 
   useEffect(() => {
     // 🔧 외부에서 폴더 목록이 전달되면 사용, 없으면 자체 조회
@@ -82,23 +83,54 @@ export default function FolderSelector({
           <label className="block text-sm font-medium text-gray-700 mb-2">
             📁 업로드 폴더 선택
           </label>
-          <div className="text-xs text-gray-500 mb-2">
-            선택된 폴더: <span className="font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">
-              {selectedPath || '기본값 사용'}
-            </span>
-          </div>
+          {!simpleMode && (
+            <div className="text-xs text-gray-500 mb-2">
+              선택된 폴더: <span className="font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                {selectedPath || '기본값 사용'}
+              </span>
+            </div>
+          )}
         </div>
       )}
-      <div className="max-h-96 overflow-y-auto bg-white rounded border border-gray-200">
-        <FolderTree
-          folders={folders}
-          selectedFolder={selectedPath}
-          onFolderSelect={onSelectPath}
-          includeChildren={false}
-          onIncludeChildrenChange={() => {}}
-          onFoldersChanged={fetchFolders}
-        />
-      </div>
+      
+      {simpleMode ? (
+        // 간단 모드: 현재 경로만 표시 + 변경 버튼
+        <div className="space-y-2">
+          <div className="p-3 bg-blue-50 rounded border border-blue-200">
+            <p className="text-xs text-gray-600 mb-1">현재 경로</p>
+            <p className="text-sm font-mono text-blue-700 break-all">{selectedPath || '기본값 사용'}</p>
+          </div>
+          <button
+            onClick={() => setSimpleMode(false)}
+            className="w-full text-xs text-blue-600 hover:text-blue-800 py-1.5 border border-blue-200 rounded hover:bg-blue-50 transition-colors"
+          >
+            다른 폴더 선택 →
+          </button>
+        </div>
+      ) : (
+        // 전체 트리 모드
+        <div className="space-y-2">
+          <div className="max-h-64 overflow-y-auto bg-white rounded border border-gray-200">
+            <FolderTree
+              folders={folders}
+              selectedFolder={selectedPath}
+              onFolderSelect={(path) => {
+                onSelectPath(path);
+                setSimpleMode(true); // 선택 후 간단 모드로 전환
+              }}
+              includeChildren={false}
+              onIncludeChildrenChange={() => {}}
+              onFoldersChanged={fetchFolders}
+            />
+          </div>
+          <button
+            onClick={() => setSimpleMode(true)}
+            className="w-full text-xs text-gray-500 py-1.5 border border-gray-200 rounded hover:bg-gray-50 transition-colors"
+          >
+            ← 간단 모드로
+          </button>
+        </div>
+      )}
     </div>
   );
 }
