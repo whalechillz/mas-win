@@ -868,54 +868,78 @@ export default function GalleryAdmin() {
   // 폴더 목록 상태 (Storage에서 직접 가져오기)
   const [availableFolders, setAvailableFolders] = useState<string[]>([]);
   const [isLoadingFolders, setIsLoadingFolders] = useState(true);
+  const [folderLoadError, setFolderLoadError] = useState<string | null>(null);
+  const [folderLoadProgress, setFolderLoadProgress] = useState<string>('');
   
   // Storage에서 실제 폴더 목록 가져오기 (최적화: 메타데이터 기반 + 캐싱)
   useEffect(() => {
-    const fetchFolders = async () => {
+    const fetchFolders = async (retryCount = 0) => {
       setIsLoadingFolders(true);
+      setFolderLoadError(null);
+      setFolderLoadProgress('폴더 목록 조회 중...');
       const startTime = Date.now();
+      
       try {
-        const response = await fetch('/api/admin/folders-list');
+        // 타임아웃 설정 (60초)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+        
+        setFolderLoadProgress('서버에서 폴더 정보를 가져오는 중...');
+        const response = await fetch('/api/admin/folders-list', {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
         const data = await response.json();
         
-        if (response.ok && data.folders) {
+        if (response.ok && data.folders && Array.isArray(data.folders)) {
+          setFolderLoadProgress('폴더 트리 구성 중...');
           const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
           console.log(`✅ 폴더 목록 로드 성공: ${data.folders.length}개 (${elapsed}초, 캐시: ${data.cached ? '사용' : '신규'})`);
           setAvailableFolders(data.folders);
-        } else {
-          console.error('❌ 폴더 목록 로드 실패:', data.error);
-          // 실패 시 현재 이미지에서 폴더 경로 추출 (대안)
-          const folders = new Set<string>();
-          images.forEach(img => {
-            if (img.folder_path && img.folder_path !== '') {
-              // 하위 경로도 포함
-              const parts = img.folder_path.split('/').filter(Boolean);
-              let currentPath = '';
-              parts.forEach(part => {
-                currentPath = currentPath ? `${currentPath}/${part}` : part;
-                folders.add(currentPath);
-              });
-            }
-          });
-          setAvailableFolders(Array.from(folders).sort());
+          setIsLoadingFolders(false);
+          setFolderLoadError(null);
+          setFolderLoadProgress('');
+          return;
         }
-      } catch (error) {
-        console.error('❌ 폴더 목록 로드 오류:', error);
-        // 오류 시 현재 이미지에서 폴더 경로 추출 (대안)
-        const folders = new Set<string>();
-        images.forEach(img => {
-          if (img.folder_path && img.folder_path !== '') {
-            // 하위 경로도 포함
-            const parts = img.folder_path.split('/').filter(Boolean);
-            let currentPath = '';
-            parts.forEach(part => {
-              currentPath = currentPath ? `${currentPath}/${part}` : part;
-              folders.add(currentPath);
-            });
+        
+        // 에러 처리 (명확히 표시)
+        if (data.timeout) {
+          setFolderLoadError('폴더 목록 조회 시간 초과');
+          setFolderLoadProgress('시간 초과 - 재시도 중...');
+          
+          // 재시도 (최대 3회)
+          if (retryCount < 3) {
+            setTimeout(() => {
+              fetchFolders(retryCount + 1);
+            }, 3000);
+            return;
           }
-        });
-        setAvailableFolders(Array.from(folders).sort());
-      } finally {
+        } else {
+          setFolderLoadError(data.error || '폴더 목록을 불러올 수 없습니다');
+          setFolderLoadProgress('');
+        }
+        
+        setIsLoadingFolders(false);
+      } catch (error: any) {
+        console.error('❌ 폴더 목록 로드 오류:', error);
+        
+        if (error.name === 'AbortError') {
+          setFolderLoadError('요청 시간 초과');
+          setFolderLoadProgress('시간 초과 - 재시도 중...');
+          
+          // 재시도 (최대 3회)
+          if (retryCount < 3) {
+            setTimeout(() => {
+              fetchFolders(retryCount + 1);
+            }, 3000);
+            return;
+          }
+        } else {
+          setFolderLoadError('폴더 목록을 불러올 수 없습니다');
+          setFolderLoadProgress('');
+        }
+        
         setIsLoadingFolders(false);
       }
     };
@@ -3595,10 +3619,77 @@ export default function GalleryAdmin() {
           <div className="flex gap-6">
             {/* 트리 사이드바 (왼쪽) */}
             <div className="w-80 flex-shrink-0 relative z-10">
-              <FolderTree
-                folders={availableFolders}
-                selectedFolder={folderFilter}
-                onFolderSelect={(folderPath) => {
+              {/* 폴더 로딩 상태 표시 */}
+              {isLoadingFolders ? (
+                <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
+                  <div className="flex items-center space-x-3">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 flex-shrink-0"></div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-700 truncate">
+                        {folderLoadProgress || '폴더 목록 로딩 중...'}
+                      </p>
+                      {folderLoadError && (
+                        <p className="text-xs text-red-600 mt-1 truncate">{folderLoadError}</p>
+                      )}
+                    </div>
+                  </div>
+                  {folderLoadError && folderLoadProgress.includes('재시도') && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      자동 재시도 중...
+                    </p>
+                  )}
+                </div>
+              ) : folderLoadError ? (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 shadow-sm">
+                  <div className="flex items-start space-x-2">
+                    <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-red-700">⚠️ 폴더 목록 로드 실패</p>
+                      <p className="text-xs text-red-600 mt-1 break-words">{folderLoadError}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setFolderLoadError(null);
+                      setFolderLoadProgress('');
+                      const fetchFolders = async () => {
+                        setIsLoadingFolders(true);
+                        setFolderLoadError(null);
+                        setFolderLoadProgress('폴더 목록 조회 중...');
+                        try {
+                          const response = await fetch('/api/admin/folders-list');
+                          const data = await response.json();
+                          if (response.ok && data.folders && Array.isArray(data.folders)) {
+                            setAvailableFolders(data.folders);
+                            setIsLoadingFolders(false);
+                            setFolderLoadError(null);
+                            setFolderLoadProgress('');
+                          } else {
+                            setFolderLoadError(data.error || '폴더 목록을 불러올 수 없습니다');
+                            setIsLoadingFolders(false);
+                          }
+                        } catch (error: any) {
+                          setFolderLoadError('폴더 목록을 불러올 수 없습니다');
+                          setIsLoadingFolders(false);
+                        }
+                      };
+                      fetchFolders();
+                    }}
+                    className="mt-3 w-full text-xs px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                  >
+                    다시 시도
+                  </button>
+                </div>
+              ) : null}
+              
+              {/* 폴더 트리 (로딩 완료 후에만 표시) */}
+              {!isLoadingFolders && !folderLoadError && availableFolders.length > 0 && (
+                <FolderTree
+                  folders={availableFolders}
+                  selectedFolder={folderFilter}
+                  onFolderSelect={(folderPath) => {
                   // 🔧 수정: daily-branding/kakao 또는 mms로 시작하는 경로에 originals/ 프리픽스 자동 추가
                   let adjustedPath = folderPath;
                   if (folderPath && folderPath !== 'all' && folderPath !== 'root') {
@@ -3654,6 +3745,14 @@ export default function GalleryAdmin() {
                   }
                 }}
               />
+              )}
+              
+              {/* 폴더가 없을 때 */}
+              {!isLoadingFolders && !folderLoadError && availableFolders.length === 0 && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-600">폴더가 없습니다.</p>
+                </div>
+              )}
             </div>
 
             {/* 콘텐츠 영역 (오른쪽) */}
