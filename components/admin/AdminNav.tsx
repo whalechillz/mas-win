@@ -29,6 +29,10 @@ const AdminNav = () => {
             <Link href="/admin/booking" className={`px-2 py-1 rounded font-medium ${isActive('/admin/booking') ? 'bg-red-600 text-white' : 'hover:bg-red-50 text-red-600'}`}>📅 시타예약</Link>
             <Link href="/admin/customers" className={`px-2 py-1 rounded ${isActive('/admin/customers') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>👥 고객</Link>
             <Link href="/admin/surveys" className={`px-2 py-1 rounded ${isActive('/admin/surveys') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>📋 설문 관리</Link>
+            <Link href="/admin/products" className={`px-2 py-1 rounded ${isActive('/admin/products') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>🎁 굿즈 / 사은품</Link>
+            <Link href="/admin/inventory/dashboard" className={`px-2 py-1 rounded ${isActive('/admin/inventory/dashboard') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>📦 재고 대시보드</Link>
+            <Link href="/admin/suppliers" className={`px-2 py-1 rounded ${isActive('/admin/suppliers') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>🏢 공급업체</Link>
+            <Link href="/admin/finance/expenses" className={`px-2 py-1 rounded ${isActive('/admin/finance/expenses') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>💰 경비 / 지출</Link>
           </div>
           
           {/* 사용자 정보 및 로그아웃 버튼 */}
