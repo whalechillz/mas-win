@@ -51,7 +51,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompts, blogPostId, metadata, imageCount = 1, textOption, logoOption } = req.body; // logoOption 추가
+    const { prompts, blogPostId, metadata, imageCount = 1, textOption, logoOption, targetFolder } = req.body; // targetFolder 추가
 
     if (!prompts || !Array.isArray(prompts) || prompts.length === 0) {
       return res.status(400).json({ message: 'Valid prompts array is required' });
@@ -210,9 +210,18 @@ export default async function handler(req, res) {
             }
           }
           
-          // AI 이미지 생성인 경우 originals/ai-generated/YYYY-MM-DD/ 구조로 저장
-          // (logoOption이 있거나 account가 없으면 AI 이미지 생성으로 간주)
-          if (metadata && metadata.date && (!metadata.account || logoOption)) {
+          // ✅ targetFolder가 제공되면 우선 사용
+          if (targetFolder) {
+            const timestamp = Date.now();
+            const fileExtension = metadata && metadata.type === 'feed' ? 'jpg' : 'png';
+            finalFileName = `ai-generated-${timestamp}-${i + 1}-${imgIdx + 1}.${fileExtension}`;
+            finalFilePath = `${targetFolder}/${finalFileName}`;
+            
+            // 경로 검증 로깅
+            console.log(`📁 AI 이미지 저장 경로 (targetFolder 사용): ${finalFilePath}`);
+          } else if (metadata && metadata.date && (!metadata.account || logoOption)) {
+            // AI 이미지 생성인 경우 originals/ai-generated/YYYY-MM-DD/ 구조로 저장
+            // (logoOption이 있거나 account가 없으면 AI 이미지 생성으로 간주)
             // date가 ISO 형식이거나 YYYY-MM-DD 형식일 수 있음
             let dateStr = metadata.date;
             if (dateStr.includes('T')) {

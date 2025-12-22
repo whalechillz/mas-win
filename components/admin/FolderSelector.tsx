@@ -89,7 +89,7 @@ export default function FolderSelector({
           </div>
         </div>
       )}
-      <div className="max-h-64 overflow-y-auto bg-white rounded border border-gray-200">
+      <div className="max-h-96 overflow-y-auto bg-white rounded border border-gray-200">
         <FolderTree
           folders={folders}
           selectedFolder={selectedPath}

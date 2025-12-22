@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 interface FolderNode {
   name: string;
@@ -32,6 +32,28 @@ export default function FolderTree({
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['originals']));
   const [dragOverFolder, setDragOverFolder] = useState<string | null>(null);
   const [menu, setMenu] = useState<{ x: number; y: number; path: string } | null>(null);
+
+  // 선택된 폴더의 모든 부모 폴더를 자동으로 펼침
+  useEffect(() => {
+    if (selectedFolder && selectedFolder !== 'all' && selectedFolder !== 'root') {
+      const parts = selectedFolder.split('/').filter(Boolean);
+      const parentPaths: string[] = [];
+      let currentPath = '';
+      
+      // 모든 부모 경로 추출
+      parts.forEach(part => {
+        currentPath = currentPath ? `${currentPath}/${part}` : part;
+        parentPaths.push(currentPath);
+      });
+      
+      // 부모 폴더들을 expandedFolders에 추가
+      setExpandedFolders(prev => {
+        const newExpanded = new Set(prev);
+        parentPaths.forEach(path => newExpanded.add(path));
+        return newExpanded;
+      });
+    }
+  }, [selectedFolder]);
 
   // 폴더 목록을 트리 구조로 변환
   const folderTree = useMemo(() => {

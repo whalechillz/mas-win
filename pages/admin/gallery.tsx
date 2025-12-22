@@ -1171,10 +1171,22 @@ export default function GalleryAdmin() {
   const [newFolderName, setNewFolderName] = useState('');
   // 이미지 추가 모달
   const [showAddModal, setShowAddModal] = useState(false);
-  const [activeAddTab, setActiveAddTab] = useState<'upload' | 'url'>('upload');
+  const [activeAddTab, setActiveAddTab] = useState<'upload' | 'url' | 'ai'>('upload');
   const [pending, setPending] = useState(false);
   const [addUrl, setAddUrl] = useState('');
   const [selectedUploadFolder, setSelectedUploadFolder] = useState<string>('');
+  
+  // 모달 열 때 현재 폴더 자동 설정
+  const handleOpenAddModal = () => {
+    // 현재 선택된 폴더를 기본값으로 설정
+    const currentFolder = folderFilter && folderFilter !== 'all' && folderFilter !== 'root' 
+      ? folderFilter 
+      : `uploaded/${new Date().toISOString().slice(0, 7)}/${new Date().toISOString().slice(0, 10)}`;
+    
+    setSelectedUploadFolder(currentFolder);
+    setShowAddModal(true);
+    setActiveAddTab('upload'); // 기본 탭은 업로드
+  };
   
   // 동적 카테고리 로드 함수
   const loadDynamicCategories = async () => {
@@ -3235,7 +3247,7 @@ export default function GalleryAdmin() {
                   </button>
                 </div>
                 <button
-                  onClick={() => setShowAddModal(true)}
+                  onClick={handleOpenAddModal}
                   className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
                 >
                   ➕ 이미지 추가
@@ -5709,13 +5721,38 @@ export default function GalleryAdmin() {
 
       {/* 이미지 추가 모달 */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl">
-            <div className="p-4 border-b flex items-center justify-between">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col my-auto">
+            <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
               <h3 className="text-lg font-semibold text-gray-800">이미지 추가</h3>
               <button onClick={()=>setShowAddModal(false)} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
             </div>
-            <div className="px-4 pt-4">
+            
+            {/* 현재 경로 표시 (상단 고정) */}
+            <div className="px-4 pt-4 pb-3 border-b bg-blue-50 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-xs text-gray-600 mb-1">업로드/생성 대상 폴더</p>
+                  <p className="text-sm font-mono font-semibold text-blue-700 break-all">
+                    {selectedUploadFolder || '폴더를 선택하세요'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    // 현재 갤러리 폴더로 다시 설정
+                    const currentFolder = folderFilter && folderFilter !== 'all' && folderFilter !== 'root' 
+                      ? folderFilter 
+                      : `uploaded/${new Date().toISOString().slice(0, 7)}/${new Date().toISOString().slice(0, 10)}`;
+                    setSelectedUploadFolder(currentFolder);
+                  }}
+                  className="ml-3 text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors whitespace-nowrap"
+                >
+                  현재 경로로 복원
+                </button>
+              </div>
+            </div>
+            
+            <div className="px-4 pt-4 flex-shrink-0">
               <div className="flex space-x-6 border-b">
                 <button
                   className={`px-2 pb-2 text-sm ${activeAddTab==='upload' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
@@ -5725,19 +5762,23 @@ export default function GalleryAdmin() {
                   className={`px-2 pb-2 text-sm ${activeAddTab==='url' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
                   onClick={()=>setActiveAddTab('url')}
                 >🔗 URL 입력</button>
+                <button
+                  className={`px-2 pb-2 text-sm ${activeAddTab==='ai' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                  onClick={()=>setActiveAddTab('ai')}
+                >🎨 AI 이미지 생성</button>
               </div>
             </div>
 
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-4 overflow-y-auto flex-1">
               {activeAddTab==='upload' && (
                 <div className="space-y-3">
                   {/* 폴더 선택 컴포넌트 */}
                   <FolderSelector
                     selectedPath={selectedUploadFolder}
                     onSelectPath={setSelectedUploadFolder}
-                    defaultPath={`uploaded/${new Date().toISOString().slice(0, 7)}/${new Date().toISOString().slice(0, 10)}`}
+                    defaultPath={folderFilter && folderFilter !== 'all' && folderFilter !== 'root' ? folderFilter : `uploaded/${new Date().toISOString().slice(0, 7)}/${new Date().toISOString().slice(0, 10)}`}
                     showLabel={true}
-                    // 🔧 최적화: 이미 가져온 폴더 목록 전달
+                    // 🔧 최적화: 이미 가져온 폴더 목록 전달 (추가 API 호출 없음)
                     folders={availableFolders}
                     isLoadingFolders={isLoadingFolders}
                   />
@@ -5770,10 +5811,15 @@ export default function GalleryAdmin() {
                             enableEXIFBackfill: true,
                           });
                           
+                          // ✅ 업로드한 폴더로 자동 이동
+                          const targetFolder = selectedUploadFolder || folderFilter;
+                          if (targetFolder && targetFolder !== 'all' && targetFolder !== 'root') {
+                            setFolderFilter(targetFolder);
+                          }
+                          
                           setShowAddModal(false);
-                          setSelectedUploadFolder(''); // 업로드 후 폴더 선택 초기화
-                          fetchImages(1, true);
-                          alert('이미지 업로드 완료');
+                          fetchImages(1, true, targetFolder);
+                          alert(`이미지 업로드 완료!\n저장 위치: ${targetFolder || '기본 폴더'}`);
                         } catch (e: any) {
                           console.error('❌ 이미지 업로드 오류:', e);
                           alert(`업로드 실패: ${e.message}`);
@@ -5854,20 +5900,141 @@ export default function GalleryAdmin() {
                         if(!addUrl) return;
                         try{
                           setPending(true);
-                          const dateStr = new Date().toISOString().slice(0,10);
+                          const targetFolder = selectedUploadFolder || `duplicated/${new Date().toISOString().slice(0,10)}`;
                           const resp = await fetch('/api/admin/duplicate-images',{
                             method:'POST', headers:{'Content-Type':'application/json'},
-                            body: JSON.stringify({ images:[{ url: addUrl }], targetFolder: `duplicated/${dateStr}` })
+                            body: JSON.stringify({ images:[{ url: addUrl }], targetFolder })
                           });
                           const j = await resp.json();
                           if(!resp.ok) throw new Error(j.error||'URL 가져오기 실패');
+                          
+                          // ✅ 업로드한 폴더로 자동 이동
+                          if (targetFolder && targetFolder !== 'all' && targetFolder !== 'root') {
+                            setFolderFilter(targetFolder);
+                          }
+                          
                           setShowAddModal(false);
-                          fetchImages(1, true);
-                          alert('URL 이미지가 갤러리에 추가되었습니다.');
+                          fetchImages(1, true, targetFolder);
+                          alert(`URL 이미지가 갤러리에 추가되었습니다.\n저장 위치: ${targetFolder}`);
                         }catch(e:any){ alert(`실패: ${e.message}`); } finally{ setPending(false);} 
                       }}
                       className={`px-4 py-2 rounded text-white ${pending? 'bg-gray-400' : 'bg-emerald-600 hover:bg-emerald-700'}`}
                     >가져오기</button>
+                  </div>
+                </div>
+              )}
+
+              {activeAddTab==='ai' && (
+                <div className="space-y-4">
+                  {/* 현재 폴더 표시 */}
+                  <div className="p-3 bg-blue-50 rounded border border-blue-200">
+                    <p className="text-xs text-gray-600 mb-1">생성된 이미지 저장 위치</p>
+                    <p className="text-sm font-mono text-blue-700 break-all">{selectedUploadFolder || '폴더를 선택하세요'}</p>
+                  </div>
+                  
+                  {/* AI 이미지 생성 폼 */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        프롬프트
+                      </label>
+                      <textarea
+                        id="ai-prompt"
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        placeholder="예: Korean male golfer in his 50s, professional golf course, warm lighting..."
+                      />
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          이미지 개수
+                        </label>
+                        <select
+                          id="ai-image-count"
+                          className="px-3 py-2 border border-gray-300 rounded-md"
+                          defaultValue="1"
+                        >
+                          <option value="1">1개</option>
+                          <option value="2">2개</option>
+                          <option value="4">4개</option>
+                        </select>
+                      </div>
+                      <div className="flex-1"></div>
+                      <button
+                        onClick={async () => {
+                          const promptInput = document.getElementById('ai-prompt') as HTMLTextAreaElement;
+                          const countSelect = document.getElementById('ai-image-count') as HTMLSelectElement;
+                          const prompt = promptInput?.value.trim();
+                          const imageCount = parseInt(countSelect?.value || '1');
+                          
+                          if (!prompt) {
+                            alert('프롬프트를 입력해주세요.');
+                            return;
+                          }
+                          
+                          if (!selectedUploadFolder) {
+                            alert('저장할 폴더를 선택해주세요.');
+                            return;
+                          }
+                          
+                          try {
+                            setPending(true);
+                            
+                            // AI 이미지 생성 API 호출
+                            const response = await fetch('/api/kakao-content/generate-images', {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({
+                                prompts: [{ prompt }],
+                                metadata: {
+                                  date: new Date().toISOString().split('T')[0],
+                                  type: 'feed',
+                                },
+                                imageCount: imageCount,
+                                targetFolder: selectedUploadFolder, // ✅ 저장 폴더 지정
+                              }),
+                            });
+                            
+                            if (!response.ok) {
+                              const error = await response.json();
+                              throw new Error(error.message || '이미지 생성에 실패했습니다.');
+                            }
+                            
+                            const result = await response.json();
+                            const imageUrls = result.images || [];
+                            
+                            if (imageUrls.length === 0) {
+                              throw new Error('생성된 이미지가 없습니다.');
+                            }
+                            
+                            // 생성된 이미지가 자동으로 selectedUploadFolder에 저장됨
+                            const targetFolder = selectedUploadFolder || folderFilter;
+                            if (targetFolder && targetFolder !== 'all' && targetFolder !== 'root') {
+                              setFolderFilter(targetFolder);
+                            }
+                            
+                            setShowAddModal(false);
+                            fetchImages(1, true, targetFolder);
+                            alert(`AI 이미지 생성 완료! (${imageUrls.length}개)\n저장 위치: ${targetFolder || '기본 폴더'}`);
+                          } catch (error: any) {
+                            console.error('❌ AI 이미지 생성 오류:', error);
+                            alert(`AI 이미지 생성 실패: ${error.message}`);
+                          } finally {
+                            setPending(false);
+                          }
+                        }}
+                        disabled={pending || !selectedUploadFolder}
+                        className={`px-4 py-2 rounded text-white ${pending || !selectedUploadFolder ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+                      >
+                        {pending ? '생성 중...' : '🎨 이미지 생성'}
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      💡 팁: 프롬프트에 "Korean golfer", "professional golf course" 등의 키워드를 포함하면 더 나은 결과를 얻을 수 있습니다.
+                    </p>
                   </div>
                 </div>
               )}
