@@ -1175,6 +1175,7 @@ export default function GalleryAdmin() {
   const [pending, setPending] = useState(false);
   const [addUrl, setAddUrl] = useState('');
   const [selectedUploadFolder, setSelectedUploadFolder] = useState<string>('');
+  const [aiBrandTone, setAiBrandTone] = useState<'senior_emotional' | 'high_tech_innovative'>('senior_emotional');
   
   // 모달 열 때 현재 폴더 자동 설정
   const handleOpenAddModal = () => {
@@ -5939,6 +5940,77 @@ export default function GalleryAdmin() {
                     <p className="text-sm font-mono text-blue-700 break-all">{selectedUploadFolder || '폴더를 선택하세요'}</p>
                   </div>
                   
+                  {/* 빠른 생성 프리셋 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      빠른 생성 프리셋
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const promptInput = document.getElementById('ai-prompt') as HTMLTextAreaElement;
+                          if (promptInput) {
+                            promptInput.value = '한국인 전문 피터가 골프 스튜디오에서 스윙 데이터를 태블릿으로 분석하는 장면, 프리미엄 골프 클럽이 배경에 배치되어 있음, 고급스러운 골프 스튜디오 인테리어, 한국인 피터의 명확한 한국인 외모와 특징, 피터가 모자를 쓰고 있고 모자와 옷에 MASSGOO 로고가 명확하게 보임, 스튜디오 벽면이나 아트월에 MASSGOO 브랜딩이 표시됨';
+                            setAiBrandTone('senior_emotional');
+                          }
+                        }}
+                        className="p-3 border-2 border-blue-500 bg-blue-50 rounded-lg text-left hover:bg-blue-100 transition-all"
+                      >
+                        <div className="font-semibold text-blue-900 mb-1 text-sm">🎯 피팅 이미지</div>
+                        <div className="text-xs text-blue-700">전문 피터 작업 장면 (시니어 감성형)</div>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const promptInput = document.getElementById('ai-prompt') as HTMLTextAreaElement;
+                          if (promptInput) {
+                            promptInput.value = '밝고 현대적인 시타장(피팅 스튜디오) 내부, 골프 시뮬레이터 대형 스크린이 배경에 보임, 스윙 분석 장비와 피팅 장비가 보임, 골프 클럽 랙에 프리미엄 골프 클럽이 배치되어 있음, 피팅 테이블과 전문 장비들이 보임, 밝은 자연광과 따뜻한 조명, 긍정적이고 친근한 분위기, 고급스러운 시타장 인테리어, 시타장 벽면이나 아트월에 MASSGOO 브랜딩이 명확하게 표시됨, 밝고 현대적인 분위기, 사람은 없고 시타장의 시설과 장비만 보임';
+                            setAiBrandTone('senior_emotional');
+                          }
+                        }}
+                        className="p-3 border-2 border-yellow-500 bg-yellow-50 rounded-lg text-left hover:bg-yellow-100 transition-all"
+                      >
+                        <div className="font-semibold text-yellow-900 mb-1 text-sm">🌟 히어로 섹션</div>
+                        <div className="text-xs text-yellow-700">밝은 배경 이미지 (가로형)</div>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* 브랜딩 톤 선택 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      브랜딩 톤
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAiBrandTone('senior_emotional')}
+                        className={`p-3 border-2 rounded-lg text-left transition-all ${
+                          aiBrandTone === 'senior_emotional'
+                            ? 'border-yellow-500 bg-yellow-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="font-semibold text-sm text-gray-900">시니어 감성적</div>
+                        <div className="text-xs text-gray-600 mt-1">골드 톤, 따뜻한 분위기</div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAiBrandTone('high_tech_innovative')}
+                        className={`p-3 border-2 rounded-lg text-left transition-all ${
+                          aiBrandTone === 'high_tech_innovative'
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="font-semibold text-sm text-gray-900">하이테크 혁신형</div>
+                        <div className="text-xs text-gray-600 mt-1">블랙 톤, 현대적 분위기</div>
+                      </button>
+                    </div>
+                  </div>
+                  
                   {/* AI 이미지 생성 폼 */}
                   <div className="space-y-4">
                     <div>
@@ -5988,7 +6060,7 @@ export default function GalleryAdmin() {
                           try {
                             setPending(true);
                             
-                            // AI 이미지 생성 API 호출
+                            // AI 이미지 생성 API 호출 (브랜딩 톤 포함)
                             const response = await fetch('/api/kakao-content/generate-images', {
                               method: 'POST',
                               headers: {
@@ -5997,9 +6069,11 @@ export default function GalleryAdmin() {
                               body: JSON.stringify({
                                 prompts: [{ prompt }],
                                 metadata: {
+                                  account: aiBrandTone === 'senior_emotional' ? 'account1' : 'account2',
                                   date: new Date().toISOString().split('T')[0],
                                   type: 'feed',
                                 },
+                                logoOption: 'full-brand', // 브랜딩 톤에 따라 자동 설정
                                 imageCount: imageCount,
                                 targetFolder: selectedUploadFolder, // ✅ 저장 폴더 지정
                               }),

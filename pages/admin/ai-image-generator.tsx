@@ -40,6 +40,7 @@ export default function AIImageGenerator() {
   const [optimizedPrompt, setOptimizedPrompt] = useState<string | null>(null); // 최적화된 프롬프트 저장
   const [compositionStatus, setCompositionStatus] = useState<string>(''); // 제품 합성 진행 상태
   const [showBaseImageGallery, setShowBaseImageGallery] = useState(false); // 베이스 이미지 갤러리 모달 표시
+  const [selectedPreset, setSelectedPreset] = useState<string | null>(null); // 선택된 프리셋
   const [formData, setFormData] = useState<ImageGenerationRequest>({
     prompt: '',
     brandTone: 'senior_emotional',
@@ -554,7 +555,9 @@ ${koreanGolferSpec}
                     <button
                       type="button"
                       onClick={() => {
+                        setSelectedPreset('fitting');
                         setFormData({
+                          ...formData,
                           prompt: '한국인 전문 피터가 골프 스튜디오에서 스윙 데이터를 태블릿으로 분석하는 장면, 프리미엄 골프 클럽이 배경에 배치되어 있음, 고급스러운 골프 스튜디오 인테리어, 한국인 피터의 명확한 한국인 외모와 특징, 피터가 모자를 쓰고 있고 모자와 옷에 MASSGOO 로고가 명확하게 보임, 스튜디오 벽면이나 아트월에 MASSGOO 브랜딩이 표시됨',
                           brandTone: 'senior_emotional',
                           imageType: 'feed',
@@ -564,18 +567,31 @@ ${koreanGolferSpec}
                           useChatGPT: false, // ChatGPT 최적화는 선택사항
                         });
                       }}
-                      className="w-full p-4 border-2 border-blue-500 bg-blue-50 rounded-lg text-left hover:bg-blue-100 transition-all"
+                      className={`w-full p-4 border-2 rounded-lg text-left transition-all ${
+                        selectedPreset === 'fitting'
+                          ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
+                          : 'border-blue-500 bg-blue-50 hover:bg-blue-100'
+                      }`}
                     >
-                      <div className="font-semibold text-blue-900 mb-1">🎯 피팅 이미지 생성</div>
-                      <div className="text-xs text-blue-700">
-                        전문 피터 작업 장면 (시니어 중심 감성형, 전체 브랜딩)
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold text-blue-900 mb-1">🎯 피팅 이미지 생성</div>
+                          <div className="text-xs text-blue-700">
+                            전문 피터 작업 장면 (시니어 중심 감성형, 전체 브랜딩)
+                          </div>
+                        </div>
+                        {selectedPreset === 'fitting' && (
+                          <span className="text-blue-600 text-xl font-bold">✓</span>
+                        )}
                       </div>
                     </button>
                     
                     <button
                       type="button"
                       onClick={() => {
+                        setSelectedPreset('hero');
                         setFormData({
+                          ...formData,
                           prompt: '밝고 현대적인 시타장(피팅 스튜디오) 내부, 골프 시뮬레이터 대형 스크린이 배경에 보임, 스윙 분석 장비와 피팅 장비가 보임, 골프 클럽 랙에 프리미엄 골프 클럽이 배치되어 있음, 피팅 테이블과 전문 장비들이 보임, 밝은 자연광과 따뜻한 조명, 긍정적이고 친근한 분위기, 고급스러운 시타장 인테리어, 시타장 벽면이나 아트월에 MASSGOO 브랜딩이 명확하게 표시됨, 밝고 현대적인 분위기, 사람은 없고 시타장의 시설과 장비만 보임',
                           brandTone: 'senior_emotional',
                           imageType: 'background', // 히어로 섹션은 배경 이미지 타입이 더 적합
@@ -585,15 +601,56 @@ ${koreanGolferSpec}
                           useChatGPT: false, // ChatGPT 최적화는 선택사항
                         });
                       }}
-                      className="w-full p-4 border-2 border-yellow-500 bg-yellow-50 rounded-lg text-left hover:bg-yellow-100 transition-all"
+                      className={`w-full p-4 border-2 rounded-lg text-left transition-all ${
+                        selectedPreset === 'hero'
+                          ? 'border-yellow-500 bg-yellow-50 ring-2 ring-yellow-200'
+                          : 'border-yellow-500 bg-yellow-50 hover:bg-yellow-100'
+                      }`}
                     >
-                      <div className="font-semibold text-yellow-900 mb-1">🌟 히어로 섹션 이미지 생성</div>
-                      <div className="text-xs text-yellow-700">
-                        밝고 긍정적인 히어로 배경 이미지 (가로형, 밝은 조명, 시타장 특징 포함, 사람 없음)
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold text-yellow-900 mb-1">🌟 히어로 섹션 이미지 생성</div>
+                          <div className="text-xs text-yellow-700">
+                            밝고 긍정적인 히어로 배경 이미지 (가로형, 밝은 조명, 시타장 특징 포함, 사람 없음)
+                          </div>
+                        </div>
+                        {selectedPreset === 'hero' && (
+                          <span className="text-yellow-600 text-xl font-bold">✓</span>
+                        )}
                       </div>
                     </button>
                   </div>
                 </div>
+
+                {/* 프리셋 적용 표시 */}
+                {selectedPreset && (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold text-green-800 mb-1">
+                          ✓ 프리셋 적용됨: {selectedPreset === 'fitting' ? '피팅 이미지' : '히어로 섹션'}
+                        </p>
+                        <p className="text-xs text-green-700">
+                          브랜딩 톤: {formData.brandTone === 'senior_emotional' ? '시니어 감성적' : '하이테크 혁신형'} | 
+                          이미지 타입: {formData.imageType === 'feed' ? '피드' : formData.imageType === 'background' ? '배경' : '프로필'} | 
+                          로고: {formData.logoOption === 'full-brand' ? '전체 브랜딩' : formData.logoOption === 'logo' ? '로고만' : '없음'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setSelectedPreset(null);
+                          setFormData({
+                            ...formData,
+                            prompt: '',
+                          });
+                        }}
+                        className="text-xs text-green-600 hover:text-green-800 px-2 py-1 border border-green-300 rounded hover:bg-green-100"
+                      >
+                        초기화
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* 브랜딩 톤 선택 */}
                 <div>
