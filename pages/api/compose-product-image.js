@@ -321,13 +321,37 @@ export default async function handler(req, res) {
       addImageUrl(product.imageUrl, '제품 이미지 (데이터베이스)');
     }
 
-    // 참조 이미지들 추가 (다양한 각도) - NEW!
+    // 참조 이미지들 추가 (메인 이미지와 중복 제거)
     if (product.referenceImages && product.referenceImages.length > 0) {
       console.log(`📐 ${product.referenceImages.length}개의 참조 이미지 발견`);
-      for (const refImage of product.referenceImages) {
-        addImageUrl(refImage, '참조 이미지');
+      
+      // 메인 이미지 URL (중복 체크용)
+      const mainImageUrl = productImageUrl || product.imageUrl;
+      
+      // URL 정규화 함수 (경로 비교용)
+      const normalizeUrl = (url) => {
+        if (!url) return '';
+        // 절대 경로로 변환 후 비교
+        return url.replace(/^\/+/, '/').toLowerCase();
+      };
+      
+      const mainImageNormalized = normalizeUrl(mainImageUrl);
+      
+      // 메인 이미지와 중복되지 않는 참조 이미지만 추가
+      const uniqueRefImages = product.referenceImages.filter(refImg => {
+        if (!refImg) return false;
+        const refNormalized = normalizeUrl(refImg);
+        return refNormalized !== mainImageNormalized;
+      });
+      
+      if (uniqueRefImages.length > 0) {
+        for (const refImage of uniqueRefImages) {
+          addImageUrl(refImage, '참조 이미지');
+        }
+        console.log(`✅ ${uniqueRefImages.length}개의 고유 참조 이미지 추가됨 (중복 ${product.referenceImages.length - uniqueRefImages.length}개 제외)`);
+      } else {
+        console.log(`⚠️ 참조 이미지가 모두 메인 이미지와 중복되어 제외됨`);
       }
-      console.log(`✅ 총 ${imageUrls.length - (productOnlyMode ? 0 : 1)}개의 제품 참조 이미지 추가됨`);
     }
     
     // 모든 URL이 공개적으로 접근 가능한지 최종 확인
