@@ -41,13 +41,13 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트포스 골드 2 MUZIIK',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/originals/products/gold2-sapphire/secret-force-gold-2-sole-500.webp',
+    imageUrl: '/main/products/gold2-sapphire/secret-force-gold-2-sole-500.webp',
     referenceImages: [
-      '/originals/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp',
-      '/originals/products/gold2-sapphire/massgoo_sf_gold2_muz_12.webp',
-      '/originals/products/gold2-sapphire/massgoo_sf_gold2_muz_13.webp',
-      '/originals/products/gold2-sapphire/massgoo_sf_gold2_muz_14_b.webp',
-      '/originals/products/gold2-sapphire/massgoo_sf_gold2_muz_15.webp',
+      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp',
+      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_12.webp',
+      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_13.webp',
+      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_14_b.webp',
+      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_15.webp',
     ],
     slug: 'gold2-sapphire',
     badge: 'BEST',
@@ -61,14 +61,14 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트웨폰 블랙 MUZIIK',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/originals/products/black-beryl/secret-weapon-black-sole-500.webp',
+    imageUrl: '/main/products/black-beryl/secret-weapon-black-sole-500.webp',
     referenceImages: [
-      '/originals/products/black-beryl/massgoo_sw_black_muz_11.webp',
-      '/originals/products/black-beryl/massgoo_sw_black_muz_12.webp',
-      '/originals/products/black-beryl/massgoo_sw_black_muz_13.webp',
-      '/originals/products/black-beryl/massgoo_sw_black_muz_14_b.webp',
-      '/originals/products/black-beryl/massgoo_sw_black_muz_15.webp',
-      '/originals/products/black-beryl/massgoo_sw_black_muz_18.webp',
+      '/main/products/black-beryl/massgoo_sw_black_muz_11.webp',
+      '/main/products/black-beryl/massgoo_sw_black_muz_12.webp',
+      '/main/products/black-beryl/massgoo_sw_black_muz_13.webp',
+      '/main/products/black-beryl/massgoo_sw_black_muz_14_b.webp',
+      '/main/products/black-beryl/massgoo_sw_black_muz_15.webp',
+      '/main/products/black-beryl/massgoo_sw_black_muz_18.webp',
     ],
     slug: 'black-beryl',
     badge: 'LIMITED',
@@ -82,15 +82,15 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트포스 골드 2',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/originals/products/gold2/secret-force-gold-2-sole-500.webp',
+    imageUrl: '/main/products/gold2/secret-force-gold-2-sole-500.webp',
     referenceImages: [
-      '/originals/products/gold2/gold2_01.jpg',
-      '/originals/products/gold2/gold2_02.jpg',
-      '/originals/products/gold2/gold2_03.jpg',
-      '/originals/products/gold2/gold2_04.jpg',
-      '/originals/products/gold2/gold2_05.jpg',
-      '/originals/products/gold2/gold2_06.jpg',
-      '/originals/products/gold2/gold2_07.jpg',
+      '/main/products/gold2/gold2_01.jpg',
+      '/main/products/gold2/gold2_02.jpg',
+      '/main/products/gold2/gold2_03.jpg',
+      '/main/products/gold2/gold2_04.jpg',
+      '/main/products/gold2/gold2_05.jpg',
+      '/main/products/gold2/gold2_06.jpg',
+      '/main/products/gold2/gold2_07.jpg',
     ],
     slug: 'gold2',
     badge: 'BEST',
@@ -104,15 +104,15 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트포스 PRO 3',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/originals/products/pro3/secret-force-pro-3-sole-500.webp',
+    imageUrl: '/main/products/pro3/secret-force-pro-3-sole-500.webp',
     referenceImages: [
-      '/originals/products/pro3/secret-force-pro-3-gallery-01.webp',
-      '/originals/products/pro3/secret-force-pro-3-gallery-02.webp',
-      '/originals/products/pro3/secret-force-pro-3-gallery-03.webp',
-      '/originals/products/pro3/secret-force-pro-3-gallery-04.webp',
-      '/originals/products/pro3/secret-force-pro-3-gallery-05.webp',
-      '/originals/products/pro3/secret-force-pro-3-gallery-06.webp',
-      '/originals/products/pro3/secret-force-pro-3-gallery-07.webp',
+      '/main/products/pro3/secret-force-pro-3-gallery-01.webp',
+      '/main/products/pro3/secret-force-pro-3-gallery-02.webp',
+      '/main/products/pro3/secret-force-pro-3-gallery-03.webp',
+      '/main/products/pro3/secret-force-pro-3-gallery-04.webp',
+      '/main/products/pro3/secret-force-pro-3-gallery-05.webp',
+      '/main/products/pro3/secret-force-pro-3-gallery-06.webp',
+      '/main/products/pro3/secret-force-pro-3-gallery-07.webp',
     ],
     slug: 'secret-force-pro-3',
     description: 'DAT55G 티타늄, 2.3mm 페이스, COR 0.86',
@@ -125,14 +125,14 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트포스 V3',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/originals/products/v3/secret-force-v3-sole-350-bg.webp',
+    imageUrl: '/main/products/v3/secret-force-v3-sole-350-bg.webp',
     referenceImages: [
-      '/originals/products/v3/secret-force-v3-gallery-02.webp',
-      '/originals/products/v3/secret-force-v3-gallery-03.webp',
-      '/originals/products/v3/secret-force-v3-gallery-04.webp',
-      '/originals/products/v3/secret-force-v3-gallery-05.webp',
-      '/originals/products/v3/secret-force-v3-gallery-06.webp',
-      '/originals/products/v3/secret-force-v3-gallery-07.webp',
+      '/main/products/v3/secret-force-v3-gallery-02.webp',
+      '/main/products/v3/secret-force-v3-gallery-03.webp',
+      '/main/products/v3/secret-force-v3-gallery-04.webp',
+      '/main/products/v3/secret-force-v3-gallery-05.webp',
+      '/main/products/v3/secret-force-v3-gallery-06.webp',
+      '/main/products/v3/secret-force-v3-gallery-07.webp',
     ],
     slug: 'secret-force-v3',
     description: 'DAT55G 티타늄, 2.4mm 페이스, COR 0.85',
@@ -145,15 +145,15 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트웨폰 블랙',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/originals/products/black-weapon/secret-weapon-black-sole-500.webp',
+    imageUrl: '/main/products/black-weapon/secret-weapon-black-sole-500.webp',
     referenceImages: [
-      '/originals/products/black-weapon/secret-weapon-black-gallery-01.webp',
-      '/originals/products/black-weapon/secret-weapon-black-gallery-02.webp',
-      '/originals/products/black-weapon/secret-weapon-black-gallery-03.webp',
-      '/originals/products/black-weapon/secret-weapon-black-gallery-04.webp',
-      '/originals/products/black-weapon/secret-weapon-black-gallery-05.webp',
-      '/originals/products/black-weapon/secret-weapon-black-gallery-06.webp',
-      '/originals/products/black-weapon/secret-weapon-black-gallery-07.webp',
+      '/main/products/black-weapon/secret-weapon-black-gallery-01.webp',
+      '/main/products/black-weapon/secret-weapon-black-gallery-02.webp',
+      '/main/products/black-weapon/secret-weapon-black-gallery-03.webp',
+      '/main/products/black-weapon/secret-weapon-black-gallery-04.webp',
+      '/main/products/black-weapon/secret-weapon-black-gallery-05.webp',
+      '/main/products/black-weapon/secret-weapon-black-gallery-06.webp',
+      '/main/products/black-weapon/secret-weapon-black-gallery-07.webp',
     ],
     slug: 'secret-weapon-black',
     badge: 'LIMITED',
@@ -167,15 +167,15 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트웨폰 골드 4.1',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/originals/products/gold-weapon4/secret-weapon-gold-4-1-sole-500.webp',
+    imageUrl: '/main/products/gold-weapon4/secret-weapon-gold-4-1-sole-500.webp',
     referenceImages: [
-      '/originals/products/gold-weapon4/secret-weapon-gold-4-1-gallery-01.webp',
-      '/originals/products/gold-weapon4/secret-weapon-gold-4-1-gallery-02.webp',
-      '/originals/products/gold-weapon4/secret-weapon-gold-4-1-gallery-03.webp',
-      '/originals/products/gold-weapon4/secret-weapon-gold-4-1-gallery-04.webp',
-      '/originals/products/gold-weapon4/secret-weapon-gold-4-1-gallery-05.webp',
-      '/originals/products/gold-weapon4/secret-weapon-gold-4-1-gallery-06.webp',
-      '/originals/products/gold-weapon4/secret-weapon-gold-4-1-gallery-07.webp',
+      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-01.webp',
+      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-02.webp',
+      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-03.webp',
+      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-04.webp',
+      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-05.webp',
+      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-06.webp',
+      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-07.webp',
     ],
     slug: 'secret-weapon-gold-4-1',
     description: 'SP700 Grade 5 티타늄, 2.2mm 초박형 페이스, COR 0.87',
@@ -329,66 +329,6 @@ export function generateCompositionPrompt(
  * @param baseUrl 기본 URL (선택사항)
  * @returns 절대 URL
  */
-/**
- * Supabase Storage 경로를 공개 URL로 변환
- * @param storagePath Storage 경로 (예: originals/products/goods/image.webp)
- * @returns 공개 URL
- */
-export function getSupabaseStorageUrl(storagePath: string): string {
-  // ✅ Next.js 클라이언트 사이드에서 환경 변수 읽기
-  // Next.js는 NEXT_PUBLIC_ 접두사가 있는 변수를 빌드 타임에 번들에 주입합니다
-  let supabaseUrl: string | undefined;
-  
-  if (typeof window !== 'undefined') {
-    // 클라이언트 사이드: 여러 방법으로 시도
-    // 1. window.__NEXT_DATA__ (Next.js가 주입하는 환경 변수)
-    supabaseUrl = (window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_SUPABASE_URL;
-    
-    // 2. process.env (빌드 타임에 주입된 값)
-    if (!supabaseUrl) {
-      supabaseUrl = (process.env as any).NEXT_PUBLIC_SUPABASE_URL;
-    }
-    
-    // 3. window 객체에 직접 주입된 경우 (fallback)
-    if (!supabaseUrl && (window as any).NEXT_PUBLIC_SUPABASE_URL) {
-      supabaseUrl = (window as any).NEXT_PUBLIC_SUPABASE_URL;
-    }
-  } else {
-    // 서버 사이드
-    supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  }
-  
-  if (!supabaseUrl) {
-    console.error('❌ NEXT_PUBLIC_SUPABASE_URL이 설정되지 않았습니다.');
-    if (typeof window !== 'undefined') {
-      console.error('   window.__NEXT_DATA__?.env:', (window as any).__NEXT_DATA__?.env);
-      console.error('   process.env.NEXT_PUBLIC_SUPABASE_URL:', (process.env as any).NEXT_PUBLIC_SUPABASE_URL);
-      console.error('   window.location:', window.location.href);
-    }
-    // ❌ 상대 경로를 반환하면 getAbsoluteImageUrl에서 잘못된 URL 생성
-    // ✅ 빈 문자열 반환하여 이미지 로드 방지 (무한 루핑 방지)
-    return '';
-  }
-  
-  // URL 유효성 검사
-  if (!supabaseUrl.startsWith('http://') && !supabaseUrl.startsWith('https://')) {
-    console.error('❌ NEXT_PUBLIC_SUPABASE_URL이 유효한 URL 형식이 아닙니다:', supabaseUrl);
-    return '';
-  }
-  
-  // Storage 경로에서 앞의 슬래시 제거
-  const cleanPath = storagePath.startsWith('/') ? storagePath.slice(1) : storagePath;
-  
-  // Supabase Storage 공개 URL 형식
-  return `${supabaseUrl}/storage/v1/object/public/blog-images/${cleanPath}`;
-}
-
-/**
- * 이미지 URL을 절대 URL로 변환
- * - Supabase Storage 경로 (/originals/products/...) 처리
- * - 기존 상대 경로 (/originals/products/...) 처리
- * - 이미 절대 URL인 경우 그대로 반환
- */
 export function getAbsoluteImageUrl(imageUrl: string, baseUrl?: string): string {
   if (!imageUrl) return '';
   
@@ -397,70 +337,7 @@ export function getAbsoluteImageUrl(imageUrl: string, baseUrl?: string): string 
     return imageUrl;
   }
   
-  // Supabase Storage 경로인 경우 (/originals/...)
-  if (imageUrl.startsWith('/originals/') || imageUrl.startsWith('originals/')) {
-    const supabaseUrl = getSupabaseStorageUrl(imageUrl);
-    
-    // Supabase URL이 없거나 빈 문자열이면 로컬 개발 환경에서는 /main/products/로 fallback
-    if (!supabaseUrl || supabaseUrl.trim() === '') {
-      // 로컬 개발 환경 감지
-      const isLocal = typeof window !== 'undefined' && 
-        (window.location.hostname === 'localhost' || 
-         window.location.hostname === '127.0.0.1' ||
-         window.location.hostname.includes('localhost'));
-      
-      if (isLocal) {
-        // /originals/products/... → /main/products/... 로 변환하여 로컬 파일 사용
-        const fallbackPath = imageUrl.replace('/originals/products/', '/main/products/');
-        const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
-        console.warn('⚠️ Supabase URL이 없어 로컬 파일로 fallback:', {
-          original: imageUrl,
-          fallback: fallbackPath
-        });
-        return `${base}${fallbackPath}`;
-      }
-      
-      // 프로덕션 환경에서는 빈 문자열 반환 (이미지 로드 방지, 무한 루핑 방지)
-      if (typeof window !== 'undefined') {
-        console.error('❌ getAbsoluteImageUrl: Supabase URL을 생성할 수 없습니다.', {
-          imageUrl,
-          supabaseUrl,
-          location: window.location.href
-        });
-      }
-      return '';
-    }
-    
-    // 생성된 URL이 유효한지 확인 (http:// 또는 https://로 시작해야 함)
-    if (!supabaseUrl.startsWith('http://') && !supabaseUrl.startsWith('https://')) {
-      // 로컬 개발 환경에서는 fallback
-      const isLocal = typeof window !== 'undefined' && 
-        (window.location.hostname === 'localhost' || 
-         window.location.hostname === '127.0.0.1' ||
-         window.location.hostname.includes('localhost'));
-      
-      if (isLocal) {
-        const fallbackPath = imageUrl.replace('/originals/products/', '/main/products/');
-        const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
-        console.warn('⚠️ 유효하지 않은 Supabase URL, 로컬 파일로 fallback:', {
-          original: imageUrl,
-          fallback: fallbackPath
-        });
-        return `${base}${fallbackPath}`;
-      }
-      
-      console.error('❌ getAbsoluteImageUrl: 생성된 URL이 유효하지 않습니다.', {
-        imageUrl,
-        supabaseUrl,
-        location: typeof window !== 'undefined' ? window.location.href : 'server'
-      });
-      return '';
-    }
-    
-    return supabaseUrl;
-  }
-  
-  // 기존 상대 경로인 경우 (Supabase Storage 경로가 아닌 경우만)
+  // 상대 경로인 경우
   const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
   return `${base}${imageUrl}`;
 }

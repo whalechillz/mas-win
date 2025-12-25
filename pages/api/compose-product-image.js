@@ -82,17 +82,7 @@ function getAbsoluteProductImageUrl(productImageUrl) {
     return productImageUrl;
   }
   
-  // Supabase Storage 경로인 경우 (/originals/products/...)
-  if (productImageUrl.startsWith('/originals/') || productImageUrl.startsWith('originals/')) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    if (!supabaseUrl) {
-      throw new Error(`Supabase Storage URL을 생성할 수 없습니다. NEXT_PUBLIC_SUPABASE_URL 환경 변수를 설정해주세요. 경로: ${productImageUrl}`);
-    }
-    const cleanPath = productImageUrl.startsWith('/') ? productImageUrl.slice(1) : productImageUrl;
-    return `${supabaseUrl}/storage/v1/object/public/blog-images/${cleanPath}`;
-  }
-  
-  // 기존 상대 경로인 경우 (/main/products/...)
+  // 상대 경로인 경우
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
                   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
   

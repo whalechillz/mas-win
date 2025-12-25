@@ -1,5 +1,5 @@
 // 제품 이미지 업로드 API
-// Supabase Storage에 originals/products/{category}/{product-slug}/ 구조로 저장
+// 로컬 파일 시스템에 main/products/{category}/{product-slug}/ 구조로 저장
 
 import { createClient } from '@supabase/supabase-js';
 import sharp from 'sharp';
@@ -30,7 +30,7 @@ export const config = {
 function getProductStoragePath(productSlug, category) {
   // 굿즈/액세서리 제품은 goods 폴더에 저장
   if (category === 'hat' || category === 'accessory') {
-    return 'originals/products/goods';
+    return 'main/products/goods';
   }
 
   // 드라이버 제품 slug → 폴더 매핑
@@ -46,7 +46,7 @@ function getProductStoragePath(productSlug, category) {
   };
 
   const folderName = driverSlugToFolder[productSlug] || productSlug;
-  return `originals/products/${folderName}`;
+  return `main/products/${folderName}`;
 }
 
 export default async function handler(req, res) {
@@ -126,7 +126,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({
       success: true,
-      url: relativePath, // 상대 경로: /originals/products/goods/...
+      url: relativePath, // 상대 경로: /main/products/goods/...
       storageUrl: publicUrl, // 전체 URL (참고용)
       fileName: webpFileName,
       storagePath: storagePath,

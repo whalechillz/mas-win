@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
@@ -64,13 +64,7 @@ export default function ProductCompositionManagement() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingRefImage, setUploadingRefImage] = useState(false);
 
-  // ✅ 무한 루핑 방지: 이미 실행했는지 추적하는 ref
-  const hasInitializedRef = useRef(false);
-  const redirectingRef = useRef(false);
-  const lastSessionIdRef = useRef<string | undefined>(undefined);
-  const lastFilterRef = useRef<string>('');
-
-  // 제품 목록 로드 (useCallback으로 메모이제이션, 다른 곳에서도 사용)
+  // 제품 목록 로드 (useCallback으로 메모이제이션)
   const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
@@ -93,45 +87,18 @@ export default function ProductCompositionManagement() {
     }
   }, [filter.category, filter.target, filter.active]);
 
-  // ✅ 제품 목록 로드 useEffect: loadProducts를 의존성에서 제거하여 무한 루핑 방지
+  // ✅ 제품 목록 로드 useEffect: 단순화
   useEffect(() => {
-    // 로딩 중이면 대기
     if (status === 'loading') return;
     
-    // 세션이 없으면 리다이렉트 (한 번만 실행)
     if (!session) {
-      if (!redirectingRef.current) {
-        redirectingRef.current = true;
-        router.push('/admin/login');
-      }
+      router.push('/admin/login');
       return;
     }
     
-    // ✅ session 객체 대신 session?.user?.id 또는 session?.user?.email 사용
-    const currentSessionId = session?.user?.id || session?.user?.email || 'unknown';
-    
-    // 필터 값 문자열로 변환하여 비교
-    const currentFilter = JSON.stringify({
-      category: filter.category || '',
-      target: filter.target || '',
-      active: filter.active
-    });
-    
-    // 세션이 변경되었거나 필터가 변경되었거나 아직 초기화하지 않았으면 로드
-    const shouldLoad = 
-      currentSessionId !== lastSessionIdRef.current || 
-      currentFilter !== lastFilterRef.current || 
-      !hasInitializedRef.current;
-    
-    if (shouldLoad) {
-      lastSessionIdRef.current = currentSessionId;
-      lastFilterRef.current = currentFilter;
-      hasInitializedRef.current = true;
-      // ✅ loadProducts를 직접 호출하되 의존성 배열에는 포함하지 않음
-      loadProducts();
-    }
+    loadProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, session?.user?.id, session?.user?.email, filter.category, filter.target, filter.active]);
+  }, [status, !!session, filter.category, filter.target, filter.active]);
 
   // 조건부 return은 모든 hooks 이후에 배치
   if (status === 'loading') {
@@ -498,49 +465,17 @@ export default function ProductCompositionManagement() {
                     <tr key={product.id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="relative w-16 h-16 bg-gray-100 rounded overflow-hidden">
-                          {(() => {
-                            const imageUrl = getAbsoluteImageUrl(product.image_url);
-                            // ✅ 빈 문자열 또는 유효하지 않은 URL 체크 강화
-                            if (!imageUrl || imageUrl.trim() === '' || (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://'))) {
-                              return (
-                                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                                  이미지 없음
-                                </div>
-                              );
-                            }
-                            return (
-                              <Image
-                                src={imageUrl}
-                                alt={product.name}
-                                fill
-                                className="object-contain"
-                                unoptimized
-                                priority={false}
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  // ✅ 무한 루핑 방지: 이미 에러 처리된 경우 즉시 중단
-                                  if (target.dataset.errorHandled === 'true') {
-                                    target.style.display = 'none';
-                                    return;
-                                  }
-                                  target.dataset.errorHandled = 'true';
-                                  // 이미지 숨김 처리
-                                  target.style.display = 'none';
-                                  // 플레이스홀더 표시
-                                  const placeholder = target.parentElement?.querySelector('.image-placeholder');
-                                  if (placeholder) {
-                                    (placeholder as HTMLElement).style.display = 'flex';
-                                  }
-                                }}
-                                onLoad={() => {
-                                  // 로드 성공 시 에러 플래그 초기화 (필요시)
-                                }}
-                              />
-                            );
-                          })()}
-                          <div className="image-placeholder absolute inset-0 flex items-center justify-center text-gray-400 text-xs bg-gray-100" style={{ display: 'none' }}>
-                            로드 실패
-                          </div>
+                          <Image
+                            src={getAbsoluteImageUrl(product.image_url)}
+                            alt={product.name}
+                            fill
+                            className="object-contain"
+                            unoptimized
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -727,35 +662,21 @@ export default function ProductCompositionManagement() {
                         />
                       </label>
                     </div>
-                    {formData.image_url && (() => {
-                      const imageUrl = getAbsoluteImageUrl(formData.image_url);
-                      // ✅ 빈 문자열 또는 유효하지 않은 URL 체크 강화
-                      if (!imageUrl || imageUrl.trim() === '' || (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://'))) {
-                        return null;
-                      }
-                      return (
-                        <div className="mt-2 relative w-32 h-32 bg-gray-100 rounded overflow-hidden">
-                          <Image
-                            src={imageUrl}
-                            alt="미리보기"
-                            fill
-                            className="object-contain"
-                            unoptimized
-                            priority={false}
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              // ✅ 무한 루핑 방지: 이미 에러 처리된 경우 즉시 중단
-                              if (target.dataset.errorHandled === 'true') {
-                                target.style.display = 'none';
-                                return;
-                              }
-                              target.dataset.errorHandled = 'true';
-                              target.style.display = 'none';
-                            }}
-                          />
-                        </div>
-                      );
-                    })()}
+                    {formData.image_url && (
+                      <div className="mt-2 relative w-32 h-32 bg-gray-100 rounded overflow-hidden">
+                        <Image
+                          src={getAbsoluteImageUrl(formData.image_url)}
+                          alt="미리보기"
+                          fill
+                          className="object-contain"
+                          unoptimized
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -850,44 +771,30 @@ export default function ProductCompositionManagement() {
                       </div>
                       {formData.reference_images && formData.reference_images.length > 0 && (
                         <div className="grid grid-cols-3 gap-2 mt-2">
-                          {formData.reference_images.map((refImg, index) => {
-                            const imageUrl = getAbsoluteImageUrl(refImg);
-                            // ✅ 빈 문자열 또는 유효하지 않은 URL 체크 강화
-                            if (!imageUrl || imageUrl.trim() === '' || (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://'))) {
-                              return null;
-                            }
-                            return (
-                              <div key={index} className="relative group">
-                                <div className="relative w-full h-24 bg-gray-100 rounded overflow-hidden">
-                                  <Image
-                                    src={imageUrl}
-                                    alt={`참조 이미지 ${index + 1}`}
-                                    fill
-                                    className="object-contain"
-                                    unoptimized
-                                    priority={false}
-                                    onError={(e) => {
-                                      const target = e.target as HTMLImageElement;
-                                      // ✅ 무한 루핑 방지: 이미 에러 처리된 경우 즉시 중단
-                                      if (target.dataset.errorHandled === 'true') {
-                                        target.style.display = 'none';
-                                        return;
-                                      }
-                                      target.dataset.errorHandled = 'true';
-                                      target.style.display = 'none';
-                                    }}
-                                  />
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveReferenceImage(index)}
-                                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                  ×
-                                </button>
+                          {formData.reference_images.map((refImg, index) => (
+                            <div key={index} className="relative group">
+                              <div className="relative w-full h-24 bg-gray-100 rounded overflow-hidden">
+                                <Image
+                                  src={getAbsoluteImageUrl(refImg)}
+                                  alt={`참조 이미지 ${index + 1}`}
+                                  fill
+                                  className="object-contain"
+                                  unoptimized
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                  }}
+                                />
                               </div>
-                            );
-                          })}
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveReferenceImage(index)}
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
