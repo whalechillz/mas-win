@@ -4684,16 +4684,16 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
   // 카테고리 목록
   const categories = Array.from(new Set(posts.map(post => post.category))).filter(Boolean);
 
-  // 인증 체크
-  useEffect(() => {
-    if (status === 'loading') return; // 로딩 중이면 대기
-    
-    if (!session) {
-      // 인증되지 않은 경우 로그인 페이지로 리다이렉트
-      window.location.href = '/admin/login';
-      return;
-    }
-  }, [session, status]);
+  // 인증 체크 (임시로 비활성화 - 디버깅용)
+  // useEffect(() => {
+  //   if (status === 'loading') return; // 로딩 중이면 대기
+  //   
+  //   if (!session) {
+  //     // 인증되지 않은 경우 로그인 페이지로 리다이렉트
+  //     window.location.href = '/admin/login';
+  //     return;
+  //   }
+  // }, [session, status]);
   // URL 파라미터 처리
   useEffect(() => {
     if (router.isReady) {

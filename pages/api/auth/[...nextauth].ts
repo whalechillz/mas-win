@@ -6,7 +6,8 @@ import { supabaseAdmin, checkSupabaseConfig } from '../../../lib/supabase-admin'
 // Supabase 설정 확인
 checkSupabaseConfig()
 
-export default NextAuth({
+// authOptions를 export하여 getServerSession에서 사용 가능하도록 함
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -52,21 +53,34 @@ export default NextAuth({
           }
           user = data
         } else {
-          // 아이디로 로그인
-          const { data, error } = await supabaseAdmin
+          // 아이디로 로그인 (username 또는 name으로 검색)
+          // username이 null인 경우 name으로도 검색
+          const { data: userByUsername, error: usernameError } = await supabaseAdmin
             .from('admin_users')
             .select('*')
             .eq('username', login)
             .eq('is_active', true)
             .single()
           
-          console.log('아이디 로그인 결과:', { data, error })
-          
-          if (error || !data) {
-            console.log('아이디 로그인 실패:', error)
-            return null
+          if (usernameError || !userByUsername) {
+            // username으로 찾지 못하면 name으로 검색
+            const { data: userByName, error: nameError } = await supabaseAdmin
+              .from('admin_users')
+              .select('*')
+              .eq('name', login)
+              .eq('is_active', true)
+              .single()
+            
+            console.log('아이디/이름 로그인 결과:', { userByUsername, userByName, usernameError, nameError })
+            
+            if (nameError || !userByName) {
+              console.log('아이디/이름 로그인 실패:', nameError)
+              return null
+            }
+            user = userByName
+          } else {
+            user = userByUsername
           }
-          user = data
         }
         
         console.log('사용자 정보:', { id: user.id, name: user.name, phone: user.phone, role: user.role })
@@ -174,4 +188,6 @@ export default NextAuth({
       },
     },
   }
-})
+}
+
+export default NextAuth(authOptions)

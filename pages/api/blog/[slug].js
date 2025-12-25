@@ -1,5 +1,7 @@
 // Individual blog post API endpoint
 import { createServerSupabase } from '../../../lib/supabase';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]';
 
 export default async function handler(req, res) {
   const { slug } = req.query;
@@ -7,18 +9,37 @@ export default async function handler(req, res) {
   try {
     const supabase = createServerSupabase();
     
-    // 관리자 권한 확인 (관리자 페이지에서 온 요청은 모두 허용)
-    const isAdmin = req.headers.referer?.includes('/admin/') || 
-                   req.headers.cookie?.includes('admin-auth=true') || 
-                   req.headers['x-admin-auth'] === 'true' ||
-                   req.query.admin === 'true';
+    // 관리자 권한 확인 (NextAuth 세션 우선, fallback으로 헤더 체크)
+    let isAdmin = false;
+    
+    try {
+      // NextAuth 세션 확인 (서버 사이드)
+      const session = await getServerSession(req, res, authOptions);
+      if (session?.user) {
+        isAdmin = true;
+        console.log('✅ NextAuth 세션으로 관리자 인증됨:', session.user.name || session.user.id);
+      }
+    } catch (sessionError) {
+      console.log('⚠️ NextAuth 세션 확인 실패, fallback 체크 진행:', sessionError.message);
+    }
+    
+    // Fallback: 헤더 기반 체크 (기존 방식 유지)
+    if (!isAdmin) {
+      isAdmin = req.headers.referer?.includes('/admin/') || 
+                req.headers.cookie?.includes('admin-auth=true') || 
+                req.headers['x-admin-auth'] === 'true' ||
+                req.query.admin === 'true';
+      
+      if (isAdmin) {
+        console.log('✅ 헤더 기반으로 관리자 인증됨');
+      }
+    }
     
     console.log('🔍 게시물 조회 요청:', { 
       slug, 
       isAdmin,
-      cookie: req.headers.cookie,
       referer: req.headers.referer,
-      xAdminAuth: req.headers['x-admin-auth']
+      hasCookie: !!req.headers.cookie
     });
     
     // Get the specific post (ID 또는 slug로 조회)
