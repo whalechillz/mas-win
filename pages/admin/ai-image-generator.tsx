@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
@@ -16,6 +16,8 @@ interface ImageGenerationRequest {
   imageType: 'background' | 'profile' | 'feed';
   logoOption: 'logo' | 'full-brand' | 'none';
   imageCount: number;
+  sceneStep?: number; // 스토리 장면 번호 (1-7)
+  selectedLocation?: string; // 선택된 장소 ID
   naturalStyle?: boolean; // 자연스러운 인물 사진 (no makeup, natural skin)
   useChatGPT?: boolean; // ChatGPT로 프롬프트 최적화
   enableProductComposition?: boolean; // 제품 합성 활성화
@@ -30,6 +32,9 @@ interface ImageGenerationRequest {
   productColor?: string; // 변경할 제품 색상
   compositionBackground?: 'natural' | 'studio' | 'product-page'; // 배경 타입
   productOnlyMode?: boolean; // 제품컷 전용 모드 (사람 없이 제품만)
+  improveHandQuality?: boolean; // 손 표현 개선 (손가락 개수, 비율, 자세 개선)
+  enhanceFullShot?: boolean; // 전신 풀샷 강화 (카메라 각도 최적화)
+  removeForegroundObstruction?: boolean; // 인물 앞 장애물 제거
 }
 
 export default function AIImageGenerator() {
@@ -41,6 +46,8 @@ export default function AIImageGenerator() {
   const [compositionStatus, setCompositionStatus] = useState<string>(''); // 제품 합성 진행 상태
   const [showBaseImageGallery, setShowBaseImageGallery] = useState(false); // 베이스 이미지 갤러리 모달 표시
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null); // 선택된 프리셋
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(false); // 고급 설정 토글
+  const [expandedTone, setExpandedTone] = useState<'senior' | 'hightech' | 'both' | 'none'>('none'); // 펼쳐진 톤 카드
   const [formData, setFormData] = useState<ImageGenerationRequest>({
     prompt: '',
     brandTone: 'senior_emotional',
@@ -61,7 +68,78 @@ export default function AIImageGenerator() {
     productColor: undefined, // 기본값: 색상 미선택
     compositionBackground: 'natural', // 기본값: 자연 배경
     productOnlyMode: false, // 기본값: 인물 합성 (제품컷 모드 아님)
+    improveHandQuality: false, // 기본값: 손 표현 개선 비활성화
+    enhanceFullShot: false, // 기본값: 전신 풀샷 강화 비활성화
+    removeForegroundObstruction: false, // 기본값: 인물 앞 장애물 제거 비활성화
   });
+
+  // localStorage에서 ChatGPT 최적화 설정 불러오기
+  useEffect(() => {
+    const savedUseChatGPT = localStorage.getItem('ai-image-generator-useChatGPT');
+    if (savedUseChatGPT !== null) {
+      setFormData(prev => ({
+        ...prev,
+        useChatGPT: savedUseChatGPT === 'true'
+      }));
+    }
+  }, []);
+
+  // localStorage에서 손 표현 개선 설정 불러오기
+  useEffect(() => {
+    const savedImproveHandQuality = localStorage.getItem('ai-image-generator-improveHandQuality');
+    if (savedImproveHandQuality !== null) {
+      setFormData(prev => ({
+        ...prev,
+        improveHandQuality: savedImproveHandQuality === 'true'
+      }));
+    }
+  }, []);
+
+  // localStorage에서 전신 풀샷 강화 설정 불러오기
+  useEffect(() => {
+    const savedEnhanceFullShot = localStorage.getItem('ai-image-generator-enhanceFullShot');
+    if (savedEnhanceFullShot !== null) {
+      setFormData(prev => ({
+        ...prev,
+        enhanceFullShot: savedEnhanceFullShot === 'true'
+      }));
+    }
+  }, []);
+
+  // localStorage에서 인물 앞 장애물 제거 설정 불러오기
+  useEffect(() => {
+    const savedRemoveForegroundObstruction = localStorage.getItem('ai-image-generator-removeForegroundObstruction');
+    if (savedRemoveForegroundObstruction !== null) {
+      setFormData(prev => ({
+        ...prev,
+        removeForegroundObstruction: savedRemoveForegroundObstruction === 'true'
+      }));
+    }
+  }, []);
+
+  // ChatGPT 최적화 설정 변경 핸들러 (localStorage에 저장)
+  const handleUseChatGPTChange = (checked: boolean) => {
+    setFormData(prev => ({ ...prev, useChatGPT: checked }));
+    localStorage.setItem('ai-image-generator-useChatGPT', String(checked));
+  };
+
+  // 손 표현 개선 설정 변경 핸들러 (localStorage에 저장)
+  const handleImproveHandQualityChange = (checked: boolean) => {
+    setFormData(prev => ({ ...prev, improveHandQuality: checked }));
+    localStorage.setItem('ai-image-generator-improveHandQuality', String(checked));
+  };
+
+  // 전신 풀샷 강화 설정 변경 핸들러 (localStorage에 저장)
+  const handleEnhanceFullShotChange = (checked: boolean) => {
+    setFormData(prev => ({ ...prev, enhanceFullShot: checked }));
+    localStorage.setItem('ai-image-generator-enhanceFullShot', String(checked));
+  };
+
+  // 인물 앞 장애물 제거 설정 변경 핸들러 (localStorage에 저장)
+  const handleRemoveForegroundObstructionChange = (checked: boolean) => {
+    setFormData(prev => ({ ...prev, removeForegroundObstruction: checked }));
+    localStorage.setItem('ai-image-generator-removeForegroundObstruction', String(checked));
+  };
 
   if (status === 'loading') {
     return (
@@ -79,25 +157,220 @@ export default function AIImageGenerator() {
   // 한국 골퍼 스펙 (계절/요일 무관) - 강화된 한국인 외모 명시
   const koreanGolferSpec = `Korean professional fitter (Korean ethnicity, East Asian features, Korean facial structure, Korean skin tone, Korean hair, Korean eyes, Korean nose, Korean facial characteristics, 50-70 years old for senior emotional, 40-60 years old for high-tech innovative), authentic Korean appearance, natural Korean complexion, realistic Korean facial features, Korean professional golf attire appropriate for the brand tone, clearly Korean person, not Western or Caucasian, distinctly Asian Korean features`;
 
-  // 브랜딩 톤별 프롬프트 가이드
+  // 브랜딩 톤별 프롬프트 가이드 (색감 강화)
   const brandToneGuides = {
     senior_emotional: {
       name: '시니어 중심 감성적 브랜딩',
       description: '골드 톤, 따뜻한 분위기, 감성적 메시지',
-      colorScheme: 'warm gold tones, soft lighting, emotional atmosphere',
+      colorScheme: 'warm golden lighting, gold-tinted atmosphere, warm color palette, soft golden glow, golden hour lighting, warm amber tones, luxurious gold accents, warm and inviting color scheme, golden highlights, warm golden shadows, rich gold tones, elegant gold finishes',
       mood: 'comfortable, warm, nostalgic, achievement, gratitude',
     },
     high_tech_innovative: {
       name: '하이테크 중심 혁신형 브랜딩',
-      description: '블랙 톤, 현대적 분위기, 기술적 감성',
-      colorScheme: 'cool blue-gray tones, modern lighting, technical atmosphere',
+      description: '쿨 블루 톤, 현대적 분위기, 기술적 감성',
+      colorScheme: 'cool blue tones, bright blue lighting, metallic surfaces with blue accents, LED lighting, modern tech aesthetic, sleek finishes with blue highlights, bright blue neon accents, contemporary industrial design, cool blue highlights, bright blue lighting, well-lit high-tech surfaces, modern bright blue-gray palette, bright and airy atmosphere, professional bright lighting',
       mood: 'innovative, cutting-edge, professional, precision, excellence',
     },
   };
 
-  // 계절/요일 무관 프롬프트 생성
-  const buildUniversalPrompt = (userPrompt: string, tone: 'senior_emotional' | 'high_tech_innovative') => {
+  // 스토리 기반 7×2 프리셋 (장면 × 톤)
+  const storyPresets: Array<{
+    id: string;
+    label: string;
+    sceneStep: number;
+    tone: 'senior_emotional' | 'high_tech_innovative';
+    imageType: 'background' | 'profile' | 'feed';
+    logoOption: 'full-brand' | 'logo' | 'none';
+    prompt: string;
+  }> = [
+    // 시니어 톤
+    { id: 'scene1-senior', label: '장면1 행복한 주인공 (시니어)', sceneStep: 1, tone: 'senior_emotional', imageType: 'feed', logoOption: 'full-brand', prompt: '골드 톤, 60대 한국인 시니어 골퍼가 골프장 코스나 티샷 장소에서 미소 짓는 장면, 전신 풀샷, 자연스러운 포즈, 모자·상의·배경에 MASSGOO 로고 자연스럽게 2~3곳 노출, 프리미엄 골프 장비와 조명, 자연스러운 즐거운 분위기' },
+    { id: 'scene2-senior', label: '장면2 행복+불안 전조 (시니어)', sceneStep: 2, tone: 'senior_emotional', imageType: 'feed', logoOption: 'full-brand', prompt: '골드 톤, 50~70대 한국인 골퍼 2~4명이 클럽하우스 라운지에서 웃으며 대화하지만 살짝 걱정 섞인 표정, 자연스러운 그룹 포즈, 따뜻한 조명, 배경에 MASSGOO 브랜딩, 자연스러운 일상 분위기' },
+    { id: 'scene3-senior', label: '장면3 문제 발생 (시니어)', sceneStep: 3, tone: 'senior_emotional', imageType: 'feed', logoOption: 'full-brand', prompt: '웜톤이지만 조명을 낮춘 연습장 그린, 60대 한국인 골퍼가 퍼팅 연습하며 깊이 고민하는 전신 풀샷, 허리·어깨 통증과 비거리 문제를 암시, MASSGOO 브랜딩은 은은히' },
+    { id: 'scene4-senior', label: '장면4 가이드 만남 (시니어)', sceneStep: 4, tone: 'senior_emotional', imageType: 'feed', logoOption: 'full-brand', prompt: '골드 톤, 50~60대 한국인 피터가 시니어 골퍼에게 태블릿 스윙 데이터를 설명하는 장면, 자연스러운 대화 포즈, 모자·상의·배경에 MASSGOO 로고 명확, 따뜻한 피팅 스튜디오' },
+    { id: 'scene5-senior', label: '장면5 가이드 장소 (시니어)', sceneStep: 5, tone: 'senior_emotional', imageType: 'background', logoOption: 'full-brand', prompt: '사람 없이, 골드 톤 프리미엄 시타룸, 대형 스크린과 고급 인테리어, 벽·선반·장비에 MASSGOO 로고 다중 노출, 따뜻한 조명, 가로형 배경' },
+    { id: 'scene6-senior', label: '장면6 성공 회복 (시니어)', sceneStep: 6, tone: 'senior_emotional', imageType: 'feed', logoOption: 'full-brand', prompt: '골드 톤, 60대 한국인 골퍼 2~4명이 골프장 코스에서 성취감과 만족감을 표현하는 전신 풀샷, 자연스러운 상호작용과 긍정적인 분위기, 성공을 함께 나누는 모습, 밝은 미소, MASSGOO 로고 명확' },
+    { id: 'scene7-senior', label: '장면7 여운 정적 (시니어)', sceneStep: 7, tone: 'senior_emotional', imageType: 'background', logoOption: 'full-brand', prompt: '골드/웜톤 시타룸 정적 컷, 트로피와 드라이버가 조명 아래, 배경에 MASSGOO 로고가 은은히 보이는 고급 라운지 느낌, 사람 없음, 가로형' },
+    // 하이테크 톤
+    { id: 'scene1-hightech', label: '장면1 행복한 주인공 (하이테크)', sceneStep: 1, tone: 'high_tech_innovative', imageType: 'feed', logoOption: 'full-brand', prompt: '쿨 블루 톤, 밝은 조명, 30~40대 한국인 골퍼가 골프장 코스나 티샷 장소에서 자신감 있게 미소 짓는 전신 풀샷, 자연스러운 포즈, 밝은 네온/LED 라인, 모자·상의·배경에 MASSGOO 로고 2~3곳, 자연스러운 즐거운 분위기' },
+    { id: 'scene2-hightech', label: '장면2 행복+불안 전조 (하이테크)', sceneStep: 2, tone: 'high_tech_innovative', imageType: 'feed', logoOption: 'full-brand', prompt: '밝은 블루 톤, 30~40대 한국인 골퍼 2~4명이 클럽하우스 라운지에서 시뮬레이터 화면을 보며 웃지만 약간 긴장한 표정, 자연스러운 그룹 포즈, 테크 장비와 데이터 화면, 밝은 조명, MASSGOO 브랜딩, 자연스러운 일상 분위기' },
+    { id: 'scene3-hightech', label: '장면3 문제 발생 (하이테크)', sceneStep: 3, tone: 'high_tech_innovative', imageType: 'feed', logoOption: 'full-brand', prompt: '쿨톤, 30~40대 한국인 골퍼가 연습장 그린에서 퍼포먼스 하락 그래프를 보며 심각한 표정의 전신 풀샷, 하이테크 장비와 모니터, MASSGOO 로고는 배경 장비에 명확' },
+    { id: 'scene4-hightech', label: '장면4 가이드 만남 (하이테크)', sceneStep: 4, tone: 'high_tech_innovative', imageType: 'feed', logoOption: 'full-brand', prompt: '쿨 블루 톤, 밝은 조명, 젊은 한국인 피터가 고해상도 스윙 데이터/3D 모델을 태블릿으로 설명하는 자연스러운 대화 포즈, 밝은 하이테크 시타룸, 모자·상의·배경에 MASSGOO 로고 명확' },
+    { id: 'scene5-hightech', label: '장면5 가이드 장소 (하이테크)', sceneStep: 5, tone: 'high_tech_innovative', imageType: 'background', logoOption: 'full-brand', prompt: '사람 없이, 쿨 블루 톤 밝은 하이테크 시타룸, 밝은 LED 라인/메탈릭 인테리어, 대형 스크린과 장비, 밝은 조명, 벽·장비에 MASSGOO 로고 다중 노출, 가로형' },
+    { id: 'scene6-hightech', label: '장면6 성공 회복 (하이테크)', sceneStep: 6, tone: 'high_tech_innovative', imageType: 'feed', logoOption: 'full-brand', prompt: '밝은 블루 톤, 30~40대 한국인 골퍼 2~4명이 골프장 코스에서 기술적 성취와 자신감을 표현하는 전신 풀샷, 자연스러운 상호작용과 혁신적인 분위기, 데이터 개선의 기쁨을 공유하는 모습, 하이테크 장비와 MASSGOO 로고 배경, 밝고 선명한 조명' },
+    { id: 'scene7-hightech', label: '장면7 여운 정적 (하이테크)', sceneStep: 7, tone: 'high_tech_innovative', imageType: 'background', logoOption: 'full-brand', prompt: '밝은 쿨 블루 톤 테크 룸 정적 컷, 밝게 켜진 스크린과 장비가 보이는 장면, 밝은 조명, MASSGOO 네온 사인이 밝게 켜져 있음, 사람 없음, 가로형' },
+  ];
+
+  const selectedPresetObj = storyPresets.find((p) => p.id === selectedPreset) || null;
+
+  // 장소 옵션 정의 (8개) - 컴포지션 타입 추가
+  const locationOptions = [
+    { 
+      id: 'fitting-studio', 
+      label: '피팅 스튜디오', 
+      prompt: 'premium golf fitting studio with swing analysis equipment, professional fitting room, bright well-lit interior, bright LED lighting, MASSGOO branding visible',
+      compositionType: 'portrait', // 포트레이트 (상반신)
+      actionType: 'conversation', // 대화
+      peopleCount: '1-2', // 1-2명
+      defaultScenes: [4, 5, 7] // 장면4, 5, 7 기본값
+    },
+    { 
+      id: 'golf-course', 
+      label: '골프장 코스', 
+      prompt: 'golf course fairway with lush green grass, trees in background, blue sky with white clouds, natural outdoor lighting, professional golf course setting',
+      compositionType: 'full-shot-group', // 풀샷 + 여러 명
+      actionType: 'natural-activity', // 자연스러운 활동
+      peopleCount: '2-4', // 2-4명
+      defaultScenes: [1, 6] // 장면1, 6 기본값
+    },
+    { 
+      id: 'tee-box', 
+      label: '골프장 티샷 장소', 
+      prompt: 'golf course tee box area with tee markers, professional golf course setting, tee markers visible, golf course background',
+      compositionType: 'full-shot-action', // 풀샷 + 티샷 동작
+      actionType: 'swinging', // 스윙 동작
+      peopleCount: '1-3', // 1-3명
+      defaultScenes: [1, 6] // 장면1, 6 기본값
+    },
+    { 
+      id: 'clubhouse-lounge', 
+      label: '골프 클럽하우스 라운지', 
+      prompt: 'golf clubhouse lounge with elegant interior, trophy displays, comfortable seating, sophisticated atmosphere, warm lighting, MASSGOO branding visible',
+      compositionType: 'group', // 그룹
+      actionType: 'conversation', // 대화
+      peopleCount: '2-4', // 2-4명
+      defaultScenes: [2, 7] // 장면2, 7 기본값
+    },
+    { 
+      id: 'practice-green', 
+      label: '골프 연습장 그린', 
+      prompt: 'golf practice putting green with flag, professional practice facility, putting green surface, practice area, focused atmosphere',
+      compositionType: 'full-shot', // 풀샷
+      actionType: 'putting', // 퍼팅
+      peopleCount: '1-2', // 1-2명
+      defaultScenes: [3] // 장면3 기본값
+    },
+    { 
+      id: 'indoor-driving-range', 
+      label: '인도어 드라이버 연습장', 
+      prompt: 'indoor driving range practice facility with hitting bays and targets, practice range setting, indoor golf practice area, bright well-lit interior, bright professional lighting',
+      compositionType: 'full-shot-action', // 풀샷 + 동작
+      actionType: 'swinging', // 스윙
+      peopleCount: '1-2', // 1-2명
+      defaultScenes: []
+    },
+    { 
+      id: 'sports-center', 
+      label: '실내 스포츠 센터', 
+      prompt: 'indoor sports center practice area with modern facilities, contemporary sports facility, clean modern interior, bright well-lit space, bright professional lighting',
+      compositionType: 'full-shot', // 풀샷
+      actionType: 'natural-activity', // 자연스러운 활동
+      peopleCount: '1-3', // 1-3명
+      defaultScenes: []
+    },
+    { 
+      id: 'screen-golf', 
+      label: '실내 스크린 골프장', 
+      prompt: 'indoor screen golf simulator room with large projection screen displaying golf course simulation, modern simulator technology, immersive golf experience, bright well-lit interior, bright LED lighting',
+      compositionType: 'full-shot', // 풀샷
+      actionType: 'swinging', // 스윙
+      peopleCount: '1-3', // 1-3명
+      defaultScenes: []
+    },
+  ];
+
+  // 프리셋 선택 시 기본 장소 자동 설정
+  const getDefaultLocation = (sceneStep?: number): string | undefined => {
+    if (!sceneStep) return undefined;
+    const location = locationOptions.find(loc => loc.defaultScenes.includes(sceneStep));
+    return location?.id;
+  };
+
+  // 계절/요일 무관 프롬프트 생성 (장소별 컴포지션 추가)
+  const buildUniversalPrompt = (userPrompt: string, tone: 'senior_emotional' | 'high_tech_innovative', selectedLocation?: string, improveHandQuality?: boolean, enhanceFullShot?: boolean, removeForegroundObstruction?: boolean) => {
     const toneGuide = brandToneGuides[tone];
+    
+    // 장소별 컴포지션 지시 생성
+    let compositionSpec = '';
+    if (selectedLocation) {
+      const locationObj = locationOptions.find(loc => loc.id === selectedLocation);
+      if (locationObj) {
+        if (locationObj.compositionType === 'full-shot-group') {
+          compositionSpec = `
+**Composition Requirements (Full Body Shot with Group):**
+- Full body shot (full-length portrait), showing the entire person from head to toe, NOT a close-up or portrait shot
+- Natural, candid photography style, NOT a formal portrait or ID photo style
+- ${locationObj.peopleCount} Korean golfers of various ages (men and women, different generations) naturally interacting
+- People should be engaged in natural activities through various expressions: celebrating success, sharing achievements, congratulating each other, enjoying the moment together, expressing joy and satisfaction through natural gestures and expressions (NOT limited to a single specific action, but including diverse celebratory interactions)
+- Dynamic, lively atmosphere with genuine smiles and joyful expressions
+- Natural poses, NOT standing still facing the camera directly
+- People should be positioned naturally in the scene, NOT in a line or formal arrangement
+- Candid moment captured, NOT a posed group photo
+- Vary the specific interactions and poses to create unique compositions each time`;
+        } else if (locationObj.compositionType === 'full-shot-action') {
+          compositionSpec = `
+**Composition Requirements (Full Body Shot with Action):**
+- Full body shot (full-length portrait), showing the entire person from head to toe, NOT a close-up or portrait shot
+- Action shot: golfer in mid-swing or preparing to swing at tee box, dynamic movement captured
+- Natural golf swing motion, ${locationObj.peopleCount === '1-3' ? '1-3 Korean golfers' : 'Korean golfer'}, can include caddies or fellow golfers
+- Natural, candid photography style, capturing the moment, NOT a posed action shot
+- Dynamic, energetic atmosphere with focused expressions
+- NOT a static pose, but a moment of action captured`;
+          
+          // 전신 풀샷 강화 옵션이 켜져 있을 때만 추가 스펙 적용
+          if (enhanceFullShot) {
+            compositionSpec += `
+**CRITICAL - Enhanced Full Body Shot (Camera Angle Optimization):**
+- Camera angle: Eye-level or slightly elevated angle, NOT low angle that would show grass blocking the person
+- Camera distance: Far enough to capture the entire body from head to toe, ensuring the person's full body is clearly visible
+- Ground surface: Flat, level surface (tee box, fairway, or putting green), NOT uneven terrain
+- The golfer's entire body must be clearly visible from head to toe, with no foreground elements blocking the view
+- Professional photography angle that shows the full body without obstruction
+- Ensure the person is positioned so that their full body is visible, not cut off by foreground elements`;
+          }
+        } else if (locationObj.compositionType === 'full-shot') {
+          compositionSpec = `
+**Composition Requirements (Full Body Shot):**
+- Full body shot (full-length portrait), showing the entire person from head to toe, NOT a close-up or portrait shot
+- Natural, candid photography style, NOT a formal portrait or ID photo style
+- ${locationObj.peopleCount === '1-2' ? '1-2 Korean golfers' : locationObj.peopleCount === '1-3' ? '1-3 Korean golfers' : 'Korean golfer'} naturally engaged in ${locationObj.actionType === 'swinging' ? 'golf swing action' : locationObj.actionType === 'putting' ? 'putting practice' : 'natural activity'}
+- Natural poses, NOT standing still facing the camera directly
+- Dynamic, lively atmosphere`;
+          
+          // 전신 풀샷 강화 옵션이 켜져 있을 때만 추가 스펙 적용
+          if (enhanceFullShot) {
+            compositionSpec += `
+**CRITICAL - Enhanced Full Body Shot (Camera Angle Optimization):**
+- Camera angle: Eye-level or slightly elevated angle, NOT low angle that would show grass blocking the person
+- Camera distance: Far enough to capture the entire body from head to toe, ensuring the person's full body is clearly visible
+- Ground surface: Flat, level surface, NOT uneven terrain
+- The person's entire body must be clearly visible from head to toe, with no foreground elements blocking the view
+- Professional photography angle that shows the full body without obstruction`;
+          }
+        } else if (locationObj.compositionType === 'group') {
+          compositionSpec = `
+**Composition Requirements (Group Shot):**
+- Natural group composition with ${locationObj.peopleCount} Korean golfers of various ages
+- People engaged in ${locationObj.actionType === 'conversation' ? 'natural conversation, chatting, laughing together' : 'natural activities'}
+- Natural, candid photography style, NOT a formal group photo
+- People positioned naturally, NOT in a line or formal arrangement
+- Dynamic, lively atmosphere with genuine interactions`;
+        }
+        
+        // 하이테크 톤이고 실내 장소일 때 밝은 조명 지시 추가
+        if (tone === 'high_tech_innovative' && 
+            ['fitting-studio', 'sports-center', 'screen-golf', 'indoor-driving-range'].includes(selectedLocation)) {
+          compositionSpec += `
+**CRITICAL - Bright Indoor Lighting (High-tech Tone):**
+- Bright, well-lit interior space, NOT dark or dim
+- Professional bright LED lighting, bright blue lighting accents
+- Bright and airy atmosphere, bright cool blue tones
+- Well-lit surfaces, bright lighting throughout the scene
+- Bright, cheerful, and professional atmosphere
+- The scene must be bright and well-lit, similar to KakaoTalk content (bright blue tone, not dark)`;
+        }
+      }
+    }
     
     const basePrompt = `${userPrompt}. 
 
@@ -117,7 +390,14 @@ ${koreanGolferSpec}
 - Color scheme: ${toneGuide.colorScheme}
 - Mood: ${toneGuide.mood}
 - Atmosphere: ${toneGuide.description}
-
+${compositionSpec}${improveHandQuality ? `
+**Natural Hand Positioning and Quality:**
+- Hands should be in natural, relaxed positions with correct anatomy
+- If hands are visible, they should have 5 fingers, proper proportions, natural hand structure
+- Hands should be fully visible, not cut off or partially hidden
+- Natural hand gestures that convey the intended emotion or action
+- Professional hand positioning, not awkward or unnatural poses
+- If holding objects (tablet, golf club, etc.), hands should grip naturally with all fingers visible and properly proportioned` : ''}
 **Universal Applicability (No seasonal/date restrictions):**
 - Timeless, classic composition that works year-round
 - Neutral seasonal elements (avoid specific seasonal markers)
@@ -301,6 +581,28 @@ ${koreanGolferSpec}
         userPrompt = `${userPrompt}, 피터가 모자를 쓰고 있고 모자와 옷에 MASSGOO 로고가 명확하게 보임, 스튜디오 벽면이나 아트월에 MASSGOO 브랜딩이 표시됨`;
       }
 
+      // 선택한 장소를 프롬프트에 추가 및 컴포지션 지시 추가
+      if (formData.selectedLocation) {
+        const selectedLocationObj = locationOptions.find(loc => loc.id === formData.selectedLocation);
+        if (selectedLocationObj) {
+          // 장소 프롬프트 추가
+          if (!userPrompt.includes(selectedLocationObj.prompt.split(',')[0])) {
+            userPrompt = `${userPrompt}, ${selectedLocationObj.prompt}`;
+          }
+          
+          // 장소별 컴포지션 지시 추가 (프롬프트에 명시적으로 포함)
+          if (selectedLocationObj.compositionType === 'full-shot-group') {
+            userPrompt = `${userPrompt}, full body shot showing entire person from head to toe, ${selectedLocationObj.peopleCount} Korean golfers of various ages (men and women, different generations) naturally interacting through various expressions: celebrating success, sharing achievements, congratulating each other, enjoying the moment together, expressing joy and satisfaction through natural gestures (NOT limited to a single specific action), natural poses not facing camera directly, dynamic lively atmosphere with genuine smiles, candid moment captured not a posed group photo`;
+          } else if (selectedLocationObj.compositionType === 'full-shot-action') {
+            userPrompt = `${userPrompt}, full body shot showing entire person from head to toe, golfer in mid-swing or preparing to swing at tee box, natural golf swing motion, dynamic movement captured, ${selectedLocationObj.peopleCount === '1-3' ? '1-3 Korean golfers' : 'Korean golfer'}, natural candid photography style capturing the moment, not a static pose`;
+          } else if (selectedLocationObj.compositionType === 'full-shot') {
+            userPrompt = `${userPrompt}, full body shot showing entire person from head to toe, not a close-up or portrait shot, ${selectedLocationObj.peopleCount === '1-2' ? '1-2 Korean golfers' : selectedLocationObj.peopleCount === '1-3' ? '1-3 Korean golfers' : 'Korean golfer'} naturally engaged in activity, natural poses not facing camera directly`;
+          } else if (selectedLocationObj.compositionType === 'group') {
+            userPrompt = `${userPrompt}, natural group composition with ${selectedLocationObj.peopleCount} Korean golfers of various ages, people engaged in natural conversation and activities, natural candid photography style, people positioned naturally not in a line`;
+          }
+        }
+      }
+
       // ChatGPT로 프롬프트 최적화 (선택)
       if (formData.useChatGPT) {
         try {
@@ -336,8 +638,8 @@ ${koreanGolferSpec}
         }
       }
 
-      // 프롬프트 최적화
-      const optimizedPrompt = buildUniversalPrompt(userPrompt, formData.brandTone);
+      // 프롬프트 최적화 (장소 정보 전달)
+      const optimizedPrompt = buildUniversalPrompt(userPrompt, formData.brandTone, formData.selectedLocation, formData.improveHandQuality, formData.enhanceFullShot, formData.removeForegroundObstruction);
 
       // 자연스러운 스타일 옵션 추가
       const naturalStyleSpec = formData.naturalStyle
@@ -393,6 +695,10 @@ ${koreanGolferSpec}
             account: formData.brandTone === 'senior_emotional' ? 'account1' : 'account2',
             type: formData.imageType,
             date: new Date().toISOString().split('T')[0],
+            sceneStep: formData.sceneStep, // 장면 번호 전달
+            improveHandQuality: formData.improveHandQuality || false, // 손 표현 개선 옵션
+            enhanceFullShot: formData.enhanceFullShot || false, // 전신 풀샷 강화 옵션
+            removeForegroundObstruction: formData.removeForegroundObstruction || false, // 인물 앞 장애물 제거 옵션
           },
           logoOption: formData.logoOption,
           imageCount: formData.imageCount,
@@ -449,7 +755,7 @@ ${koreanGolferSpec}
                 resolution: '1K',
                 aspectRatio: 'auto',
                 outputFormat: 'png',
-                compositionBackground: formData.compositionTarget === 'head'
+                compositionBackground: (formData.compositionTarget === 'head' || formData.compositionTarget === 'accessory')
                   ? formData.compositionBackground || 'natural'
                   : undefined,
               }),
@@ -546,79 +852,164 @@ ${koreanGolferSpec}
               <h2 className="text-xl font-bold mb-4">이미지 생성 설정</h2>
 
               <div className="space-y-6">
-                {/* 프리셋 버튼 */}
+                {/* 기본 생성 설정 */}
+                <div className="space-y-6">
+                {/* 프리셋 카드: 시니어/하이테크 분리 + 토글 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    빠른 생성 프리셋
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    스토리 기반 프리셋 (장면 1~7 × 시니어/하이테크)
                   </label>
-                  <div className="grid grid-cols-1 gap-3">
+                  
+                  {/* 시니어 톤 카드 */}
+                  <div className="mb-4 border-2 border-yellow-300 rounded-lg overflow-hidden bg-gradient-to-br from-yellow-50 to-amber-50">
                     <button
                       type="button"
                       onClick={() => {
-                        setSelectedPreset('fitting');
-                        setFormData({
-                          ...formData,
-                          prompt: '한국인 전문 피터가 골프 스튜디오에서 스윙 데이터를 태블릿으로 분석하는 장면, 프리미엄 골프 클럽이 배경에 배치되어 있음, 고급스러운 골프 스튜디오 인테리어, 한국인 피터의 명확한 한국인 외모와 특징, 피터가 모자를 쓰고 있고 모자와 옷에 MASSGOO 로고가 명확하게 보임, 스튜디오 벽면이나 아트월에 MASSGOO 브랜딩이 표시됨',
-                          brandTone: 'senior_emotional',
-                          imageType: 'feed',
-                          logoOption: 'full-brand',
-                          imageCount: 1,
-                          naturalStyle: true, // 자연스러운 스타일 기본값
-                          useChatGPT: false, // ChatGPT 최적화는 선택사항
-                        });
+                        setExpandedTone(expandedTone === 'senior' || expandedTone === 'both' ? (expandedTone === 'both' ? 'hightech' : 'none') : (expandedTone === 'hightech' ? 'both' : 'senior'));
                       }}
-                      className={`w-full p-4 border-2 rounded-lg text-left transition-all ${
-                        selectedPreset === 'fitting'
-                          ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                          : 'border-blue-500 bg-blue-50 hover:bg-blue-100'
-                      }`}
+                      className="w-full p-4 flex items-center justify-between hover:bg-yellow-100 transition-colors"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
                         <div>
-                          <div className="font-semibold text-blue-900 mb-1">🎯 피팅 이미지 생성</div>
-                          <div className="text-xs text-blue-700">
-                            전문 피터 작업 장면 (시니어 중심 감성형, 전체 브랜딩)
-                          </div>
+                          <div className="font-semibold text-gray-900">시니어 톤</div>
+                          <div className="text-xs text-gray-600">골드 톤, 따뜻한 분위기</div>
                         </div>
-                        {selectedPreset === 'fitting' && (
-                          <span className="text-blue-600 text-xl font-bold">✓</span>
-                        )}
+                      </div>
+                      <div className="text-gray-500">
+                        {expandedTone === 'senior' || expandedTone === 'both' ? '▲' : '▼'}
                       </div>
                     </button>
                     
+                    {(expandedTone === 'senior' || expandedTone === 'both') && (
+                      <div className="p-4 bg-white border-t border-yellow-200">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {storyPresets.filter(p => p.tone === 'senior_emotional').map((preset) => {
+                            const isSelected = preset.id === selectedPreset;
+                            return (
+                              <button
+                                key={preset.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedPreset(preset.id);
+                                  const defaultLocation = getDefaultLocation(preset.sceneStep);
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    prompt: preset.prompt,
+                                    brandTone: preset.tone,
+                                    imageType: preset.imageType,
+                                    logoOption: preset.logoOption,
+                                    imageCount: 1,
+                                    sceneStep: preset.sceneStep,
+                                    selectedLocation: defaultLocation, // 기본 장소 자동 설정
+                                    naturalStyle: true,
+                                    // useChatGPT는 사용자 설정 유지 (localStorage에서 불러온 값 유지)
+                                  }));
+                                }}
+                                className={`w-full p-3 border-2 rounded-lg text-left transition-all ${
+                                  isSelected
+                                    ? 'border-yellow-500 bg-yellow-50 ring-2 ring-yellow-200'
+                                    : 'border-gray-200 bg-white hover:border-yellow-300'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <div className="text-xs font-semibold text-gray-600">장면 {preset.sceneStep}</div>
+                                  {isSelected && <span className="text-sm font-bold text-yellow-700">✓</span>}
+                                </div>
+                                <div className="font-semibold text-gray-900 text-sm leading-snug">
+                                  {preset.label.replace(' (시니어)', '')}
+                                </div>
+                                <div className="mt-1 text-xs text-gray-600 flex items-center gap-2">
+                                  <span className="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
+                                    시니어 톤
+                                  </span>
+                                  <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                                    {preset.imageType === 'background' ? '배경' : preset.imageType === 'profile' ? '프로필' : '피드'}
+                                  </span>
+                                </div>
+                                <p className="mt-1 text-xs text-gray-500 line-clamp-2">{preset.prompt}</p>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 하이테크 톤 카드 */}
+                  <div className="border-2 border-blue-300 rounded-lg overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
                     <button
                       type="button"
                       onClick={() => {
-                        setSelectedPreset('hero');
-                        setFormData({
-                          ...formData,
-                          prompt: '밝고 현대적인 시타장(피팅 스튜디오) 내부, 골프 시뮬레이터 대형 스크린이 배경에 보임, 스윙 분석 장비와 피팅 장비가 보임, 골프 클럽 랙에 프리미엄 골프 클럽이 배치되어 있음, 피팅 테이블과 전문 장비들이 보임, 밝은 자연광과 따뜻한 조명, 긍정적이고 친근한 분위기, 고급스러운 시타장 인테리어, 시타장 벽면이나 아트월에 MASSGOO 브랜딩이 명확하게 표시됨, 밝고 현대적인 분위기, 사람은 없고 시타장의 시설과 장비만 보임',
-                          brandTone: 'senior_emotional',
-                          imageType: 'background', // 히어로 섹션은 배경 이미지 타입이 더 적합
-                          logoOption: 'full-brand',
-                          imageCount: 1,
-                          naturalStyle: true, // 자연스러운 스타일 기본값
-                          useChatGPT: false, // ChatGPT 최적화는 선택사항
-                        });
+                        setExpandedTone(expandedTone === 'hightech' || expandedTone === 'both' ? (expandedTone === 'both' ? 'senior' : 'none') : (expandedTone === 'senior' ? 'both' : 'hightech'));
                       }}
-                      className={`w-full p-4 border-2 rounded-lg text-left transition-all ${
-                        selectedPreset === 'hero'
-                          ? 'border-yellow-500 bg-yellow-50 ring-2 ring-yellow-200'
-                          : 'border-yellow-500 bg-yellow-50 hover:bg-yellow-100'
-                      }`}
+                      className="w-full p-4 flex items-center justify-between hover:bg-blue-100 transition-colors"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                         <div>
-                          <div className="font-semibold text-yellow-900 mb-1">🌟 히어로 섹션 이미지 생성</div>
-                          <div className="text-xs text-yellow-700">
-                            밝고 긍정적인 히어로 배경 이미지 (가로형, 밝은 조명, 시타장 특징 포함, 사람 없음)
-                          </div>
+                          <div className="font-semibold text-gray-900">하이테크 톤</div>
+                          <div className="text-xs text-gray-600">블랙 톤, 현대적 분위기</div>
                         </div>
-                        {selectedPreset === 'hero' && (
-                          <span className="text-yellow-600 text-xl font-bold">✓</span>
-                        )}
+                      </div>
+                      <div className="text-gray-500">
+                        {expandedTone === 'hightech' || expandedTone === 'both' ? '▲' : '▼'}
                       </div>
                     </button>
+                    
+                    {(expandedTone === 'hightech' || expandedTone === 'both') && (
+                      <div className="p-4 bg-white border-t border-blue-200">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {storyPresets.filter(p => p.tone === 'high_tech_innovative').map((preset) => {
+                            const isSelected = preset.id === selectedPreset;
+                            return (
+                              <button
+                                key={preset.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedPreset(preset.id);
+                                  const defaultLocation = getDefaultLocation(preset.sceneStep);
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    prompt: preset.prompt,
+                                    brandTone: preset.tone,
+                                    imageType: preset.imageType,
+                                    logoOption: preset.logoOption,
+                                    imageCount: 1,
+                                    sceneStep: preset.sceneStep,
+                                    selectedLocation: defaultLocation, // 기본 장소 자동 설정
+                                    naturalStyle: true,
+                                    // useChatGPT는 사용자 설정 유지 (localStorage에서 불러온 값 유지)
+                                  }));
+                                }}
+                                className={`w-full p-3 border-2 rounded-lg text-left transition-all ${
+                                  isSelected
+                                    ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
+                                    : 'border-gray-200 bg-white hover:border-blue-300'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <div className="text-xs font-semibold text-gray-600">장면 {preset.sceneStep}</div>
+                                  {isSelected && <span className="text-sm font-bold text-blue-700">✓</span>}
+                                </div>
+                                <div className="font-semibold text-gray-900 text-sm leading-snug">
+                                  {preset.label.replace(' (하이테크)', '')}
+                                </div>
+                                <div className="mt-1 text-xs text-gray-600 flex items-center gap-2">
+                                  <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                                    하이테크 톤
+                                  </span>
+                                  <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                                    {preset.imageType === 'background' ? '배경' : preset.imageType === 'profile' ? '프로필' : '피드'}
+                                  </span>
+                                </div>
+                                <p className="mt-1 text-xs text-gray-500 line-clamp-2">{preset.prompt}</p>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -628,12 +1019,14 @@ ${koreanGolferSpec}
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs font-semibold text-green-800 mb-1">
-                          ✓ 프리셋 적용됨: {selectedPreset === 'fitting' ? '피팅 이미지' : '히어로 섹션'}
+                          ✓ 프리셋 적용됨: {selectedPresetObj ? selectedPresetObj.label : selectedPreset}
                         </p>
                         <p className="text-xs text-green-700">
                           브랜딩 톤: {formData.brandTone === 'senior_emotional' ? '시니어 감성적' : '하이테크 혁신형'} | 
                           이미지 타입: {formData.imageType === 'feed' ? '피드' : formData.imageType === 'background' ? '배경' : '프로필'} | 
-                          로고: {formData.logoOption === 'full-brand' ? '전체 브랜딩' : formData.logoOption === 'logo' ? '로고만' : '없음'}
+                          로고: {formData.logoOption === 'full-brand' ? '전체 브랜딩' : formData.logoOption === 'logo' ? '로고만' : '없음'} | 
+                          개수: {formData.imageCount}개
+                          {formData.sceneStep && ` | 장면: ${formData.sceneStep}`}
                         </p>
                       </div>
                       <button
@@ -642,6 +1035,8 @@ ${koreanGolferSpec}
                           setFormData({
                             ...formData,
                             prompt: '',
+                            sceneStep: undefined, // 장면 번호 초기화
+                            selectedLocation: undefined, // 장소 초기화
                           });
                         }}
                         className="text-xs text-green-600 hover:text-green-800 px-2 py-1 border border-green-300 rounded hover:bg-green-100"
@@ -652,10 +1047,48 @@ ${koreanGolferSpec}
                   </div>
                 )}
 
+                {/* 장소 선택 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    장소 선택 {selectedPreset && <span className="text-xs text-gray-500">(프리셋 기본값 자동 설정됨)</span>}
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {locationOptions.map((location) => {
+                      const isSelected = formData.selectedLocation === location.id;
+                      const isDefault = selectedPresetObj && location.defaultScenes.includes(selectedPresetObj.sceneStep);
+                      return (
+                        <button
+                          key={location.id}
+                          type="button"
+                          onClick={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              selectedLocation: location.id,
+                            }));
+                          }}
+                          className={`p-3 border-2 rounded-lg text-center text-xs transition-all ${
+                            isSelected
+                              ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
+                              : isDefault
+                              ? 'border-yellow-300 bg-yellow-50'
+                              : 'border-gray-200 bg-white hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="font-semibold text-gray-900">{location.label}</div>
+                          {isDefault && !isSelected && (
+                            <div className="text-xs text-yellow-600 mt-1">기본값</div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {/* 브랜딩 톤 선택 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     브랜딩 톤 *
+                    <span className="text-xs text-gray-500 font-normal ml-2">(프리셋 미선택 시에도 적용됩니다)</span>
                   </label>
                   <div className="grid grid-cols-2 gap-4">
                     <button
@@ -689,98 +1122,183 @@ ${koreanGolferSpec}
                   </div>
                 </div>
 
-                {/* 이미지 타입 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    이미지 타입 *
-                  </label>
-                  <select
-                    value={formData.imageType}
-                    onChange={(e) => setFormData({ ...formData, imageType: e.target.value as any })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                {/* 고급 설정 토글 */}
+                <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="text-sm font-medium text-gray-800">고급 설정 (이미지 타입, 브랜딩 옵션, 개수, 스타일)</div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvanced((v) => !v)}
+                    className="text-sm text-blue-600 hover:text-blue-800"
                   >
-                    <option value="background">배경 이미지 (가로형)</option>
-                    <option value="profile">프로필 이미지 (정사각형)</option>
-                    <option value="feed">피드 이미지 (정사각형)</option>
-                  </select>
+                    {showAdvanced ? '숨기기' : '펼치기'}
+                  </button>
                 </div>
 
-                {/* 브랜딩 옵션 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    브랜딩 옵션 *
-                  </label>
-                  <select
-                    value={formData.logoOption}
-                    onChange={(e) => setFormData({ ...formData, logoOption: e.target.value as any })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="full-brand">전체 브랜딩 (강조)</option>
-                    <option value="logo">로고 포함</option>
-                    <option value="none">브랜딩 없음</option>
-                  </select>
-                </div>
+                {showAdvanced && (
+                  <div className="space-y-4 p-4 border border-gray-200 rounded-lg bg-white">
+                    {/* 이미지 타입 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        이미지 타입 *
+                      </label>
+                      <select
+                        value={formData.imageType}
+                        onChange={(e) => setFormData({ ...formData, imageType: e.target.value as any })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="background">배경 이미지 (가로형)</option>
+                        <option value="profile">프로필 이미지 (정사각형)</option>
+                        <option value="feed">피드 이미지 (정사각형)</option>
+                      </select>
+                    </div>
 
-                {/* 생성 개수 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    생성 개수 *
-                  </label>
-                  <select
-                    value={formData.imageCount}
-                    onChange={(e) => setFormData({ ...formData, imageCount: parseInt(e.target.value) })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="1">1개</option>
-                    <option value="2">2개</option>
-                    <option value="4">4개</option>
-                  </select>
-                </div>
+                    {/* 브랜딩 옵션 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        브랜딩 옵션 *
+                      </label>
+                      <select
+                        value={formData.logoOption}
+                        onChange={(e) => setFormData({ ...formData, logoOption: e.target.value as any })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="full-brand">전체 브랜딩 (강조)</option>
+                        <option value="logo">로고 포함</option>
+                        <option value="none">브랜딩 없음</option>
+                      </select>
+                    </div>
 
-                {/* 자연스러운 스타일 옵션 */}
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50">
-                  <div className="flex-1">
-                    <label htmlFor="naturalStyle" className="block text-sm font-medium text-gray-700 mb-1">
-                      자연스러운 인물 사진 (No Makeup)
-                    </label>
-                    <p className="text-xs text-gray-500">
-                      자연스러운 피부, 메이크업 없는 인물 사진으로 생성
-                    </p>
+                    {/* 생성 개수 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        생성 개수 *
+                      </label>
+                      <select
+                        value={formData.imageCount}
+                        onChange={(e) => setFormData({ ...formData, imageCount: parseInt(e.target.value) })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="1">1개</option>
+                        <option value="2">2개</option>
+                        <option value="4">4개</option>
+                      </select>
+                    </div>
+
+                    {/* 자연스러운 스타일 옵션 */}
+                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50">
+                      <div className="flex-1">
+                        <label htmlFor="naturalStyle" className="block text-sm font-medium text-gray-700 mb-1">
+                          자연스러운 인물 사진 (No Makeup)
+                        </label>
+                        <p className="text-xs text-gray-500">
+                          자연스러운 피부, 메이크업 없는 인물 사진으로 생성
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer ml-4">
+                        <input
+                          type="checkbox"
+                          id="naturalStyle"
+                          checked={formData.naturalStyle || false}
+                          onChange={(e) => setFormData({ ...formData, naturalStyle: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+
+                    {/* ChatGPT 프롬프트 최적화 옵션 */}
+                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50">
+                      <div className="flex-1">
+                        <label htmlFor="useChatGPT" className="block text-sm font-medium text-gray-700 mb-1">
+                          ChatGPT로 프롬프트 최적화
+                        </label>
+                        <p className="text-xs text-gray-500">
+                          ChatGPT를 사용하여 프롬프트를 영어로 최적화 (추가 시간 소요)
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer ml-4">
+                        <input
+                          type="checkbox"
+                          id="useChatGPT"
+                          checked={formData.useChatGPT || false}
+                          onChange={(e) => handleUseChatGPTChange(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+
+                    {/* 손 표현 개선 옵션 */}
+                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50">
+                      <div className="flex-1">
+                        <label htmlFor="improveHandQuality" className="block text-sm font-medium text-gray-700 mb-1">
+                          손 표현 개선
+                        </label>
+                        <p className="text-xs text-gray-500">
+                          손이 어색하게 나올 때만 활성화 (손가락 개수, 비율, 자세 개선)
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer ml-4">
+                        <input
+                          type="checkbox"
+                          id="improveHandQuality"
+                          checked={formData.improveHandQuality || false}
+                          onChange={(e) => handleImproveHandQualityChange(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+
+                    {/* 전신 풀샷 강화 옵션 */}
+                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50">
+                      <div className="flex-1">
+                        <label htmlFor="enhanceFullShot" className="block text-sm font-medium text-gray-700 mb-1">
+                          전신 풀샷 강화 (카메라 각도 최적화)
+                        </label>
+                        <p className="text-xs text-gray-500">
+                          전신이 명확히 보이도록 카메라 각도와 거리를 최적화 (티샷 장소 등에서 유용)
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer ml-4">
+                        <input
+                          type="checkbox"
+                          id="enhanceFullShot"
+                          checked={formData.enhanceFullShot || false}
+                          onChange={(e) => handleEnhanceFullShotChange(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+
+                    {/* 인물 앞 장애물 제거 옵션 */}
+                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50">
+                      <div className="flex-1">
+                        <label htmlFor="removeForegroundObstruction" className="block text-sm font-medium text-gray-700 mb-1">
+                          인물 앞 장애물 제거
+                        </label>
+                        <p className="text-xs text-gray-500">
+                          인물 앞에 아웃포커싱된 잔디나 장애물 제거 (벙커 등 특수 장소에서는 비활성화 권장)
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer ml-4">
+                        <input
+                          type="checkbox"
+                          id="removeForegroundObstruction"
+                          checked={formData.removeForegroundObstruction || false}
+                          onChange={(e) => handleRemoveForegroundObstructionChange(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer ml-4">
-                    <input
-                      type="checkbox"
-                      id="naturalStyle"
-                      checked={formData.naturalStyle || false}
-                      onChange={(e) => setFormData({ ...formData, naturalStyle: e.target.checked })}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
+                )}
                 </div>
 
-                {/* ChatGPT 프롬프트 최적화 옵션 */}
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50">
-                  <div className="flex-1">
-                    <label htmlFor="useChatGPT" className="block text-sm font-medium text-gray-700 mb-1">
-                      ChatGPT로 프롬프트 최적화
-                    </label>
-                    <p className="text-xs text-gray-500">
-                      ChatGPT를 사용하여 프롬프트를 영어로 최적화 (추가 시간 소요)
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer ml-4">
-                    <input
-                      type="checkbox"
-                      id="useChatGPT"
-                      checked={formData.useChatGPT || false}
-                      onChange={(e) => setFormData({ ...formData, useChatGPT: e.target.checked })}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
-                </div>
-
+                {/* 제품 합성 & 베이스 이미지 & 프롬프트 */}
+                <div className="space-y-6">
                 {/* 제품 합성 활성화 옵션 */}
                 <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50">
                   <div className="flex-1">
@@ -814,7 +1332,7 @@ ${koreanGolferSpec}
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         합성 타겟 선택 *
                       </label>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-3 gap-3">
                         <button
                           type="button"
                           onClick={() => setFormData({ 
@@ -846,6 +1364,22 @@ ${koreanGolferSpec}
                         >
                           <div className="font-semibold">머리에 모자 합성</div>
                           <div className="text-xs mt-1 text-gray-500">모자를 머리에 합성</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ 
+                            ...formData, 
+                            compositionTarget: 'accessory',
+                            selectedProductId: undefined // 타겟 변경 시 제품 선택 초기화
+                          })}
+                          className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                            formData.compositionTarget === 'accessory'
+                              ? 'border-blue-500 bg-blue-50 text-blue-700'
+                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="font-semibold">액세서리 합성</div>
+                          <div className="text-xs mt-1 text-gray-500">가방, 클러치백 등을 합성</div>
                         </button>
                       </div>
                     </div>
@@ -892,6 +1426,38 @@ ${koreanGolferSpec}
 
                     {/* 배경 타입 선택 (모자 합성 시) */}
                     {formData.compositionTarget === 'head' && formData.selectedProductId && (
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          배경 스타일
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {([
+                            { value: 'natural', label: '자연 배경' },
+                            { value: 'studio', label: '스튜디오(백화점/골프샵 DP)' },
+                            { value: 'product-page', label: '상품페이지(단색 배경)' },
+                          ] as const).map(option => (
+                            <button
+                              key={option.value}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, compositionBackground: option.value })}
+                              className={`px-3 py-2 rounded-lg border text-sm transition-all ${
+                                formData.compositionBackground === option.value
+                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                              }`}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="mt-1 text-xs text-gray-500">
+                          자연: 야외/자연광 / 스튜디오: 백화점·골프샵 DP 스타일 / 상품페이지: 화이트·라이트그레이 단색 e-commerce 스타일
+                        </p>
+                      </div>
+                    )}
+
+                    {/* 배경 타입 선택 (액세서리 합성 시) */}
+                    {formData.compositionTarget === 'accessory' && formData.selectedProductId && (
                       <div className="mt-4">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           배경 스타일
@@ -1172,6 +1738,11 @@ ${koreanGolferSpec}
                     />
                     <p className="mt-2 text-xs text-gray-500">
                       💡 한국 골퍼 스펙과 브랜딩 톤은 자동으로 적용됩니다. 계절/요일 구애 없이 365일 사용 가능한 이미지로 생성됩니다.
+                      <br />
+                      현재 브랜딩 톤:{' '}
+                      {formData.brandTone === 'senior_emotional'
+                        ? '시니어 중심 감성적 (골드 톤, 따뜻한 분위기)'
+                        : '하이테크 중심 혁신형 (블랙 톤, 현대적 분위기)'}.
                     </p>
                   </div>
                 )}
@@ -1192,6 +1763,7 @@ ${koreanGolferSpec}
                     : (formData.baseImageMode === 'gallery' ? '제품 합성하기' : '이미지 생성하기')
                   }
                 </button>
+                </div>
               </div>
             </div>
 

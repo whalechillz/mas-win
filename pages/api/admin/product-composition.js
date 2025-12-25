@@ -114,6 +114,74 @@ export default async function handler(req, res) {
           message: '제품이 비활성화되었습니다.'
         });
 
+      case 'PATCH':
+        // 순서 변경
+        const { id: orderId, direction } = req.body;
+        
+        if (!orderId || !direction) {
+          return res.status(400).json({
+            success: false,
+            error: '제품 ID와 방향(up/down)이 필요합니다.'
+          });
+        }
+
+        // 현재 제품 조회
+        const { data: currentProduct, error: currentError } = await supabase
+          .from('product_composition')
+          .select('id, display_order')
+          .eq('id', orderId)
+          .single();
+
+        if (currentError || !currentProduct) {
+          return res.status(404).json({
+            success: false,
+            error: '제품을 찾을 수 없습니다.'
+          });
+        }
+
+        const currentOrder = currentProduct.display_order;
+        const newOrder = direction === 'up' ? currentOrder - 1 : currentOrder + 1;
+
+        // 같은 순서를 가진 다른 제품 찾기
+        const { data: swapProduct, error: swapError } = await supabase
+          .from('product_composition')
+          .select('id')
+          .eq('display_order', newOrder)
+          .neq('id', orderId)
+          .maybeSingle();
+
+        if (swapError) {
+          console.error('❌ 순서 변경 오류:', swapError);
+          throw swapError;
+        }
+
+        // 트랜잭션: 두 제품의 순서 교환
+        if (swapProduct) {
+          // 다른 제품의 순서를 현재 제품의 순서로 변경
+          await supabase
+            .from('product_composition')
+            .update({ display_order: currentOrder })
+            .eq('id', swapProduct.id);
+        }
+
+        // 현재 제품의 순서 변경
+        const { data: updatedOrderProduct, error: updateOrderError } = await supabase
+          .from('product_composition')
+          .update({ display_order: newOrder, updated_at: new Date().toISOString() })
+          .eq('id', orderId)
+          .select()
+          .single();
+
+        if (updateOrderError) {
+          console.error('❌ 순서 변경 오류:', updateOrderError);
+          throw updateOrderError;
+        }
+
+        return res.status(200).json({
+          success: true,
+          product: updatedOrderProduct
+        });
+
       default:
         return res.status(405).json({
           success: false,

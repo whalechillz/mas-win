@@ -60,6 +60,8 @@ export default function ProductCompositionManagement() {
     target?: string;
     active?: boolean;
   }>({});
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingRefImage, setUploadingRefImage] = useState(false);
 
   // 제품 목록 로드 (useCallback으로 메모이제이션)
   const loadProducts = useCallback(async () => {
@@ -213,6 +215,116 @@ export default function ProductCompositionManagement() {
     setShowModal(true);
   };
 
+  // 순서 변경 (위/아래)
+  const handleMoveOrder = async (productId: string, direction: 'up' | 'down') => {
+    try {
+      const response = await fetch('/api/admin/product-composition', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: productId, direction }),
+      });
+
+      if (response.ok) {
+        await loadProducts();
+      } else {
+        const error = await response.json();
+        alert(`오류: ${error.error || '순서 변경에 실패했습니다.'}`);
+      }
+    } catch (error) {
+      console.error('순서 변경 오류:', error);
+      alert('순서 변경 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 이미지 업로드 (메인 이미지)
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/admin/upload-product-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData({ ...formData, image_url: data.url });
+        alert('이미지가 업로드되었습니다.');
+      } else {
+        const error = await response.json();
+        alert(`오류: ${error.error || '이미지 업로드에 실패했습니다.'}`);
+      }
+    } catch (error) {
+      console.error('이미지 업로드 오류:', error);
+      alert('이미지 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setUploadingImage(false);
+      e.target.value = ''; // 파일 입력 초기화
+    }
+  };
+
+  // 참조 이미지 업로드
+  const handleReferenceImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingRefImage(true);
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+
+      const response = await fetch('/api/admin/upload-product-image', {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const currentRefs = formData.reference_images || [];
+        setFormData({ 
+          ...formData, 
+          reference_images: [...currentRefs, data.url] 
+        });
+        alert('참조 이미지가 추가되었습니다.');
+      } else {
+        const error = await response.json();
+        alert(`오류: ${error.error || '이미지 업로드에 실패했습니다.'}`);
+      }
+    } catch (error) {
+      console.error('참조 이미지 업로드 오류:', error);
+      alert('이미지 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setUploadingRefImage(false);
+      e.target.value = ''; // 파일 입력 초기화
+    }
+  };
+
+  // 참조 이미지 삭제
+  const handleRemoveReferenceImage = (index: number) => {
+    const currentRefs = formData.reference_images || [];
+    setFormData({
+      ...formData,
+      reference_images: currentRefs.filter((_, i) => i !== index),
+    });
+  };
+
+  // Slug 자동 생성
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9가-힣\s]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+
   return (
     <>
       <Head>
@@ -318,6 +430,9 @@ export default function ProductCompositionManagement() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       상태
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      순서
+                    </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       작업
                     </th>
@@ -371,6 +486,27 @@ export default function ProductCompositionManagement() {
                           {product.is_active ? '활성' : '비활성'}
                         </span>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-600">{product.display_order}</span>
+                          <div className="flex flex-col gap-1">
+                            <button
+                              onClick={() => handleMoveOrder(product.id, 'up')}
+                              className="text-gray-600 hover:text-blue-600 text-xs"
+                              title="위로 이동"
+                            >
+                              ↑
+                            </button>
+                            <button
+                              onClick={() => handleMoveOrder(product.id, 'down')}
+                              className="text-gray-600 hover:text-blue-600 text-xs"
+                              title="아래로 이동"
+                            >
+                              ↓
+                            </button>
+                          </div>
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           onClick={() => handleEdit(product)}
@@ -421,7 +557,13 @@ export default function ProductCompositionManagement() {
                       <input
                         type="text"
                         value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        onChange={(e) => {
+                          setFormData({ ...formData, name: e.target.value });
+                          // Slug가 비어있으면 자동 생성
+                          if (!formData.slug && e.target.value) {
+                            setFormData(prev => ({ ...prev, name: e.target.value, slug: generateSlug(e.target.value) }));
+                          }
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                         required
                       />
@@ -478,14 +620,26 @@ export default function ProductCompositionManagement() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       이미지 URL *
                     </label>
-                    <input
-                      type="text"
-                      value={formData.image_url}
-                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                      placeholder="/main/products/goods/white-bucket-hat.webp"
-                      required
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={formData.image_url}
+                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                        placeholder="/main/products/goods/white-bucket-hat.webp"
+                        required
+                      />
+                      <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">
+                        {uploadingImage ? '업로드 중...' : '📷 업로드'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          disabled={uploadingImage}
+                        />
+                      </label>
+                    </div>
                     {formData.image_url && (
                       <div className="mt-2 relative w-32 h-32 bg-gray-100 rounded overflow-hidden">
                         <Image
@@ -511,9 +665,25 @@ export default function ProductCompositionManagement() {
                       type="text"
                       value={formData.slug}
                       onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                      onBlur={(e) => {
+                        // 제품명이 변경되었는데 slug가 비어있으면 자동 생성
+                        if (!e.target.value && formData.name) {
+                          setFormData({ ...formData, slug: generateSlug(formData.name) });
+                        }
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                      placeholder="제품명 입력 시 자동 생성됩니다"
                       required
                     />
+                    {formData.name && !formData.slug && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, slug: generateSlug(formData.name || '') })}
+                        className="mt-1 text-xs text-blue-600 hover:text-blue-800"
+                      >
+                        자동 생성: {generateSlug(formData.name)}
+                      </button>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -521,13 +691,30 @@ export default function ProductCompositionManagement() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         배지
                       </label>
-                      <input
-                        type="text"
-                        value={formData.badge}
-                        onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                        placeholder="BEST, LIMITED, NEW"
-                      />
+                      <div className="flex gap-4">
+                        {['BEST', 'LIMITED', 'NEW'].map((badge) => (
+                          <label key={badge} className="flex items-center">
+                            <input
+                              type="radio"
+                              name="badge"
+                              checked={formData.badge === badge}
+                              onChange={() => setFormData({ ...formData, badge: formData.badge === badge ? '' : badge })}
+                              className="w-4 h-4 text-blue-600 border-gray-300"
+                            />
+                            <span className="ml-2 text-sm text-gray-700">{badge}</span>
+                          </label>
+                        ))}
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="badge"
+                            checked={!formData.badge || !['BEST', 'LIMITED', 'NEW'].includes(formData.badge)}
+                            onChange={() => setFormData({ ...formData, badge: '' })}
+                            className="w-4 h-4 text-blue-600 border-gray-300"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">없음</span>
+                        </label>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -540,6 +727,50 @@ export default function ProductCompositionManagement() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                         placeholder="1,700,000원"
                       />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      참조 이미지 (다양한 각도)
+                    </label>
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <label className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer">
+                          {uploadingRefImage ? '업로드 중...' : '+ 참조 이미지 추가'}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleReferenceImageUpload}
+                            className="hidden"
+                            disabled={uploadingRefImage}
+                          />
+                        </label>
+                      </div>
+                      {formData.reference_images && formData.reference_images.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2 mt-2">
+                          {formData.reference_images.map((refImg, index) => (
+                            <div key={index} className="relative group">
+                              <div className="relative w-full h-24 bg-gray-100 rounded overflow-hidden">
+                                <Image
+                                  src={refImg}
+                                  alt={`참조 이미지 ${index + 1}`}
+                                  fill
+                                  className="object-contain"
+                                  unoptimized
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveReferenceImage(index)}
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
