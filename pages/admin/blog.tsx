@@ -4834,6 +4834,19 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
     }
   }, [sortBy, sortOrder]);
 
+  // 세션 체크 및 리다이렉트
+  useEffect(() => {
+    if (status === 'loading') return;
+    
+    if (!session) {
+      if (!redirectingRef.current) {
+        redirectingRef.current = true;
+        router.push('/admin/login');
+      }
+      return;
+    }
+  }, [status, session, router]);
+
   // 로딩 중이거나 인증되지 않은 경우
   if (status === 'loading') {
     return (
