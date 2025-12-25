@@ -13,18 +13,18 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [recentMenus, setRecentMenus] = useState<string[]>([]);
 
-  // 세션 체크 및 리다이렉트
-  useEffect(() => {
-    if (status === 'loading') return;
-    
-    if (!session) {
-      if (!redirectingRef.current) {
-        redirectingRef.current = true;
-        router.push('/admin/login');
-      }
-      return;
-    }
-  }, [status, session, router]);
+  // 세션 체크 및 리다이렉트 (임시로 비활성화 - 디버깅용)
+  // useEffect(() => {
+  //   if (status === 'loading') return;
+  //   
+  //   if (!session) {
+  //     if (!redirectingRef.current) {
+  //       redirectingRef.current = true;
+  //       router.push('/admin/login');
+  //     }
+  //     return;
+  //   }
+  // }, [status, session, router]);
 
   // 최근 사용 메뉴 로드
   useEffect(() => {
@@ -68,22 +68,22 @@ export default function AdminDashboard() {
     return null;
   };
 
-  // 로딩 중
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">로딩 중...</p>
-        </div>
-      </div>
-    );
-  }
+  // 로딩 중 (임시로 비활성화 - 디버깅용)
+  // if (status === 'loading') {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-gray-50">
+  //       <div className="text-center">
+  //         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+  //         <p className="mt-4 text-gray-600">로딩 중...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
-  // 세션 없음
-  if (!session) {
-    return null;
-  }
+  // 세션 없음 (임시로 비활성화 - 디버깅용)
+  // if (!session) {
+  //   return null;
+  // }
 
   return (
     <>

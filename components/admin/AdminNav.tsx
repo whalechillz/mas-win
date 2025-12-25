@@ -36,23 +36,27 @@ const AdminNav = () => {
             </Link>
           </div>
           
-          {/* 사용자 정보 및 로그아웃 버튼 */}
-          {session && (
-            <div className="flex items-center space-x-3">
-              <span className="text-sm text-gray-600">
-                {session.user?.name} ({(session.user as any)?.role === 'admin' ? '총관리자' : '편집자'})
-              </span>
-              <button
-                onClick={async () => {
-                  const { signOut } = await import('next-auth/react');
-                  await signOut({ callbackUrl: '/admin/login' });
-                }}
-                className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-              >
-                로그아웃
-              </button>
-            </div>
-          )}
+          {/* 사용자 정보 및 로그아웃 버튼 (임시로 항상 표시 - 디버깅용) */}
+          <div className="flex items-center space-x-3">
+            {session ? (
+              <>
+                <span className="text-sm text-gray-600">
+                  {session.user?.name} ({(session.user as any)?.role === 'admin' ? '총관리자' : '편집자'})
+                </span>
+                <button
+                  onClick={async () => {
+                    const { signOut } = await import('next-auth/react');
+                    await signOut({ callbackUrl: '/admin/login' });
+                  }}
+                  className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                >
+                  로그아웃
+                </button>
+              </>
+            ) : (
+              <span className="text-sm text-gray-400">세션 없음 (디버깅 모드)</span>
+            )}
+          </div>
         </div>
       </div>
     </div>
