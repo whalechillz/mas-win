@@ -400,8 +400,27 @@ export function getAbsoluteImageUrl(imageUrl: string, baseUrl?: string): string 
   // Supabase Storage 경로인 경우 (/originals/...)
   if (imageUrl.startsWith('/originals/') || imageUrl.startsWith('originals/')) {
     const supabaseUrl = getSupabaseStorageUrl(imageUrl);
-    // Supabase URL이 없거나 빈 문자열이면 빈 문자열 반환 (이미지 로드 방지, 무한 루핑 방지)
+    
+    // Supabase URL이 없거나 빈 문자열이면 로컬 개발 환경에서는 /main/products/로 fallback
     if (!supabaseUrl || supabaseUrl.trim() === '') {
+      // 로컬 개발 환경 감지
+      const isLocal = typeof window !== 'undefined' && 
+        (window.location.hostname === 'localhost' || 
+         window.location.hostname === '127.0.0.1' ||
+         window.location.hostname.includes('localhost'));
+      
+      if (isLocal) {
+        // /originals/products/... → /main/products/... 로 변환하여 로컬 파일 사용
+        const fallbackPath = imageUrl.replace('/originals/products/', '/main/products/');
+        const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
+        console.warn('⚠️ Supabase URL이 없어 로컬 파일로 fallback:', {
+          original: imageUrl,
+          fallback: fallbackPath
+        });
+        return `${base}${fallbackPath}`;
+      }
+      
+      // 프로덕션 환경에서는 빈 문자열 반환 (이미지 로드 방지, 무한 루핑 방지)
       if (typeof window !== 'undefined') {
         console.error('❌ getAbsoluteImageUrl: Supabase URL을 생성할 수 없습니다.', {
           imageUrl,
@@ -414,6 +433,22 @@ export function getAbsoluteImageUrl(imageUrl: string, baseUrl?: string): string 
     
     // 생성된 URL이 유효한지 확인 (http:// 또는 https://로 시작해야 함)
     if (!supabaseUrl.startsWith('http://') && !supabaseUrl.startsWith('https://')) {
+      // 로컬 개발 환경에서는 fallback
+      const isLocal = typeof window !== 'undefined' && 
+        (window.location.hostname === 'localhost' || 
+         window.location.hostname === '127.0.0.1' ||
+         window.location.hostname.includes('localhost'));
+      
+      if (isLocal) {
+        const fallbackPath = imageUrl.replace('/originals/products/', '/main/products/');
+        const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
+        console.warn('⚠️ 유효하지 않은 Supabase URL, 로컬 파일로 fallback:', {
+          original: imageUrl,
+          fallback: fallbackPath
+        });
+        return `${base}${fallbackPath}`;
+      }
+      
       console.error('❌ getAbsoluteImageUrl: 생성된 URL이 유효하지 않습니다.', {
         imageUrl,
         supabaseUrl,
