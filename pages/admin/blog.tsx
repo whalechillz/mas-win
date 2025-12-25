@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 const TipTapEditor = dynamic(() => import('../../components/admin/TipTapEditor'), { ssr: false });
@@ -26,6 +26,7 @@ import {
 export default function BlogAdmin() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const redirectingRef = useRef(false);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 import AdminNav from '../../components/admin/AdminNav';
 
 interface HubContent {
@@ -45,6 +46,8 @@ interface ChannelStats {
 
 export default function ContentCalendarHub() {
   const { data: session, status } = useSession();
+  const router = useRouter();
+  const redirectingRef = useRef(false);
   const [contents, setContents] = useState<HubContent[]>([]);
   const [stats, setStats] = useState<ChannelStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -1438,14 +1441,39 @@ export default function ContentCalendarHub() {
     fetchContents(newPage);
   };
 
+  // 세션 체크 및 리다이렉트
+  useEffect(() => {
+    if (status === 'loading') return;
+    
+    if (!session) {
+      if (!redirectingRef.current) {
+        redirectingRef.current = true;
+        router.push('/admin/login');
+      }
+      return;
+    }
+  }, [status, session, router]);
+
   useEffect(() => {
     if (session) {
       fetchContents(1);
     }
   }, [session]);
 
-  if (status === 'loading') return <div>로딩 중...</div>;
-  if (!session) return <div>로그인이 필요합니다.</div>;
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null; // 리다이렉트 중
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
