@@ -41,8 +41,8 @@ export default function LoginPage() {
         };
         setError(errorMessages[result.error] || '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
       } else {
-        // 로그인 성공 시 이전 페이지로 리다이렉트 또는 /admin으로 이동
-        const callbackUrl = (router.query.callbackUrl as string) || '/admin';
+        // 로그인 성공 시 이전 페이지로 리다이렉트 또는 블로그 관리 페이지로 이동
+        const callbackUrl = (router.query.callbackUrl as string) || '/admin/blog';
         router.push(callbackUrl);
       }
     } catch (err: any) {
@@ -126,7 +126,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (token) {
       return {
         redirect: {
-          destination: '/admin',
+          destination: '/admin/blog',
           permanent: false,
         },
       };

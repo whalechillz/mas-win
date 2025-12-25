@@ -38,7 +38,14 @@ export default function Admin() {
       return;
     }
     
-    // 세션이 있으면 리다이렉트 플래그 리셋 (정상 로그인 상태)
+    // 세션이 있으면 블로그 관리 페이지로 리다이렉트
+    if (!redirectingRef.current) {
+      redirectingRef.current = true;
+      router.push('/admin/blog');
+      return;
+    }
+    
+    // 리다이렉트 플래그 리셋
     if (redirectingRef.current) {
       redirectingRef.current = false;
     }
