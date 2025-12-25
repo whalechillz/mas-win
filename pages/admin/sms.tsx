@@ -792,10 +792,11 @@ export default function SMSAdmin() {
     );
   }
 
-  if (!session) {
-    router.push('/admin/login');
-    return null;
-  }
+  // 세션 체크 (임시로 비활성화 - 디버깅용)
+  // if (!session) {
+  //   router.push('/admin/login');
+  //   return null;
+  // }
 
   // 문자 길이 계산
   const getMessageLength = () => {

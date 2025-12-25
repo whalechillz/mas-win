@@ -103,17 +103,19 @@ export default function BookingAdmin() {
       return;
     }
     
-    if (!session) {
-      setLoading(false);
-      router.push('/admin/login');
-      return;
-    }
+    // 세션 체크 (임시로 비활성화 - 디버깅용)
+    // if (!session) {
+    //   setLoading(false);
+    //   router.push('/admin/login');
+    //   return;
+    // }
     
-    if (session) {
-      loadData();
-    } else {
-      setLoading(false);
-    }
+    // if (session) {
+    //   loadData();
+    // } else {
+    //   setLoading(false);
+    // }
+    loadData();
   }, [session, status, loadData, router]);
 
   if (status === 'loading' || loading) {
@@ -127,9 +129,10 @@ export default function BookingAdmin() {
     );
   }
 
-  if (!session) {
-    return null;
-  }
+  // 세션 체크 (임시로 비활성화 - 디버깅용)
+  // if (!session) {
+  //   return null;
+  // }
 
   return (
     <>

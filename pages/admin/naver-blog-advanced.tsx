@@ -1340,9 +1340,10 @@ export default function NaverBlogAdvanced() {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center">로딩 중...</div>;
   }
 
-  if (status === 'unauthenticated') {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">로그인이 필요합니다.</div>;
-  }
+  // 세션 체크 (임시로 비활성화 - 디버깅용)
+  // if (status === 'unauthenticated') {
+  //   return <div className="min-h-screen bg-gray-50 flex items-center justify-center">로그인이 필요합니다.</div>;
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50">

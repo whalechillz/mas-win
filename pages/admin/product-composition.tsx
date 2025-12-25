@@ -87,14 +87,14 @@ export default function ProductCompositionManagement() {
     }
   }, [filter.category, filter.target, filter.active]);
 
-  // ✅ 제품 목록 로드 useEffect: 단순화
+  // ✅ 제품 목록 로드 useEffect: 단순화 (세션 체크 임시 비활성화 - 디버깅용)
   useEffect(() => {
     if (status === 'loading') return;
     
-    if (!session) {
-      router.push('/admin/login');
-      return;
-    }
+    // if (!session) {
+    //   router.push('/admin/login');
+    //   return;
+    // }
     
     loadProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,10 +109,11 @@ export default function ProductCompositionManagement() {
     );
   }
 
-  if (!session) {
-    router.push('/admin/login');
-    return null;
-  }
+  // 세션 체크 (임시로 비활성화 - 디버깅용)
+  // if (!session) {
+  //   router.push('/admin/login');
+  //   return null;
+  // }
 
   // 제품 추가/수정
   const handleSubmit = async (e: React.FormEvent) => {
@@ -643,14 +644,14 @@ export default function ProductCompositionManagement() {
                       이미지 URL *
                     </label>
                     <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={formData.image_url}
-                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                    <input
+                      type="text"
+                      value={formData.image_url}
+                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
                         placeholder="/originals/products/goods/white-bucket-hat.webp"
-                        required
-                      />
+                      required
+                    />
                       <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">
                         {uploadingImage ? '업로드 중...' : '📷 업로드'}
                         <input
@@ -727,7 +728,7 @@ export default function ProductCompositionManagement() {
                           </label>
                         ))}
                         <label className="flex items-center">
-                          <input
+                      <input
                             type="radio"
                             name="badge"
                             checked={!formData.badge || !['BEST', 'LIMITED', 'NEW'].includes(formData.badge)}

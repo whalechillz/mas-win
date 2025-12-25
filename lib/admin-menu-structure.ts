@@ -28,7 +28,7 @@ export const menuCategories: MenuCategory[] = [
       { id: 'multichannel', name: '멀티채널 대시보드', icon: '📊', path: '/admin/multichannel-dashboard', description: '모든 채널 통합 대시보드' },
       { id: 'blog', name: '블로그 관리', icon: '📝', path: '/admin/blog', description: '블로그 게시물 작성 및 관리' },
       { id: 'naver-blog', name: '네이버 블로그', icon: '📝', path: '/admin/naver-blog-advanced', description: '네이버 블로그 게시물 관리' },
-      { id: 'funnel', name: '퍼널 관리', icon: '🔄', path: '/admin/funnel', description: '마케팅 퍼널 관리' },
+      { id: 'funnel', name: '퍼널 관리', icon: '🔄', path: '/admin/funnel-editor', description: '마케팅 퍼널 관리' },
       { id: 'category', name: '카테고리 관리', icon: '📂', path: '/admin/category-management', description: '콘텐츠 카테고리 관리' },
     ]
   },

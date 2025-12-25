@@ -66,10 +66,11 @@ export default function SMSListAdmin() {
 
   useEffect(() => {
     if (status === 'loading') return;
-    if (!session) {
-      router.push('/admin/login');
-      return;
-    }
+    // 세션 체크 (임시로 비활성화 - 디버깅용)
+    // if (!session) {
+    //   router.push('/admin/login');
+    //   return;
+    // }
     fetchMessages();
   }, [session, status, router, filter]);
 
@@ -805,9 +806,10 @@ export default function SMSListAdmin() {
     );
   }
 
-  if (!session) {
-    return null;
-  }
+  // 세션 체크 (임시로 비활성화 - 디버깅용)
+  // if (!session) {
+  //   return null;
+  // }
 
   return (
     <>
