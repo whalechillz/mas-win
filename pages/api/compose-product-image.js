@@ -72,6 +72,7 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed') {
  */
 function getAbsoluteProductImageUrl(productImageUrl) {
   if (!productImageUrl) return null;
+  
   // 이미 절대 URL인 경우 그대로 반환
   if (productImageUrl.startsWith('http://') || productImageUrl.startsWith('https://')) {
     // 로컬호스트 URL은 FAL AI에서 접근 불가하므로 에러 발생
@@ -81,9 +82,17 @@ function getAbsoluteProductImageUrl(productImageUrl) {
     return productImageUrl;
   }
   
-  // 상대 경로인 경우 공개 도메인으로 변환
-  // 프로덕션 환경에서는 실제 도메인 사용
-  // 로컬 개발 환경에서는 환경 변수가 없으면 null 반환 (제품 이미지 제외)
+  // Supabase Storage 경로인 경우 (/originals/products/...)
+  if (productImageUrl.startsWith('/originals/') || productImageUrl.startsWith('originals/')) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    if (!supabaseUrl) {
+      throw new Error(`Supabase Storage URL을 생성할 수 없습니다. NEXT_PUBLIC_SUPABASE_URL 환경 변수를 설정해주세요. 경로: ${productImageUrl}`);
+    }
+    const cleanPath = productImageUrl.startsWith('/') ? productImageUrl.slice(1) : productImageUrl;
+    return `${supabaseUrl}/storage/v1/object/public/blog-images/${cleanPath}`;
+  }
+  
+  // 기존 상대 경로인 경우 (/main/products/...)
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
                   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
   

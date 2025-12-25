@@ -1,5 +1,5 @@
 // 제품 이미지 업로드 API
-// public/main/products/goods 폴더에 저장하고 WebP로 변환
+// Supabase Storage에 originals/products/{category}/{product-slug}/ 구조로 저장
 
 import { createClient } from '@supabase/supabase-js';
 import sharp from 'sharp';
@@ -9,6 +9,10 @@ import path from 'path';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('❌ Supabase 환경 변수가 설정되지 않았습니다.');
+}
+
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export const config = {
@@ -16,6 +20,34 @@ export const config = {
     bodyParser: false,
   },
 };
+
+/**
+ * 제품 slug를 기반으로 Storage 경로 결정
+ * @param {string} productSlug - 제품 slug
+ * @param {string} category - 제품 카테고리 (hat, driver, accessory)
+ * @returns {string} Storage 폴더 경로
+ */
+function getProductStoragePath(productSlug, category) {
+  // 굿즈/액세서리 제품은 goods 폴더에 저장
+  if (category === 'hat' || category === 'accessory') {
+    return 'originals/products/goods';
+  }
+
+  // 드라이버 제품 slug → 폴더 매핑
+  const driverSlugToFolder = {
+    'secret-weapon-black': 'black-weapon',
+    'black-beryl': 'black-beryl',
+    'secret-weapon-4-1': 'gold-weapon4',
+    'secret-force-gold-2': 'gold2',
+    'gold2-sapphire': 'gold2-sapphire',
+    'secret-force-pro-3': 'pro3',
+    'pro3-muziik': 'pro3-muziik',
+    'secret-force-v3': 'v3',
+  };
+
+  const folderName = driverSlugToFolder[productSlug] || productSlug;
+  return `originals/products/${folderName}`;
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -43,6 +75,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: '이미지 파일이 필요합니다.' });
     }
 
+    // 제품 정보 가져오기 (slug, category)
+    const productSlug = fields.productSlug?.[0] || '';
+    const category = fields.category?.[0] || 'hat'; // 기본값: hat
+
     // 파일 읽기
     const fileBuffer = fs.readFileSync(file.filepath);
     const originalName = file.originalFilename || `product-${Date.now()}.jpg`;
@@ -53,27 +89,48 @@ export default async function handler(req, res) {
       .webp({ quality: 85 })
       .toBuffer();
 
-    // public/main/products/goods 폴더에 저장
-    const goodsDir = path.join(process.cwd(), 'public/main/products/goods');
-    if (!fs.existsSync(goodsDir)) {
-      fs.mkdirSync(goodsDir, { recursive: true });
+    // Storage 경로 결정
+    const storageFolder = getProductStoragePath(productSlug, category);
+    const timestamp = Date.now();
+    const webpFileName = `${baseName}-${timestamp}.webp`;
+    const storagePath = `${storageFolder}/${webpFileName}`;
+
+    // Supabase Storage에 업로드
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('blog-images')
+      .upload(storagePath, webpBuffer, {
+        contentType: 'image/webp',
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error('❌ Supabase Storage 업로드 오류:', uploadError);
+      return res.status(500).json({
+        error: '이미지 업로드에 실패했습니다.',
+        details: uploadError.message
+      });
     }
 
-    const webpFileName = `${baseName}.webp`;
-    const webpPath = path.join(goodsDir, webpFileName);
-    fs.writeFileSync(webpPath, webpBuffer);
-
-    // 상대 경로 반환
-    const relativePath = `/main/products/goods/${webpFileName}`;
+    // 공개 URL 생성
+    const { data: { publicUrl } } = supabase.storage
+      .from('blog-images')
+      .getPublicUrl(storagePath);
 
     // 임시 파일 삭제
     fs.unlinkSync(file.filepath);
 
+    // 상대 경로 형태로 반환 (기존 코드와 호환)
+    // Storage 경로를 상대 경로로 변환
+    const relativePath = `/${storagePath}`;
+
     res.status(200).json({
       success: true,
-      url: relativePath,
+      url: relativePath, // 상대 경로: /originals/products/goods/...
+      storageUrl: publicUrl, // 전체 URL (참고용)
       fileName: webpFileName,
-      message: '이미지가 업로드되고 WebP로 변환되었습니다.'
+      storagePath: storagePath,
+      message: '이미지가 Supabase Storage에 업로드되고 WebP로 변환되었습니다.'
     });
 
   } catch (error) {
@@ -83,4 +140,3 @@ export default async function handler(req, res) {
     });
   }
 }
-

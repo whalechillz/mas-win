@@ -287,6 +287,36 @@ export function generateCompositionPrompt(
     prompt += ` The new driver head (or part) should match the original driver's angle, position, lighting, and shadows. Maintain natural shadows and reflections. The driver shaft can remain unchanged if visible. The replacement should be seamless and realistic, with the new driver head appearing as if it was originally part of the image.`;
     
     return prompt;
+  } else if (product.compositionTarget === 'accessory') {
+    // 액세서리(파우치백/클러치백) 합성 프롬프트
+    let prompt = '';
+    
+    // 제품 타입에 따라 다른 프롬프트
+    if (product.category === 'accessory' && (product.name.includes('클러치') || product.name.includes('clutch') || product.name.includes('파우치') || product.name.includes('pouch'))) {
+      // 클러치백/파우치백: 손에 들고 있거나 자연스럽게 배치
+      prompt = `Place the ${product.name} (clutch bag/pouch) in the person's hand or naturally positioned near them. The clutch bag should be held naturally in the person's hand with a relaxed, comfortable grip, or placed naturally on a surface (table, ground, or golf bag) if the person is not holding it. The bag should maintain its natural shape and proportions, with the MASSGOO × MUZIIK logo clearly visible if present. Keep the person's pose, facial expression, clothing, and all other elements exactly the same.`;
+      
+      // 배경 타입 지시
+      if (backgroundType === 'studio') {
+        prompt += ` The background should be a professional studio setting with clean, neutral background (white, gray, or subtle gradient). Professional product photography style with even lighting, no distracting elements.`;
+      } else if (backgroundType === 'product-page') {
+        prompt += ` The background should be a professional product photography studio setting with clean, minimalist background (white or light gray). High-end e-commerce product page style with professional lighting, soft shadows, and no distracting elements. The person should be positioned as if modeling the product for a product catalog or e-commerce website.`;
+      } else {
+        prompt += ` Keep the original background exactly as it is.`;
+      }
+      
+      // 참조 이미지 사용 지시
+      if (useReferenceImages && product.referenceImages && product.referenceImages.length > 0) {
+        prompt += ` Use the provided reference images to match the exact angle, perspective, and lighting of the clutch bag.`;
+      }
+      
+      prompt += ` The clutch bag should match the lighting, shadows, and perspective of the scene. Maintain natural shadows and reflections. The bag should appear as if it was originally part of the image, seamlessly integrated into the scene.`;
+    } else {
+      // 기타 액세서리
+      prompt = `Place the ${product.name} naturally with the person. The accessory should be positioned naturally (in hand, on person, or nearby) maintaining realistic proportions and positioning. Keep all other elements exactly the same.`;
+    }
+    
+    return prompt;
   } else {
     // 기타 제품 (향후 확장)
     return `Place the ${product.name} on the person. Keep all other elements exactly the same.`;
@@ -299,11 +329,45 @@ export function generateCompositionPrompt(
  * @param baseUrl 기본 URL (선택사항)
  * @returns 절대 URL
  */
+/**
+ * Supabase Storage 경로를 공개 URL로 변환
+ * @param storagePath Storage 경로 (예: originals/products/goods/image.webp)
+ * @returns 공개 URL
+ */
+export function getSupabaseStorageUrl(storagePath: string): string {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!supabaseUrl) {
+    console.warn('⚠️ NEXT_PUBLIC_SUPABASE_URL이 설정되지 않았습니다.');
+    return storagePath;
+  }
+  
+  // Storage 경로에서 앞의 슬래시 제거
+  const cleanPath = storagePath.startsWith('/') ? storagePath.slice(1) : storagePath;
+  
+  // Supabase Storage 공개 URL 형식
+  return `${supabaseUrl}/storage/v1/object/public/blog-images/${cleanPath}`;
+}
+
+/**
+ * 이미지 URL을 절대 URL로 변환
+ * - Supabase Storage 경로 (/originals/products/...) 처리
+ * - 기존 상대 경로 (/main/products/...) 처리
+ * - 이미 절대 URL인 경우 그대로 반환
+ */
 export function getAbsoluteImageUrl(imageUrl: string, baseUrl?: string): string {
+  if (!imageUrl) return '';
+  
+  // 이미 절대 URL인 경우
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
     return imageUrl;
   }
   
+  // Supabase Storage 경로인 경우 (/originals/...)
+  if (imageUrl.startsWith('/originals/') || imageUrl.startsWith('originals/')) {
+    return getSupabaseStorageUrl(imageUrl);
+  }
+  
+  // 기존 상대 경로인 경우 (/main/products/...)
   const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
   return `${base}${imageUrl}`;
 }

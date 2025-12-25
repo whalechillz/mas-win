@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import AdminNav from '../../components/admin/AdminNav';
 import Image from 'next/image';
+import { getAbsoluteImageUrl } from '../../lib/product-composition';
 
 interface ProductComposition {
   id: string;
@@ -247,10 +248,17 @@ export default function ProductCompositionManagement() {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      // 제품 정보 전송 (Storage 경로 결정용)
+      if (formData.slug) {
+        formData.append('productSlug', formData.slug);
+      }
+      if (formData.category) {
+        formData.append('category', formData.category);
+      }
 
       const response = await fetch('/api/admin/upload-product-image', {
         method: 'POST',
-        body: formData,
+        body: uploadFormData,
       });
 
       if (response.ok) {
@@ -279,6 +287,13 @@ export default function ProductCompositionManagement() {
     try {
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
+      // 제품 정보 전송 (Storage 경로 결정용)
+      if (formData.slug) {
+        uploadFormData.append('productSlug', formData.slug);
+      }
+      if (formData.category) {
+        uploadFormData.append('category', formData.category);
+      }
 
       const response = await fetch('/api/admin/upload-product-image', {
         method: 'POST',
@@ -643,7 +658,7 @@ export default function ProductCompositionManagement() {
                     {formData.image_url && (
                       <div className="mt-2 relative w-32 h-32 bg-gray-100 rounded overflow-hidden">
                         <Image
-                          src={formData.image_url}
+                          src={getAbsoluteImageUrl(formData.image_url)}
                           alt="미리보기"
                           fill
                           className="object-contain"
@@ -753,7 +768,7 @@ export default function ProductCompositionManagement() {
                             <div key={index} className="relative group">
                               <div className="relative w-full h-24 bg-gray-100 rounded overflow-hidden">
                                 <Image
-                                  src={refImg}
+                                  src={getAbsoluteImageUrl(refImg)}
                                   alt={`참조 이미지 ${index + 1}`}
                                   fill
                                   className="object-contain"
