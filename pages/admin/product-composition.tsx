@@ -68,32 +68,11 @@ export default function ProductCompositionManagement() {
   const hasInitializedRef = useRef(false);
   const redirectingRef = useRef(false);
   const lastSessionIdRef = useRef<string | undefined>(undefined);
+  const lastFilterRef = useRef<string>('');
 
-  // 제품 목록 로드 (useCallback으로 메모이제이션)
-  const loadProducts = useCallback(async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (filter.category) params.append('category', filter.category);
-      if (filter.target) params.append('target', filter.target);
-      if (filter.active !== undefined) params.append('active', String(filter.active));
-
-      const response = await fetch(`/api/admin/product-composition?${params.toString()}`);
-      if (response.ok) {
-        const data = await response.json();
-        setProducts(data.products || []);
-      } else {
-        console.error('제품 로드 실패:', response.statusText);
-      }
-    } catch (error) {
-      console.error('제품 로드 오류:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [filter]);
-
-  // ✅ 초기 로드: session이 준비되면 한 번만 실행
+  // ✅ 제품 목록 로드 함수를 useEffect 내부로 이동하여 의존성 문제 해결
   useEffect(() => {
+    // 로딩 중이면 대기
     if (status === 'loading') return;
     
     // 세션이 없으면 리다이렉트 (한 번만 실행)
@@ -105,22 +84,53 @@ export default function ProductCompositionManagement() {
       return;
     }
     
-    // ✅ session 객체 대신 session?.user?.id 사용하여 안정적인 의존성
-    const currentSessionId = session?.user?.id;
+    // ✅ session 객체 대신 session?.user?.id 또는 session?.user?.email 사용
+    const currentSessionId = session?.user?.id || session?.user?.email || 'unknown';
     
-    // 세션이 변경되었거나 아직 초기화하지 않았으면 로드
-    if (currentSessionId !== lastSessionIdRef.current || !hasInitializedRef.current) {
+    // 필터 값 문자열로 변환하여 비교
+    const currentFilter = JSON.stringify({
+      category: filter.category || '',
+      target: filter.target || '',
+      active: filter.active
+    });
+    
+    // 세션이 변경되었거나 필터가 변경되었거나 아직 초기화하지 않았으면 로드
+    const shouldLoad = 
+      currentSessionId !== lastSessionIdRef.current || 
+      currentFilter !== lastFilterRef.current || 
+      !hasInitializedRef.current;
+    
+    if (shouldLoad) {
       lastSessionIdRef.current = currentSessionId;
+      lastFilterRef.current = currentFilter;
       hasInitializedRef.current = true;
+      
+      // 제품 목록 로드
+      const loadProducts = async () => {
+        try {
+          setLoading(true);
+          const params = new URLSearchParams();
+          if (filter.category) params.append('category', filter.category);
+          if (filter.target) params.append('target', filter.target);
+          if (filter.active !== undefined) params.append('active', String(filter.active));
+
+          const response = await fetch(`/api/admin/product-composition?${params.toString()}`);
+          if (response.ok) {
+            const data = await response.json();
+            setProducts(data.products || []);
+          } else {
+            console.error('제품 로드 실패:', response.statusText);
+          }
+        } catch (error) {
+          console.error('제품 로드 오류:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
       loadProducts();
     }
-  }, [status, session?.user?.id, router, loadProducts]);
-
-  // ✅ 필터 변경 시에만 다시 로드
-  useEffect(() => {
-    if (status === 'loading' || !session || !hasInitializedRef.current) return;
-    loadProducts();
-  }, [filter.category, filter.target, filter.active, loadProducts, status, session?.user?.id]);
+  }, [status, session?.user?.id, session?.user?.email, filter.category, filter.target, filter.active, router]);
 
   // 조건부 return은 모든 hooks 이후에 배치
   if (status === 'loading') {
