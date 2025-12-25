@@ -70,7 +70,30 @@ export default function ProductCompositionManagement() {
   const lastSessionIdRef = useRef<string | undefined>(undefined);
   const lastFilterRef = useRef<string>('');
 
-  // ✅ 제품 목록 로드 함수를 useEffect 내부로 이동하여 의존성 문제 해결
+  // 제품 목록 로드 (useCallback으로 메모이제이션, 다른 곳에서도 사용)
+  const loadProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (filter.category) params.append('category', filter.category);
+      if (filter.target) params.append('target', filter.target);
+      if (filter.active !== undefined) params.append('active', String(filter.active));
+
+      const response = await fetch(`/api/admin/product-composition?${params.toString()}`);
+      if (response.ok) {
+        const data = await response.json();
+        setProducts(data.products || []);
+      } else {
+        console.error('제품 로드 실패:', response.statusText);
+      }
+    } catch (error) {
+      console.error('제품 로드 오류:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [filter.category, filter.target, filter.active]);
+
+  // ✅ 제품 목록 로드 useEffect: loadProducts를 의존성에서 제거하여 무한 루핑 방지
   useEffect(() => {
     // 로딩 중이면 대기
     if (status === 'loading') return;
@@ -104,33 +127,11 @@ export default function ProductCompositionManagement() {
       lastSessionIdRef.current = currentSessionId;
       lastFilterRef.current = currentFilter;
       hasInitializedRef.current = true;
-      
-      // 제품 목록 로드
-      const loadProducts = async () => {
-        try {
-          setLoading(true);
-          const params = new URLSearchParams();
-          if (filter.category) params.append('category', filter.category);
-          if (filter.target) params.append('target', filter.target);
-          if (filter.active !== undefined) params.append('active', String(filter.active));
-
-          const response = await fetch(`/api/admin/product-composition?${params.toString()}`);
-          if (response.ok) {
-            const data = await response.json();
-            setProducts(data.products || []);
-          } else {
-            console.error('제품 로드 실패:', response.statusText);
-          }
-        } catch (error) {
-          console.error('제품 로드 오류:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      
+      // ✅ loadProducts를 직접 호출하되 의존성 배열에는 포함하지 않음
       loadProducts();
     }
-  }, [status, session?.user?.id, session?.user?.email, filter.category, filter.target, filter.active, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, session?.user?.id, session?.user?.email, filter.category, filter.target, filter.active]);
 
   // 조건부 return은 모든 hooks 이후에 배치
   if (status === 'loading') {
