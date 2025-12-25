@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -26,16 +26,24 @@ export default function Admin() {
   const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState('dashboard');
   const router = useRouter();
+  const redirectingRef = useRef(false);
 
   useEffect(() => {
     if (status === 'loading') return; // 로딩 중이면 대기
     
     if (!session) {
       // 미들웨어 비활성화로 인한 임시 클라이언트 사이드 보호
-      window.location.href = '/admin/login';
+      if (!redirectingRef.current) {
+        redirectingRef.current = true;
+        router.push('/admin/login');
+      }
       return;
     }
-  }, [session, status]);
+    
+    // 세션이 있으면 리다이렉트 플래그 리셋
+    redirectingRef.current = false;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, !!session, router]);
 
   const handleLogout = async () => {
     try {
