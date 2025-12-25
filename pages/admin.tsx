@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import { createClient } from '@supabase/supabase-js';
 import CampaignKPIDashboard from '../components/admin/dashboard/CampaignKPIDashboard';
 import MarketingDashboardComplete from '../components/admin/marketing/MarketingDashboardComplete';
 import { TeamMemberManagement } from '../components/admin/team/TeamMemberManagement';
@@ -17,17 +16,11 @@ import FunnelManagerSimplified from '../components/admin/funnel/FunnelManagerSim
 import GoogleAdsDiagnostic from '../components/admin/google-ads/GoogleAdsDiagnostic';
 import MarketingManagementUnified from '../components/admin/marketing/MarketingManagementUnified';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 export default function Admin() {
   const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState('dashboard');
   const router = useRouter();
   const redirectingRef = useRef(false);
-  const hasCheckedSessionRef = useRef(false);
 
   useEffect(() => {
     // 로딩 중이면 대기
@@ -35,23 +28,17 @@ export default function Admin() {
       return;
     }
     
-    // 세션 체크를 한 번만 수행하도록 보장 (무한 루프 방지)
-    if (hasCheckedSessionRef.current) {
-      return;
-    }
-    
+    // 세션이 없으면 로그인 페이지로 리다이렉트
     if (!session) {
-      // 미들웨어 비활성화로 인한 임시 클라이언트 사이드 보호
+      // 중복 리다이렉트 방지
       if (!redirectingRef.current) {
         redirectingRef.current = true;
-        hasCheckedSessionRef.current = true;
         router.push('/admin/login');
       }
       return;
     }
     
-    // 세션이 있으면 플래그 리셋 (정상 로그인 상태)
-    hasCheckedSessionRef.current = true;
+    // 세션이 있으면 리다이렉트 플래그 리셋 (정상 로그인 상태)
     redirectingRef.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, !!session, router]);
