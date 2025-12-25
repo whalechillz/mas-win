@@ -329,21 +329,50 @@ export function generateCompositionPrompt(
  * @param baseUrl 기본 URL (선택사항)
  * @returns 절대 URL
  */
-// Supabase URL 상수 (빌드 타임에 주입)
-const SUPABASE_URL = typeof window !== 'undefined' 
-  ? (window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-  : process.env.NEXT_PUBLIC_SUPABASE_URL;
-
 /**
  * Supabase Storage 경로를 공개 URL로 변환
  * @param storagePath Storage 경로 (예: originals/products/goods/image.webp)
  * @returns 공개 URL
  */
 export function getSupabaseStorageUrl(storagePath: string): string {
-  if (!SUPABASE_URL) {
-    console.warn('⚠️ NEXT_PUBLIC_SUPABASE_URL이 설정되지 않았습니다.');
+  // ✅ Next.js 클라이언트 사이드에서 환경 변수 읽기
+  // Next.js는 NEXT_PUBLIC_ 접두사가 있는 변수를 빌드 타임에 번들에 주입합니다
+  let supabaseUrl: string | undefined;
+  
+  if (typeof window !== 'undefined') {
+    // 클라이언트 사이드: 여러 방법으로 시도
+    // 1. window.__NEXT_DATA__ (Next.js가 주입하는 환경 변수)
+    supabaseUrl = (window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_SUPABASE_URL;
+    
+    // 2. process.env (빌드 타임에 주입된 값)
+    if (!supabaseUrl) {
+      supabaseUrl = (process.env as any).NEXT_PUBLIC_SUPABASE_URL;
+    }
+    
+    // 3. window 객체에 직접 주입된 경우 (fallback)
+    if (!supabaseUrl && (window as any).NEXT_PUBLIC_SUPABASE_URL) {
+      supabaseUrl = (window as any).NEXT_PUBLIC_SUPABASE_URL;
+    }
+  } else {
+    // 서버 사이드
+    supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  }
+  
+  if (!supabaseUrl) {
+    console.error('❌ NEXT_PUBLIC_SUPABASE_URL이 설정되지 않았습니다.');
+    if (typeof window !== 'undefined') {
+      console.error('   window.__NEXT_DATA__?.env:', (window as any).__NEXT_DATA__?.env);
+      console.error('   process.env.NEXT_PUBLIC_SUPABASE_URL:', (process.env as any).NEXT_PUBLIC_SUPABASE_URL);
+      console.error('   window.location:', window.location.href);
+    }
     // ❌ 상대 경로를 반환하면 getAbsoluteImageUrl에서 잘못된 URL 생성
     // ✅ 빈 문자열 반환하여 이미지 로드 방지 (무한 루핑 방지)
+    return '';
+  }
+  
+  // URL 유효성 검사
+  if (!supabaseUrl.startsWith('http://') && !supabaseUrl.startsWith('https://')) {
+    console.error('❌ NEXT_PUBLIC_SUPABASE_URL이 유효한 URL 형식이 아닙니다:', supabaseUrl);
     return '';
   }
   
@@ -351,7 +380,7 @@ export function getSupabaseStorageUrl(storagePath: string): string {
   const cleanPath = storagePath.startsWith('/') ? storagePath.slice(1) : storagePath;
   
   // Supabase Storage 공개 URL 형식
-  return `${SUPABASE_URL}/storage/v1/object/public/blog-images/${cleanPath}`;
+  return `${supabaseUrl}/storage/v1/object/public/blog-images/${cleanPath}`;
 }
 
 /**
@@ -371,14 +400,32 @@ export function getAbsoluteImageUrl(imageUrl: string, baseUrl?: string): string 
   // Supabase Storage 경로인 경우 (/originals/...)
   if (imageUrl.startsWith('/originals/') || imageUrl.startsWith('originals/')) {
     const supabaseUrl = getSupabaseStorageUrl(imageUrl);
-    // Supabase URL이 없으면 빈 문자열 반환 (이미지 로드 방지, 무한 루핑 방지)
-    if (!supabaseUrl) {
+    // Supabase URL이 없거나 빈 문자열이면 빈 문자열 반환 (이미지 로드 방지, 무한 루핑 방지)
+    if (!supabaseUrl || supabaseUrl.trim() === '') {
+      if (typeof window !== 'undefined') {
+        console.error('❌ getAbsoluteImageUrl: Supabase URL을 생성할 수 없습니다.', {
+          imageUrl,
+          supabaseUrl,
+          location: window.location.href
+        });
+      }
       return '';
     }
+    
+    // 생성된 URL이 유효한지 확인 (http:// 또는 https://로 시작해야 함)
+    if (!supabaseUrl.startsWith('http://') && !supabaseUrl.startsWith('https://')) {
+      console.error('❌ getAbsoluteImageUrl: 생성된 URL이 유효하지 않습니다.', {
+        imageUrl,
+        supabaseUrl,
+        location: typeof window !== 'undefined' ? window.location.href : 'server'
+      });
+      return '';
+    }
+    
     return supabaseUrl;
   }
   
-  // 기존 상대 경로인 경우 (/originals/products/...)
+  // 기존 상대 경로인 경우 (Supabase Storage 경로가 아닌 경우만)
   const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
   return `${base}${imageUrl}`;
 }
