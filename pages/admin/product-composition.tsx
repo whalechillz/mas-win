@@ -88,10 +88,16 @@ export default function ProductCompositionManagement() {
   }, [filter]);
 
   // useEffect는 모든 hooks 이후, 조건부 return 이전에 배치
+  // ✅ 무한 루핑 방지: loadProducts 대신 filter를 직접 의존성으로 사용
   useEffect(() => {
-    if (status === 'loading' || !session) return;
+    if (status === 'loading') return;
+    if (!session) {
+      router.push('/admin/login');
+      return;
+    }
     loadProducts();
-  }, [loadProducts, status, session]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter.category, filter.target, filter.active, status, session]);
 
   // 조건부 return은 모든 hooks 이후에 배치
   if (status === 'loading') {
@@ -458,17 +464,49 @@ export default function ProductCompositionManagement() {
                     <tr key={product.id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="relative w-16 h-16 bg-gray-100 rounded overflow-hidden">
-                          <Image
-                            src={product.image_url}
-                            alt={product.name}
-                            fill
-                            className="object-contain"
-                            unoptimized
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = '/placeholder-image.jpg';
-                            }}
-                          />
+                          {(() => {
+                            const imageUrl = getAbsoluteImageUrl(product.image_url);
+                            // ✅ 빈 문자열 또는 유효하지 않은 URL 체크 강화
+                            if (!imageUrl || imageUrl.trim() === '' || (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://'))) {
+                              return (
+                                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                                  이미지 없음
+                                </div>
+                              );
+                            }
+                            return (
+                              <Image
+                                src={imageUrl}
+                                alt={product.name}
+                                fill
+                                className="object-contain"
+                                unoptimized
+                                priority={false}
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  // ✅ 무한 루핑 방지: 이미 에러 처리된 경우 즉시 중단
+                                  if (target.dataset.errorHandled === 'true') {
+                                    target.style.display = 'none';
+                                    return;
+                                  }
+                                  target.dataset.errorHandled = 'true';
+                                  // 이미지 숨김 처리
+                                  target.style.display = 'none';
+                                  // 플레이스홀더 표시
+                                  const placeholder = target.parentElement?.querySelector('.image-placeholder');
+                                  if (placeholder) {
+                                    (placeholder as HTMLElement).style.display = 'flex';
+                                  }
+                                }}
+                                onLoad={() => {
+                                  // 로드 성공 시 에러 플래그 초기화 (필요시)
+                                }}
+                              />
+                            );
+                          })()}
+                          <div className="image-placeholder absolute inset-0 flex items-center justify-center text-gray-400 text-xs bg-gray-100" style={{ display: 'none' }}>
+                            로드 실패
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -657,7 +695,10 @@ export default function ProductCompositionManagement() {
                     </div>
                     {formData.image_url && (() => {
                       const imageUrl = getAbsoluteImageUrl(formData.image_url);
-                      if (!imageUrl) return null; // 빈 URL이면 렌더링하지 않음
+                      // ✅ 빈 문자열 또는 유효하지 않은 URL 체크 강화
+                      if (!imageUrl || imageUrl.trim() === '' || (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://'))) {
+                        return null;
+                      }
                       return (
                         <div className="mt-2 relative w-32 h-32 bg-gray-100 rounded overflow-hidden">
                           <Image
@@ -666,9 +707,16 @@ export default function ProductCompositionManagement() {
                             fill
                             className="object-contain"
                             unoptimized
+                            priority={false}
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
-                              target.src = '/placeholder-image.jpg';
+                              // ✅ 무한 루핑 방지: 이미 에러 처리된 경우 즉시 중단
+                              if (target.dataset.errorHandled === 'true') {
+                                target.style.display = 'none';
+                                return;
+                              }
+                              target.dataset.errorHandled = 'true';
+                              target.style.display = 'none';
                             }}
                           />
                         </div>
@@ -770,7 +818,10 @@ export default function ProductCompositionManagement() {
                         <div className="grid grid-cols-3 gap-2 mt-2">
                           {formData.reference_images.map((refImg, index) => {
                             const imageUrl = getAbsoluteImageUrl(refImg);
-                            if (!imageUrl) return null; // 빈 URL이면 렌더링하지 않음
+                            // ✅ 빈 문자열 또는 유효하지 않은 URL 체크 강화
+                            if (!imageUrl || imageUrl.trim() === '' || (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://'))) {
+                              return null;
+                            }
                             return (
                               <div key={index} className="relative group">
                                 <div className="relative w-full h-24 bg-gray-100 rounded overflow-hidden">
@@ -780,9 +831,16 @@ export default function ProductCompositionManagement() {
                                     fill
                                     className="object-contain"
                                     unoptimized
+                                    priority={false}
                                     onError={(e) => {
                                       const target = e.target as HTMLImageElement;
-                                      target.src = '/placeholder-image.jpg';
+                                      // ✅ 무한 루핑 방지: 이미 에러 처리된 경우 즉시 중단
+                                      if (target.dataset.errorHandled === 'true') {
+                                        target.style.display = 'none';
+                                        return;
+                                      }
+                                      target.dataset.errorHandled = 'true';
+                                      target.style.display = 'none';
                                     }}
                                   />
                                 </div>
