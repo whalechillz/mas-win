@@ -286,13 +286,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // 메시지 템플릿 생성
       const formattedTime = formatTime(booking.time);
-      const message = `[마쓰구골프] ${booking.name || '고객'}님, 안녕하세요! 오늘 ${formattedTime} 시타 예약이 있습니다.
+      const message = `친애하는 ${booking.name || '고객'} 고객님, 
+안녕하세요! 마쓰구골프입니다.
+오늘은 고객님의 최대 비거리 드라이버 시타 서비스 예약일입니다. 고객님만을 위해 특별히 준비한 맞춤형 분석과 시타 체험을 통해 최상의 경험을 선사해 드리겠습니다.
 
-고객님만을 위해 특별히 준비한 맞춤형 분석과 시타 체험을 통해 최상의 경험을 선사해 드리겠습니다. 준비해주세요!
+▶ 예약시간: ${formattedTime}
+▶ 약도 안내: https://www.masgolf.co.kr/contact
 
-📍 약도: https://www.masgolf.co.kr/contact
+고객님의 편의를 위해 
+일정 조정이 필요하시다면 언제든지 편하게 연락 주시면 최상의 경험을 위해 최선을 다하겠습니다.
 
-문의: 031-215-0013`;
+☎ 마쓰구 수원본점
+수원시 영통구 법조로149번길 200 마스골프
+TEL 031-215-0013
+무료 080-028-8888 (무료 상담)
+OPEN 09:00~17:00(월~금)`;
 
       // 기존 예약 메시지가 있으면 삭제
       // 먼저 기존 메시지 조회

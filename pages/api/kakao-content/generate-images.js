@@ -68,6 +68,22 @@ export default async function handler(req, res) {
     // 기본적으로 모든 텍스트 제거 (로고는 logoOption에 따라 처리)
     const baseTextRemoval = "text, words, letters, korean text, chinese text, english text, japanese text, watermark, caption, subtitle, written content, any text, typography, font, writing, characters, symbols, numbers, text overlay, text on image, embedded text, floating text, text banner, text label, text sign, text graphic, text element, text decoration, text design, text illustration";
     
+    // 손 표현 개선 옵션 확인
+    const improveHandQuality = metadata?.improveHandQuality || false;
+    
+    // 인물 앞 장애물 제거 옵션 확인
+    const removeForegroundObstruction = metadata?.removeForegroundObstruction || false;
+    
+    // 손 관련 문제 (토글이 켜져 있을 때만 추가)
+    const handIssues = improveHandQuality 
+      ? "deformed hands, malformed hands, extra fingers, missing fingers, too many fingers, too few fingers, fused fingers, wrong number of fingers, distorted hands, unnatural hands, bad hands, ugly hands, poorly drawn hands, mutated hands, extra limbs, missing limbs, bad anatomy, malformed anatomy, distorted anatomy"
+      : "";
+    
+    // 인물 앞 장애물 관련 negative prompt (토글이 켜져 있을 때만 추가)
+    const foregroundObstructionIssues = removeForegroundObstruction
+      ? "foreground grass blocking person, foreground elements blocking view, out-of-focus foreground objects blocking subject, grass in front of person, foreground obstruction, foreground blur blocking person, foreground elements covering person, foreground objects hiding person, foreground elements obscuring view, foreground grass hiding person, foreground vegetation blocking person, foreground elements interfering with subject visibility"
+      : "";
+    
     let negativePrompt = baseTextRemoval;
     
     // logoOption 처리 (우선순위: logoOption > textOption)
@@ -81,6 +97,16 @@ export default async function handler(req, res) {
       // 기본값: 텍스트 완전 제거 (로고는 허용)
       // AI 이미지 생성 메뉴에서는 항상 텍스트 제거
       negativePrompt = baseTextRemoval;
+    }
+    
+    // 손 표현 개선이 활성화된 경우 negative prompt에 손 관련 문제 추가
+    if (improveHandQuality && handIssues) {
+      negativePrompt = `${negativePrompt}, ${handIssues}`;
+    }
+    
+    // 인물 앞 장애물 제거가 활성화된 경우 negative prompt에 추가
+    if (removeForegroundObstruction && foregroundObstructionIssues) {
+      negativePrompt = `${negativePrompt}, ${foregroundObstructionIssues}`;
     }
 
     // 각 프롬프트에 대해 이미지 생성
@@ -212,16 +238,25 @@ export default async function handler(req, res) {
           
           // ✅ targetFolder가 제공되면 우선 사용
           if (targetFolder) {
-            const timestamp = Date.now();
             const fileExtension = metadata && metadata.type === 'feed' ? 'jpg' : 'png';
-            finalFileName = `ai-generated-${timestamp}-${i + 1}-${imgIdx + 1}.${fileExtension}`;
+            const sceneStep = metadata.sceneStep;
+            
+            // blog 폴더인 경우 blog-scene-{sceneStep}.jpg 형식 사용
+            if (targetFolder.startsWith('originals/blog/') && sceneStep) {
+              finalFileName = `blog-scene-${sceneStep}.${fileExtension}`;
+            } else {
+              // 기존 형식 (타임스탬프 사용)
+              const timestamp = Date.now();
+              finalFileName = `ai-generated-${timestamp}-${i + 1}-${imgIdx + 1}.${fileExtension}`;
+            }
+            
             finalFilePath = `${targetFolder}/${finalFileName}`;
             
             // 경로 검증 로깅
             console.log(`📁 AI 이미지 저장 경로 (targetFolder 사용): ${finalFilePath}`);
           } else if (metadata && metadata.date && (!metadata.account || logoOption)) {
-            // AI 이미지 생성인 경우 originals/ai-generated/YYYY-MM-DD/ 구조로 저장
-            // (logoOption이 있거나 account가 없으면 AI 이미지 생성으로 간주)
+          // AI 이미지 생성인 경우 originals/ai-generated/YYYY-MM-DD/ 구조로 저장
+          // (logoOption이 있거나 account가 없으면 AI 이미지 생성으로 간주)
             // date가 ISO 형식이거나 YYYY-MM-DD 형식일 수 있음
             let dateStr = metadata.date;
             if (dateStr.includes('T')) {
@@ -234,13 +269,15 @@ export default async function handler(req, res) {
             const timestamp = Date.now();
             const brandTone = metadata.account === 'account1' ? 'senior-emotional' : (metadata.account === 'account2' ? 'high-tech-innovative' : 'general');
             const imageType = metadata.type || 'feed'; // background, profile, feed
+            const sceneStep = metadata.sceneStep; // 장면 번호 (1-7)
             
-            // 파일명: ai-generated-{brandTone}-{imageType}-{timestamp}-{index}.jpg|png
+            // 파일명: ai-generated-{brandTone}-scene{sceneStep}-{imageType}-{timestamp}-{index}.jpg|png
+            const scenePart = sceneStep ? `-scene${sceneStep}` : '';
             if (metadata.type === 'feed') {
-              finalFileName = `ai-generated-${brandTone}-${imageType}-${timestamp}-${i + 1}-${imgIdx + 1}.jpg`;
+              finalFileName = `ai-generated-${brandTone}${scenePart}-${imageType}-${timestamp}-${i + 1}-${imgIdx + 1}.jpg`;
               finalFilePath = `originals/ai-generated/${dateStr}/${finalFileName}`;
             } else {
-              finalFileName = `ai-generated-${brandTone}-${imageType}-${timestamp}-${i + 1}-${imgIdx + 1}.png`;
+              finalFileName = `ai-generated-${brandTone}${scenePart}-${imageType}-${timestamp}-${i + 1}-${imgIdx + 1}.png`;
               finalFilePath = `originals/ai-generated/${dateStr}/${finalFileName}`;
             }
             

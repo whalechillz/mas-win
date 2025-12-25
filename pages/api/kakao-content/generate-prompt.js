@@ -139,6 +139,14 @@ export default async function handler(req, res) {
     const systemPrompt = `You are an expert image prompt generator${useForImageGeneration ? ' for universal, year-round images' : ' for KakaoTalk content'}.
 Create a detailed, vivid English prompt for AI image generation.
 
+**CREATIVITY AND VARIETY REQUIREMENTS:**
+- Generate DIFFERENT variations each time, even for the same base concept
+- Vary the specific actions, poses, and interactions while maintaining the core emotion/mood
+- Use diverse expressions: instead of always using the same specific action (like "high-fiving"), consider various natural interactions such as "celebrating", "sharing success", "congratulating", "enjoying achievement together", "expressing joy through natural gestures"
+- Vary camera angles, compositions, and perspectives
+- Create unique visual scenarios that convey the same emotion but through different actions and poses
+- Avoid repetitive phrases or identical compositions across different generations
+
 **CRITICAL REQUIREMENTS (MUST FOLLOW):**
 1. ${koreanGolferSpec}
 2. ${type === 'background' ? 'The BACKGROUND/SCENE is the main subject. STRICTLY MINIMIZE people: maximum 1-2 very small, distant silhouettes in the far background (barely visible), or preferably NO people at all. Focus exclusively on the landscape, golf course, store, or setting itself. Do NOT include multiple people or groups of people.' : 'ABSOLUTELY NO Western/Caucasian people - ONLY Korean/Asian people'}
@@ -212,13 +220,14 @@ Return ONLY the enhanced prompt in English, keeping the original concept, mood, 
 
 Create an enhanced image generation prompt that:
 1. **PRESERVES and EXPANDS the base prompt concept** (this is the most important requirement)
-2. Adds all critical requirements (Korean golfer, account type, style)
-3. Ensures NO Western/Caucasian people appear
-${useForImageGeneration ? '' : `4. Matches the weekly theme: ${weeklyThemeText}`}
-${useForImageGeneration ? '4. Universal, year-round applicable (no seasonal or date-specific elements)' : '5. Is optimized for ${type} image type'}
-${useForImageGeneration ? '5. Bright, well-lit image with positive, cheerful atmosphere and warm, genuine smile' : ''}
-${useForImageGeneration ? '6. Is optimized for ${type} image type' : ''}${brandInstruction}
-${useForImageGeneration ? '7. Maintains visual consistency with the base concept' : '6. Maintains visual consistency with the base concept'}
+2. **Varies the specific actions and interactions** - if the base prompt mentions a specific action (like "high-fiving"), create diverse variations such as celebrating, sharing success, congratulating, or expressing achievement through natural gestures - maintain the emotion but vary the expression
+3. Adds all critical requirements (Korean golfer, account type, style)
+4. Ensures NO Western/Caucasian people appear
+${useForImageGeneration ? '' : `5. Matches the weekly theme: ${weeklyThemeText}`}
+${useForImageGeneration ? '5. Universal, year-round applicable (no seasonal or date-specific elements)' : '6. Is optimized for ${type} image type'}
+${useForImageGeneration ? '6. Bright, well-lit image with positive, cheerful atmosphere and warm, genuine smile' : ''}
+${useForImageGeneration ? '7. Is optimized for ${type} image type' : ''}${brandInstruction}
+${useForImageGeneration ? '8. Maintains visual consistency with the base concept while introducing creative variety' : '7. Maintains visual consistency with the base concept while introducing creative variety'}
 
 Return ONLY the enhanced prompt in English, ready for AI image generation. The base concept must be clearly visible in the result.`;
     }
@@ -230,7 +239,7 @@ Return ONLY the enhanced prompt in English, ready for AI image generation. The b
         { role: 'user', content: userPrompt }
       ],
       max_tokens: 400,
-      temperature: 0.7
+      temperature: 0.9
     });
 
     const generatedPrompt = response.choices[0].message.content.trim();

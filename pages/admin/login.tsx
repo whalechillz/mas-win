@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { signIn, getSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
+import { getToken } from 'next-auth/jwt';
 
 export default function LoginPage() {
   const [login, setLogin] = useState('');
@@ -114,15 +115,25 @@ export default function LoginPage() {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getSession(context);
+  // getSession 대신 getToken 사용 (API 호출 없이 JWT 직접 읽기)
+  // 이렇게 하면 리다이렉트 루프를 방지할 수 있습니다
+  try {
+    const token = await getToken({ 
+      req: context.req, 
+      secret: process.env.NEXTAUTH_SECRET || 'masgolf-admin-secret-key-2024'
+    });
 
-  if (session) {
-    return {
-      redirect: {
-        destination: '/admin',
-        permanent: false,
-      },
-    };
+    if (token) {
+      return {
+        redirect: {
+          destination: '/admin',
+          permanent: false,
+        },
+      };
+    }
+  } catch (error) {
+    // 토큰 읽기 실패 시 로그인 페이지로 진행
+    console.log('토큰 확인 실패 (정상 - 로그인 필요):', error);
   }
 
   return {

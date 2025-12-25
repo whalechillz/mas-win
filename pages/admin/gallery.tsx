@@ -3699,10 +3699,10 @@ export default function GalleryAdmin() {
               
               {/* 폴더 트리 (로딩 완료 후에만 표시) */}
               {!isLoadingFolders && !folderLoadError && availableFolders.length > 0 && (
-                <FolderTree
-                  folders={availableFolders}
-                  selectedFolder={folderFilter}
-                  onFolderSelect={(folderPath) => {
+              <FolderTree
+                folders={availableFolders}
+                selectedFolder={folderFilter}
+                onFolderSelect={(folderPath) => {
                   // 🔧 수정: daily-branding/kakao 또는 mms로 시작하는 경로에 originals/ 프리픽스 자동 추가
                   let adjustedPath = folderPath;
                   if (folderPath && folderPath !== 'all' && folderPath !== 'root') {
@@ -4848,40 +4848,51 @@ export default function GalleryAdmin() {
               <div className="flex items-center gap-2">
                 {/* 액션 버튼들 */}
                 <button
-                  onClick={() => {
-                    // 편집 기능 - 메타데이터 편집 모달 열기
-                    setEditingImage(selectedImageForZoom.name);
-                  }}
-                  className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
-                  title="메타데이터 편집"
-                >
-                  📝 편집
-                </button>
-                <button
-                  onClick={() => {
-                    // URL 복사
-                    navigator.clipboard.writeText(selectedImageForZoom.url);
-                    alert('이미지 URL이 클립보드에 복사되었습니다.');
-                  }}
-                  className="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 transition-colors"
-                  title="URL 복사"
-                >
-                  🔗 복사
-                </button>
-                <button
-                  onClick={() => {
-                    // 다운로드
-                    const link = document.createElement('a');
-                    link.href = selectedImageForZoom.url;
-                    link.download = selectedImageForZoom.name;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
+                  onClick={async () => {
+                    try {
+                      // 1. 이미지 다운로드
+                      const response = await fetch(selectedImageForZoom.url);
+                      if (!response.ok) {
+                        throw new Error(`이미지 다운로드 실패: ${response.status}`);
+                      }
+                      const blob = await response.blob();
+                      
+                      // 2. cleanup.pictures 열기
+                      const cleanupWindow = window.open('https://cleanup.pictures/', '_blank');
+                      
+                      // 3. 이미지를 다운로드 폴더에 저장
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = selectedImageForZoom.name || `image-${Date.now()}.${selectedImageForZoom.name?.split('.').pop() || 'png'}`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      
+                      // 4. 안내 메시지
+                      setTimeout(() => {
+                        if (cleanupWindow) {
+                          cleanupWindow.focus();
+                          alert(
+                            '✅ 이미지가 다운로드되었습니다.\n\n' +
+                            '📋 다음 단계:\n' +
+                            '1. cleanup.pictures에 다운로드된 이미지를 드래그 앤 드롭하세요\n' +
+                            '2. 편집 후 "Continue with SD" 버튼을 클릭하세요\n' +
+                            '3. 편집된 이미지를 다운로드하세요'
+                          );
+                        }
+                        window.URL.revokeObjectURL(url);
+                      }, 500);
+                      
+                    } catch (error) {
+                      console.error('이미지 처리 오류:', error);
+                      alert('이미지 처리에 실패했습니다: ' + (error instanceof Error ? error.message : String(error)));
+                    }
                   }}
                   className="px-3 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 transition-colors"
-                  title="다운로드"
+                  title="cleanup.pictures에서 편집"
                 >
-                  ⬇️ 저장
+                  ✏️ 수정
                 </button>
                 <button
                   onClick={() => {
@@ -5775,15 +5786,15 @@ export default function GalleryAdmin() {
                 <div className="grid grid-cols-2 gap-4">
                   {/* 왼쪽: 폴더 선택 (컴팩트) */}
                   <div className="space-y-2">
-                    <FolderSelector
-                      selectedPath={selectedUploadFolder}
-                      onSelectPath={setSelectedUploadFolder}
+                  <FolderSelector
+                    selectedPath={selectedUploadFolder}
+                    onSelectPath={setSelectedUploadFolder}
                       defaultPath={folderFilter && folderFilter !== 'all' && folderFilter !== 'root' ? folderFilter : `uploaded/${new Date().toISOString().slice(0, 7)}/${new Date().toISOString().slice(0, 10)}`}
-                      showLabel={true}
+                    showLabel={true}
                       // 🔧 최적화: 이미 가져온 폴더 목록 전달 (추가 API 호출 없음)
-                      folders={availableFolders}
-                      isLoadingFolders={isLoadingFolders}
-                    />
+                    folders={availableFolders}
+                    isLoadingFolders={isLoadingFolders}
+                  />
                   </div>
                   
                   {/* 오른쪽: 드래그 앤 드롭 업로드 영역 (컴팩트) */}
@@ -5791,7 +5802,7 @@ export default function GalleryAdmin() {
                     <label className="block text-sm font-medium text-gray-700">
                       파일 업로드
                     </label>
-                    <div 
+                  <div 
                       className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors"
                     onDragOver={(e) => {
                       e.preventDefault();
@@ -5837,22 +5848,22 @@ export default function GalleryAdmin() {
                     }}
                   >
                       <div className="space-y-3">
-                        <div className="text-gray-500">
-                          <label htmlFor="gallery-file-upload" className="cursor-pointer">
+                      <div className="text-gray-500">
+                        <label htmlFor="gallery-file-upload" className="cursor-pointer">
                             <svg className="mx-auto h-10 w-10 text-gray-400 hover:text-blue-500 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </label>
-                        </div>
-                        <div>
-                          <label htmlFor="gallery-file-upload" className="cursor-pointer">
-                            <span className="mt-2 block text-sm font-medium text-gray-900">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </label>
+                      </div>
+                      <div>
+                        <label htmlFor="gallery-file-upload" className="cursor-pointer">
+                          <span className="mt-2 block text-sm font-medium text-gray-900">
                               파일 선택 또는 드래그
-                            </span>
+                          </span>
                             <span className="mt-1 block text-xs text-gray-500">
                               PNG, JPG, GIF, HEIC
-                            </span>
-                          </label>
+                          </span>
+                        </label>
                         <input
                           id="gallery-file-upload"
                           name="gallery-file-upload"
@@ -5884,9 +5895,9 @@ export default function GalleryAdmin() {
                             }
                           }}
                         />
-                        </div>
                       </div>
                     </div>
+                  </div>
                     <p className="text-xs text-gray-500">업로드 후 자동으로 메타데이터가 보강됩니다.</p>
                   </div>
                 </div>

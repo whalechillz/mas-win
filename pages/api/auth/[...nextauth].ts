@@ -140,29 +140,38 @@ export default NextAuth({
   },
   secret: process.env.NEXTAUTH_SECRET || 'masgolf-admin-secret-key-2024',
   debug: process.env.NODE_ENV === 'development',
-  // 로컬 개발 환경 설정
-  ...(process.env.NODE_ENV === 'development' && {
-    url: process.env.NEXTAUTH_URL || 'http://localhost:3000',
-    useSecureCookies: false, // 로컬 개발용
-    cookies: {
-      sessionToken: {
-        name: `next-auth.session-token`,
-        options: {
-          httpOnly: true,
-          sameSite: 'lax',
-          path: '/',
-          secure: false, // 로컬 개발용
-        },
-      },
-      callbackUrl: {
-        name: `next-auth.callback-url`,
-        options: {
-          httpOnly: true,
-          sameSite: 'lax',
-          path: '/',
-          secure: false, // 로컬 개발용
-        },
+  // 로컬 개발 환경에서 쿠키 설정
+  // NextAuth v4에서는 url 속성 대신 NEXTAUTH_URL 환경 변수를 사용합니다
+  useSecureCookies: process.env.NODE_ENV === 'production',
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production', // 프로덕션에서만 secure
+        // 로컬에서는 domain 설정 안 함 (localhost에서 작동하도록)
       },
     },
-  })
+    callbackUrl: {
+      name: `next-auth.callback-url`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production', // 프로덕션에서만 secure
+        // 로컬에서는 domain 설정 안 함 (localhost에서 작동하도록)
+      },
+    },
+    csrfToken: {
+      name: `next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  }
 })

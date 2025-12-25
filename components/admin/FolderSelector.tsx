@@ -84,11 +84,11 @@ export default function FolderSelector({
             📁 업로드 폴더 선택
           </label>
           {!simpleMode && (
-            <div className="text-xs text-gray-500 mb-2">
-              선택된 폴더: <span className="font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                {selectedPath || '기본값 사용'}
-              </span>
-            </div>
+          <div className="text-xs text-gray-500 mb-2">
+            선택된 폴더: <span className="font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">
+              {selectedPath || '기본값 사용'}
+            </span>
+          </div>
           )}
         </div>
       )}
@@ -110,19 +110,19 @@ export default function FolderSelector({
       ) : (
         // 전체 트리 모드
         <div className="space-y-2">
-          <div className="max-h-64 overflow-y-auto bg-white rounded border border-gray-200">
-            <FolderTree
-              folders={folders}
-              selectedFolder={selectedPath}
+      <div className="max-h-64 overflow-y-auto bg-white rounded border border-gray-200">
+        <FolderTree
+          folders={folders}
+          selectedFolder={selectedPath}
               onFolderSelect={(path) => {
                 onSelectPath(path);
                 setSimpleMode(true); // 선택 후 간단 모드로 전환
               }}
-              includeChildren={false}
-              onIncludeChildrenChange={() => {}}
-              onFoldersChanged={fetchFolders}
-            />
-          </div>
+          includeChildren={false}
+          onIncludeChildrenChange={() => {}}
+          onFoldersChanged={fetchFolders}
+        />
+      </div>
           <button
             onClick={() => setSimpleMode(true)}
             className="w-full text-xs text-gray-500 py-1.5 border border-gray-200 rounded hover:bg-gray-50 transition-colors"

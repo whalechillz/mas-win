@@ -21,6 +21,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       important_factors,
       additional_feedback,
       address,
+      gift_product_id,
+      gift_text,
+      event_candidate,
+      event_winner,
     } = req.body;
 
     if (!id) {
@@ -69,6 +73,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (important_factors !== undefined) updateData.important_factors = important_factors;
     if (additional_feedback !== undefined) updateData.additional_feedback = additional_feedback;
     if (address !== undefined) updateData.address = address;
+    if (gift_product_id !== undefined) {
+      updateData.gift_product_id = gift_product_id === null ? null : gift_product_id;
+    }
+    if (gift_text !== undefined) {
+      updateData.gift_text = gift_text === null ? null : gift_text;
+    }
+    if (event_candidate !== undefined) {
+      updateData.event_candidate = Boolean(event_candidate);
+    }
+    if (event_winner !== undefined) {
+      updateData.event_winner = Boolean(event_winner);
+    }
 
     // 설문 업데이트
     const { data: updatedSurvey, error } = await supabase

@@ -1,4 +1,5 @@
 const { chromium } = require('playwright');
+const { checkBrowserVersion } = require('./utils/browser-version-check');
 
 (async () => {
   console.log('🚀 로그인 테스트 시작...\n');
@@ -15,8 +16,20 @@ const { chromium } = require('playwright');
   const page = await context.newPage();
   
   try {
+    // 0. 브라우저 버전 체크 (페이지 로드 전에 빈 페이지로 버전 확인)
+    console.log('🔍 브라우저 버전 확인 중...');
+    await page.goto('about:blank');
+    const versionCheck = await checkBrowserVersion(page, { skipTest: true });
+    
+    if (versionCheck.shouldSkip) {
+      console.log('\n❌ 테스트를 중단합니다.');
+      console.log('   문제 버전:', versionCheck.version);
+      console.log('   해결 방법: Chrome을 다운그레이드하거나 다른 브라우저를 사용하세요.');
+      process.exit(0); // 스킵은 실패가 아니므로 exit code 0
+    }
+    
     // 1. 로그인 페이지 접속
-    console.log('📄 1. 로그인 페이지 접속 중...');
+    console.log('\n📄 1. 로그인 페이지 접속 중...');
     await page.goto('http://localhost:3000/admin/login', {
       waitUntil: 'domcontentloaded',
       timeout: 10000

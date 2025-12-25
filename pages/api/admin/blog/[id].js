@@ -189,7 +189,7 @@ export default async function handler(req, res) {
                 updated_at: new Date().toISOString()
               })
               .eq('id', blogData.calendar_id);
-            
+          
             if (updateError) {
               console.error('❌ 블로그 삭제 후 허브 상태 업데이트 실패:', updateError);
             } else {

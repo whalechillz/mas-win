@@ -329,15 +329,20 @@ export function generateCompositionPrompt(
  * @param baseUrl 기본 URL (선택사항)
  * @returns 절대 URL
  */
+// Supabase URL 상수 (빌드 타임에 주입)
+const SUPABASE_URL = typeof window !== 'undefined' 
+  ? (window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+  : process.env.NEXT_PUBLIC_SUPABASE_URL;
+
 /**
  * Supabase Storage 경로를 공개 URL로 변환
  * @param storagePath Storage 경로 (예: originals/products/goods/image.webp)
  * @returns 공개 URL
  */
 export function getSupabaseStorageUrl(storagePath: string): string {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!supabaseUrl) {
+  if (!SUPABASE_URL) {
     console.warn('⚠️ NEXT_PUBLIC_SUPABASE_URL이 설정되지 않았습니다.');
+    // Fallback: 상대 경로 그대로 반환 (서버에서 처리)
     return storagePath;
   }
   
@@ -345,7 +350,7 @@ export function getSupabaseStorageUrl(storagePath: string): string {
   const cleanPath = storagePath.startsWith('/') ? storagePath.slice(1) : storagePath;
   
   // Supabase Storage 공개 URL 형식
-  return `${supabaseUrl}/storage/v1/object/public/blog-images/${cleanPath}`;
+  return `${SUPABASE_URL}/storage/v1/object/public/blog-images/${cleanPath}`;
 }
 
 /**

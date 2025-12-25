@@ -12,7 +12,11 @@ type Survey = {
   important_factors: string[];
   additional_feedback: string | null;
   address: string;
+  gift_text?: string | null;
+  gift_product_id?: number | null;
   created_at: string;
+  event_candidate?: boolean;
+  event_winner?: boolean;
 };
 
 export default function SurveysPage() {
@@ -25,12 +29,20 @@ export default function SurveysPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedModelFilter, setSelectedModelFilter] = useState('');
   const [ageGroupFilter, setAgeGroupFilter] = useState('');
+  const [sortBy, setSortBy] = useState('created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [editingSurvey, setEditingSurvey] = useState<Survey | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState<Partial<Survey>>({});
   const [viewSurvey, setViewSurvey] = useState<Survey | null>(null);
+  const [giftProducts, setGiftProducts] = useState<
+    { id: number; name: string; sku: string | null }[]
+  >([]);
+  const [editingGiftProductId, setEditingGiftProductId] = useState<number | null>(null);
+  const [editingGiftText, setEditingGiftText] = useState<string>('');
+  const [savingGiftRecord, setSavingGiftRecord] = useState(false);
   const [messageModal, setMessageModal] = useState<{
     open: boolean;
     survey: Survey | null;
@@ -63,6 +75,8 @@ export default function SurveysPage() {
         ...(searchQuery && { q: searchQuery }),
         ...(selectedModelFilter && { selected_model: selectedModelFilter }),
         ...(ageGroupFilter && { age_group: ageGroupFilter }),
+        sortBy: sortBy,
+        sortOrder: sortOrder,
       });
 
       const res = await fetch(`/api/survey/list?${params}`);
@@ -93,12 +107,38 @@ export default function SurveysPage() {
     }
   };
 
+  // 사은품(굿즈) 상품 목록 조회
+  const fetchGiftProducts = async () => {
+    try {
+      const res = await fetch('/api/admin/products?isGift=true');
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setGiftProducts(json.products || []);
+      } else {
+        console.error('사은품 상품 목록 조회 실패:', json.message);
+      }
+    } catch (err) {
+      console.error('사은품 상품 목록 조회 오류:', err);
+    }
+  };
+
   useEffect(() => {
     fetchSurveys();
     fetchStats();
-    // 필터나 페이지 변경 시 선택 초기화
-    setSelectedIds([]);
-  }, [page, searchQuery, selectedModelFilter, ageGroupFilter]);
+    fetchGiftProducts();
+      // 필터나 페이지 변경 시 선택 초기화
+      setSelectedIds([]);
+    }, [page, searchQuery, selectedModelFilter, ageGroupFilter, sortBy, sortOrder]);
+
+  // 정렬 핸들러
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortOrder('asc');
+    }
+  };
 
   const getModelName = (modelId: string) => {
     const modelMap: Record<string, string> = {
@@ -119,26 +159,31 @@ export default function SurveysPage() {
     return factors.map(f => factorMap[f] || f).join(', ');
   };
 
-  // 개별 삭제
+  // 개별 삭제 (bulk-delete API 재사용)
   const handleDelete = async (id: string) => {
     if (!confirm('정말로 이 설문을 삭제하시겠습니까?')) return;
 
     setIsDeleting(true);
     try {
-      const response = await fetch('/api/survey/delete', {
-        method: 'DELETE',
+      const response = await fetch('/api/survey/bulk-delete', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ ids: [id] }),
       });
 
-      const result = await response.json();
+      let result: any = null;
+      try {
+        result = await response.json();
+      } catch {
+        // 응답이 비어있거나 JSON이 아니어도 안전하게 처리
+      }
 
-      if (result.success) {
-        alert('삭제되었습니다.');
+      if (response.ok && result?.success) {
+        alert(result.message || '삭제되었습니다.');
         fetchSurveys();
         fetchStats();
       } else {
-        alert(result.message || '삭제에 실패했습니다.');
+        alert(result?.message || '삭제에 실패했습니다.');
       }
     } catch (error) {
       console.error('삭제 오류:', error);
@@ -176,14 +221,23 @@ export default function SurveysPage() {
       important_factors: survey.important_factors,
       additional_feedback: survey.additional_feedback,
       address: survey.address,
+      gift_text: survey.gift_text ?? '',
+      gift_product_id: survey.gift_product_id ?? null,
+      event_candidate: survey.event_candidate ?? false,
+      event_winner: survey.event_winner ?? false,
     });
-    setIsEditing(true);
+    setEditingGiftProductId(survey.gift_product_id ?? null);
+    setEditingGiftText(survey.gift_text ?? '');
+    // 모달을 열 때는 아직 저장 중이 아니므로 false로 초기화
+    setIsEditing(false);
   };
 
   // 수정 모달 닫기
   const handleCloseEdit = () => {
     setEditingSurvey(null);
     setEditFormData({});
+    setEditingGiftProductId(null);
+    setEditingGiftText('');
     setIsEditing(false);
   };
 
@@ -199,6 +253,8 @@ export default function SurveysPage() {
         body: JSON.stringify({
           id: editingSurvey.id,
           ...editFormData,
+          gift_product_id: editingGiftProductId,
+          gift_text: editingGiftText,
         }),
       });
 
@@ -217,6 +273,117 @@ export default function SurveysPage() {
       alert('수정 중 오류가 발생했습니다.');
     } finally {
       setIsEditing(false);
+    }
+  };
+
+  // 설문 -> 고객 선물 기록 저장
+  const handleSaveGiftToCustomer = async () => {
+    if (!editingSurvey) {
+      return;
+    }
+    if (!editingGiftProductId && !editingGiftText) {
+      alert('사은품을 선택하거나 메모를 입력한 후 저장할 수 있습니다.');
+      return;
+    }
+
+    const name = (editFormData.name || editingSurvey.name || '').trim();
+    const phoneRaw = (editFormData.phone || editingSurvey.phone || '').trim();
+    const address = (editFormData.address || editingSurvey.address || '').trim();
+
+    if (!name || !phoneRaw) {
+      alert('이름과 전화번호가 있어야 고객 선물 기록을 저장할 수 있습니다.');
+      return;
+    }
+
+    const normalizedPhone = phoneRaw.replace(/[^0-9]/g, '');
+    if (normalizedPhone.length < 10 || normalizedPhone.length > 11) {
+      alert('전화번호 형식이 올바르지 않습니다. (10~11자리 숫자)');
+      return;
+    }
+
+    if (
+      !confirm(
+        `이 설문 정보를 기반으로 고객 선물 기록을 저장합니다.\n\n이름: ${name}\n전화: ${normalizedPhone}\n사은품: ${
+          editingGiftProductId
+            ? giftProducts.find((p) => p.id === editingGiftProductId)?.name || '선택된 상품'
+            : '직접 입력'
+        }\n메모: ${editingGiftText || '-'}\n\n계속하시겠습니까?`,
+      )
+    ) {
+      return;
+    }
+
+    setSavingGiftRecord(true);
+    try {
+      // 1) 고객 검색
+      const searchParams = new URLSearchParams({
+        q: normalizedPhone,
+        page: '1',
+        pageSize: '1',
+      });
+      const customersRes = await fetch(`/api/admin/customers?${searchParams.toString()}`);
+      const customersJson = await customersRes.json();
+
+      let customer =
+        customersJson?.data?.find?.(
+          (c: any) => String(c.phone || '').replace(/[^0-9]/g, '') === normalizedPhone,
+        ) || null;
+
+      // 2) 없으면 고객 생성
+      if (!customer) {
+        const createRes = await fetch('/api/admin/customers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            phone: normalizedPhone,
+            address: address || null,
+          }),
+        });
+        const createJson = await createRes.json();
+        if (!createRes.ok || !createJson.success) {
+          alert(createJson.message || '고객 생성에 실패했습니다.');
+          setSavingGiftRecord(false);
+          return;
+        }
+        customer = createJson.data;
+      }
+
+      if (!customer || !customer.id) {
+        alert('고객 정보를 확인할 수 없습니다.');
+        setSavingGiftRecord(false);
+        return;
+      }
+
+      // 3) customer_gifts 레코드 생성
+      const giftRes = await fetch('/api/admin/customer-gifts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer_id: customer.id,
+          survey_id: editingSurvey.id,
+          product_id: editingGiftProductId,
+          gift_text: editingGiftText || null,
+          quantity: 1,
+          delivery_type: 'in_person',
+          delivery_status: 'pending',
+          delivery_date: null,
+          note: '설문 편집 화면에서 자동 생성',
+        }),
+      });
+      const giftJson = await giftRes.json();
+      if (!giftRes.ok || !giftJson.success) {
+        alert(giftJson.message || '고객 선물 기록 저장에 실패했습니다.');
+        setSavingGiftRecord(false);
+        return;
+      }
+
+      alert('고객 선물 기록에 저장되었습니다.\n고객 관리 > 🎁 선물 버튼에서 확인할 수 있습니다.');
+    } catch (error: any) {
+      console.error('고객 선물 기록 저장 오류:', error);
+      alert(error.message || '고객 선물 기록 저장 중 오류가 발생했습니다.');
+    } finally {
+      setSavingGiftRecord(false);
     }
   };
 
@@ -507,23 +674,53 @@ export default function SurveysPage() {
                             className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                           />
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          이름
+                        <th 
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => handleSort('name')}
+                        >
+                          <div className="flex items-center gap-1">
+                            이름
+                            {sortBy === 'name' && (sortOrder === 'asc' ? '▲' : '▼')}
+                          </div>
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          전화번호
+                        <th 
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => handleSort('phone')}
+                        >
+                          <div className="flex items-center gap-1">
+                            전화번호
+                            {sortBy === 'phone' && (sortOrder === 'asc' ? '▲' : '▼')}
+                          </div>
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          연령대
+                        <th 
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => handleSort('age_group')}
+                        >
+                          <div className="flex items-center gap-1">
+                            연령대
+                            {sortBy === 'age_group' && (sortOrder === 'asc' ? '▲' : '▼')}
+                          </div>
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          선택 모델
+                        <th 
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => handleSort('selected_model')}
+                        >
+                          <div className="flex items-center gap-1">
+                            선택 모델
+                            {sortBy === 'selected_model' && (sortOrder === 'asc' ? '▲' : '▼')}
+                          </div>
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           중요 요소
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          제출일
+                        <th 
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                          onClick={() => handleSort('created_at')}
+                        >
+                          <div className="flex items-center gap-1">
+                            제출일
+                            {sortBy === 'created_at' && (sortOrder === 'asc' ? '▲' : '▼')}
+                          </div>
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           작업
@@ -551,6 +748,20 @@ export default function SurveysPage() {
                             >
                               {survey.name}
                             </button>
+                            {(survey.event_candidate || survey.event_winner) && (
+                              <div className="mt-1 flex gap-1">
+                                {survey.event_candidate && (
+                                  <span className="inline-flex px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-[10px]">
+                                    응모
+                                  </span>
+                                )}
+                                {survey.event_winner && (
+                                  <span className="inline-flex px-1.5 py-0.5 rounded-full bg-red-100 text-red-800 text-[10px]">
+                                    당첨
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {survey.phone}
@@ -784,9 +995,93 @@ export default function SurveysPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
+
+                {/* 사은품 / 굿즈 정보 */}
+                <div className="border-t pt-4 mt-4">
+                  <h3 className="text-sm font-medium text-gray-900 mb-2">사은품 / 굿즈 정보</h3>
+
+                  <div className="mb-3 flex gap-4 text-xs">
+                    <label className="flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        checked={!!editFormData.event_candidate}
+                        onChange={(e) =>
+                          setEditFormData((prev) => ({
+                            ...prev,
+                            event_candidate: e.target.checked,
+                          }))
+                        }
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-gray-700">이벤트 응모 대상</span>
+                    </label>
+                    <label className="flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        checked={!!editFormData.event_winner}
+                        onChange={(e) =>
+                          setEditFormData((prev) => ({
+                            ...prev,
+                            event_winner: e.target.checked,
+                          }))
+                        }
+                        className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      />
+                      <span className="text-gray-700">당첨</span>
+                    </label>
+                  </div>
+
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    제공 사은품 (굿즈)
+                  </label>
+                  <select
+                    value={editingGiftProductId ?? ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const id = val ? Number(val) : null;
+                      setEditingGiftProductId(id);
+                      const selected = giftProducts.find((p) => p.id === id);
+                      if (selected) {
+                        setEditingGiftText(selected.name);
+                        setEditFormData(prev => ({ ...prev, gift_text: selected.name, gift_product_id: id }));
+                      } else {
+                        setEditFormData(prev => ({ ...prev, gift_text: '', gift_product_id: null }));
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  >
+                    <option value="">선택 안 함</option>
+                    {giftProducts.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <label className="block text-xs font-medium text-gray-700 mt-3 mb-1">
+                    기타 메모 (원래 제품명, 색/사이즈, 특이사항 등)
+                  </label>
+                  <input
+                    type="text"
+                    value={editingGiftText}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setEditingGiftText(value);
+                      setEditFormData(prev => ({ ...prev, gift_text: value }));
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  />
+                </div>
               </div>
 
-              <div className="flex justify-end gap-3 mt-6">
+              <div className="flex justify-between items-center gap-3 mt-6">
+                <button
+                  onClick={handleSaveGiftToCustomer}
+                  disabled={savingGiftRecord}
+                  className="px-3 py-2 text-sm border border-yellow-400 text-yellow-700 rounded-md hover:bg-yellow-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {savingGiftRecord ? '선물 기록 저장 중...' : '🎁 고객 선물 기록으로 저장'}
+                </button>
                 <button
                   onClick={handleCloseEdit}
                   className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
@@ -827,7 +1122,19 @@ export default function SurveysPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <div className="text-gray-500">이름</div>
-                    <div className="font-medium text-gray-900">{viewSurvey.name}</div>
+                    <div className="font-medium text-gray-900 flex flex-wrap items-center gap-1">
+                      <span>{viewSurvey.name}</span>
+                      {viewSurvey.event_candidate && (
+                        <span className="inline-flex px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-[10px]">
+                          이벤트 응모
+                        </span>
+                      )}
+                      {viewSurvey.event_winner && (
+                        <span className="inline-flex px-1.5 py-0.5 rounded-full bg-red-100 text-red-800 text-[10px]">
+                          당첨
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <div className="text-gray-500">연락처</div>

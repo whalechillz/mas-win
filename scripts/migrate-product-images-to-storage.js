@@ -3,6 +3,9 @@
  * 로컬 public/main/products/ 폴더의 이미지를 Supabase Storage의 originals/products/ 구조로 업로드
  */
 
+// 환경 변수 로드 (.env.local)
+require('dotenv').config({ path: '.env.local' });
+
 const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');

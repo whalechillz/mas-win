@@ -2421,6 +2421,28 @@
 
 ---
 
+## 2025-01-XX: 예약 메시지 템플릿 개선 ✅
+
+### 완료된 작업
+- **예약 메시지 템플릿 개선** ✅:
+  - 파일: `pages/api/bookings/notify-customer.ts`, `pages/api/bookings/[id]/schedule-reminder.ts`
+  - 날짜 포맷팅 개선: 요일 추가 (예: 2025년 12월 23일(화))
+  - 메시지 형식 개선:
+    - 인사말 형식 변경: "[마쓰구골프] {고객명}님" → "친애하는 {고객명} 고객님, 안녕하세요! 마쓰구골프입니다."
+    - 전통적인 기호 사용: ▶, ⊙, ☎ (이모티콘 대체)
+    - 상세 정보 추가: 주소, 운영시간, 무료 상담 번호 포함
+  - 템플릿 업데이트:
+    - `booking_received`: 예약 접수 확인 메시지 개선
+    - `booking_confirmed`: 예약 확정 메시지 개선 (시타 서비스 혜택, 방문 시 참고사항 추가)
+    - `booking_reminder_2h`: 예약 당일 알림 메시지 개선 ("고반발" → "최대 비거리"로 변경)
+  - 예약 당일 알림 메시지 생성 로직 업데이트: `schedule-reminder.ts`에서 동일한 형식으로 메시지 생성
+
+- **변경 파일**:
+  - `pages/api/bookings/notify-customer.ts` (날짜 포맷팅 함수 개선, SMS 템플릿 업데이트)
+  - `pages/api/bookings/[id]/schedule-reminder.ts` (예약 당일 알림 메시지 템플릿 업데이트)
+
+---
+
 ## 🔮 옵션 기능 / 향후 구현 예정
 
 ### MMS 이미지 중복 통합 및 최적화 (옵션)
@@ -2519,3 +2541,70 @@ WHERE
 **참고**: 
 - Supabase Storage는 객체 스토리지이므로 전통적인 파일 시스템 심볼릭 링크는 불가능하지만, 메타데이터 참조 방식으로 동일한 효과를 구현할 수 있습니다.
 - `image_metadata` 테이블에 이미 `references` JSONB 컬럼과 `usage_count`, `hash_md5` 등이 준비되어 있어 추가 스키마 변경이 필요 없습니다.
+
+---
+
+## 11. 굿즈 / 사은품 관리 및 고객 선물 히스토리
+
+- **왜 하는가**
+  - MASSGOO × MUZIIK 콜라보 모자, 버킷햇, 티셔츠 등 굿즈/사은품 지급 내역을 체계적으로 관리
+  - 고객별로 어떤 선물을 언제, 어떤 방식(직접수령/택배 등)으로 지급했는지 추적
+  - 향후 굿즈 판매/재고 시스템과 자연스럽게 연동될 수 있는 기반 데이터 모델 구축
+
+- **DB 스키마**
+  - `products` (기존/신규 통합 마스터)
+    - 주요 컬럼: `id, name, sku, category, color, size, legacy_name, is_gift, is_sellable, is_active, normal_price, sale_price`
+    - `is_gift`: 사은품 여부 플래그
+    - `is_sellable`: 판매 가능 상품 여부
+  - `customer_gifts` (신규)
+    - 컬럼: `id, customer_id (bigint, customers.id FK), survey_id (uuid, surveys.id FK), product_id (bigint, products.id FK), gift_text, quantity, delivery_type (in_person|courier|etc), delivery_status (pending|sent|canceled), delivery_date, note, created_at, updated_at`
+    - 인덱스: `customer_id`, `product_id`
+
+- **API 구현**
+  - `GET /api/admin/products`
+    - 파라미터: `isGift`, `includeInactive`, `q`, `category`
+    - 용도: 굿즈 관리 페이지 및 설문/선물 선택용 드롭다운에 사용
+  - `POST /api/admin/products`
+    - 상품 생성 (굿즈/사은품 포함)
+  - `PUT /api/admin/products`
+    - 상품 수정 (플래그/가격/색상/사이즈 등)
+  - `DELETE /api/admin/products`
+    - 실제 삭제 대신 `is_active=false` 로 소프트 삭제
+  - `GET /api/admin/customer-gifts?customerId=...`
+    - 특정 고객의 선물 히스토리 조회 (상품 조인 포함)
+  - `POST /api/admin/customer-gifts`
+    - 새 선물 지급 기록 추가
+  - `PUT /api/admin/customer-gifts`
+    - 지급 상태/수량/메모 수정 (필요 시 확장)
+  - `DELETE /api/admin/customer-gifts`
+    - 잘못 입력된 선물 기록 삭제
+
+- **관리자 UI 구현**
+  - `/admin/products`
+    - 기능:
+      - 굿즈/사은품 상품 목록 조회 (검색, 사은품만 필터, 비활성 포함 여부)
+      - 상품 생성/수정 모달 (이름, SKU, 카테고리, 색상, 사이즈, 정상가/할인가, 플래그 설정)
+      - 상품 비활성화(소프트 삭제)
+    - 구현 파일:
+      - `pages/admin/products.tsx`
+      - `pages/api/admin/products.ts`
+      - `components/admin/AdminNav.tsx` 에 메뉴 `🎁 굿즈 / 사은품` 추가
+  - 고객 상세 선물 히스토리 모달
+    - 위치: `고객 관리` 페이지 (`/admin/customers`) 각 행의 `🎁 선물` 버튼
+    - 기능:
+      - 상단: 기존 선물 지급 이력 테이블 (날짜, 사은품명, 수량, 전달 방식/상태, 메모)
+      - 하단: 새 선물 기록 추가 폼
+        - 사은품 선택 (상품 드롭다운, `/api/admin/products?isGift=true`)
+        - 기타 메모 (원래 제품명, 색/사이즈, 특이사항 등)
+        - 수량, 전달 방식(직접수령/택배/기타), 상태(대기/완료/취소), 지급일, 비고
+    - 구현 파일:
+      - `pages/admin/customers/index.tsx`
+        - 새로운 모달 컴포넌트 `CustomerGiftsModal` 추가
+        - 고객 행에 `🎁 선물` 버튼 추가
+      - `pages/api/admin/customer-gifts.ts`
+
+- **향후 확장 포인트**
+  - 설문 편집 모달에서 선택한 사은품을 `customer_gifts` 와 자동 연결 (`survey_id` 활용)
+  - 굿즈 재고/판매 대시보드와 연동 (상품별 지급 수량 집계)
+  - 특정 굿즈를 여러 번 받은 VIP 고객 타깃 마케팅 (예: 모자/공 재구매 유도 캠페인)
+

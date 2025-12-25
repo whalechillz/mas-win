@@ -62,14 +62,14 @@ export default async function handler(req, res) {
     } else {
       // 다른 채널은 기존 방식 유지
       updatedChannelStatus = {
-        ...currentChannelStatus,
-        [channel]: {
-          status: status,
-          post_id: channelContentId,
+      ...currentChannelStatus,
+      [channel]: {
+        status: status,
+        post_id: channelContentId,
           created_at: currentChannel.created_at || new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      };
+        updated_at: new Date().toISOString()
+      }
+    };
     }
 
     const { data: updatedContent, error: updateError } = await supabase

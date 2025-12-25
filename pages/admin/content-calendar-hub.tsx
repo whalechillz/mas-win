@@ -1681,12 +1681,12 @@ export default function ContentCalendarHub() {
                                         </div>
                                       ))
                                     ) : (
-                                      <div className="flex items-center space-x-2">
+                                  <div className="flex items-center space-x-2">
                                         <span className="inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold bg-black text-white">홈</span>
-                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getBlogStatusDisplay(content))}`}>
+                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getBlogStatusDisplay(content))}`}>
                                           {getBlogStatusDisplay(content)}
-                                        </span>
-                                        {getChannelActionButton(content, 'blog')}
+                                    </span>
+                                    {getChannelActionButton(content, 'blog')}
                                       </div>
                                     )}
                                   </div>
@@ -1744,12 +1744,12 @@ export default function ContentCalendarHub() {
                                         </div>
                                       ))
                                     ) : (
-                                      <div className="flex items-center space-x-2">
+                                  <div className="flex items-center space-x-2">
                                         <span className="inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold bg-gray-600 text-white">메</span>
-                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'sms'))}`}>
+                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getChannelStatus(content, 'sms'))}`}>
                                           {getChannelStatus(content, 'sms')}
-                                        </span>
-                                        {getChannelActionButton(content, 'sms')}
+                                    </span>
+                                    {getChannelActionButton(content, 'sms')}
                                       </div>
                                     )}
                                   </div>
@@ -1807,12 +1807,12 @@ export default function ContentCalendarHub() {
                                         </div>
                                       ))
                                     ) : (
-                                      <div className="flex items-center space-x-2">
+                                  <div className="flex items-center space-x-2">
                                         <span className="inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: '#03C75A' }}>네</span>
-                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getNaverBlogStatusDisplay(content))}`}>
+                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getChannelStatusColor(getNaverBlogStatusDisplay(content))}`}>
                                           {getNaverBlogStatusDisplay(content)}
-                                        </span>
-                                        {getChannelActionButton(content, 'naver_blog')}
+                                    </span>
+                                    {getChannelActionButton(content, 'naver_blog')}
                                       </div>
                                     )}
                                   </div>
@@ -1833,20 +1833,20 @@ export default function ContentCalendarHub() {
                             </td>
                             <td className="px-6 py-3 whitespace-nowrap text-sm font-medium align-top w-28">
                               <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => editContent(content)}
+                              <button
+                                onClick={() => editContent(content)}
                                   className="text-blue-600 hover:text-blue-900"
                                   title="편집"
-                                >
-                                  편집
-                                </button>
-                                <button
-                                  onClick={() => deleteContent(content.id)}
-                                  className="text-red-600 hover:text-red-900"
+                              >
+                                편집
+                              </button>
+                              <button
+                                onClick={() => deleteContent(content.id)}
+                                className="text-red-600 hover:text-red-900"
                                   title="삭제"
-                                >
-                                  삭제
-                                </button>
+                              >
+                                삭제
+                              </button>
                               </div>
                             </td>
                           </tr>
@@ -2335,7 +2335,7 @@ export default function ContentCalendarHub() {
                       placeholder="허브 콘텐츠 제목을 입력하세요"
                     />
                   </div>
-
+                  
                   {/* 요약 */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -2352,7 +2352,7 @@ export default function ContentCalendarHub() {
                       이 요약은 다른 채널 콘텐츠 생성 시 활용됩니다.
                     </p>
                   </div>
-
+                  
                   {/* 간단한 개요 */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -2366,7 +2366,7 @@ export default function ContentCalendarHub() {
                       placeholder="허브 콘텐츠의 상세 내용을 입력하세요"
                     />
                   </div>
-
+                  
                   {/* 콘텐츠 날짜 */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -2405,12 +2405,12 @@ export default function ContentCalendarHub() {
                                 {blog.status === 'published' ? '발행됨' : '수정중'}
                               </span>
                             </div>
-                            <button
+                  <button
                               onClick={() => window.open(`/admin/blog?edit=${blog.id}&hub=${editingContent.id}`, '_blank')}
                               className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 whitespace-nowrap ml-3"
-                            >
+                  >
                               편집
-                            </button>
+                  </button>
                           </div>
                         ))}
                       </div>
@@ -2516,10 +2516,10 @@ export default function ContentCalendarHub() {
 
               {/* 하단 버튼 */}
               <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
-                <button
-                  onClick={() => setShowEditModal(false)}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-                >
+                  <button
+                    onClick={() => setShowEditModal(false)}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                  >
                   취소 (Esc)
                 </button>
                 <button
@@ -2527,7 +2527,7 @@ export default function ContentCalendarHub() {
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
                   수정 (Cmd/Ctrl + S)
-                </button>
+                  </button>
               </div>
             </div>
           </div>
