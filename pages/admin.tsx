@@ -39,9 +39,11 @@ export default function Admin() {
     }
     
     // 세션이 있으면 리다이렉트 플래그 리셋 (정상 로그인 상태)
-    redirectingRef.current = false;
+    if (redirectingRef.current) {
+      redirectingRef.current = false;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, !!session, router]);
+  }, [status, session?.user?.id]);
 
   const handleLogout = async () => {
     try {
