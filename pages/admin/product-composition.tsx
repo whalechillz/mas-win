@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Head from 'next/head';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
@@ -64,6 +64,11 @@ export default function ProductCompositionManagement() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingRefImage, setUploadingRefImage] = useState(false);
 
+  // ✅ 무한 루핑 방지: 이미 실행했는지 추적하는 ref
+  const hasInitializedRef = useRef(false);
+  const redirectingRef = useRef(false);
+  const lastSessionIdRef = useRef<string | undefined>(undefined);
+
   // 제품 목록 로드 (useCallback으로 메모이제이션)
   const loadProducts = useCallback(async () => {
     try {
@@ -87,17 +92,35 @@ export default function ProductCompositionManagement() {
     }
   }, [filter]);
 
-  // useEffect는 모든 hooks 이후, 조건부 return 이전에 배치
-  // ✅ 무한 루핑 방지: loadProducts 대신 filter를 직접 의존성으로 사용
+  // ✅ 초기 로드: session이 준비되면 한 번만 실행
   useEffect(() => {
     if (status === 'loading') return;
+    
+    // 세션이 없으면 리다이렉트 (한 번만 실행)
     if (!session) {
-      router.push('/admin/login');
+      if (!redirectingRef.current) {
+        redirectingRef.current = true;
+        router.push('/admin/login');
+      }
       return;
     }
+    
+    // ✅ session 객체 대신 session?.user?.id 사용하여 안정적인 의존성
+    const currentSessionId = session?.user?.id;
+    
+    // 세션이 변경되었거나 아직 초기화하지 않았으면 로드
+    if (currentSessionId !== lastSessionIdRef.current || !hasInitializedRef.current) {
+      lastSessionIdRef.current = currentSessionId;
+      hasInitializedRef.current = true;
+      loadProducts();
+    }
+  }, [status, session?.user?.id, router, loadProducts]);
+
+  // ✅ 필터 변경 시에만 다시 로드
+  useEffect(() => {
+    if (status === 'loading' || !session || !hasInitializedRef.current) return;
     loadProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter.category, filter.target, filter.active, status, session]);
+  }, [filter.category, filter.target, filter.active, loadProducts, status, session?.user?.id]);
 
   // 조건부 return은 모든 hooks 이후에 배치
   if (status === 'loading') {
