@@ -41,13 +41,13 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트포스 골드 2 MUZIIK',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/main/products/gold2-sapphire/secret-force-gold-2-sole-500.webp',
+    imageUrl: '/originals/products/gold2-sapphire/secret-force-gold-2-sole-500.webp',
     referenceImages: [
-      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp',
-      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_12.webp',
-      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_13.webp',
-      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_14_b.webp',
-      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_15.webp',
+      '/originals/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp',
+      '/originals/products/gold2-sapphire/massgoo_sf_gold2_muz_12.webp',
+      '/originals/products/gold2-sapphire/massgoo_sf_gold2_muz_13.webp',
+      '/originals/products/gold2-sapphire/massgoo_sf_gold2_muz_14_b.webp',
+      '/originals/products/gold2-sapphire/massgoo_sf_gold2_muz_15.webp',
     ],
     slug: 'gold2-sapphire',
     badge: 'BEST',
@@ -61,14 +61,14 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트웨폰 블랙 MUZIIK',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/main/products/black-beryl/secret-weapon-black-sole-500.webp',
+    imageUrl: '/originals/products/black-beryl/secret-weapon-black-sole-500.webp',
     referenceImages: [
-      '/main/products/black-beryl/massgoo_sw_black_muz_11.webp',
-      '/main/products/black-beryl/massgoo_sw_black_muz_12.webp',
-      '/main/products/black-beryl/massgoo_sw_black_muz_13.webp',
-      '/main/products/black-beryl/massgoo_sw_black_muz_14_b.webp',
-      '/main/products/black-beryl/massgoo_sw_black_muz_15.webp',
-      '/main/products/black-beryl/massgoo_sw_black_muz_18.webp',
+      '/originals/products/black-beryl/massgoo_sw_black_muz_11.webp',
+      '/originals/products/black-beryl/massgoo_sw_black_muz_12.webp',
+      '/originals/products/black-beryl/massgoo_sw_black_muz_13.webp',
+      '/originals/products/black-beryl/massgoo_sw_black_muz_14_b.webp',
+      '/originals/products/black-beryl/massgoo_sw_black_muz_15.webp',
+      '/originals/products/black-beryl/massgoo_sw_black_muz_18.webp',
     ],
     slug: 'black-beryl',
     badge: 'LIMITED',
@@ -82,15 +82,15 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트포스 골드 2',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/main/products/gold2/secret-force-gold-2-sole-500.webp',
+    imageUrl: '/originals/products/gold2/secret-force-gold-2-sole-500.webp',
     referenceImages: [
-      '/main/products/gold2/gold2_01.jpg',
-      '/main/products/gold2/gold2_02.jpg',
-      '/main/products/gold2/gold2_03.jpg',
-      '/main/products/gold2/gold2_04.jpg',
-      '/main/products/gold2/gold2_05.jpg',
-      '/main/products/gold2/gold2_06.jpg',
-      '/main/products/gold2/gold2_07.jpg',
+      '/originals/products/gold2/gold2_01.jpg',
+      '/originals/products/gold2/gold2_02.jpg',
+      '/originals/products/gold2/gold2_03.jpg',
+      '/originals/products/gold2/gold2_04.jpg',
+      '/originals/products/gold2/gold2_05.jpg',
+      '/originals/products/gold2/gold2_06.jpg',
+      '/originals/products/gold2/gold2_07.jpg',
     ],
     slug: 'gold2',
     badge: 'BEST',
@@ -104,15 +104,15 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트포스 PRO 3',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/main/products/pro3/secret-force-pro-3-sole-500.webp',
+    imageUrl: '/originals/products/pro3/secret-force-pro-3-sole-500.webp',
     referenceImages: [
-      '/main/products/pro3/secret-force-pro-3-gallery-01.webp',
-      '/main/products/pro3/secret-force-pro-3-gallery-02.webp',
-      '/main/products/pro3/secret-force-pro-3-gallery-03.webp',
-      '/main/products/pro3/secret-force-pro-3-gallery-04.webp',
-      '/main/products/pro3/secret-force-pro-3-gallery-05.webp',
-      '/main/products/pro3/secret-force-pro-3-gallery-06.webp',
-      '/main/products/pro3/secret-force-pro-3-gallery-07.webp',
+      '/originals/products/pro3/secret-force-pro-3-gallery-01.webp',
+      '/originals/products/pro3/secret-force-pro-3-gallery-02.webp',
+      '/originals/products/pro3/secret-force-pro-3-gallery-03.webp',
+      '/originals/products/pro3/secret-force-pro-3-gallery-04.webp',
+      '/originals/products/pro3/secret-force-pro-3-gallery-05.webp',
+      '/originals/products/pro3/secret-force-pro-3-gallery-06.webp',
+      '/originals/products/pro3/secret-force-pro-3-gallery-07.webp',
     ],
     slug: 'secret-force-pro-3',
     description: 'DAT55G 티타늄, 2.3mm 페이스, COR 0.86',
@@ -125,14 +125,14 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트포스 V3',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/main/products/v3/secret-force-v3-sole-350-bg.webp',
+    imageUrl: '/originals/products/v3/secret-force-v3-sole-350-bg.webp',
     referenceImages: [
-      '/main/products/v3/secret-force-v3-gallery-02.webp',
-      '/main/products/v3/secret-force-v3-gallery-03.webp',
-      '/main/products/v3/secret-force-v3-gallery-04.webp',
-      '/main/products/v3/secret-force-v3-gallery-05.webp',
-      '/main/products/v3/secret-force-v3-gallery-06.webp',
-      '/main/products/v3/secret-force-v3-gallery-07.webp',
+      '/originals/products/v3/secret-force-v3-gallery-02.webp',
+      '/originals/products/v3/secret-force-v3-gallery-03.webp',
+      '/originals/products/v3/secret-force-v3-gallery-04.webp',
+      '/originals/products/v3/secret-force-v3-gallery-05.webp',
+      '/originals/products/v3/secret-force-v3-gallery-06.webp',
+      '/originals/products/v3/secret-force-v3-gallery-07.webp',
     ],
     slug: 'secret-force-v3',
     description: 'DAT55G 티타늄, 2.4mm 페이스, COR 0.85',
@@ -145,15 +145,15 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트웨폰 블랙',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/main/products/black-weapon/secret-weapon-black-sole-500.webp',
+    imageUrl: '/originals/products/black-weapon/secret-weapon-black-sole-500.webp',
     referenceImages: [
-      '/main/products/black-weapon/secret-weapon-black-gallery-01.webp',
-      '/main/products/black-weapon/secret-weapon-black-gallery-02.webp',
-      '/main/products/black-weapon/secret-weapon-black-gallery-03.webp',
-      '/main/products/black-weapon/secret-weapon-black-gallery-04.webp',
-      '/main/products/black-weapon/secret-weapon-black-gallery-05.webp',
-      '/main/products/black-weapon/secret-weapon-black-gallery-06.webp',
-      '/main/products/black-weapon/secret-weapon-black-gallery-07.webp',
+      '/originals/products/black-weapon/secret-weapon-black-gallery-01.webp',
+      '/originals/products/black-weapon/secret-weapon-black-gallery-02.webp',
+      '/originals/products/black-weapon/secret-weapon-black-gallery-03.webp',
+      '/originals/products/black-weapon/secret-weapon-black-gallery-04.webp',
+      '/originals/products/black-weapon/secret-weapon-black-gallery-05.webp',
+      '/originals/products/black-weapon/secret-weapon-black-gallery-06.webp',
+      '/originals/products/black-weapon/secret-weapon-black-gallery-07.webp',
     ],
     slug: 'secret-weapon-black',
     badge: 'LIMITED',
@@ -167,15 +167,15 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     displayName: '시크리트웨폰 골드 4.1',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/main/products/gold-weapon4/secret-weapon-gold-4-1-sole-500.webp',
+    imageUrl: '/originals/products/gold-weapon4/secret-weapon-gold-4-1-sole-500.webp',
     referenceImages: [
-      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-01.webp',
-      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-02.webp',
-      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-03.webp',
-      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-04.webp',
-      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-05.webp',
-      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-06.webp',
-      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-07.webp',
+      '/originals/products/gold-weapon4/secret-weapon-gold-4-1-gallery-01.webp',
+      '/originals/products/gold-weapon4/secret-weapon-gold-4-1-gallery-02.webp',
+      '/originals/products/gold-weapon4/secret-weapon-gold-4-1-gallery-03.webp',
+      '/originals/products/gold-weapon4/secret-weapon-gold-4-1-gallery-04.webp',
+      '/originals/products/gold-weapon4/secret-weapon-gold-4-1-gallery-05.webp',
+      '/originals/products/gold-weapon4/secret-weapon-gold-4-1-gallery-06.webp',
+      '/originals/products/gold-weapon4/secret-weapon-gold-4-1-gallery-07.webp',
     ],
     slug: 'secret-weapon-gold-4-1',
     description: 'SP700 Grade 5 티타늄, 2.2mm 초박형 페이스, COR 0.87',
@@ -342,8 +342,9 @@ const SUPABASE_URL = typeof window !== 'undefined'
 export function getSupabaseStorageUrl(storagePath: string): string {
   if (!SUPABASE_URL) {
     console.warn('⚠️ NEXT_PUBLIC_SUPABASE_URL이 설정되지 않았습니다.');
-    // Fallback: 상대 경로 그대로 반환 (서버에서 처리)
-    return storagePath;
+    // ❌ 상대 경로를 반환하면 getAbsoluteImageUrl에서 잘못된 URL 생성
+    // ✅ 빈 문자열 반환하여 이미지 로드 방지 (무한 루핑 방지)
+    return '';
   }
   
   // Storage 경로에서 앞의 슬래시 제거
@@ -356,7 +357,7 @@ export function getSupabaseStorageUrl(storagePath: string): string {
 /**
  * 이미지 URL을 절대 URL로 변환
  * - Supabase Storage 경로 (/originals/products/...) 처리
- * - 기존 상대 경로 (/main/products/...) 처리
+ * - 기존 상대 경로 (/originals/products/...) 처리
  * - 이미 절대 URL인 경우 그대로 반환
  */
 export function getAbsoluteImageUrl(imageUrl: string, baseUrl?: string): string {
@@ -369,10 +370,15 @@ export function getAbsoluteImageUrl(imageUrl: string, baseUrl?: string): string 
   
   // Supabase Storage 경로인 경우 (/originals/...)
   if (imageUrl.startsWith('/originals/') || imageUrl.startsWith('originals/')) {
-    return getSupabaseStorageUrl(imageUrl);
+    const supabaseUrl = getSupabaseStorageUrl(imageUrl);
+    // Supabase URL이 없으면 빈 문자열 반환 (이미지 로드 방지, 무한 루핑 방지)
+    if (!supabaseUrl) {
+      return '';
+    }
+    return supabaseUrl;
   }
   
-  // 기존 상대 경로인 경우 (/main/products/...)
+  // 기존 상대 경로인 경우 (/originals/products/...)
   const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
   return `${base}${imageUrl}`;
 }
