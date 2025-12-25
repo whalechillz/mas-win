@@ -30,7 +30,6 @@ export default function Admin() {
     
     // 세션이 없으면 로그인 페이지로 리다이렉트
     if (!session) {
-      // 중복 리다이렉트 방지
       if (!redirectingRef.current) {
         redirectingRef.current = true;
         router.push('/admin/login');
@@ -38,19 +37,16 @@ export default function Admin() {
       return;
     }
     
-    // 세션이 있으면 블로그 관리 페이지로 리다이렉트
+    // 세션이 있으면 대시보드로 리다이렉트 (한 번만 실행)
     if (!redirectingRef.current) {
       redirectingRef.current = true;
-      router.push('/admin/blog');
+      router.push('/admin/dashboard');
       return;
     }
     
-    // 리다이렉트 플래그 리셋
-    if (redirectingRef.current) {
-      redirectingRef.current = false;
-    }
+    // 리다이렉트 후에는 플래그를 리셋하지 않음 (무한 루프 방지)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, session?.user?.id]);
+  }, [status, session]);
 
   const handleLogout = async () => {
     try {
@@ -152,7 +148,7 @@ export default function Admin() {
               <div className="text-sm text-gray-700">
                 <span className="font-medium">{session.user?.name}</span>
                 <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                  {session.user?.role === 'admin' ? '총관리자' : '부관리자'}
+                  {(session.user as any)?.role === 'admin' ? '총관리자' : '부관리자'}
                 </span>
               </div>
               
