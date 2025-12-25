@@ -27,20 +27,31 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const router = useRouter();
   const redirectingRef = useRef(false);
+  const hasCheckedSessionRef = useRef(false);
 
   useEffect(() => {
-    if (status === 'loading') return; // 로딩 중이면 대기
+    // 로딩 중이면 대기
+    if (status === 'loading') {
+      return;
+    }
+    
+    // 세션 체크를 한 번만 수행하도록 보장 (무한 루프 방지)
+    if (hasCheckedSessionRef.current) {
+      return;
+    }
     
     if (!session) {
       // 미들웨어 비활성화로 인한 임시 클라이언트 사이드 보호
       if (!redirectingRef.current) {
         redirectingRef.current = true;
+        hasCheckedSessionRef.current = true;
         router.push('/admin/login');
       }
       return;
     }
     
-    // 세션이 있으면 리다이렉트 플래그 리셋
+    // 세션이 있으면 플래그 리셋 (정상 로그인 상태)
+    hasCheckedSessionRef.current = true;
     redirectingRef.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, !!session, router]);
