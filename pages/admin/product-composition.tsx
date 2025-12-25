@@ -641,7 +641,7 @@ export default function ProductCompositionManagement() {
                         value={formData.image_url}
                         onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
-                        placeholder="/main/products/goods/white-bucket-hat.webp"
+                        placeholder="/originals/products/goods/white-bucket-hat.webp"
                         required
                       />
                       <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">
@@ -655,21 +655,25 @@ export default function ProductCompositionManagement() {
                         />
                       </label>
                     </div>
-                    {formData.image_url && (
-                      <div className="mt-2 relative w-32 h-32 bg-gray-100 rounded overflow-hidden">
-                        <Image
-                          src={getAbsoluteImageUrl(formData.image_url)}
-                          alt="미리보기"
-                          fill
-                          className="object-contain"
-                          unoptimized
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = '/placeholder-image.jpg';
-                          }}
-                        />
-                      </div>
-                    )}
+                    {formData.image_url && (() => {
+                      const imageUrl = getAbsoluteImageUrl(formData.image_url);
+                      if (!imageUrl) return null; // 빈 URL이면 렌더링하지 않음
+                      return (
+                        <div className="mt-2 relative w-32 h-32 bg-gray-100 rounded overflow-hidden">
+                          <Image
+                            src={imageUrl}
+                            alt="미리보기"
+                            fill
+                            className="object-contain"
+                            unoptimized
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = '/placeholder-image.jpg';
+                            }}
+                          />
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   <div>
@@ -764,26 +768,34 @@ export default function ProductCompositionManagement() {
                       </div>
                       {formData.reference_images && formData.reference_images.length > 0 && (
                         <div className="grid grid-cols-3 gap-2 mt-2">
-                          {formData.reference_images.map((refImg, index) => (
-                            <div key={index} className="relative group">
-                              <div className="relative w-full h-24 bg-gray-100 rounded overflow-hidden">
-                                <Image
-                                  src={getAbsoluteImageUrl(refImg)}
-                                  alt={`참조 이미지 ${index + 1}`}
-                                  fill
-                                  className="object-contain"
-                                  unoptimized
-                                />
+                          {formData.reference_images.map((refImg, index) => {
+                            const imageUrl = getAbsoluteImageUrl(refImg);
+                            if (!imageUrl) return null; // 빈 URL이면 렌더링하지 않음
+                            return (
+                              <div key={index} className="relative group">
+                                <div className="relative w-full h-24 bg-gray-100 rounded overflow-hidden">
+                                  <Image
+                                    src={imageUrl}
+                                    alt={`참조 이미지 ${index + 1}`}
+                                    fill
+                                    className="object-contain"
+                                    unoptimized
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      target.src = '/placeholder-image.jpg';
+                                    }}
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveReferenceImage(index)}
+                                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  ×
+                                </button>
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveReferenceImage(index)}
-                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                ×
-                              </button>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
