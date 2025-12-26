@@ -162,13 +162,15 @@ export const authOptions = {
       name: `next-auth.session-token`,
       options: {
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'lax', // Chrome Beta 호환성을 위해 'lax' 유지
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         // 프로덕션에서 도메인 설정 (www와 non-www 모두 지원)
         domain: process.env.NODE_ENV === 'production' 
           ? '.masgolf.co.kr'  // 점(.)으로 시작하여 서브도메인 포함
           : undefined,
+        // Chrome Beta 호환성을 위한 maxAge 설정
+        maxAge: 30 * 24 * 60 * 60, // 30일
       },
     },
     callbackUrl: {
@@ -181,6 +183,7 @@ export const authOptions = {
         domain: process.env.NODE_ENV === 'production' 
           ? '.masgolf.co.kr'
           : undefined,
+        maxAge: 30 * 24 * 60 * 60, // 30일
       },
     },
     csrfToken: {
@@ -193,6 +196,7 @@ export const authOptions = {
         domain: process.env.NODE_ENV === 'production' 
           ? '.masgolf.co.kr'
           : undefined,
+        maxAge: 30 * 24 * 60 * 60, // 30일
       },
     },
   }

@@ -1341,10 +1341,8 @@ export default function NaverBlogAdvanced() {
   }
 
   // 세션 체크 (프로덕션에서 활성화)
-  const isLocalDev = typeof window !== 'undefined' && 
-                     (window.location.hostname === 'localhost' || 
-                      window.location.hostname === '127.0.0.1');
-  const DEBUG_MODE = process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true' || isLocalDev;
+  // DEBUG_MODE는 환경 변수로만 제어 (SSR 호환성)
+  const DEBUG_MODE = process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true';
   
   if (!DEBUG_MODE && status === 'unauthenticated') {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center">로그인이 필요합니다.</div>;
