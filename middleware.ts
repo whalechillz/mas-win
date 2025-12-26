@@ -65,8 +65,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2.5) 관리자 경로는 도메인 리다이렉트 대상에서 제외 (루프 방지)
-  // /admin/* 보호 (로그인 필요). /admin/login 은 위에서 이미 통과
+  // 2.5) 도메인 정규화: masgolf.co.kr → www.masgolf.co.kr
+  // /admin 경로 체크 전에 실행하여 도메인 리다이렉트가 먼저 처리되도록 함
+  if (hostname === 'masgolf.co.kr') {
+    return NextResponse.redirect(`https://www.masgolf.co.kr${pathname}`, 301);
+  }
+
+  // 2.6) 관리자 경로 보호 (로그인 필요)
+  // /admin/* 보호. /admin/login 은 위에서 이미 통과
   if (pathname.startsWith('/admin')) {
     // 디버깅 모드 체크 (환경 변수로 제어, 기본값: false)
     // Edge Runtime에서는 NEXT_PUBLIC_ 접두사가 필요 없을 수 있으므로 둘 다 체크
@@ -100,12 +106,6 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith('/muziik/ko/')) {
     const newPath = pathname.replace('/muziik/ko/', '/muziik/');
     return NextResponse.redirect(new URL(newPath, request.url), 301);
-  }
-
-  // 4) 도메인 정규화: masgolf.co.kr → www.masgolf.co.kr
-  // 관리자 경로는 제외 (이미 위에서 처리됨)
-  if (hostname === 'masgolf.co.kr') {
-    return NextResponse.redirect(`https://www.masgolf.co.kr${pathname}`, 301);
   }
   if (false && hostname === 'muziik.masgolf.co.kr') {
     if (pathname === '/') {
