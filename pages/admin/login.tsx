@@ -46,9 +46,22 @@ export default function LoginPage() {
         // 로그인 성공 확인 - result?.ok를 명시적으로 체크
         const callbackUrl = (router.query.callbackUrl as string) || '/admin/dashboard';
         // 세션이 설정될 시간을 주기 위해 약간의 지연
+        // window.location.href를 사용하여 강제 리다이렉트 (router.push가 작동하지 않는 경우 대비)
         setTimeout(() => {
-          router.push(callbackUrl);
-        }, 100);
+          // 세션을 명시적으로 갱신
+          if (typeof window !== 'undefined') {
+            // router.push를 먼저 시도하고, 실패 시 window.location.href 사용
+            router.push(callbackUrl).catch(() => {
+              window.location.href = callbackUrl;
+            });
+            // 추가 안전장치: 1초 후에도 URL이 변경되지 않으면 강제 리다이렉트
+            setTimeout(() => {
+              if (window.location.pathname !== callbackUrl && !window.location.pathname.includes('/admin/dashboard')) {
+                window.location.href = callbackUrl;
+              }
+            }, 1000);
+          }
+        }, 200);
       } else {
         // result가 null이거나 예상치 못한 경우
         setError('로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.');

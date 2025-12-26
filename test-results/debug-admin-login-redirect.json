@@ -1,0 +1,734 @@
+{
+  "timestamp": "2025-12-26T07:55:04.896Z",
+  "finalUrl": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+  "redirects": [
+    {
+      "from": "https://masgolf.co.kr/admin/dashboard",
+      "to": "https://www.masgolf.co.kr/admin/dashboard",
+      "timestamp": "2025-12-26T07:54:59.134Z"
+    },
+    {
+      "from": "https://www.masgolf.co.kr/admin/dashboard",
+      "to": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+      "timestamp": "2025-12-26T07:54:59.212Z"
+    },
+    {
+      "from": "https://unpkg.com/feather-icons",
+      "to": "https://unpkg.com/feather-icons@4.29.2/dist/feather.min.js",
+      "timestamp": "2025-12-26T07:54:59.521Z"
+    }
+  ],
+  "requests": [
+    {
+      "url": "https://masgolf.co.kr/admin/dashboard",
+      "method": "GET",
+      "headers": {
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "timestamp": "2025-12-26T07:54:59.097Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/admin/dashboard",
+      "method": "GET",
+      "headers": {
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "timestamp": "2025-12-26T07:54:59.134Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+      "method": "GET",
+      "headers": {
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "timestamp": "2025-12-26T07:54:59.212Z"
+    },
+    {
+      "url": "https://unpkg.com/feather-icons",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.masgolf.co.kr/",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-26T07:54:59.483Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/static/css/a055d93b92e59fb0.css",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-26T07:54:59.483Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/static/chunks/webpack-9dee2bd7f8095190.js",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-26T07:54:59.483Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/static/chunks/framework-0a1398323079f1a5.js",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-26T07:54:59.484Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/static/chunks/main-42030d832e34f498.js",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-26T07:54:59.484Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/static/chunks/pages/_app-49011bde0ea99092.js",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-26T07:54:59.484Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/static/chunks/pages/admin/login-369ffc42cf6c24cf.js",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-26T07:54:59.484Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/static/-bQx4YENA59uQck5bEvW3/_buildManifest.js",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-26T07:54:59.484Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/static/-bQx4YENA59uQck5bEvW3/_ssgManifest.js",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-26T07:54:59.484Z"
+    },
+    {
+      "url": "https://unpkg.com/feather-icons@4.29.2/dist/feather.min.js",
+      "method": "GET",
+      "headers": {
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "referer": "https://www.masgolf.co.kr/"
+      },
+      "timestamp": "2025-12-26T07:54:59.521Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/api/auth/session",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "content-type": "application/json",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-26T07:54:59.610Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/api/auth/providers",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "content-type": "application/json",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-26T07:55:01.306Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/api/auth/csrf",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "content-type": "application/json",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-26T07:55:01.537Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/api/auth/callback/credentials",
+      "method": "POST",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "content-type": "application/x-www-form-urlencoded",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-26T07:55:01.779Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/api/auth/session",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "content-type": "application/json",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-26T07:55:02.668Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/data/-bQx4YENA59uQck5bEvW3/ko/admin/dashboard.json",
+      "method": "GET",
+      "headers": {
+        "x-nextjs-data": "1",
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-26T07:55:03.012Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/data/-bQx4YENA59uQck5bEvW3/ko/admin/login.json?callbackUrl=%2Fadmin%2Fdashboard",
+      "method": "GET",
+      "headers": {
+        "x-nextjs-data": "1",
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-26T07:55:03.053Z"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://masgolf.co.kr/admin/dashboard",
+      "status": 307,
+      "statusText": "",
+      "headers": {
+        "cache-control": "public, max-age=0, must-revalidate",
+        "content-type": "text/html",
+        "date": "Fri, 26 Dec 2025 07:54:59 GMT",
+        "location": "https://www.masgolf.co.kr/admin/dashboard",
+        "server": "Vercel",
+        "strict-transport-security": "max-age=63072000",
+        "x-vercel-id": "icn1::svzqt-1766735699159-abed49296f5f"
+      },
+      "timestamp": "2025-12-26T07:54:59.134Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/admin/dashboard",
+      "status": 307,
+      "statusText": "",
+      "headers": {
+        "cache-control": "public, max-age=0, must-revalidate",
+        "content-type": "text/html",
+        "date": "Fri, 26 Dec 2025 07:54:59 GMT",
+        "location": "/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "server": "Vercel",
+        "strict-transport-security": "max-age=63072000",
+        "x-vercel-id": "icn1::2xcrr-1766735699199-6d98ea35bc1b"
+      },
+      "timestamp": "2025-12-26T07:54:59.212Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+      "status": 200,
+      "statusText": "",
+      "headers": {
+        "age": "0",
+        "cache-control": "private, no-cache, no-store, max-age=0, must-revalidate",
+        "content-encoding": "br",
+        "content-type": "text/html; charset=utf-8",
+        "date": "Fri, 26 Dec 2025 07:54:59 GMT",
+        "etag": "W/\"rjpc5ijjrt31i\"",
+        "server": "Vercel",
+        "strict-transport-security": "max-age=63072000",
+        "x-matched-path": "/ko/admin/login",
+        "x-powered-by": "Next.js",
+        "x-vercel-cache": "MISS",
+        "x-vercel-id": "icn1::iad1::vjkgn-1766735699251-a50933c19ce8"
+      },
+      "timestamp": "2025-12-26T07:54:59.474Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/static/css/a055d93b92e59fb0.css",
+      "status": 200,
+      "statusText": "",
+      "headers": {
+        "content-encoding": "br",
+        "etag": "\"33aef01058768f982a1a37a6495035d7\"",
+        "age": "455",
+        "x-matched-path": "/_next/static/css/a055d93b92e59fb0.css",
+        "date": "Fri, 26 Dec 2025 07:54:59 GMT",
+        "content-disposition": "inline; filename=\"a055d93b92e59fb0.css\"",
+        "content-type": "text/css; charset=utf-8",
+        "last-modified": "Fri, 26 Dec 2025 07:47:24 GMT",
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public,max-age=31536000,immutable",
+        "x-vercel-cache": "HIT",
+        "accept-ranges": "bytes",
+        "access-control-allow-origin": "*",
+        "content-length": "22075",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::6m9z2-1766735699519-40c309220745"
+      },
+      "timestamp": "2025-12-26T07:54:59.492Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/static/chunks/webpack-9dee2bd7f8095190.js",
+      "status": 200,
+      "statusText": "",
+      "headers": {
+        "content-encoding": "br",
+        "etag": "\"b37056f32271d866a91906084a58b269\"",
+        "age": "459",
+        "x-matched-path": "/_next/static/chunks/webpack-9dee2bd7f8095190.js",
+        "date": "Fri, 26 Dec 2025 07:54:59 GMT",
+        "content-disposition": "inline; filename=\"webpack-9dee2bd7f8095190.js\"",
+        "content-type": "application/javascript; charset=utf-8",
+        "last-modified": "Fri, 26 Dec 2025 07:47:20 GMT",
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public,max-age=31536000,immutable",
+        "x-vercel-cache": "HIT",
+        "accept-ranges": "bytes",
+        "access-control-allow-origin": "*",
+        "content-length": "2474",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::2xcrr-1766735699533-d2b784f42173"
+      },
+      "timestamp": "2025-12-26T07:54:59.507Z"
+    },
+    {
+      "url": "https://unpkg.com/feather-icons",
+      "status": 302,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "cache-control": "public, max-age=60, s-maxage=300",
+        "location": "/feather-icons@4.29.2/dist/feather.min.js",
+        "cross-origin-resource-policy": "cross-origin",
+        "x-content-type-options": "nosniff",
+        "cf-ray": "9b3f036a0e5b3d84-ICN",
+        "access-control-allow-origin": "*",
+        "alt-svc": "h3=\":443\"; ma=86400",
+        "content-length": "56",
+        "server-timing": "cfExtPri",
+        "date": "Fri, 26 Dec 2025 07:54:59 GMT",
+        "content-type": "text/plain;charset=UTF-8",
+        "vary": "Accept-Encoding",
+        "server": "cloudflare",
+        "priority": "u=1,i=?0"
+      },
+      "timestamp": "2025-12-26T07:54:59.521Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/static/chunks/framework-0a1398323079f1a5.js",
+      "status": 200,
+      "statusText": "",
+      "headers": {
+        "content-encoding": "br",
+        "etag": "\"ecdd899e345d462d5e0b263bbb2c4dfd\"",
+        "age": "455",
+        "x-matched-path": "/_next/static/chunks/framework-0a1398323079f1a5.js",
+        "date": "Fri, 26 Dec 2025 07:54:59 GMT",
+        "content-disposition": "inline; filename=\"framework-0a1398323079f1a5.js\"",
+        "content-type": "application/javascript; charset=utf-8",
+        "last-modified": "Fri, 26 Dec 2025 07:47:24 GMT",
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public,max-age=31536000,immutable",
+        "x-vercel-cache": "HIT",
+        "accept-ranges": "bytes",
+        "access-control-allow-origin": "*",
+        "content-length": "46529",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::2xcrr-1766735699547-2904466643af"
+      },
+      "timestamp": "2025-12-26T07:54:59.528Z"
+    },
+    {
+      "url": "https://unpkg.com/feather-icons@4.29.2/dist/feather.min.js",
+      "status": 200,
+      "statusText": "",
+      "headers": {
+        "access-control-expose-headers": "*",
+        "content-encoding": "gzip",
+        "cf-cache-status": "HIT",
+        "age": "42759",
+        "access-control-allow-methods": "GET, HEAD, OPTIONS",
+        "x-content-type-options": "nosniff",
+        "expires": "Sat, 26 Dec 2026 07:54:59 GMT",
+        "alt-svc": "h3=\":443\"; ma=86400",
+        "server-timing": "cfExtPri",
+        "date": "Fri, 26 Dec 2025 07:54:59 GMT",
+        "content-type": "text/javascript; charset=utf-8",
+        "last-modified": "Wed, 27 Aug 2025 16:55:29 GMT",
+        "vary": "Accept-Encoding",
+        "fly-request-id": "01K3P79EWS03BJTP88FJRR3GT9-nrt",
+        "access-control-allow-headers": "*",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "priority": "u=1,i=?0",
+        "cache-control": "public, max-age=31536000",
+        "cross-origin-resource-policy": "cross-origin",
+        "via": "1.1 fly.io",
+        "cf-ray": "9b3f036a3ed03d84-ICN",
+        "content-digest": "sha256=:6kZaxraaA33En9pqscWF+VclCR7/RRXfYduR2dPF5U4=:",
+        "access-control-allow-origin": "*",
+        "server": "cloudflare"
+      },
+      "timestamp": "2025-12-26T07:54:59.545Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/static/chunks/main-42030d832e34f498.js",
+      "status": 200,
+      "statusText": "",
+      "headers": {
+        "content-encoding": "br",
+        "etag": "\"266e4fa3fc7da117c152c9b8aaf4046d\"",
+        "age": "455",
+        "x-matched-path": "/_next/static/chunks/main-42030d832e34f498.js",
+        "date": "Fri, 26 Dec 2025 07:54:59 GMT",
+        "content-disposition": "inline; filename=\"main-42030d832e34f498.js\"",
+        "content-type": "application/javascript; charset=utf-8",
+        "last-modified": "Fri, 26 Dec 2025 07:47:24 GMT",
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public,max-age=31536000,immutable",
+        "x-vercel-cache": "HIT",
+        "accept-ranges": "bytes",
+        "access-control-allow-origin": "*",
+        "content-length": "38874",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::2xcrr-1766735699567-a29908c146f5"
+      },
+      "timestamp": "2025-12-26T07:54:59.552Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/static/chunks/pages/_app-49011bde0ea99092.js",
+      "status": 200,
+      "statusText": "",
+      "headers": {
+        "content-encoding": "br",
+        "etag": "\"2545c0e97df807702fbf7f693e8b03d0\"",
+        "age": "459",
+        "x-matched-path": "/_next/static/chunks/pages/_app-49011bde0ea99092.js",
+        "date": "Fri, 26 Dec 2025 07:54:59 GMT",
+        "content-disposition": "inline; filename=\"_app-49011bde0ea99092.js\"",
+        "content-type": "application/javascript; charset=utf-8",
+        "last-modified": "Fri, 26 Dec 2025 07:47:20 GMT",
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public,max-age=31536000,immutable",
+        "x-vercel-cache": "HIT",
+        "accept-ranges": "bytes",
+        "access-control-allow-origin": "*",
+        "content-length": "10594",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::vjzjj-1766735699583-0bb37cd15226"
+      },
+      "timestamp": "2025-12-26T07:54:59.577Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/static/chunks/pages/admin/login-369ffc42cf6c24cf.js",
+      "status": 200,
+      "statusText": "",
+      "headers": {
+        "content-encoding": "br",
+        "etag": "\"dc481386452ac64fa801e95617e9bc22\"",
+        "age": "453",
+        "x-matched-path": "/_next/static/chunks/pages/admin/login-369ffc42cf6c24cf.js",
+        "date": "Fri, 26 Dec 2025 07:54:59 GMT",
+        "content-disposition": "inline; filename=\"login-369ffc42cf6c24cf.js\"",
+        "content-type": "application/javascript; charset=utf-8",
+        "last-modified": "Fri, 26 Dec 2025 07:47:25 GMT",
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public,max-age=31536000,immutable",
+        "x-vercel-cache": "HIT",
+        "accept-ranges": "bytes",
+        "access-control-allow-origin": "*",
+        "content-length": "2552",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::vjzjj-1766735699591-042250e79921"
+      },
+      "timestamp": "2025-12-26T07:54:59.578Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/static/-bQx4YENA59uQck5bEvW3/_buildManifest.js",
+      "status": 200,
+      "statusText": "",
+      "headers": {
+        "content-encoding": "br",
+        "etag": "\"bcbdce8e04053e8b55c9f28a3a7a386a\"",
+        "age": "457",
+        "x-matched-path": "/_next/static/-bQx4YENA59uQck5bEvW3/_buildManifest.js",
+        "date": "Fri, 26 Dec 2025 07:54:59 GMT",
+        "content-disposition": "inline; filename=\"_buildManifest.js\"",
+        "content-type": "application/javascript; charset=utf-8",
+        "last-modified": "Fri, 26 Dec 2025 07:47:22 GMT",
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public,max-age=31536000,immutable",
+        "x-vercel-cache": "HIT",
+        "accept-ranges": "bytes",
+        "access-control-allow-origin": "*",
+        "content-length": "2607",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::2xcrr-1766735699592-72173cb66825"
+      },
+      "timestamp": "2025-12-26T07:54:59.608Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/static/-bQx4YENA59uQck5bEvW3/_ssgManifest.js",
+      "status": 200,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public,max-age=31536000,immutable",
+        "x-vercel-cache": "HIT",
+        "etag": "\"e789bb9936f4211330d20b952adda164\"",
+        "age": "457",
+        "x-matched-path": "/_next/static/-bQx4YENA59uQck5bEvW3/_ssgManifest.js",
+        "accept-ranges": "bytes",
+        "access-control-allow-origin": "*",
+        "content-length": "109",
+        "date": "Fri, 26 Dec 2025 07:54:59 GMT",
+        "content-disposition": "inline; filename=\"_ssgManifest.js\"",
+        "content-type": "application/javascript; charset=utf-8",
+        "server": "Vercel",
+        "last-modified": "Fri, 26 Dec 2025 07:47:22 GMT",
+        "x-vercel-id": "icn1::gzfbv-1766735699592-856c7566c60b"
+      },
+      "timestamp": "2025-12-26T07:54:59.609Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/api/auth/session",
+      "status": 200,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-cache": "MISS",
+        "etag": "\"bwc9mymkdm2\"",
+        "age": "0",
+        "x-matched-path": "/api/auth/[...nextauth]",
+        "content-length": "2",
+        "date": "Fri, 26 Dec 2025 07:54:59 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::iad1::gzfbv-1766735699628-1112b2cc16f9"
+      },
+      "timestamp": "2025-12-26T07:54:59.841Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/api/auth/providers",
+      "status": 200,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-cache": "MISS",
+        "etag": "\"s2j5x1u4qe62\"",
+        "age": "0",
+        "x-matched-path": "/api/auth/[...nextauth]",
+        "content-length": "218",
+        "date": "Fri, 26 Dec 2025 07:55:01 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::iad1::j4t7k-1766735701342-82dfccfbbbc5"
+      },
+      "timestamp": "2025-12-26T07:55:01.536Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/api/auth/csrf",
+      "status": 200,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-cache": "MISS",
+        "etag": "\"plge97ju4628\"",
+        "age": "0",
+        "x-matched-path": "/api/auth/[...nextauth]",
+        "content-length": "80",
+        "date": "Fri, 26 Dec 2025 07:55:01 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::iad1::5fs89-1766735701575-88689a50c16d"
+      },
+      "timestamp": "2025-12-26T07:55:01.778Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/api/auth/callback/credentials",
+      "status": 200,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-cache": "MISS",
+        "etag": "\"4gmfxwdgcv28\"",
+        "x-matched-path": "/api/auth/[...nextauth]",
+        "content-length": "80",
+        "date": "Fri, 26 Dec 2025 07:55:02 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::iad1::5fs89-1766735701818-656fe31dc4ae"
+      },
+      "timestamp": "2025-12-26T07:55:02.668Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/api/auth/session",
+      "status": 200,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "x-vercel-cache": "MISS",
+        "etag": "\"j7uwa43e584j\"",
+        "age": "0",
+        "x-matched-path": "/api/auth/[...nextauth]",
+        "content-length": "169",
+        "date": "Fri, 26 Dec 2025 07:55:02 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::iad1::5fs89-1766735702708-77d1c12a6dd7"
+      },
+      "timestamp": "2025-12-26T07:55:02.906Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/data/-bQx4YENA59uQck5bEvW3/ko/admin/dashboard.json",
+      "status": 307,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "date": "Fri, 26 Dec 2025 07:55:03 GMT",
+        "x-nextjs-redirect": "/admin/login?callbackUrl=%2Fadmin%2Fdashboard",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::r5z57-1766735703051-bdf981f941c1"
+      },
+      "timestamp": "2025-12-26T07:55:03.052Z"
+    },
+    {
+      "url": "https://www.masgolf.co.kr/_next/data/-bQx4YENA59uQck5bEvW3/ko/admin/login.json?callbackUrl=%2Fadmin%2Fdashboard",
+      "status": 200,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "private, no-cache, no-store, max-age=0, must-revalidate",
+        "x-vercel-cache": "MISS",
+        "etag": "\"kun9upr60iv\"",
+        "age": "0",
+        "x-nextjs-matched-path": "/ko/admin/login",
+        "x-matched-path": "/ko/admin/login",
+        "content-length": "31",
+        "date": "Fri, 26 Dec 2025 07:55:03 GMT",
+        "content-type": "application/json",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::iad1::r5z57-1766735703092-2d303434ca3e"
+      },
+      "timestamp": "2025-12-26T07:55:03.285Z"
+    }
+  ],
+  "failedRequests": [],
+  "consoleMessages": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()",
+      "timestamp": "2025-12-26T07:54:59.625Z"
+    }
+  ],
+  "pageErrors": [],
+  "cookies": [
+    {
+      "name": "next-auth.csrf-token",
+      "value": "7e617244932b3e20561b5e6668f3360f4684f5ea073e26945ff52476150d6a7c%7C0768a1734f2dd6ec8bcd4f0349151d0ca2b5666161cc4a9530222de36456db57",
+      "domain": ".masgolf.co.kr",
+      "path": "/",
+      "expires": 1769327699.83911,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "next-auth.callback-url",
+      "value": "https%3A%2F%2Fwww.masgolf.co.kr%2Fadmin%2Flogin%3FcallbackUrl%3D%252Fadmin%252Fdashboard",
+      "domain": ".masgolf.co.kr",
+      "path": "/",
+      "expires": 1769327702.667559,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "next-auth.session-token",
+      "value": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..w7hBxy0k0eQg7h6f.wBclvtSInLOCwOZId7X892Js0JalHOuzEJo3VeqajEznZpUVR7iiUm-nBoqaT0nJYS12cAOLhyFRd7Z_SIWHswfBfMB91NXO6oe65D5ZvlKPUwXw3KQ9uYAFXAFFGGJDmHcGqXPqW-jhQ2ad62oy8DrIrVH3hzQK-kgLsnWZxapGoR8qwY4pAEKxUs4_LoDQDAtLb5pWZzccPMvfRpzUn1M1U9A7T2INhHW5-PfLNhtd1MBfYrCFcffSmb2aw0Lu0nUPdxgaphTc9mw.2MZpEyeKekONFsv5IkXMrw",
+      "domain": ".masgolf.co.kr",
+      "path": "/",
+      "expires": 1769327702.905438,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    }
+  ]
+}
