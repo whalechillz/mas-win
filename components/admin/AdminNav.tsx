@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react';
 
 const AdminNav = () => {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const isActive = (path: string) => router.pathname === path;
 
   return (
@@ -36,9 +36,13 @@ const AdminNav = () => {
             </Link>
           </div>
           
-          {/* 사용자 정보 및 로그아웃 버튼 (임시로 항상 표시 - 디버깅용) */}
+          {/* 사용자 정보 및 로그아웃 버튼 */}
           <div className="flex items-center space-x-3">
-            {session ? (
+            {status === 'loading' && (
+              <span className="text-sm text-gray-400">로딩 중...</span>
+            )}
+            
+            {status === 'authenticated' && session?.user && (
               <>
                 <span className="text-sm text-gray-600">
                   {session.user?.name} ({(session.user as any)?.role === 'admin' ? '총관리자' : '편집자'})
@@ -53,8 +57,10 @@ const AdminNav = () => {
                   로그아웃
                 </button>
               </>
-            ) : (
-              <span className="text-sm text-gray-400">세션 없음 (디버깅 모드)</span>
+            )}
+            
+            {status === 'unauthenticated' && (
+              <span className="text-sm text-yellow-600 font-medium">🔧 디버깅 모드</span>
             )}
           </div>
         </div>
