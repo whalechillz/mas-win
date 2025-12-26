@@ -91,7 +91,15 @@ export default function AdminDashboard() {
   // 세션 없음 (디버깅 모드가 아닐 때만 체크)
   // 디버깅 모드일 때는 세션 없이도 렌더링
   if (!DEBUG_MODE && !session) {
-    return null; // 리다이렉트 중
+    // return null 대신 로딩 화면 표시 (리다이렉트 중)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">리다이렉트 중...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
