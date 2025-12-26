@@ -63,28 +63,6 @@
       "source": "/muziik/ko",
       "destination": "https://www.masgolf.co.kr/muziik",
       "permanent": true
-    },
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "muziik.masgolf.co.kr"
-        }
-      ],
-      "destination": "https://www.masgolf.co.kr/muziik",
-      "permanent": true
-    },
-    {
-      "source": "/:path+",
-      "has": [
-        {
-          "type": "host",
-          "value": "muziik.masgolf.co.kr"
-        }
-      ],
-      "destination": "https://www.masgolf.co.kr/muziik/:path*",
-      "permanent": true
     }
   ]
 }
