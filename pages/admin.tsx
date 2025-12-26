@@ -6,13 +6,21 @@ import { useSession } from 'next-auth/react';
  * /admin 경로는 단순 리다이렉트 페이지
  * - 세션이 없으면 /admin/login으로 리다이렉트
  * - 세션이 있으면 /admin/dashboard로 리다이렉트
+ * - 디버깅 모드일 때는 대시보드로 리다이렉트
  */
 export default function Admin() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const DEBUG_MODE = process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true';
 
   useEffect(() => {
     if (status === 'loading') return;
+    
+    // 디버깅 모드이면 바로 대시보드로
+    if (DEBUG_MODE) {
+      router.replace('/admin/dashboard');
+      return;
+    }
     
     // 세션이 없으면 로그인 페이지로
     if (!session) {
@@ -22,7 +30,7 @@ export default function Admin() {
     
     // 세션이 있으면 대시보드로
     router.replace('/admin/dashboard');
-  }, [status, session, router]);
+  }, [status, session, router, DEBUG_MODE]);
 
   // 로딩 중 표시
   return (

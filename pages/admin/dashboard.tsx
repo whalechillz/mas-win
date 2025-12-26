@@ -87,6 +87,7 @@ export default function AdminDashboard() {
   }
 
   // 세션 없음 (디버깅 모드가 아닐 때만 체크)
+  // 디버깅 모드일 때는 세션 없이도 렌더링
   if (!DEBUG_MODE && !session) {
     return null; // 리다이렉트 중
   }
