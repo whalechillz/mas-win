@@ -165,11 +165,11 @@ export const authOptions = {
         sameSite: 'lax', // Chrome Beta 호환성을 위해 'lax' 유지
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        // 프로덕션에서 도메인 설정 (www와 non-www 모두 지원)
+        // 도메인 설정을 선택적으로 적용 (Chrome 버전 호환성)
+        // www와 non-www 모두 지원하되, 일부 Chrome 버전에서는 도메인 없이도 작동
         domain: process.env.NODE_ENV === 'production' 
-          ? '.masgolf.co.kr'  // 점(.)으로 시작하여 서브도메인 포함
+          ? (process.env.NEXTAUTH_COOKIE_DOMAIN || '.masgolf.co.kr')
           : undefined,
-        // Chrome Beta 호환성을 위한 maxAge 설정
         maxAge: 30 * 24 * 60 * 60, // 30일
       },
     },
@@ -181,7 +181,7 @@ export const authOptions = {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         domain: process.env.NODE_ENV === 'production' 
-          ? '.masgolf.co.kr'
+          ? (process.env.NEXTAUTH_COOKIE_DOMAIN || '.masgolf.co.kr')
           : undefined,
         maxAge: 30 * 24 * 60 * 60, // 30일
       },
@@ -194,7 +194,7 @@ export const authOptions = {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         domain: process.env.NODE_ENV === 'production' 
-          ? '.masgolf.co.kr'
+          ? (process.env.NEXTAUTH_COOKIE_DOMAIN || '.masgolf.co.kr')
           : undefined,
         maxAge: 30 * 24 * 60 * 60, // 30일
       },

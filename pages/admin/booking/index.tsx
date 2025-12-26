@@ -104,8 +104,10 @@ export default function BookingAdmin() {
     }
     
     // 세션 체크 (프로덕션에서 활성화)
-    // DEBUG_MODE는 환경 변수로만 제어 (SSR 호환성)
-    const DEBUG_MODE = process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true';
+    // DEBUG_MODE 체크 개선 (클라이언트 사이드에서도 확인)
+    const DEBUG_MODE = process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true' || 
+                       (typeof window !== 'undefined' && 
+                        localStorage.getItem('admin_debug_mode') === 'true');
     
     if (!DEBUG_MODE && !session) {
       setLoading(false);
@@ -133,8 +135,10 @@ export default function BookingAdmin() {
   }
 
   // 세션 체크 (프로덕션에서 활성화)
-  // DEBUG_MODE는 환경 변수로만 제어 (SSR 호환성)
-  const DEBUG_MODE = process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true';
+  // DEBUG_MODE 체크 개선 (클라이언트 사이드에서도 확인)
+  const DEBUG_MODE = process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true' || 
+                     (typeof window !== 'undefined' && 
+                      localStorage.getItem('admin_debug_mode') === 'true');
   
   if (!DEBUG_MODE && !session) {
     return null;

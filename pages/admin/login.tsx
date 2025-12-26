@@ -42,10 +42,16 @@ export default function LoginPage() {
           CredentialsSignin: '아이디와 비밀번호를 확인해주세요.',
         };
         setError(errorMessages[result.error] || '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
-      } else {
-        // 로그인 성공 시 이전 페이지로 리다이렉트 또는 대시보드로 이동
+      } else if (result?.ok) {
+        // 로그인 성공 확인 - result?.ok를 명시적으로 체크
         const callbackUrl = (router.query.callbackUrl as string) || '/admin/dashboard';
-        router.push(callbackUrl);
+        // 세션이 설정될 시간을 주기 위해 약간의 지연
+        setTimeout(() => {
+          router.push(callbackUrl);
+        }, 100);
+      } else {
+        // result가 null이거나 예상치 못한 경우
+        setError('로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
       }
     } catch (err: any) {
       setError(err.message || '로그인 중 오류가 발생했습니다.');
