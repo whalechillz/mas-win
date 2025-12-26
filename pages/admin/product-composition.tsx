@@ -109,11 +109,16 @@ export default function ProductCompositionManagement() {
     );
   }
 
-  // 세션 체크 (임시로 비활성화 - 디버깅용)
-  // if (!session) {
-  //   router.push('/admin/login');
-  //   return null;
-  // }
+  // 세션 체크 (프로덕션에서 활성화)
+  const isLocalDev = typeof window !== 'undefined' && 
+                     (window.location.hostname === 'localhost' || 
+                      window.location.hostname === '127.0.0.1');
+  const DEBUG_MODE = process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true' || isLocalDev;
+  
+  if (!DEBUG_MODE && !session) {
+    router.push('/admin/login');
+    return null;
+  }
 
   // 제품 추가/수정
   const handleSubmit = async (e: React.FormEvent) => {

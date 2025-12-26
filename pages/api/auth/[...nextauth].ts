@@ -164,8 +164,11 @@ export const authOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production', // 프로덕션에서만 secure
-        // 로컬에서는 domain 설정 안 함 (localhost에서 작동하도록)
+        secure: process.env.NODE_ENV === 'production',
+        // 프로덕션에서 도메인 설정 (www와 non-www 모두 지원)
+        domain: process.env.NODE_ENV === 'production' 
+          ? '.masgolf.co.kr'  // 점(.)으로 시작하여 서브도메인 포함
+          : undefined,
       },
     },
     callbackUrl: {
@@ -174,8 +177,10 @@ export const authOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production', // 프로덕션에서만 secure
-        // 로컬에서는 domain 설정 안 함 (localhost에서 작동하도록)
+        secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NODE_ENV === 'production' 
+          ? '.masgolf.co.kr'
+          : undefined,
       },
     },
     csrfToken: {
@@ -185,6 +190,9 @@ export const authOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NODE_ENV === 'production' 
+          ? '.masgolf.co.kr'
+          : undefined,
       },
     },
   }

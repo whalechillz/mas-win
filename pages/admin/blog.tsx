@@ -4684,16 +4684,24 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
   // 카테고리 목록
   const categories = Array.from(new Set(posts.map(post => post.category))).filter(Boolean);
 
-  // 인증 체크 (임시로 비활성화 - 디버깅용)
-  // useEffect(() => {
-  //   if (status === 'loading') return; // 로딩 중이면 대기
-  //   
-  //   if (!session) {
-  //     // 인증되지 않은 경우 로그인 페이지로 리다이렉트
-  //     window.location.href = '/admin/login';
-  //     return;
-  //   }
-  // }, [session, status]);
+  // 인증 체크 (프로덕션에서 활성화)
+  const isLocalDev = typeof window !== 'undefined' && 
+                     (window.location.hostname === 'localhost' || 
+                      window.location.hostname === '127.0.0.1');
+  const DEBUG_MODE = process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true' || isLocalDev;
+  
+  useEffect(() => {
+    // 디버깅 모드가 아닐 때만 세션 체크
+    if (DEBUG_MODE) return;
+    
+    if (status === 'loading') return; // 로딩 중이면 대기
+    
+    if (!session) {
+      // 인증되지 않은 경우 로그인 페이지로 리다이렉트
+      window.location.href = '/admin/login';
+      return;
+    }
+  }, [session, status, DEBUG_MODE]);
   // URL 파라미터 처리
   useEffect(() => {
     if (router.isReady) {
@@ -4834,34 +4842,37 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
     }
   }, [sortBy, sortOrder]);
 
-  // 세션 체크 및 리다이렉트 (임시로 비활성화 - 디버깅용)
-  // useEffect(() => {
-  //   if (status === 'loading') return;
-  //   
-  //   if (!session) {
-  //     if (!redirectingRef.current) {
-  //       redirectingRef.current = true;
-  //       router.push('/admin/login');
-  //     }
-  //     return;
-  //   }
-  // }, [status, session, router]);
+  // 세션 체크 및 리다이렉트 (프로덕션에서 활성화)
+  useEffect(() => {
+    // 디버깅 모드가 아닐 때만 세션 체크
+    if (DEBUG_MODE) return;
+    
+    if (status === 'loading') return;
+    
+    if (!session) {
+      if (!redirectingRef.current) {
+        redirectingRef.current = true;
+        router.push('/admin/login');
+      }
+      return;
+    }
+  }, [status, session, router, DEBUG_MODE]);
 
-  // 로딩 중이거나 인증되지 않은 경우 (임시로 비활성화 - 디버깅용)
-  // if (status === 'loading') {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <div className="text-center">
-  //         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-  //         <p className="mt-4 text-gray-600">로딩 중...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  // 로딩 중이거나 인증되지 않은 경우 (디버깅 모드가 아닐 때만 체크)
+  if (!DEBUG_MODE && status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
   
-  // if (!session) {
-  //   return null; // 리다이렉트 중
-  // }
+  if (!DEBUG_MODE && !session) {
+    return null; // 리다이렉트 중
+  }
 
   return (
     <>

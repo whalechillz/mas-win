@@ -68,12 +68,23 @@ export async function middleware(request: NextRequest) {
   // 2.5) 관리자 경로는 도메인 리다이렉트 대상에서 제외 (루프 방지)
   // /admin/* 보호 (로그인 필요). /admin/login 은 위에서 이미 통과
   if (pathname.startsWith('/admin')) {
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-    if (!token) {
-      const url = new URL('/admin/login', request.url);
-      url.searchParams.set('callbackUrl', request.nextUrl.pathname + request.nextUrl.search);
-      return NextResponse.redirect(url);
+    // 디버깅 모드 체크 (환경 변수로 제어, 기본값: false)
+    const DEBUG_MODE = process.env.ADMIN_DEBUG_MODE === 'true' || 
+                       process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true';
+    
+    // 로컬 개발 환경에서는 디버깅 모드 허용
+    const isLocalDev = isLocal || isDev;
+    
+    // 프로덕션에서는 항상 세션 체크 (디버깅 모드 비활성화)
+    if (!DEBUG_MODE && !isLocalDev) {
+      const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+      if (!token) {
+        const url = new URL('/admin/login', request.url);
+        url.searchParams.set('callbackUrl', request.nextUrl.pathname + request.nextUrl.search);
+        return NextResponse.redirect(url);
+      }
     }
+    // 디버깅 모드 또는 로컬 개발: 세션 체크 없이 통과
     return NextResponse.next();
   }
 

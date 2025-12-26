@@ -4,7 +4,7 @@ import Link from 'next/link';
 import AdminNav from '../../components/admin/AdminNav';
 import MarketingManagementUnified from '../../components/admin/marketing/MarketingManagementUnified';
 
-export default function MarketingPage() {
+export default function Marketing() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Head>

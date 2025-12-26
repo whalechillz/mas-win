@@ -13,18 +13,26 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [recentMenus, setRecentMenus] = useState<string[]>([]);
 
-  // 세션 체크 및 리다이렉트 (임시로 비활성화 - 디버깅용)
-  // useEffect(() => {
-  //   if (status === 'loading') return;
-  //   
-  //   if (!session) {
-  //     if (!redirectingRef.current) {
-  //       redirectingRef.current = true;
-  //       router.push('/admin/login');
-  //     }
-  //     return;
-  //   }
-  // }, [status, session, router]);
+  // 세션 체크 및 리다이렉트 (프로덕션에서 활성화)
+  const isLocalDev = typeof window !== 'undefined' && 
+                     (window.location.hostname === 'localhost' || 
+                      window.location.hostname === '127.0.0.1');
+  const DEBUG_MODE = process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true' || isLocalDev;
+  
+  useEffect(() => {
+    // 디버깅 모드가 아닐 때만 세션 체크
+    if (DEBUG_MODE) return;
+    
+    if (status === 'loading') return;
+    
+    if (!session) {
+      if (!redirectingRef.current) {
+        redirectingRef.current = true;
+        router.push('/admin/login');
+      }
+      return;
+    }
+  }, [status, session, router, DEBUG_MODE]);
 
   // 최근 사용 메뉴 로드
   useEffect(() => {
@@ -68,22 +76,22 @@ export default function AdminDashboard() {
     return null;
   };
 
-  // 로딩 중 (임시로 비활성화 - 디버깅용)
-  // if (status === 'loading') {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-  //       <div className="text-center">
-  //         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-  //         <p className="mt-4 text-gray-600">로딩 중...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  // 로딩 중 (디버깅 모드가 아닐 때만 체크)
+  if (!DEBUG_MODE && status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // 세션 없음 (임시로 비활성화 - 디버깅용)
-  // if (!session) {
-  //   return null;
-  // }
+  // 세션 없음 (디버깅 모드가 아닐 때만 체크)
+  if (!DEBUG_MODE && !session) {
+    return null; // 리다이렉트 중
+  }
 
   return (
     <>

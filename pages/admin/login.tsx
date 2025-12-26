@@ -61,59 +61,59 @@ export default function LoginPage() {
         <meta name="description" content="마쓰구골프 관리자 로그인" />
       </Head>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+      <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">마쓰구골프</h1>
             <h2 className="text-2xl font-semibold text-gray-700 mb-8">
-              관리자 로그인
-            </h2>
-          </div>
+            관리자 로그인
+          </h2>
+        </div>
           <form className="mt-8 space-y-6 bg-white p-8 rounded-xl shadow-lg" onSubmit={handleSubmit}>
-            {error && (
+          {error && (
               <div className="rounded-md bg-red-50 border border-red-200 p-4 animate-shake">
                 <div className="flex items-center">
                   <svg className="h-5 w-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <div className="text-sm text-red-700">{error}</div>
+              <div className="text-sm text-red-700">{error}</div>
                 </div>
-              </div>
-            )}
+            </div>
+          )}
             <div className="space-y-4">
-              <div>
+            <div>
                 <label htmlFor="login" className="block text-sm font-medium text-gray-700 mb-1">
-                  아이디 또는 전화번호
-                </label>
-                <input
-                  id="login"
-                  name="login"
-                  type="text"
-                  required
+                아이디 또는 전화번호
+              </label>
+              <input
+                id="login"
+                name="login"
+                type="text"
+                required
                   autoComplete="username"
                   className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all"
                   placeholder="아이디 또는 전화번호를 입력하세요"
-                  value={login}
-                  onChange={(e) => setLogin(e.target.value)}
+                value={login}
+                onChange={(e) => setLogin(e.target.value)}
                   disabled={isLoading}
-                />
-              </div>
-              <div>
+              />
+            </div>
+            <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                  비밀번호
-                </label>
+                비밀번호
+              </label>
                 <div className="relative">
-                  <input
-                    id="password"
-                    name="password"
+              <input
+                id="password"
+                name="password"
                     type={showPassword ? 'text' : 'password'}
-                    required
+                required
                     autoComplete="current-password"
                     className="appearance-none relative block w-full px-4 py-3 pr-12 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all"
                     placeholder="비밀번호를 입력하세요"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
-                  />
+              />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -133,14 +133,14 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
-            </div>
+          </div>
 
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
+          <div>
+            <button
+              type="submit"
+              disabled={isLoading}
                 className="group relative w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg"
-              >
+            >
                 {isLoading ? (
                   <>
                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -152,11 +152,11 @@ export default function LoginPage() {
                 ) : (
                   '로그인'
                 )}
-              </button>
-            </div>
-          </form>
-        </div>
+            </button>
+          </div>
+        </form>
       </div>
+    </div>
     </>
   );
 }

@@ -345,7 +345,7 @@ export default async function handler(req, res) {
       
       if (uniqueRefImages.length > 0) {
         for (const refImage of uniqueRefImages) {
-          addImageUrl(refImage, '참조 이미지');
+        addImageUrl(refImage, '참조 이미지');
         }
         console.log(`✅ ${uniqueRefImages.length}개의 고유 참조 이미지 추가됨 (중복 ${product.referenceImages.length - uniqueRefImages.length}개 제외)`);
       } else {
