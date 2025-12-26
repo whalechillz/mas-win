@@ -121,20 +121,38 @@ export default function AccountManagement({ session }: AccountManagementProps) {
       {activeTab === 'profile' && (
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">내 프로필</h2>
-          {sessionData?.user && (
+          
+          {/* 세션 로딩 중 */}
+          {!sessionData && !session && (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+              <p className="mt-2 text-sm text-gray-500">프로필 정보를 불러오는 중...</p>
+            </div>
+          )}
+          
+          {/* 세션 데이터가 있을 때 */}
+          {(sessionData?.user || session?.user) && (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">이름</label>
-                <p className="mt-1 text-sm text-gray-900">{sessionData.user.name || '-'}</p>
+                <p className="mt-1 text-sm text-gray-900">
+                  {sessionData?.user?.name || (session?.user as any)?.name || '-'}
+                </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">이메일</label>
-                <p className="mt-1 text-sm text-gray-900">{sessionData.user.email || '-'}</p>
+                <label className="block text-sm font-medium text-gray-700">이메일/전화번호</label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {sessionData?.user?.email || (session?.user as any)?.phone || '-'}
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">역할</label>
                 <div className="mt-1">
-                  {getRoleBadge((sessionData.user as any)?.role || 'editor')}
+                  {getRoleBadge(
+                    (sessionData?.user as any)?.role || 
+                    (session?.user as any)?.role || 
+                    'editor'
+                  )}
                 </div>
               </div>
               <div className="pt-4">
@@ -145,6 +163,14 @@ export default function AccountManagement({ session }: AccountManagementProps) {
                   로그아웃
                 </button>
               </div>
+            </div>
+          )}
+          
+          {/* 세션이 없을 때 */}
+          {sessionData === null && !session && (
+            <div className="text-center py-8">
+              <p className="text-sm text-gray-500">프로필 정보를 불러올 수 없습니다.</p>
+              <p className="text-xs text-gray-400 mt-2">로그인 상태를 확인해주세요.</p>
             </div>
           )}
         </div>
