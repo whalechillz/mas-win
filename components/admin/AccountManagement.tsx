@@ -17,7 +17,7 @@ interface AccountManagementProps {
 }
 
 export default function AccountManagement({ session }: AccountManagementProps) {
-  const { data: sessionData } = useSession();
+  const { data: sessionData, status } = useSession();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -122,8 +122,8 @@ export default function AccountManagement({ session }: AccountManagementProps) {
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">내 프로필</h2>
           
-          {/* 세션 로딩 중 */}
-          {!sessionData && !session && (
+          {/* 세션 로딩 중 - status로 정확히 체크 */}
+          {status === 'loading' && (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
               <p className="mt-2 text-sm text-gray-500">프로필 정보를 불러오는 중...</p>
@@ -131,7 +131,7 @@ export default function AccountManagement({ session }: AccountManagementProps) {
           )}
           
           {/* 세션 데이터가 있을 때 */}
-          {(sessionData?.user || session?.user) && (
+          {status === 'authenticated' && (sessionData?.user || session?.user) && (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">이름</label>
@@ -166,11 +166,23 @@ export default function AccountManagement({ session }: AccountManagementProps) {
             </div>
           )}
           
-          {/* 세션이 없을 때 */}
-          {sessionData === null && !session && (
-            <div className="text-center py-8">
-              <p className="text-sm text-gray-500">프로필 정보를 불러올 수 없습니다.</p>
-              <p className="text-xs text-gray-400 mt-2">로그인 상태를 확인해주세요.</p>
+          {/* 디버깅 모드: 세션이 없을 때 */}
+          {status === 'unauthenticated' && (
+            <div className="text-center py-8 border-2 border-dashed border-yellow-300 bg-yellow-50 rounded-lg">
+              <div className="text-4xl mb-4">🔧</div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">디버깅 모드</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                현재 세션 체크가 비활성화된 디버깅 모드입니다.
+              </p>
+              <p className="text-xs text-gray-500 mb-4">
+                프로필 정보를 보려면 로그인이 필요합니다.
+              </p>
+              <a
+                href="/admin/login"
+                className="inline-block px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700"
+              >
+                로그인 페이지로 이동
+              </a>
             </div>
           )}
         </div>
