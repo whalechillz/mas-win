@@ -102,10 +102,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(newPath, request.url), 301);
   }
 
-  // 4) (임시) 도메인 리다이렉트 비활성화 - 루프 원인 제거
-  // 필요 시 도메인 정규화는 Vercel Redirects 설정으로만 처리
-  if (false && hostname === 'masgolf.co.kr') {
-    return NextResponse.redirect(`https://www.masgolf.co.kr${pathname}`);
+  // 4) 도메인 정규화: masgolf.co.kr → www.masgolf.co.kr
+  // 관리자 경로는 제외 (이미 위에서 처리됨)
+  if (hostname === 'masgolf.co.kr') {
+    return NextResponse.redirect(`https://www.masgolf.co.kr${pathname}`, 301);
   }
   if (false && hostname === 'muziik.masgolf.co.kr') {
     if (pathname === '/') {
