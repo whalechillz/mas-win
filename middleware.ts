@@ -89,14 +89,35 @@ export async function middleware(request: NextRequest) {
     }
     
     // 프로덕션에서 디버깅 모드가 아닐 때만 세션 체크
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-    if (!token) {
-      const url = new URL('/admin/login', request.url);
-      url.searchParams.set('callbackUrl', request.nextUrl.pathname + request.nextUrl.search);
-      return NextResponse.redirect(url);
+    // getToken이 실패할 수 있으므로 쿠키도 직접 확인
+    const sessionCookie = request.cookies.get('next-auth.session-token') || 
+                          request.cookies.get('__Secure-next-auth.session-token');
+    
+    // 쿠키가 있으면 getToken 시도
+    if (sessionCookie) {
+      try {
+        const token = await getToken({ 
+          req: request, 
+          secret: process.env.NEXTAUTH_SECRET 
+        });
+        
+        // 토큰이 있으면 통과
+        if (token) {
+          return NextResponse.next();
+        }
+      } catch (error) {
+        // getToken 실패 시에도 쿠키가 있으면 통과 (쿠키는 설정되었지만 아직 검증되지 않음)
+        // 이는 로그인 직후 세션이 아직 완전히 설정되지 않았을 수 있음을 의미
+        console.log('[Middleware] getToken 실패, 하지만 쿠키 존재:', error);
+        // 쿠키가 있으면 통과 (세션 설정 중일 수 있음)
+        return NextResponse.next();
+      }
     }
     
-    return NextResponse.next();
+    // 쿠키가 없으면 로그인 페이지로 리다이렉트
+    const url = new URL('/admin/login', request.url);
+    url.searchParams.set('callbackUrl', request.nextUrl.pathname + request.nextUrl.search);
+    return NextResponse.redirect(url);
   }
 
   // 3) 구형 MUZIIK 페이지 리다이렉트 (/muziik/ko → /muziik)

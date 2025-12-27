@@ -13,33 +13,24 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [recentMenus, setRecentMenus] = useState<string[]>([]);
 
-  // 세션 체크 및 리다이렉트 (프로덕션에서 활성화)
-  // DEBUG_MODE 체크 개선 (클라이언트 사이드에서도 확인)
+  // 세션 체크는 미들웨어에서 처리하므로 클라이언트 사이드 리다이렉트 제거
+  // 미들웨어가 이미 인증되지 않은 사용자를 로그인 페이지로 리다이렉트함
+  // 클라이언트 사이드에서 추가 리다이렉트를 하면 루프가 발생할 수 있음
   const DEBUG_MODE = process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true' || 
                      (typeof window !== 'undefined' && 
                       localStorage.getItem('admin_debug_mode') === 'true');
   
+  // 디버깅 모드가 아닐 때만 세션 상태 확인 (리다이렉트는 하지 않음)
   useEffect(() => {
-    // 디버깅 모드가 아닐 때만 세션 체크
+    // 디버깅 모드이면 세션 체크 스킵
     if (DEBUG_MODE) return;
     
-    // 로딩 중이면 대기
-    if (status === 'loading') return;
-    
-    // 명시적으로 unauthenticated일 때만 리다이렉트
-    if (status === 'unauthenticated' && !session) {
-      if (!redirectingRef.current) {
-        redirectingRef.current = true;
-        router.replace('/admin/login'); // push 대신 replace 사용 (히스토리 스택 방지)
-      }
-      return;
+    // 세션이 없고 로딩이 완료되었을 때만 로그 (리다이렉트는 미들웨어가 처리)
+    if (status === 'unauthenticated' && !session && status !== 'loading') {
+      // 미들웨어가 이미 리다이렉트했을 것이므로 여기서는 아무것도 하지 않음
+      console.log('[Dashboard] 세션 없음 - 미들웨어가 리다이렉트 처리');
     }
-    
-    // 세션이 있으면 리다이렉트 플래그 리셋
-    if (session && redirectingRef.current) {
-      redirectingRef.current = false;
-    }
-  }, [status, session, router, DEBUG_MODE]);
+  }, [status, session, DEBUG_MODE]);
 
   // 최근 사용 메뉴 로드
   useEffect(() => {
@@ -83,8 +74,8 @@ export default function AdminDashboard() {
     return null;
   };
 
-  // 로딩 중 (디버깅 모드가 아닐 때만 체크)
-  if (!DEBUG_MODE && status === 'loading') {
+  // 로딩 중 표시 (세션 체크는 미들웨어가 처리하므로 여기서는 로딩만 표시)
+  if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -95,22 +86,9 @@ export default function AdminDashboard() {
     );
   }
 
-  // 세션 없음 (디버깅 모드가 아닐 때만 체크)
-  // 디버깅 모드일 때는 세션 없이도 렌더링
-  if (!DEBUG_MODE && !session) {
-    // status가 unauthenticated일 때만 리다이렉트 화면 표시
-    if (status === 'unauthenticated') {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">리다이렉트 중...</p>
-          </div>
-        </div>
-      );
-    }
-    
-    // status가 loading이면 로딩 화면
+  // 디버깅 모드가 아니고 세션이 없으면 로딩 표시
+  // (미들웨어가 이미 리다이렉트했을 것이지만, 클라이언트 사이드에서 세션 확인 중일 수 있음)
+  if (!DEBUG_MODE && !session && status !== 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

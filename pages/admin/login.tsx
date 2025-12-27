@@ -45,23 +45,42 @@ export default function LoginPage() {
       } else if (result?.ok) {
         // 로그인 성공 확인 - result?.ok를 명시적으로 체크
         const callbackUrl = (router.query.callbackUrl as string) || '/admin/dashboard';
-        // 세션이 설정될 시간을 주기 위해 약간의 지연
-        // window.location.href를 사용하여 강제 리다이렉트 (router.push가 작동하지 않는 경우 대비)
-        setTimeout(() => {
-          // 세션을 명시적으로 갱신
-          if (typeof window !== 'undefined') {
-            // router.push를 먼저 시도하고, 실패 시 window.location.href 사용
-            router.push(callbackUrl).catch(() => {
+        
+        // 세션이 설정될 때까지 대기
+        // NextAuth의 signIn이 완료된 후 세션 쿠키가 설정되기까지 약간의 시간이 필요
+        try {
+          // 세션 API를 호출하여 세션이 설정되었는지 확인
+          const checkSession = async () => {
+            try {
+              const sessionRes = await fetch('/api/auth/session');
+              const sessionData = await sessionRes.json();
+              return sessionData && sessionData.user;
+            } catch {
+              return false;
+            }
+          };
+          
+          // 최대 3초 동안 세션 설정 대기
+          let attempts = 0;
+          const maxAttempts = 6;
+          while (attempts < maxAttempts) {
+            const hasSession = await checkSession();
+            if (hasSession) {
+              // 세션이 설정되었으면 리다이렉트
               window.location.href = callbackUrl;
-            });
-            // 추가 안전장치: 1초 후에도 URL이 변경되지 않으면 강제 리다이렉트
-            setTimeout(() => {
-              if (window.location.pathname !== callbackUrl && !window.location.pathname.includes('/admin/dashboard')) {
-                window.location.href = callbackUrl;
-              }
-            }, 1000);
+              return;
+            }
+            await new Promise(resolve => setTimeout(resolve, 500));
+            attempts++;
           }
-        }, 200);
+          
+          // 세션 확인 실패 시에도 리다이렉트 시도 (쿠키는 설정되었을 수 있음)
+          window.location.href = callbackUrl;
+        } catch (redirectError) {
+          // 리다이렉트 실패 시 에러 표시
+          console.error('리다이렉트 오류:', redirectError);
+          setError('리다이렉트 중 오류가 발생했습니다. 페이지를 새로고침해주세요.');
+        }
       } else {
         // result가 null이거나 예상치 못한 경우
         setError('로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
