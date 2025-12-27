@@ -2,7 +2,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { getProductImageUrl } from '../../lib/product-image-url';
+import { useProductData } from '../../lib/use-product-data';
 
 const REVIEW_CATEGORIES = ['고객 후기', '리얼 체험, 비거리 성공 후기'];
 
@@ -11,9 +11,6 @@ export default function Pro3MuziikProduct() {
   const [reviews, setReviews] = useState([]);
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
-  const [productImages, setProductImages] = useState<string[]>([]);
-  const [galleryImages, setGalleryImages] = useState<string[]>([]);
-  const [isLoadingProduct, setIsLoadingProduct] = useState(true);
 
   // 기본 이미지 (fallback)
   const defaultImages = [
@@ -24,44 +21,8 @@ export default function Pro3MuziikProduct() {
     '/main/products/pro3-muziik/secret-force-pro-3-muziik-03.webp',
   ];
 
-  // 제품 정보 로드
-  useEffect(() => {
-    const loadProduct = async () => {
-      try {
-        setIsLoadingProduct(true);
-        const res = await fetch('/api/products/pro3-muziik');
-        const json = await res.json();
-        
-        if (json.success && json.product) {
-          const product = json.product;
-          
-          // detail_images 처리
-          if (Array.isArray(product.detail_images) && product.detail_images.length > 0) {
-            const detailUrls = product.detail_images.map((img: string) => getProductImageUrl(img));
-            setProductImages(detailUrls);
-          } else {
-            setProductImages(defaultImages.map(img => getProductImageUrl(img)));
-          }
-          
-          // gallery_images 처리 (착용 이미지)
-          if (Array.isArray(product.gallery_images) && product.gallery_images.length > 0) {
-            const galleryUrls = product.gallery_images.map((img: string) => getProductImageUrl(img));
-            setGalleryImages(galleryUrls);
-          }
-        } else {
-          // 데이터베이스에 없으면 기본 이미지 사용
-          setProductImages(defaultImages.map(img => getProductImageUrl(img)));
-        }
-      } catch (error) {
-        console.error('제품 로드 오류:', error);
-        setProductImages(defaultImages.map(img => getProductImageUrl(img)));
-      } finally {
-        setIsLoadingProduct(false);
-      }
-    };
-
-    loadProduct();
-  }, []);
+  // 제품 데이터 로드
+  const { productImages, galleryImages, isLoadingProduct } = useProductData('pro3-muziik', defaultImages);
 
   // 블로그 후기 가져오기
   useEffect(() => {

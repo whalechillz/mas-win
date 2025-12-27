@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { formatBrandYears } from '../../lib/brand-utils';
+import { useProductData } from '../../lib/use-product-data';
 
 const REVIEW_CATEGORIES = ['고객 후기', '리얼 체험, 비거리 성공 후기'];
 
@@ -12,7 +13,8 @@ export default function Gold2SapphireProduct() {
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
 
-  const productImages = [
+  // 기본 이미지 (fallback)
+  const defaultImages = [
     '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp',
     '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_01.webp',
     '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_12.webp',
@@ -24,6 +26,9 @@ export default function Gold2SapphireProduct() {
     '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_22.webp',
     '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_23.webp',
   ];
+
+  // 제품 데이터 로드
+  const { productImages, galleryImages, isLoadingProduct } = useProductData('gold2-sapphire', defaultImages);
 
   // 블로그 후기 가져오기
   useEffect(() => {
@@ -111,37 +116,43 @@ export default function Gold2SapphireProduct() {
             <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-start">
               {/* 제품 이미지 */}
               <div className="space-y-4 w-full max-w-full overflow-hidden">
-                <div className="relative aspect-square w-full max-w-full">
-                  <div className="relative w-full h-full rounded-2xl shadow-2xl overflow-hidden">
-                    <Image 
-                      src={productImages[selectedImage]} 
-                      alt="GOLD 2 + 사파이어 콤보" 
-                      fill
-                      className="object-contain rounded-2xl"
-                      onError={(e) => {
-                        console.error('제품 이미지 로드 실패:', productImages[selectedImage]);
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                      }}
-                    />
+                {isLoadingProduct ? (
+                  <div className="relative aspect-square w-full bg-gray-200 rounded-2xl flex items-center justify-center">
+                    <p className="text-gray-500">이미지 로딩 중...</p>
                   </div>
-                  <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold z-10">
-                    NEW
-                  </div>
-                </div>
-                
-                {/* 썸네일 이미지들 - 모바일에서 가로 스크롤 */}
-                <div className="flex space-x-4 overflow-x-auto pb-2 product-scrollbar-light w-full">
-                  {productImages.map((image, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedImage(index)}
-                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
-                        selectedImage === index ? 'border-red-600' : 'border-gray-300'
-                      }`}
-                    >
-                      <Image 
-                        src={image} 
+                ) : productImages.length > 0 ? (
+                  <>
+                    <div className="relative aspect-square w-full max-w-full">
+                      <div className="relative w-full h-full rounded-2xl shadow-2xl overflow-hidden">
+                        <Image 
+                          src={productImages[selectedImage]} 
+                          alt="GOLD 2 + 사파이어 콤보" 
+                          fill
+                          className="object-contain rounded-2xl"
+                          onError={(e) => {
+                            console.error('제품 이미지 로드 실패:', productImages[selectedImage]);
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                      <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold z-10">
+                        NEW
+                      </div>
+                    </div>
+                    
+                    {/* 썸네일 이미지들 - 모바일에서 가로 스크롤 */}
+                    <div className="flex space-x-4 overflow-x-auto pb-2 product-scrollbar-light w-full">
+                      {productImages.map((image, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setSelectedImage(index)}
+                          className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
+                            selectedImage === index ? 'border-red-600' : 'border-gray-300'
+                          }`}
+                        >
+                          <Image 
+                            src={image} 
                         alt={`제품 이미지 ${index + 1}`} 
                         width={80} 
                         height={80}
@@ -155,6 +166,12 @@ export default function Gold2SapphireProduct() {
                     </button>
                   ))}
                 </div>
+                  </>
+                ) : (
+                  <div className="relative aspect-square w-full bg-gray-200 rounded-2xl flex items-center justify-center">
+                    <p className="text-gray-500">이미지가 없습니다.</p>
+                  </div>
+                )}
               </div>
 
               {/* 제품 정보 */}
@@ -676,6 +693,35 @@ export default function Gold2SapphireProduct() {
             </div>
           </div>
         </section>
+
+        {/* 제품 착용 이미지 섹션 */}
+        {galleryImages.length > 0 && (
+          <section className="py-16 bg-white">
+            <div className="container mx-auto px-4 max-w-7xl">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">제품 착용 이미지</h2>
+                <p className="text-lg text-gray-600">실제 사용 모습을 확인하세요</p>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {galleryImages.map((image, index) => (
+                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden shadow-lg">
+                    <Image
+                      src={image}
+                      alt={`제품 착용 이미지 ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      onError={(e) => {
+                        console.error('착용 이미지 로드 실패:', image);
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* 고객 후기 슬라이드 섹션 */}
         <section className="py-12 bg-gray-50">

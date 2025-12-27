@@ -408,6 +408,65 @@ export default function ProductsAdminPage() {
     }
   };
 
+  // 상세페이지 이미지 업로드
+  const handleDetailImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!formState.slug && !formState.sku && !formState.category) {
+      alert('제품 slug, SKU 또는 카테고리를 먼저 입력해주세요.');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('productSlug', formState.slug || formState.sku || '');
+      uploadFormData.append('category', formState.category || (formState.product_type === 'driver' ? 'driver' : 'hat'));
+      uploadFormData.append('imageType', 'detail');
+
+      const response = await fetch('/api/admin/upload-product-image', {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const imageUrl = data.url || data.storageUrl;
+        setDetailImages([...detailImages, imageUrl]);
+        alert('이미지가 업로드되었습니다.');
+      } else {
+        const error = await response.json();
+        alert(`오류: ${error.error || '이미지 업로드에 실패했습니다.'}`);
+      }
+    } catch (error) {
+      console.error('이미지 업로드 오류:', error);
+      alert('이미지 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
+    }
+  };
+
+  // 상세페이지 이미지 삭제
+  const handleDeleteDetailImage = (index: number) => {
+    if (confirm('이 이미지를 삭제하시겠습니까?')) {
+      setDetailImages(detailImages.filter((_, i) => i !== index));
+    }
+  };
+
+  // 상세페이지 이미지 순서 변경
+  const handleMoveDetailImage = (index: number, direction: 'up' | 'down') => {
+    const newImages = [...detailImages];
+    if (direction === 'up' && index > 0) {
+      [newImages[index - 1], newImages[index]] = [newImages[index], newImages[index - 1]];
+    } else if (direction === 'down' && index < newImages.length - 1) {
+      [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
+    }
+    setDetailImages(newImages);
+  };
+
   const toggleSort = (column: 'name' | 'sku' | 'category' | 'normal_price' | 'sale_price') => {
     if (sortBy === column) {
       setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));

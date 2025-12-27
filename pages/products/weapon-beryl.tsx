@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { useProductData } from '../../lib/use-product-data';
 import { getProductImageUrl } from '../../lib/product-image-url';
 
 const REVIEW_CATEGORIES = ['고객 후기', '리얼 체험, 비거리 성공 후기'];
@@ -12,17 +13,21 @@ export default function WeaponBerylProduct() {
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
 
-  const productImages = [
-    getProductImageUrl('/originals/products/black-beryl/detail/massgoo_sw_black_muz_11.webp'),
-    getProductImageUrl('/originals/products/black-beryl/detail/massgoo_sw_black_muz_01.webp'),
-    getProductImageUrl('/originals/products/black-beryl/detail/massgoo_sw_black_muz_01_n.webp'),
-    getProductImageUrl('/originals/products/black-beryl/detail/massgoo_sw_black_muz_12.webp'),
-    getProductImageUrl('/originals/products/black-beryl/detail/massgoo_sw_black_muz_13.webp'),
-    getProductImageUrl('/originals/products/black-beryl/detail/massgoo_sw_black_muz_14_b.webp'),
-    getProductImageUrl('/originals/products/black-beryl/detail/massgoo_sw_black_muz_15.webp'),
-    getProductImageUrl('/originals/products/black-beryl/detail/massgoo_sw_black_muz_18.webp'),
-    getProductImageUrl('/originals/products/black-beryl/detail/massgoo_sw_black_muz_23.webp'),
+  // 기본 이미지 (fallback)
+  const defaultImages = [
+    '/originals/products/black-beryl/detail/massgoo_sw_black_muz_11.webp',
+    '/originals/products/black-beryl/detail/massgoo_sw_black_muz_01.webp',
+    '/originals/products/black-beryl/detail/massgoo_sw_black_muz_01_n.webp',
+    '/originals/products/black-beryl/detail/massgoo_sw_black_muz_12.webp',
+    '/originals/products/black-beryl/detail/massgoo_sw_black_muz_13.webp',
+    '/originals/products/black-beryl/detail/massgoo_sw_black_muz_14_b.webp',
+    '/originals/products/black-beryl/detail/massgoo_sw_black_muz_15.webp',
+    '/originals/products/black-beryl/detail/massgoo_sw_black_muz_18.webp',
+    '/originals/products/black-beryl/detail/massgoo_sw_black_muz_23.webp',
   ];
+
+  // 제품 데이터 로드
+  const { productImages, galleryImages, isLoadingProduct } = useProductData('black-beryl', defaultImages);
 
   useEffect(() => {
     let isMounted = true;
