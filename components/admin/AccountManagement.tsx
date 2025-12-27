@@ -145,8 +145,18 @@ export default function AccountManagement({ session }: AccountManagementProps) {
   };
 
   const openCreateModal = () => {
+    // 명시적으로 빈 값으로 초기화 (브라우저 자동완성 방지)
     setFormData({ name: '', phone: '', role: 'editor', password: '', is_active: true });
     setShowCreateModal(true);
+    // 모달이 열린 후 input 필드 강제 초기화
+    setTimeout(() => {
+      const nameInput = document.querySelector('[data-create-name-input]') as HTMLInputElement;
+      const phoneInput = document.querySelector('[data-create-phone-input]') as HTMLInputElement;
+      const passwordInput = document.querySelector('[data-create-password-input]') as HTMLInputElement;
+      if (nameInput) nameInput.value = '';
+      if (phoneInput) phoneInput.value = '';
+      if (passwordInput) passwordInput.value = '';
+    }, 0);
   };
 
   const openEditModal = (user: AdminUser) => {
@@ -307,6 +317,8 @@ export default function AccountManagement({ session }: AccountManagementProps) {
                   <label className="block text-sm font-medium text-gray-700">이름 *</label>
                   <input
                     type="text"
+                    data-create-name-input
+                    autoComplete="off"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
@@ -315,7 +327,9 @@ export default function AccountManagement({ session }: AccountManagementProps) {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">전화번호 *</label>
                   <input
-                    type="text"
+                    type="tel"
+                    data-create-phone-input
+                    autoComplete="off"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="010-1234-5678"
@@ -337,6 +351,8 @@ export default function AccountManagement({ session }: AccountManagementProps) {
                   <label className="block text-sm font-medium text-gray-700">비밀번호 *</label>
                   <input
                     type="password"
+                    data-create-password-input
+                    autoComplete="new-password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"

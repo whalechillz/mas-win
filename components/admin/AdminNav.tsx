@@ -20,13 +20,19 @@ const AdminNav = () => {
       return;
     }
     
-    // 세션이 없어도 미들웨어가 통과시켰다면 2초 후 표시 시도
+    // 세션이 없어도 미들웨어가 통과시켰다면 최대 3초 후 표시 시도
     if (status !== 'loading') {
       const timer = setTimeout(() => {
         setShowUserInfo(true);
       }, 2000);
       return () => clearTimeout(timer);
     }
+    
+    // 로딩 상태가 너무 오래 지속되면 강제로 표시 (최대 5초)
+    const maxLoadingTimer = setTimeout(() => {
+      setShowUserInfo(true);
+    }, 5000);
+    return () => clearTimeout(maxLoadingTimer);
   }, [status, session]);
 
   const handleLogout = async () => {
