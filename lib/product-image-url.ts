@@ -53,13 +53,9 @@ export function getProductImageUrl(imagePath: string): string {
     }
   }
   
-  // Supabase Storage 공개 URL 생성
-  if (SUPABASE_URL) {
-    return `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${storagePath}`;
-  }
-  
-  // 환경 변수가 없으면 상대 경로 반환 (개발 환경)
-  return `/${storagePath}`;
+  // originals/products/... 경로는 그대로 사용 (이미 새 형식)
+  // getSupabasePublicUrl을 사용하여 일관된 URL 생성
+  return getSupabasePublicUrl(storagePath);
 }
 
 /**
