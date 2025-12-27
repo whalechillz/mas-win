@@ -39,7 +39,7 @@ export default function SurveyLanding() {
   const [bucketHatImages, setBucketHatImages] = useState<Array<{ src: string; alt: string }>>([]);
   const [golfCapImages, setGolfCapImages] = useState<Array<{ src: string; alt: string }>>([]);
   const [imagesLoading, setImagesLoading] = useState(true);
-  const [pro3MuziikImage, setPro3MuziikImage] = useState<string>('/main/products/pro3-muziik/secret-force-pro-3-muziik-03.webp'); // Fallback
+  const [pro3MuziikImage, setPro3MuziikImage] = useState<string>(getProductImageUrl('originals/products/pro3-muziik/detail/secret-force-pro-3-muziik-00.webp')); // Fallback
 
   // 설문 이미지 로드 (데이터베이스에서)
   useEffect(() => {

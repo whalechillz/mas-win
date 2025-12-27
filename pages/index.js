@@ -560,7 +560,7 @@ export default function Home({ hostname, initialProducts = [] }) {
               <div className="grid md:grid-cols-3 gap-8 mb-12">
                 <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-green-500/30 hover:border-green-400 transition-all">
                   <Image
-                    src="/main/products/black-beryl/massgoo_sw_black_muz_11.webp"
+                    src={getProductImageUrl('originals/products/black-beryl/detail/massgoo_sw_black_muz_11.webp')}
                     alt="시크리트웨폰 블랙 MUZIIK"
                     fill
                     className="object-cover"
@@ -576,7 +576,7 @@ export default function Home({ hostname, initialProducts = [] }) {
               </div>
                 <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-yellow-500/30 hover:border-yellow-400 transition-all">
                   <Image
-                    src="/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp"
+                    src={getProductImageUrl('originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_11.webp')}
                     alt="시크리트포스 골드 2 MUZIIK"
                     fill
                     className="object-cover"
@@ -592,7 +592,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                 </div>
                 <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-red-500/30 hover:border-red-400 transition-all">
                   <Image
-                    src="/main/products/pro3-muziik/secret-force-pro-3-muziik-00.webp"
+                    src={getProductImageUrl('originals/products/pro3-muziik/detail/secret-force-pro-3-muziik-00.webp')}
                     alt="시크리트포스 PRO 3 MUZIIK"
                     fill
                     className="object-cover"
