@@ -5,7 +5,17 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+// 클라이언트 사이드에서도 환경 변수 접근 가능하도록 수정
+const getSupabaseUrl = () => {
+  // 서버 사이드
+  if (typeof window === 'undefined') {
+    return process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  }
+  // 클라이언트 사이드 - 환경 변수는 빌드 타임에 주입됨
+  return process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+};
+
+const SUPABASE_URL = getSupabaseUrl();
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const STORAGE_BUCKET = 'blog-images';
 
