@@ -12,6 +12,7 @@ export default function AdminDashboard() {
   const redirectingRef = useRef(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [recentMenus, setRecentMenus] = useState<string[]>([]);
+  const [canRender, setCanRender] = useState(false);
 
   // 세션 체크는 미들웨어에서 처리하므로 클라이언트 사이드 리다이렉트 제거
   // 미들웨어가 이미 인증되지 않은 사용자를 로그인 페이지로 리다이렉트함
@@ -86,9 +87,46 @@ export default function AdminDashboard() {
     );
   }
 
-  // 디버깅 모드가 아니고 세션이 없으면 로딩 표시
-  // (미들웨어가 이미 리다이렉트했을 것이지만, 클라이언트 사이드에서 세션 확인 중일 수 있음)
-  if (!DEBUG_MODE && !session && status !== 'loading') {
+  // 디버깅 모드가 아니고 세션이 없을 때 렌더링 허용 로직
+  // 미들웨어가 이미 통과시켰으므로 세션 확인 중일 수 있음
+  // 무한 로딩 방지를 위해 일정 시간 후 렌더링 시도
+  useEffect(() => {
+    if (DEBUG_MODE) {
+      setCanRender(true);
+      return;
+    }
+    
+    // 세션이 있으면 즉시 렌더링
+    if (session) {
+      setCanRender(true);
+      return;
+    }
+    
+    // 세션이 없어도 미들웨어가 통과시켰다면 2초 후 렌더링 시도
+    // (useSession이 세션을 가져오는 데 시간이 걸릴 수 있음)
+    const timer = setTimeout(() => {
+      setCanRender(true);
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  }, [session, DEBUG_MODE]);
+
+  // 로딩 중 표시 (세션 체크는 미들웨어가 처리하므로 여기서는 로딩만 표시)
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 디버깅 모드가 아니고 세션이 없으면
+  // 미들웨어가 이미 통과시켰으므로 세션 확인 중일 수 있음
+  // 무한 로딩 방지를 위해 일정 시간 후 렌더링 시도
+  if (!DEBUG_MODE && !session && !canRender) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
