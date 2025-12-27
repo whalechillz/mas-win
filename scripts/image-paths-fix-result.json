@@ -1,0 +1,69 @@
+{
+  "gold2": {
+    "success": true,
+    "imageCount": 9,
+    "images": [
+      "originals/products/gold2/detail/gold2_00_01.webp",
+      "originals/products/gold2/detail/gold2_01.webp",
+      "originals/products/gold2/detail/gold2_02.webp",
+      "originals/products/gold2/detail/gold2_03.webp",
+      "originals/products/gold2/detail/gold2_04.webp",
+      "originals/products/gold2/detail/gold2_05.webp",
+      "originals/products/gold2/detail/gold2_06.webp",
+      "originals/products/gold2/detail/gold2_07.webp",
+      "originals/products/gold2/detail/gold2_08_01.webp"
+    ]
+  },
+  "pro3": {
+    "success": true,
+    "imageCount": 12,
+    "images": [
+      "originals/products/pro3/detail/PRO_1000.webp",
+      "originals/products/pro3/detail/PRO_3_00.webp",
+      "originals/products/pro3/detail/PRO_3_01.webp",
+      "originals/products/pro3/detail/PRO_3_02.webp",
+      "originals/products/pro3/detail/PRO_3_03.webp",
+      "originals/products/pro3/detail/PRO_3_04.webp",
+      "originals/products/pro3/detail/PRO_3_05.webp",
+      "originals/products/pro3/detail/PRO_3_06.webp",
+      "originals/products/pro3/detail/PRO_3_07.webp",
+      "originals/products/pro3/detail/PRO_3_08.webp",
+      "originals/products/pro3/detail/PRO_350_long.webp",
+      "originals/products/pro3/detail/PRO_500.webp"
+    ]
+  },
+  "v3": {
+    "success": true,
+    "imageCount": 11,
+    "images": [
+      "originals/products/v3/detail/V3_01.webp",
+      "originals/products/v3/detail/V3_02.webp",
+      "originals/products/v3/detail/V3_03.webp",
+      "originals/products/v3/detail/V3_04.webp",
+      "originals/products/v3/detail/V3_05_00.webp",
+      "originals/products/v3/detail/V3_05.webp",
+      "originals/products/v3/detail/V3_06.webp",
+      "originals/products/v3/detail/V3_07.webp",
+      "originals/products/v3/detail/V3_08.webp",
+      "originals/products/v3/detail/V3_350_bg.webp",
+      "originals/products/v3/detail/V3_350_long.webp"
+    ]
+  },
+  "black-weapon": {
+    "success": true,
+    "imageCount": 7,
+    "images": [
+      "originals/products/black-weapon/detail/00_01.webp",
+      "originals/products/black-weapon/detail/01.webp",
+      "originals/products/black-weapon/detail/02.webp",
+      "originals/products/black-weapon/detail/03.webp",
+      "originals/products/black-weapon/detail/04.webp",
+      "originals/products/black-weapon/detail/500_long.webp",
+      "originals/products/black-weapon/detail/500.webp"
+    ]
+  },
+  "gold-weapon4": {
+    "success": false,
+    "reason": "정상 파일명 없음"
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "gold2-sapphire": {
+    "count": 10,
+    "files": [
+      "massgoo_sf_gold2_muz_01.webp",
+      "massgoo_sf_gold2_muz_11.webp",
+      "massgoo_sf_gold2_muz_12.webp",
+      "massgoo_sf_gold2_muz_13.webp",
+      "massgoo_sf_gold2_muz_14.webp",
+      "massgoo_sf_gold2_muz_16.webp",
+      "massgoo_sf_gold2_muz_17.webp",
+      "massgoo_sf_gold2_muz_18.webp",
+      "massgoo_sf_gold2_muz_22.webp",
+      "massgoo_sf_gold2_muz_23.webp"
+    ],
+    "firstFile": "massgoo_sf_gold2_muz_01.webp"
+  },
+  "black-beryl": {
+    "count": 9,
+    "files": [
+      "massgoo_sw_black_muz_01_n.webp",
+      "massgoo_sw_black_muz_01.webp",
+      "massgoo_sw_black_muz_11.webp",
+      "massgoo_sw_black_muz_12.webp",
+      "massgoo_sw_black_muz_13.webp",
+      "massgoo_sw_black_muz_14_b.webp",
+      "massgoo_sw_black_muz_15.webp",
+      "massgoo_sw_black_muz_18.webp",
+      "massgoo_sw_black_muz_23.webp"
+    ],
+    "firstFile": "massgoo_sw_black_muz_01_n.webp"
+  },
+  "pro3-muziik": {
+    "count": 7,
+    "files": [
+      "massgoo_pro3_beryl_230.webp",
+      "massgoo_pro3_beryl_240.webp",
+      "massgoo_pro3_beryl_250.webp",
+      "massgoo_pro3_sapphire_200.webp",
+      "massgoo_pro3_sapphire_215.webp",
+      "secret-force-pro-3-muziik-00.webp",
+      "secret-force-pro-3-muziik-03.webp"
+    ],
+    "firstFile": "massgoo_pro3_beryl_230.webp"
+  },
+  "gold2": {
+    "count": 15,
+    "files": [
+      "_-_-_2_-_01.webp",
+      "_-_-_2_350_long.webp",
+      "_-_-_2_500.webp",
+      "2_01.webp",
+      "2_350_long.webp",
+      "2_500.webp",
+      "gold2_00_01.webp",
+      "gold2_01.webp",
+      "gold2_02.webp",
+      "gold2_03.webp",
+      "gold2_04.webp",
+      "gold2_05.webp",
+      "gold2_06.webp",
+      "gold2_07.webp",
+      "gold2_08_01.webp"
+    ],
+    "firstFile": "_-_-_2_-_01.webp"
+  },
+  "pro3": {
+    "count": 24,
+    "files": [
+      "_-_PRO_1000.webp",
+      "_-_PRO_3_-_00.webp",
+      "_-_PRO_3_-_01.webp",
+      "_-_PRO_3_-_02.webp",
+      "_-_PRO_3_-_03.webp",
+      "_-_PRO_3_-_04.webp",
+      "_-_PRO_3_-_05.webp",
+      "_-_PRO_3_-_06.webp",
+      "_-_PRO_3_-_07.webp",
+      "_-_PRO_3_-_08.webp",
+      "_-_PRO_350_long.webp",
+      "_-_PRO_500.webp",
+      "PRO_1000.webp",
+      "PRO_3_00.webp",
+      "PRO_3_01.webp",
+      "PRO_3_02.webp",
+      "PRO_3_03.webp",
+      "PRO_3_04.webp",
+      "PRO_3_05.webp",
+      "PRO_3_06.webp",
+      "PRO_3_07.webp",
+      "PRO_3_08.webp",
+      "PRO_350_long.webp",
+      "PRO_500.webp"
+    ],
+    "firstFile": "_-_PRO_1000.webp"
+  },
+  "v3": {
+    "count": 22,
+    "files": [
+      "_-_V3_-_01.webp",
+      "_-_V3_-_02.webp",
+      "_-_V3_-_03.webp",
+      "_-_V3_-_04.webp",
+      "_-_V3_-_05.webp",
+      "_-_V3_-_06.webp",
+      "_-_V3_-_07.webp",
+      "_-_V3_-_08.webp",
+      "_-_V3_05_00.webp",
+      "_-_V3_350_bg.webp",
+      "_-_V3_350_long.webp",
+      "V3_01.webp",
+      "V3_02.webp",
+      "V3_03.webp",
+      "V3_04.webp",
+      "V3_05_00.webp",
+      "V3_05.webp",
+      "V3_06.webp",
+      "V3_07.webp",
+      "V3_08.webp",
+      "V3_350_bg.webp",
+      "V3_350_long.webp"
+    ],
+    "firstFile": "_-_V3_-_01.webp"
+  },
+  "black-weapon": {
+    "count": 18,
+    "files": [
+      "_-_-_-_00_01.webp",
+      "_-_-_-_01.webp",
+      "_-_-_-_02.webp",
+      "_-_-_-_03.webp",
+      "_-_-_-_04.webp",
+      "_-_-_-_05.webp",
+      "_-_-_-_06.webp",
+      "_-_-_-_07.webp",
+      "_-_-_-_08_01.webp",
+      "_-_-_500_long.webp",
+      "_-_-_500.webp",
+      "00_01.webp",
+      "01.webp",
+      "02.webp",
+      "03.webp",
+      "04.webp",
+      "500_long.webp",
+      "500.webp"
+    ],
+    "firstFile": "_-_-_-_00_01.webp"
+  },
+  "gold-weapon4": {
+    "count": 10,
+    "files": [
+      "_-_4.1_-_00_01.webp",
+      "_-_4.1_-_01.webp",
+      "_-_4.1_-_02.webp",
+      "_-_4.1_-_03.webp",
+      "_-_4.1_-_04.webp",
+      "_-_4.1_-_05.webp",
+      "_-_4.1_-_06.webp",
+      "_-_4.1_-_07.webp",
+      "_-_4.1_-_08_01.webp",
+      "_-_4.1_500.webp"
+    ],
+    "firstFile": "_-_4.1_-_00_01.webp"
+  }
+}

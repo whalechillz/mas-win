@@ -25,29 +25,29 @@
       "id": 26,
       "slug": "gold2",
       "name": "시크리트포스 골드 2",
-      "imageCount": 3,
-      "firstImage": "originals/products/gold2/detail/_-_-_2_-_01.webp"
+      "imageCount": 9,
+      "firstImage": "originals/products/gold2/detail/gold2_00_01.webp"
     },
     {
       "id": 27,
       "slug": "pro3",
       "name": "시크리트포스 PRO 3",
-      "imageCount": 14,
-      "firstImage": "originals/products/pro3/detail/_-_PRO_1000.webp"
+      "imageCount": 12,
+      "firstImage": "originals/products/pro3/detail/PRO_1000.webp"
     },
     {
       "id": 28,
       "slug": "v3",
       "name": "시크리트포스 V3",
-      "imageCount": 14,
-      "firstImage": "originals/products/v3/detail/_-_V3_-_01.webp"
+      "imageCount": 11,
+      "firstImage": "originals/products/v3/detail/V3_01.webp"
     },
     {
       "id": 29,
       "slug": "black-weapon",
       "name": "시크리트웨폰 블랙",
-      "imageCount": 13,
-      "firstImage": "originals/products/black-weapon/detail/_-_-_-_00_01.webp"
+      "imageCount": 7,
+      "firstImage": "originals/products/black-weapon/detail/00_01.webp"
     },
     {
       "id": 30,
