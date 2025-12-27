@@ -8,7 +8,12 @@ import { createClient } from '@supabase/supabase-js';
 // 클라이언트 사이드에서도 환경 변수 접근 가능하도록 수정
 const getSupabaseUrl = () => {
   // 환경 변수에서 가져오기 (서버/클라이언트 모두)
-  const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  // 클라이언트 사이드에서는 빌드 타임에 주입되지만, 런타임에도 접근 가능
+  const envUrl = typeof window !== 'undefined' 
+    ? (window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_SUPABASE_URL 
+      || process.env.NEXT_PUBLIC_SUPABASE_URL
+    : process.env.NEXT_PUBLIC_SUPABASE_URL;
+  
   if (envUrl) return envUrl;
   
   // 환경 변수가 없으면 하드코딩된 URL 사용 (프로덕션)
@@ -65,9 +70,17 @@ export function getProductImageUrl(imagePath: string): string {
   
   // originals/products/... 경로는 그대로 사용 (이미 새 형식)
   // Supabase Storage 공개 URL 직접 생성 (클라이언트 사이드에서도 안정적으로 작동)
-  if (SUPABASE_URL) {
+  // 함수 내부에서 직접 URL 가져오기 (런타임에 확실하게 작동)
+  const supabaseUrl = typeof window !== 'undefined'
+    ? (window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_SUPABASE_URL 
+      || process.env.NEXT_PUBLIC_SUPABASE_URL
+      || 'https://yyytjudftvpmcnppaymw.supabase.co'
+    : process.env.NEXT_PUBLIC_SUPABASE_URL 
+      || 'https://yyytjudftvpmcnppaymw.supabase.co';
+  
+  if (supabaseUrl) {
     const finalPath = storagePath.startsWith('/') ? storagePath.slice(1) : storagePath;
-    return `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${finalPath}`;
+    return `${supabaseUrl}/storage/v1/object/public/${STORAGE_BUCKET}/${finalPath}`;
   }
   
   // 환경 변수가 없으면 상대 경로 반환 (개발 환경)
