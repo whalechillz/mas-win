@@ -173,19 +173,8 @@ export const authOptions = {
         maxAge: 30 * 24 * 60 * 60, // 30일
       },
     },
-    callbackUrl: {
-      name: `next-auth.callback-url`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' 
-          ? (process.env.NEXTAUTH_COOKIE_DOMAIN || '.masgolf.co.kr')
-          : undefined,
-        maxAge: 30 * 24 * 60 * 60, // 30일
-      },
-    },
+    // callbackUrl 제거 - Credentials 방식에서는 불필요
+    // OAuth 로그인 시에만 필요하며, 현재는 Credentials만 사용
     csrfToken: {
       name: `next-auth.csrf-token`,
       options: {
