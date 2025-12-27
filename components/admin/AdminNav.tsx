@@ -7,6 +7,7 @@ const AdminNav = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [showUserInfo, setShowUserInfo] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isActive = (path: string) => router.pathname === path;
 
   // 미들웨어가 통과시켰다면 세션이 곧 올 것이므로 일정 시간 후 표시
@@ -24,6 +25,62 @@ const AdminNav = () => {
       return () => clearTimeout(timer);
     }
   }, [status, session]);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    
+    setIsLoggingOut(true);
+    
+    try {
+      // NextAuth signOut 시도
+      const { signOut } = await import('next-auth/react');
+      await signOut({ 
+        callbackUrl: '/admin/login',
+        redirect: false // 수동 리다이렉트를 위해 false
+      });
+      
+      // 쿠키 직접 삭제 (백업)
+      const cookieNames = [
+        'next-auth.session-token',
+        '__Secure-next-auth.session-token',
+        '__Host-next-auth.session-token',
+        'next-auth.csrf-token',
+        '__Secure-next-auth.csrf-token',
+        '__Host-next-auth.csrf-token'
+      ];
+      
+      cookieNames.forEach(name => {
+        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
+        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure`;
+        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Domain=.masgolf.co.kr`;
+      });
+      
+      // 강제 리다이렉트
+      window.location.href = '/admin/login';
+    } catch (error) {
+      console.error('로그아웃 오류:', error);
+      
+      // 에러 발생 시에도 쿠키 삭제 및 리다이렉트
+      const cookieNames = [
+        'next-auth.session-token',
+        '__Secure-next-auth.session-token',
+        '__Host-next-auth.session-token',
+        'next-auth.csrf-token',
+        '__Secure-next-auth.csrf-token',
+        '__Host-next-auth.csrf-token'
+      ];
+      
+      cookieNames.forEach(name => {
+        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
+        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure`;
+        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Domain=.masgolf.co.kr`;
+      });
+      
+      window.location.href = '/admin/login';
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <div className="bg-white border-b sticky top-0 z-40">
@@ -66,13 +123,11 @@ const AdminNav = () => {
                   {session?.user?.name || '관리자'} ({session?.user?.role === 'admin' ? '총관리자' : '편집자'})
                 </span>
                 <button
-                  onClick={async () => {
-                    const { signOut } = await import('next-auth/react');
-                    await signOut({ callbackUrl: '/admin/login' });
-                  }}
-                  className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  로그아웃
+                  {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
                 </button>
               </>
             ) : null}
