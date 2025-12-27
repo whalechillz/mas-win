@@ -324,9 +324,9 @@ export function generateCompositionPrompt(
 }
 
 /**
- * 제품 이미지 URL을 절대 URL로 변환
+ * 제품 이미지 URL을 절대 URL로 변환 (Supabase Storage 경로 지원)
  * @param imageUrl 상대 경로 또는 절대 URL
- * @param baseUrl 기본 URL (선택사항)
+ * @param baseUrl 기본 URL (선택사항, 사용 안 함 - getProductImageUrl이 처리)
  * @returns 절대 URL
  */
 export function getAbsoluteImageUrl(imageUrl: string, baseUrl?: string): string {
@@ -337,9 +337,11 @@ export function getAbsoluteImageUrl(imageUrl: string, baseUrl?: string): string 
     return imageUrl;
   }
   
-  // 상대 경로인 경우
-  const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
-  return `${base}${imageUrl}`;
+  // getProductImageUrl을 사용하여 Supabase Storage 경로로 변환
+  // 이 함수는 /main/products/... 경로를 originals/products/...로 자동 변환하고
+  // Supabase Storage 공개 URL을 생성합니다
+  const { getProductImageUrl } = require('./product-image-url');
+  return getProductImageUrl(imageUrl);
 }
 
 /**
