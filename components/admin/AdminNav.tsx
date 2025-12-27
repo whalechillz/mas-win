@@ -32,14 +32,24 @@ const AdminNav = () => {
     setIsLoggingOut(true);
     
     try {
-      // NextAuth signOut 시도
+      // 1. NextAuth signOut API 직접 호출 (서버 사이드에서 쿠키 삭제)
+      try {
+        await fetch('/api/auth/signout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+      } catch (apiError) {
+        console.log('signOut API 호출 실패 (무시):', apiError);
+      }
+      
+      // 2. 클라이언트 사이드 signOut 시도
       const { signOut } = await import('next-auth/react');
       await signOut({ 
         callbackUrl: '/admin/login',
         redirect: false // 수동 리다이렉트를 위해 false
       });
       
-      // 쿠키 직접 삭제 (백업)
+      // 3. 쿠키 직접 삭제 (모든 변형 버전)
       const cookieNames = [
         'next-auth.session-token',
         '__Secure-next-auth.session-token',
@@ -50,13 +60,26 @@ const AdminNav = () => {
       ];
       
       cookieNames.forEach(name => {
+        // 일반 쿠키
         document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
+        // Secure 쿠키
         document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure`;
+        // Domain 쿠키
         document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Domain=.masgolf.co.kr`;
+        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure; Domain=.masgolf.co.kr`;
+        // www 도메인
+        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Domain=www.masgolf.co.kr`;
+        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure; Domain=www.masgolf.co.kr`;
       });
       
-      // 강제 리다이렉트
-      window.location.href = '/admin/login';
+      // 4. localStorage도 정리 (혹시 모를 경우)
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      
+      // 5. 강제 리다이렉트 (완전 새로고침)
+      window.location.replace('/admin/login');
     } catch (error) {
       console.error('로그아웃 오류:', error);
       
@@ -74,9 +97,15 @@ const AdminNav = () => {
         document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
         document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure`;
         document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Domain=.masgolf.co.kr`;
+        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure; Domain=.masgolf.co.kr`;
       });
       
-      window.location.href = '/admin/login';
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      
+      window.location.replace('/admin/login');
     } finally {
       setIsLoggingOut(false);
     }

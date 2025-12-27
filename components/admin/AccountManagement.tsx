@@ -23,10 +23,27 @@ export default function AccountManagement({ session }: AccountManagementProps) {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'profile' | 'team'>('profile');
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
     loadUsers();
   }, []);
+
+  // 세션 로딩 타임아웃 처리 - 미들웨어가 통과시켰다면 세션이 있어야 함
+  useEffect(() => {
+    if (status === 'authenticated' && (sessionData?.user || session?.user)) {
+      setShowProfile(true);
+      return;
+    }
+    
+    // 세션이 없어도 미들웨어가 통과시켰다면 3초 후 표시 시도
+    if (status !== 'loading') {
+      const timer = setTimeout(() => {
+        setShowProfile(true);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [status, sessionData, session]);
 
   const loadUsers = async () => {
     try {
@@ -53,13 +70,23 @@ export default function AccountManagement({ session }: AccountManagementProps) {
     setIsLoggingOut(true);
     
     try {
-      // NextAuth signOut 시도
+      // 1. NextAuth signOut API 직접 호출 (서버 사이드에서 쿠키 삭제)
+      try {
+        await fetch('/api/auth/signout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+      } catch (apiError) {
+        console.log('signOut API 호출 실패 (무시):', apiError);
+      }
+      
+      // 2. 클라이언트 사이드 signOut 시도
       await signOut({ 
         callbackUrl: '/admin/login',
         redirect: false // 수동 리다이렉트를 위해 false
       });
       
-      // 쿠키 직접 삭제 (백업)
+      // 3. 쿠키 직접 삭제 (모든 변형 버전)
       const cookieNames = [
         'next-auth.session-token',
         '__Secure-next-auth.session-token',
@@ -70,13 +97,26 @@ export default function AccountManagement({ session }: AccountManagementProps) {
       ];
       
       cookieNames.forEach(name => {
+        // 일반 쿠키
         document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
+        // Secure 쿠키
         document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure`;
+        // Domain 쿠키
         document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Domain=.masgolf.co.kr`;
+        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure; Domain=.masgolf.co.kr`;
+        // www 도메인
+        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Domain=www.masgolf.co.kr`;
+        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure; Domain=www.masgolf.co.kr`;
       });
       
-      // 강제 리다이렉트
-      window.location.href = '/admin/login';
+      // 4. localStorage도 정리 (혹시 모를 경우)
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      
+      // 5. 강제 리다이렉트 (완전 새로고침)
+      window.location.replace('/admin/login');
     } catch (error) {
       console.error('로그아웃 오류:', error);
       
@@ -94,9 +134,15 @@ export default function AccountManagement({ session }: AccountManagementProps) {
         document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
         document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure`;
         document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Domain=.masgolf.co.kr`;
+        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure; Domain=.masgolf.co.kr`;
       });
       
-      window.location.href = '/admin/login';
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      
+      window.location.replace('/admin/login');
     } finally {
       setIsLoggingOut(false);
     }
@@ -171,20 +217,20 @@ export default function AccountManagement({ session }: AccountManagementProps) {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">내 프로필</h2>
           
           {/* 세션 로딩 중 - status로 정확히 체크 */}
-          {status === 'loading' && (
+          {status === 'loading' && !showProfile && (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
               <p className="mt-2 text-sm text-gray-500">프로필 정보를 불러오는 중...</p>
             </div>
           )}
           
-          {/* 세션 데이터가 있을 때 */}
-          {status === 'authenticated' && (sessionData?.user || session?.user) && (
+          {/* 세션 데이터가 있을 때 또는 showProfile이 true일 때 */}
+          {((status === 'authenticated' && (sessionData?.user || session?.user)) || showProfile) && (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">이름</label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {sessionData?.user?.name || (session?.user as any)?.name || '-'}
+                  {sessionData?.user?.name || (session?.user as any)?.name || '관리자'}
                 </p>
               </div>
               <div>
@@ -212,14 +258,6 @@ export default function AccountManagement({ session }: AccountManagementProps) {
                   {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
                 </button>
               </div>
-            </div>
-          )}
-          
-          {/* 세션이 없을 때 - 미들웨어가 통과시켰다면 곧 올 것 */}
-          {status !== 'loading' && !sessionData?.user && !session?.user && (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-              <p className="mt-2 text-sm text-gray-500">세션 정보를 불러오는 중...</p>
             </div>
           )}
         </div>
