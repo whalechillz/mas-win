@@ -38,6 +38,29 @@
 
 # 🎯 프로젝트 진행 현황
 
+## ✅ 최근 작업: products/goods 이미지 제품별 분리 및 연결 (2025-12-27)
+
+### 완료된 작업
+- **products/goods 이미지 제품별 분리** ✅:
+  - `originals/products/goods` 폴더에 섞여있던 37개 이미지를 제품별로 분리
+  - 파일명 패턴 분석으로 자동 제품 분류 (버킷햇, 골프모자, 클러치백, 캡 등)
+  - 제품별 폴더 구조로 재구성: `originals/products/goods/{product-slug}/gallery/`
+  - 총 8개 제품 분류 완료
+- **데이터베이스 제품 이미지 연결** ✅:
+  - 각 제품의 `gallery_images` 필드에 이미지 경로 자동 연결
+  - 기존 제품 업데이트 및 신규 제품 등록 완료
+  - 설문 페이지 이미지 자동 로드 지원
+- **마이그레이션 스크립트 작성** ✅:
+  - `scripts/organize-goods-images-by-product.js`: 이미지 분리 스크립트
+  - `scripts/update-goods-products-with-images.js`: 데이터베이스 연결 스크립트
+
+### 변경된 파일
+- `scripts/organize-goods-images-by-product.js` (신규)
+- `scripts/update-goods-products-with-images.js` (신규)
+- `scripts/goods-images-organization-result.json` (신규)
+
+---
+
 ## ✅ 최근 작업: 허브 시스템 순번 구조 및 블로그 다중 연결 지원 (2025-12-16)
 
 ### 완료된 작업
