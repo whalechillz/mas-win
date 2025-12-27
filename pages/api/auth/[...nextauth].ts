@@ -116,8 +116,9 @@ export const authOptions = {
           return {
             id: user.id,
             name: user.name,
-            email: user.phone,
-            role: user.role
+            email: user.phone, // NextAuth는 email 필드를 요구하므로 전화번호를 email에 저장
+            role: user.role,
+            phone: user.phone
           }
         }
         
@@ -129,15 +130,16 @@ export const authOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id
         token.role = user.role
-        token.phone = user.email  // user.email에는 전화번호가 들어있음
+        token.phone = (user as any).phone || user.email  // user.email에는 전화번호가 들어있음
         token.name = user.name
       }
       return token
     },
     async session({ session, token }) {
       if (token) {
-        session.user.id = token.sub
+        session.user.id = (token.id as string) || token.sub
         session.user.role = token.role
         session.user.phone = token.phone
         session.user.name = token.name || session.user.name

@@ -27,12 +27,18 @@ export default function AccountManagement({ session }: AccountManagementProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     role: 'editor' as 'admin' | 'editor',
     password: '',
     is_active: true
+  });
+  const [profileFormData, setProfileFormData] = useState({
+    name: '',
+    phone: '',
+    password: ''
   });
 
   useEffect(() => {
@@ -180,6 +186,58 @@ export default function AccountManagement({ session }: AccountManagementProps) {
       is_active: user.is_active
     });
     setShowEditModal(true);
+  };
+
+  const handleProfileUpdate = async () => {
+    const currentUser = sessionData?.user || session?.user;
+    if (!currentUser) return;
+
+    try {
+      const updateData: any = {
+        id: (currentUser as any).id,
+        name: profileFormData.name,
+      };
+      
+      if (profileFormData.phone) {
+        updateData.phone = profileFormData.phone.replace(/[^0-9]/g, '');
+      }
+      if (profileFormData.password) {
+        updateData.password = profileFormData.password;
+      }
+
+      const response = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        alert('프로필이 수정되었습니다. 페이지를 새로고침합니다.');
+        setIsEditingProfile(false);
+        // 세션 새로고침
+        window.location.reload();
+      } else {
+        alert(data.message || '프로필 수정에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('프로필 수정 오류:', err);
+      alert('프로필 수정 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 프로필 수정 모드 시작
+  const startProfileEdit = () => {
+    const currentUser = sessionData?.user || session?.user;
+    if (!currentUser) return;
+    
+    setProfileFormData({
+      name: (currentUser as any)?.name || '',
+      phone: (currentUser as any)?.phone || (currentUser as any)?.email || '',
+      password: ''
+    });
+    setIsEditingProfile(true);
   };
 
   const handleLogout = async () => {
@@ -345,43 +403,99 @@ export default function AccountManagement({ session }: AccountManagementProps) {
           
           {/* 세션 데이터가 있을 때 또는 showProfile이 true일 때 */}
           {((status === 'authenticated' && (sessionData?.user || session?.user)) || showProfile) && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">이름</label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {sessionData?.user?.name || (session?.user as any)?.name || '관리자'}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">이메일/전화번호</label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {(sessionData?.user as any)?.phone || 
-                   sessionData?.user?.email || 
-                   (session?.user as any)?.phone || 
-                   (session?.user as any)?.email || 
-                   '-'}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">역할</label>
-                <div className="mt-1">
-                  {getRoleBadge(
-                    (sessionData?.user as any)?.role || 
-                    (session?.user as any)?.role || 
-                    'editor'
-                  )}
+            <>
+              {isEditingProfile ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">이름 *</label>
+                    <input
+                      type="text"
+                      value={profileFormData.name}
+                      onChange={(e) => setProfileFormData({ ...profileFormData, name: e.target.value })}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">전화번호</label>
+                    <input
+                      type="text"
+                      value={profileFormData.phone}
+                      onChange={(e) => setProfileFormData({ ...profileFormData, phone: e.target.value })}
+                      placeholder="010-1234-5678"
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">비밀번호 (변경 시에만 입력)</label>
+                    <input
+                      type="password"
+                      value={profileFormData.password}
+                      onChange={(e) => setProfileFormData({ ...profileFormData, password: e.target.value })}
+                      placeholder="변경하지 않으려면 비워두세요"
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+                  <div className="flex space-x-3 pt-4">
+                    <button
+                      onClick={handleProfileUpdate}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700"
+                    >
+                      저장
+                    </button>
+                    <button
+                      onClick={() => setIsEditingProfile(false)}
+                      className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-400"
+                    >
+                      취소
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="pt-4">
-                <button
-                  onClick={handleLogout}
-                  disabled={isLoggingOut}
-                  className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
-                </button>
-              </div>
-            </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">이름</label>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {(sessionData?.user as any)?.name || (session?.user as any)?.name || '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">이메일/전화번호</label>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {(sessionData?.user as any)?.phone || 
+                       sessionData?.user?.email || 
+                       (session?.user as any)?.phone || 
+                       (session?.user as any)?.email || 
+                       '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">역할</label>
+                    <div className="mt-1">
+                      {getRoleBadge(
+                        (sessionData?.user as any)?.role || 
+                        (session?.user as any)?.role || 
+                        'editor'
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex space-x-3 pt-4">
+                    <button
+                      onClick={startProfileEdit}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700"
+                    >
+                      프로필 수정
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      disabled={isLoggingOut}
+                      className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
