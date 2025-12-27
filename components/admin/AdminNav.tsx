@@ -2,12 +2,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
+import UserProfileDropdown from './UserProfileDropdown';
+import ProfileEditModal from './ProfileEditModal';
 
 const AdminNav = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [showUserInfo, setShowUserInfo] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const isActive = (path: string) => router.pathname === path;
 
   // 미들웨어가 통과시켰다면 세션이 곧 올 것이므로 일정 시간 후 표시
@@ -148,22 +151,23 @@ const AdminNav = () => {
             )}
             
             {(status === 'authenticated' && session?.user) || showUserInfo ? (
-              <>
-                <span className="text-sm text-gray-600">
-                  {session?.user?.name || '관리자'} ({(session?.user as any)?.role === 'admin' ? '총관리자' : '편집자'})
-                </span>
-                <button
-                  onClick={handleLogout}
-                  disabled={isLoggingOut}
-                  className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
-                </button>
-              </>
+              <UserProfileDropdown
+                onLogout={handleLogout}
+                onEditProfile={() => setShowProfileModal(true)}
+              />
             ) : null}
           </div>
         </div>
       </div>
+
+      {/* 개인정보 수정 모달 */}
+      <ProfileEditModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        onUpdate={() => {
+          // 세션 새로고침은 모달 내부에서 처리
+        }}
+      />
     </div>
   );
 };

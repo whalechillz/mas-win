@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useSession, signOut } from 'next-auth/react';
 
 interface AdminUser {
   id: string;
@@ -17,17 +16,12 @@ interface AccountManagementProps {
 }
 
 export default function AccountManagement({ session }: AccountManagementProps) {
-  const { data: sessionData, status } = useSession();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'profile' | 'team'>('profile');
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -35,31 +29,10 @@ export default function AccountManagement({ session }: AccountManagementProps) {
     password: '',
     is_active: true
   });
-  const [profileFormData, setProfileFormData] = useState({
-    name: '',
-    phone: '',
-    password: ''
-  });
 
   useEffect(() => {
     loadUsers();
   }, []);
-
-  // 세션 로딩 타임아웃 처리 - 미들웨어가 통과시켰다면 세션이 있어야 함
-  useEffect(() => {
-    if (status === 'authenticated' && (sessionData?.user || session?.user)) {
-      setShowProfile(true);
-      return;
-    }
-    
-    // 세션이 없어도 미들웨어가 통과시켰다면 3초 후 표시 시도
-    if (status !== 'loading') {
-      const timer = setTimeout(() => {
-        setShowProfile(true);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [status, sessionData, session]);
 
   const loadUsers = async () => {
     try {
@@ -188,175 +161,6 @@ export default function AccountManagement({ session }: AccountManagementProps) {
     setShowEditModal(true);
   };
 
-  const handleProfileUpdate = async () => {
-    const currentUser = sessionData?.user || session?.user;
-    if (!currentUser) {
-      alert('사용자 정보를 불러올 수 없습니다.');
-      return;
-    }
-
-    const userId = (currentUser as any)?.id;
-    if (!userId) {
-      console.error('사용자 ID가 없습니다:', currentUser);
-      alert('사용자 ID를 찾을 수 없습니다. 다시 로그인해주세요.');
-      return;
-    }
-
-    if (!profileFormData.name || profileFormData.name.trim() === '') {
-      alert('이름은 필수입니다.');
-      return;
-    }
-
-    try {
-      const updateData: any = {
-        id: userId,
-        name: profileFormData.name.trim(),
-      };
-      
-      if (profileFormData.phone) {
-        updateData.phone = profileFormData.phone.replace(/[^0-9]/g, '');
-      }
-      if (profileFormData.password) {
-        updateData.password = profileFormData.password;
-      }
-
-      console.log('프로필 수정 요청:', updateData);
-
-      const response = await fetch('/api/admin/users', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updateData),
-      });
-      
-      const data = await response.json();
-      
-      console.log('프로필 수정 응답:', data);
-      
-      if (data.success) {
-        alert('프로필이 수정되었습니다. 페이지를 새로고침합니다.');
-        setIsEditingProfile(false);
-        // 세션 새로고침
-        window.location.reload();
-      } else {
-        alert(data.message || '프로필 수정에 실패했습니다.');
-        console.error('프로필 수정 실패:', data);
-      }
-    } catch (err) {
-      console.error('프로필 수정 오류:', err);
-      alert('프로필 수정 중 오류가 발생했습니다. 콘솔을 확인해주세요.');
-    }
-  };
-
-  // 프로필 수정 모드 시작
-  const startProfileEdit = () => {
-    const currentUser = sessionData?.user || session?.user;
-    if (!currentUser) {
-      alert('사용자 정보를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.');
-      return;
-    }
-    
-    const userName = (currentUser as any)?.name || '';
-    const userPhone = (currentUser as any)?.phone || (currentUser as any)?.email || '';
-    
-    if (!userName) {
-      alert('사용자 이름을 불러올 수 없습니다. 페이지를 새로고침해주세요.');
-      return;
-    }
-    
-    console.log('프로필 수정 시작:', { currentUser, userName, userPhone });
-    
-    setProfileFormData({
-      name: userName,
-      phone: userPhone,
-      password: ''
-    });
-    setIsEditingProfile(true);
-  };
-
-  const handleLogout = async () => {
-    if (isLoggingOut) return;
-    
-    setIsLoggingOut(true);
-    
-    try {
-      // 1. 모든 쿠키 즉시 삭제 (signOut 전에 먼저 삭제)
-      const cookieNames = [
-        'next-auth.session-token',
-        '__Secure-next-auth.session-token',
-        '__Host-next-auth.session-token',
-        'next-auth.csrf-token',
-        '__Secure-next-auth.csrf-token',
-        '__Host-next-auth.csrf-token'
-      ];
-      
-      // 모든 가능한 경로와 도메인 조합으로 삭제
-      const domains = ['', '.masgolf.co.kr', 'www.masgolf.co.kr', 'masgolf.co.kr'];
-      const paths = ['/', '/admin', '/admin/login'];
-      
-      cookieNames.forEach(name => {
-        domains.forEach(domain => {
-          paths.forEach(path => {
-            // 일반 쿠키
-            document.cookie = `${name}=; Path=${path}; Max-Age=0; SameSite=Lax${domain ? `; Domain=${domain}` : ''}`;
-            // Secure 쿠키
-            document.cookie = `${name}=; Path=${path}; Max-Age=0; SameSite=Lax; Secure${domain ? `; Domain=${domain}` : ''}`;
-          });
-        });
-      });
-      
-      // 2. localStorage/sessionStorage 정리
-      if (typeof window !== 'undefined') {
-        localStorage.clear();
-        sessionStorage.clear();
-      }
-      
-      // 3. NextAuth signOut 시도 (실패해도 무시)
-      try {
-        await signOut({ redirect: false });
-      } catch (e) {
-        console.log('signOut 실패 (무시):', e);
-      }
-      
-      // 4. 즉시 리다이렉트 (replace로 히스토리 제거, 절대 경로 사용)
-      setTimeout(() => {
-        window.location.replace('https://www.masgolf.co.kr/admin/login');
-      }, 100);
-      
-    } catch (error) {
-      console.error('로그아웃 오류:', error);
-      
-      // 에러 발생 시에도 쿠키 삭제 및 리다이렉트
-      const cookieNames = [
-        'next-auth.session-token',
-        '__Secure-next-auth.session-token',
-        '__Host-next-auth.session-token',
-        'next-auth.csrf-token',
-        '__Secure-next-auth.csrf-token',
-        '__Host-next-auth.csrf-token'
-      ];
-      
-      const domains = ['', '.masgolf.co.kr', 'www.masgolf.co.kr', 'masgolf.co.kr'];
-      const paths = ['/', '/admin', '/admin/login'];
-      
-      cookieNames.forEach(name => {
-        domains.forEach(domain => {
-          paths.forEach(path => {
-            document.cookie = `${name}=; Path=${path}; Max-Age=0; SameSite=Lax${domain ? `; Domain=${domain}` : ''}`;
-            document.cookie = `${name}=; Path=${path}; Max-Age=0; SameSite=Lax; Secure${domain ? `; Domain=${domain}` : ''}`;
-          });
-        });
-      });
-      
-      if (typeof window !== 'undefined') {
-        localStorage.clear();
-        sessionStorage.clear();
-      }
-      
-      window.location.replace('https://www.masgolf.co.kr/admin/login');
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -395,147 +199,8 @@ export default function AccountManagement({ session }: AccountManagementProps) {
 
   return (
     <div className="space-y-6">
-      {/* 탭 네비게이션 */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('profile')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'profile'
-                ? 'border-indigo-500 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            내 프로필
-          </button>
-          <button
-            onClick={() => setActiveTab('team')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'team'
-                ? 'border-indigo-500 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            팀 관리
-          </button>
-        </nav>
-      </div>
-
-      {/* 내 프로필 탭 */}
-      {activeTab === 'profile' && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">내 프로필</h2>
-          
-          {/* 세션 로딩 중 - status로 정확히 체크 */}
-          {status === 'loading' && !showProfile && (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-              <p className="mt-2 text-sm text-gray-500">프로필 정보를 불러오는 중...</p>
-            </div>
-          )}
-          
-          {/* 세션 데이터가 있을 때만 표시 (showProfile은 fallback) */}
-          {((status === 'authenticated' && (sessionData?.user || session?.user)) || (showProfile && status !== 'loading')) ? (
-            <>
-              {isEditingProfile ? (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">이름 *</label>
-                    <input
-                      type="text"
-                      value={profileFormData.name}
-                      onChange={(e) => setProfileFormData({ ...profileFormData, name: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">전화번호</label>
-                    <input
-                      type="text"
-                      value={profileFormData.phone}
-                      onChange={(e) => setProfileFormData({ ...profileFormData, phone: e.target.value })}
-                      placeholder="010-1234-5678"
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">비밀번호 (변경 시에만 입력)</label>
-                    <input
-                      type="password"
-                      value={profileFormData.password}
-                      onChange={(e) => setProfileFormData({ ...profileFormData, password: e.target.value })}
-                      placeholder="변경하지 않으려면 비워두세요"
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                  <div className="flex space-x-3 pt-4">
-                    <button
-                      onClick={handleProfileUpdate}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700"
-                    >
-                      저장
-                    </button>
-                    <button
-                      onClick={() => setIsEditingProfile(false)}
-                      className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-400"
-                    >
-                      취소
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">이름</label>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {(sessionData?.user as any)?.name || (session?.user as any)?.name || '-'}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">이메일/전화번호</label>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {(sessionData?.user as any)?.phone || 
-                       sessionData?.user?.email || 
-                       (session?.user as any)?.phone || 
-                       (session?.user as any)?.email || 
-                       '-'}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">역할</label>
-                    <div className="mt-1">
-                      {getRoleBadge(
-                        (sessionData?.user as any)?.role || 
-                        (session?.user as any)?.role || 
-                        'editor'
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex space-x-3 pt-4">
-                    <button
-                      onClick={startProfileEdit}
-                      disabled={!sessionData?.user && !session?.user}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      프로필 수정
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      disabled={isLoggingOut}
-                      className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : null}
-        </div>
-      )}
-
-      {/* 팀 관리 탭 */}
-      {activeTab === 'team' && (
+      {/* 팀 관리 */}
+      <div className="bg-white shadow rounded-lg">
         <div className="bg-white shadow rounded-lg">
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-xl font-semibold text-gray-900">팀 관리</h2>
@@ -630,8 +295,7 @@ export default function AccountManagement({ session }: AccountManagementProps) {
               )}
             </div>
           )}
-        </div>
-      )}
+      </div>
 
       {/* 사용자 생성 모달 */}
       {showCreateModal && (
