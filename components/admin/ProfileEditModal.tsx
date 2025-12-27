@@ -9,7 +9,7 @@ interface ProfileEditModalProps {
 }
 
 export default function ProfileEditModal({ isOpen, onClose, onUpdate }: ProfileEditModalProps) {
-  const { data: session, status } = useSession();
+  const { data: session, status, update: updateSession } = useSession();
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -164,10 +164,21 @@ export default function ProfileEditModal({ isOpen, onClose, onUpdate }: ProfileE
       const data = await response.json();
       
       if (data.success) {
-        alert('프로필이 수정되었습니다. 페이지를 새로고침합니다.');
+        // NextAuth 세션 갱신 (JWT 콜백에서 DB에서 최신 정보 가져옴)
+        try {
+          await updateSession();
+          console.log('세션 갱신 완료');
+        } catch (sessionError) {
+          console.log('세션 갱신 실패 (무시):', sessionError);
+        }
+        
+        alert('프로필이 수정되었습니다.');
         onUpdate();
         onClose();
-        window.location.reload();
+        // 약간의 지연 후 새로고침 (세션 갱신 대기)
+        setTimeout(() => {
+          window.location.reload();
+        }, 300);
       } else {
         setError(data.message || '프로필 수정에 실패했습니다.');
       }

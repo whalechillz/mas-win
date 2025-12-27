@@ -128,13 +128,37 @@ export const authOptions = {
     })
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      // 로그인 시 또는 세션 업데이트 시
       if (user) {
         token.id = user.id
         token.role = user.role
         token.phone = (user as any).phone || user.email  // user.email에는 전화번호가 들어있음
         token.name = user.name
       }
+      
+      // 세션 업데이트 트리거 시 DB에서 최신 정보 가져오기
+      if (trigger === 'update' && token.id) {
+        try {
+          const { data: userData, error } = await supabaseAdmin
+            .from('admin_users')
+            .select('name, phone, role')
+            .eq('id', token.id)
+            .single();
+          
+          if (userData && !error) {
+            token.name = userData.name;
+            token.phone = userData.phone;
+            token.role = userData.role;
+            console.log('세션 갱신: DB에서 최신 정보 가져옴', { name: userData.name, phone: userData.phone, role: userData.role });
+          } else {
+            console.log('세션 갱신 중 DB 조회 실패:', error);
+          }
+        } catch (error) {
+          console.log('세션 갱신 중 DB 조회 오류:', error);
+        }
+      }
+      
       return token
     },
     async session({ session, token }) {
