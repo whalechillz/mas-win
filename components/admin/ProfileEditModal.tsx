@@ -21,14 +21,20 @@ export default function ProfileEditModal({ isOpen, onClose, onUpdate }: ProfileE
   // 세션을 기다리는 로직 추가
   useEffect(() => {
     if (isOpen) {
+      // 모달이 처음 열릴 때만 초기화
+      // 이미 사용자가 입력한 값이 있으면 보존
+      const hasUserInput = formData.name || formData.phone || formData.password;
+      
       // 세션이 로딩 중이면 기다림
       if (status === 'loading') {
-        setError('세션 정보를 불러오는 중...');
+        if (!hasUserInput) {
+          setError('세션 정보를 불러오는 중...');
+        }
         return;
       }
       
-      // 세션이 있으면 즉시 formData 설정
-      if (session?.user) {
+      // 세션이 있고 사용자 입력이 없을 때만 formData 설정
+      if (session?.user && !hasUserInput) {
         setFormData({
           name: (session.user as any)?.name || '',
           phone: (session.user as any)?.phone || (session.user as any)?.email || '',
@@ -38,56 +44,57 @@ export default function ProfileEditModal({ isOpen, onClose, onUpdate }: ProfileE
         return;
       }
       
-      // 세션이 없으면 세션 API를 직접 호출하여 기다리기
-      const waitForSession = async () => {
-        let attempts = 0;
-        const maxAttempts = 10; // 최대 5초 대기 (500ms * 10)
-        
-        while (attempts < maxAttempts) {
-          try {
-            const res = await fetch('/api/auth/session');
-            const sessionData = await res.json();
-            
-            if (sessionData?.user) {
-              setFormData({
-                name: sessionData.user.name || '',
-                phone: sessionData.user.phone || sessionData.user.email || '',
-                password: ''
-              });
-              setError('');
-              return;
+      // 세션이 없고 사용자 입력도 없을 때만 세션 API 호출
+      if (!session?.user && !hasUserInput) {
+        const waitForSession = async () => {
+          let attempts = 0;
+          const maxAttempts = 10; // 최대 5초 대기 (500ms * 10)
+          
+          while (attempts < maxAttempts) {
+            try {
+              const res = await fetch('/api/auth/session');
+              const sessionData = await res.json();
+              
+              if (sessionData?.user) {
+                setFormData({
+                  name: sessionData.user.name || '',
+                  phone: sessionData.user.phone || sessionData.user.email || '',
+                  password: ''
+                });
+                setError('');
+                return;
+              }
+            } catch (e) {
+              // 무시하고 계속 시도
             }
-          } catch (e) {
-            // 무시하고 계속 시도
+            
+            await new Promise(resolve => setTimeout(resolve, 500));
+            attempts++;
           }
           
-          await new Promise(resolve => setTimeout(resolve, 500));
-          attempts++;
-        }
+          // 세션을 찾지 못했지만 전화번호라도 있으면 사용
+          if (session?.user?.phone || session?.user?.email) {
+            setFormData({
+              name: (session.user as any)?.name || '',
+              phone: (session.user as any)?.phone || (session.user as any)?.email || '',
+              password: ''
+            });
+            setError('이름 정보를 불러올 수 없습니다. 수동으로 입력해주세요.');
+          } else {
+            // 전화번호도 없으면 에러 표시 (하지만 formData는 초기화하지 않음)
+            setError('세션 정보를 불러올 수 없습니다. 수동으로 입력해주세요.');
+          }
+        };
         
-        // 세션을 찾지 못했지만 전화번호라도 있으면 사용
-        if (session?.user?.phone || session?.user?.email) {
-          setFormData({
-            name: (session.user as any)?.name || '',
-            phone: (session.user as any)?.phone || (session.user as any)?.email || '',
-            password: ''
-          });
-          setError('이름 정보를 불러올 수 없습니다. 수동으로 입력해주세요.');
-        } else {
-          // 전화번호도 없으면 에러 표시
-          setError('세션 정보를 불러올 수 없습니다. 페이지를 새로고침해주세요.');
-          setFormData({
-            name: '',
-            phone: '',
-            password: ''
-          });
-        }
-      };
-      
-      // 세션이 없으면 기다리기 시작
-      waitForSession();
+        // 세션이 없으면 기다리기 시작
+        waitForSession();
+      }
+    } else {
+      // 모달이 닫힐 때 formData 초기화
+      setFormData({ name: '', phone: '', password: '' });
+      setError('');
     }
-  }, [isOpen, session, status]);
+  }, [isOpen]); // dependency를 isOpen만으로 제한하여 session/status 변경 시 재실행 방지
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
