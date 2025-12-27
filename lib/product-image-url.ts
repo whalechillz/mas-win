@@ -54,8 +54,14 @@ export function getProductImageUrl(imagePath: string): string {
   }
   
   // originals/products/... 경로는 그대로 사용 (이미 새 형식)
-  // getSupabasePublicUrl을 사용하여 일관된 URL 생성
-  return getSupabasePublicUrl(storagePath);
+  // Supabase Storage 공개 URL 직접 생성 (클라이언트 사이드에서도 안정적으로 작동)
+  if (SUPABASE_URL) {
+    const finalPath = storagePath.startsWith('/') ? storagePath.slice(1) : storagePath;
+    return `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${finalPath}`;
+  }
+  
+  // 환경 변수가 없으면 상대 경로 반환 (개발 환경)
+  return `/${storagePath}`;
 }
 
 /**
