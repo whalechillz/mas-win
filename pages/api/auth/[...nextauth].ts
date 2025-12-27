@@ -130,7 +130,8 @@ export const authOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role
-        token.phone = user.email
+        token.phone = user.email  // user.email에는 전화번호가 들어있음
+        token.name = user.name
       }
       return token
     },
@@ -139,6 +140,11 @@ export const authOptions = {
         session.user.id = token.sub
         session.user.role = token.role
         session.user.phone = token.phone
+        session.user.name = token.name || session.user.name
+        // email 필드에도 전화번호가 들어가 있으므로 표시용으로 사용
+        if (!session.user.email && token.phone) {
+          session.user.email = token.phone
+        }
       }
       return session
     }

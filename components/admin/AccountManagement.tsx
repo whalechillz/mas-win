@@ -355,7 +355,11 @@ export default function AccountManagement({ session }: AccountManagementProps) {
               <div>
                 <label className="block text-sm font-medium text-gray-700">이메일/전화번호</label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {sessionData?.user?.email || (session?.user as any)?.phone || '-'}
+                  {(sessionData?.user as any)?.phone || 
+                   sessionData?.user?.email || 
+                   (session?.user as any)?.phone || 
+                   (session?.user as any)?.email || 
+                   '-'}
                 </p>
               </div>
               <div>
