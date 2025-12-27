@@ -1,0 +1,62 @@
+{
+  "hasImages": [
+    {
+      "id": 23,
+      "slug": "gold2-sapphire",
+      "name": "시크리트포스 골드 2 MUZIIK",
+      "imageCount": 10,
+      "firstImage": "originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_11.webp"
+    },
+    {
+      "id": 24,
+      "slug": "black-beryl",
+      "name": "시크리트웨폰 블랙 MUZIIK",
+      "imageCount": 8,
+      "firstImage": "originals/products/black-beryl/detail/massgoo_sw_black_muz_11.webp"
+    },
+    {
+      "id": 25,
+      "slug": "pro3-muziik",
+      "name": "시크리트포스 PRO 3 MUZIIK",
+      "imageCount": 7,
+      "firstImage": "originals/products/pro3-muziik/detail/secret-force-pro-3-muziik-00.webp"
+    },
+    {
+      "id": 26,
+      "slug": "gold2",
+      "name": "시크리트포스 골드 2",
+      "imageCount": 3,
+      "firstImage": "originals/products/gold2/detail/_-_-_2_-_01.webp"
+    },
+    {
+      "id": 27,
+      "slug": "pro3",
+      "name": "시크리트포스 PRO 3",
+      "imageCount": 14,
+      "firstImage": "originals/products/pro3/detail/_-_PRO_1000.webp"
+    },
+    {
+      "id": 28,
+      "slug": "v3",
+      "name": "시크리트포스 V3",
+      "imageCount": 14,
+      "firstImage": "originals/products/v3/detail/_-_V3_-_01.webp"
+    },
+    {
+      "id": 29,
+      "slug": "black-weapon",
+      "name": "시크리트웨폰 블랙",
+      "imageCount": 13,
+      "firstImage": "originals/products/black-weapon/detail/_-_-_-_00_01.webp"
+    },
+    {
+      "id": 30,
+      "slug": "gold-weapon4",
+      "name": "시크리트웨폰 골드 4.1",
+      "imageCount": 11,
+      "firstImage": "originals/products/gold-weapon4/detail/_-_4.1_-_00_01.webp"
+    }
+  ],
+  "missingImages": [],
+  "invalidPaths": []
+}

@@ -1,0 +1,87 @@
+{
+  "gold2": {
+    "success": true,
+    "imageCount": 3,
+    "images": [
+      "originals/products/gold2/detail/_-_-_2_-_01.webp",
+      "originals/products/gold2/detail/_-_-_2_350_long.webp",
+      "originals/products/gold2/detail/_-_-_2_500.webp"
+    ]
+  },
+  "pro3": {
+    "success": true,
+    "imageCount": 14,
+    "images": [
+      "originals/products/pro3/detail/_-_PRO_1000.webp",
+      "originals/products/pro3/detail/_-_PRO_1000.webp",
+      "originals/products/pro3/detail/_-_PRO_350_long.webp",
+      "originals/products/pro3/detail/_-_PRO_350_long.webp",
+      "originals/products/pro3/detail/_-_PRO_3_-_00.webp",
+      "originals/products/pro3/detail/_-_PRO_3_-_01.webp",
+      "originals/products/pro3/detail/_-_PRO_3_-_02.webp",
+      "originals/products/pro3/detail/_-_PRO_3_-_03.webp",
+      "originals/products/pro3/detail/_-_PRO_3_-_04.webp",
+      "originals/products/pro3/detail/_-_PRO_3_-_05.webp",
+      "originals/products/pro3/detail/_-_PRO_3_-_06.webp",
+      "originals/products/pro3/detail/_-_PRO_3_-_07.webp",
+      "originals/products/pro3/detail/_-_PRO_3_-_08.webp",
+      "originals/products/pro3/detail/_-_PRO_500.webp"
+    ]
+  },
+  "v3": {
+    "success": true,
+    "imageCount": 14,
+    "images": [
+      "originals/products/v3/detail/_-_V3_-_01.webp",
+      "originals/products/v3/detail/_-_V3_-_01.webp",
+      "originals/products/v3/detail/_-_V3_-_02.webp",
+      "originals/products/v3/detail/_-_V3_-_03.webp",
+      "originals/products/v3/detail/_-_V3_-_04.webp",
+      "originals/products/v3/detail/_-_V3_-_05.webp",
+      "originals/products/v3/detail/_-_V3_-_06.webp",
+      "originals/products/v3/detail/_-_V3_-_07.webp",
+      "originals/products/v3/detail/_-_V3_-_08.webp",
+      "originals/products/v3/detail/_-_V3_-_08.webp",
+      "originals/products/v3/detail/_-_V3_05_00.webp",
+      "originals/products/v3/detail/_-_V3_350_bg.webp",
+      "originals/products/v3/detail/_-_V3_350_long.webp",
+      "originals/products/v3/detail/_-_V3_350_long.webp"
+    ]
+  },
+  "black-weapon": {
+    "success": true,
+    "imageCount": 13,
+    "images": [
+      "originals/products/black-weapon/detail/_-_-_-_00_01.webp",
+      "originals/products/black-weapon/detail/_-_-_-_01.webp",
+      "originals/products/black-weapon/detail/_-_-_-_01.webp",
+      "originals/products/black-weapon/detail/_-_-_-_02.webp",
+      "originals/products/black-weapon/detail/_-_-_-_03.webp",
+      "originals/products/black-weapon/detail/_-_-_-_04.webp",
+      "originals/products/black-weapon/detail/_-_-_-_05.webp",
+      "originals/products/black-weapon/detail/_-_-_-_06.webp",
+      "originals/products/black-weapon/detail/_-_-_-_07.webp",
+      "originals/products/black-weapon/detail/_-_-_-_08_01.webp",
+      "originals/products/black-weapon/detail/_-_-_500.webp",
+      "originals/products/black-weapon/detail/_-_-_500_long.webp",
+      "originals/products/black-weapon/detail/_-_-_500_long.webp"
+    ]
+  },
+  "gold-weapon4": {
+    "success": true,
+    "imageCount": 11,
+    "images": [
+      "originals/products/gold-weapon4/detail/_-_4.1_-_00_01.webp",
+      "originals/products/gold-weapon4/detail/_-_4.1_-_01.webp",
+      "originals/products/gold-weapon4/detail/_-_4.1_-_01.webp",
+      "originals/products/gold-weapon4/detail/_-_4.1_-_02.webp",
+      "originals/products/gold-weapon4/detail/_-_4.1_-_03.webp",
+      "originals/products/gold-weapon4/detail/_-_4.1_-_04.webp",
+      "originals/products/gold-weapon4/detail/_-_4.1_-_05.webp",
+      "originals/products/gold-weapon4/detail/_-_4.1_-_06.webp",
+      "originals/products/gold-weapon4/detail/_-_4.1_-_07.webp",
+      "originals/products/gold-weapon4/detail/_-_4.1_-_08_01.webp",
+      "originals/products/gold-weapon4/detail/_-_4.1_500.webp"
+    ]
+  }
+}
