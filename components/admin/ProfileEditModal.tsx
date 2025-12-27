@@ -21,34 +21,43 @@ export default function ProfileEditModal({ isOpen, onClose, onUpdate }: ProfileE
   // 세션을 기다리는 로직 추가
   useEffect(() => {
     if (isOpen) {
-      // 모달이 처음 열릴 때만 초기화
-      // 이미 사용자가 입력한 값이 있으면 보존
-      const hasUserInput = formData.name || formData.phone || formData.password;
-      
-      // 세션이 로딩 중이면 기다림
-      if (status === 'loading') {
-        if (!hasUserInput) {
-          setError('세션 정보를 불러오는 중...');
-        }
-        return;
-      }
-      
-      // 세션이 있고 사용자 입력이 없을 때만 formData 설정
-      if (session?.user && !hasUserInput) {
-        setFormData({
-          name: (session.user as any)?.name || '',
-          phone: (session.user as any)?.phone || (session.user as any)?.email || '',
-          password: ''
-        });
-        setError('');
-        return;
-      }
-      
-      // 세션이 없고 사용자 입력도 없을 때만 세션 API 호출
-      if (!session?.user && !hasUserInput) {
-        const waitForSession = async () => {
+      // 모달이 열릴 때 세션 데이터로 formData 초기화
+      const initializeFormData = async () => {
+        // 이미 사용자가 입력한 값이 있으면 보존
+        const hasUserInput = formData.name || formData.phone || formData.password;
+        
+        // 세션이 로딩 중이면 최대 3초 대기
+        if (status === 'loading') {
           let attempts = 0;
-          const maxAttempts = 10; // 최대 5초 대기 (500ms * 10)
+          while (attempts < 6 && status === 'loading') {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            attempts++;
+          }
+        }
+        
+        // 세션이 있으면 formData 설정 (사용자 입력이 없을 때만)
+        if (session?.user && !hasUserInput) {
+          const sessionName = (session.user as any)?.name;
+          const sessionPhone = (session.user as any)?.phone || (session.user as any)?.email;
+          
+          setFormData({
+            name: sessionName || '',
+            phone: sessionPhone || '',
+            password: ''
+          });
+          
+          if (sessionName) {
+            setError('');
+          } else {
+            setError('이름 정보를 불러올 수 없습니다. 수동으로 입력해주세요.');
+          }
+          return;
+        }
+        
+        // 세션이 없고 사용자 입력도 없을 때만 세션 API 호출
+        if (!session?.user && !hasUserInput) {
+          let attempts = 0;
+          const maxAttempts = 10; // 최대 5초 대기
           
           while (attempts < maxAttempts) {
             try {
@@ -56,12 +65,20 @@ export default function ProfileEditModal({ isOpen, onClose, onUpdate }: ProfileE
               const sessionData = await res.json();
               
               if (sessionData?.user) {
+                const sessionName = sessionData.user.name;
+                const sessionPhone = sessionData.user.phone || sessionData.user.email;
+                
                 setFormData({
-                  name: sessionData.user.name || '',
-                  phone: sessionData.user.phone || sessionData.user.email || '',
+                  name: sessionName || '',
+                  phone: sessionPhone || '',
                   password: ''
                 });
-                setError('');
+                
+                if (sessionName) {
+                  setError('');
+                } else {
+                  setError('이름 정보를 불러올 수 없습니다. 수동으로 입력해주세요.');
+                }
                 return;
               }
             } catch (e) {
@@ -72,29 +89,18 @@ export default function ProfileEditModal({ isOpen, onClose, onUpdate }: ProfileE
             attempts++;
           }
           
-          // 세션을 찾지 못했지만 전화번호라도 있으면 사용
-          if (session?.user?.phone || session?.user?.email) {
-            setFormData({
-              name: (session.user as any)?.name || '',
-              phone: (session.user as any)?.phone || (session.user as any)?.email || '',
-              password: ''
-            });
-            setError('이름 정보를 불러올 수 없습니다. 수동으로 입력해주세요.');
-          } else {
-            // 전화번호도 없으면 에러 표시 (하지만 formData는 초기화하지 않음)
-            setError('세션 정보를 불러올 수 없습니다. 수동으로 입력해주세요.');
-          }
-        };
-        
-        // 세션이 없으면 기다리기 시작
-        waitForSession();
-      }
+          // 세션을 찾지 못했으면 에러 표시 (하지만 formData는 초기화하지 않음)
+          setError('세션 정보를 불러올 수 없습니다. 수동으로 입력해주세요.');
+        }
+      };
+      
+      initializeFormData();
     } else {
       // 모달이 닫힐 때 formData 초기화
       setFormData({ name: '', phone: '', password: '' });
       setError('');
     }
-  }, [isOpen]); // dependency를 isOpen만으로 제한하여 session/status 변경 시 재실행 방지
+  }, [isOpen, session, status]); // session과 status도 dependency에 추가하여 세션이 로드되면 업데이트
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
