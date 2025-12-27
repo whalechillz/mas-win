@@ -190,12 +190,27 @@ export default function AccountManagement({ session }: AccountManagementProps) {
 
   const handleProfileUpdate = async () => {
     const currentUser = sessionData?.user || session?.user;
-    if (!currentUser) return;
+    if (!currentUser) {
+      alert('사용자 정보를 불러올 수 없습니다.');
+      return;
+    }
+
+    const userId = (currentUser as any)?.id;
+    if (!userId) {
+      console.error('사용자 ID가 없습니다:', currentUser);
+      alert('사용자 ID를 찾을 수 없습니다. 다시 로그인해주세요.');
+      return;
+    }
+
+    if (!profileFormData.name || profileFormData.name.trim() === '') {
+      alert('이름은 필수입니다.');
+      return;
+    }
 
     try {
       const updateData: any = {
-        id: (currentUser as any).id,
-        name: profileFormData.name,
+        id: userId,
+        name: profileFormData.name.trim(),
       };
       
       if (profileFormData.phone) {
@@ -205,6 +220,8 @@ export default function AccountManagement({ session }: AccountManagementProps) {
         updateData.password = profileFormData.password;
       }
 
+      console.log('프로필 수정 요청:', updateData);
+
       const response = await fetch('/api/admin/users', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -213,6 +230,8 @@ export default function AccountManagement({ session }: AccountManagementProps) {
       
       const data = await response.json();
       
+      console.log('프로필 수정 응답:', data);
+      
       if (data.success) {
         alert('프로필이 수정되었습니다. 페이지를 새로고침합니다.');
         setIsEditingProfile(false);
@@ -220,21 +239,35 @@ export default function AccountManagement({ session }: AccountManagementProps) {
         window.location.reload();
       } else {
         alert(data.message || '프로필 수정에 실패했습니다.');
+        console.error('프로필 수정 실패:', data);
       }
     } catch (err) {
       console.error('프로필 수정 오류:', err);
-      alert('프로필 수정 중 오류가 발생했습니다.');
+      alert('프로필 수정 중 오류가 발생했습니다. 콘솔을 확인해주세요.');
     }
   };
 
   // 프로필 수정 모드 시작
   const startProfileEdit = () => {
     const currentUser = sessionData?.user || session?.user;
-    if (!currentUser) return;
+    if (!currentUser) {
+      alert('사용자 정보를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+    
+    const userName = (currentUser as any)?.name || '';
+    const userPhone = (currentUser as any)?.phone || (currentUser as any)?.email || '';
+    
+    if (!userName) {
+      alert('사용자 이름을 불러올 수 없습니다. 페이지를 새로고침해주세요.');
+      return;
+    }
+    
+    console.log('프로필 수정 시작:', { currentUser, userName, userPhone });
     
     setProfileFormData({
-      name: (currentUser as any)?.name || '',
-      phone: (currentUser as any)?.phone || (currentUser as any)?.email || '',
+      name: userName,
+      phone: userPhone,
       password: ''
     });
     setIsEditingProfile(true);
@@ -401,8 +434,8 @@ export default function AccountManagement({ session }: AccountManagementProps) {
             </div>
           )}
           
-          {/* 세션 데이터가 있을 때 또는 showProfile이 true일 때 */}
-          {((status === 'authenticated' && (sessionData?.user || session?.user)) || showProfile) && (
+          {/* 세션 데이터가 있을 때만 표시 (showProfile은 fallback) */}
+          {(status === 'authenticated' && (sessionData?.user || session?.user)) || (showProfile && status !== 'loading') ? (
             <>
               {isEditingProfile ? (
                 <div className="space-y-4">
@@ -481,7 +514,8 @@ export default function AccountManagement({ session }: AccountManagementProps) {
                   <div className="flex space-x-3 pt-4">
                     <button
                       onClick={startProfileEdit}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700"
+                      disabled={!sessionData?.user && !session?.user}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       프로필 수정
                     </button>
