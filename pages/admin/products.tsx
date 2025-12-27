@@ -1087,6 +1087,7 @@ export default function ProductsAdminPage() {
                         <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           {index > 0 && (
                             <button
+                              type="button"
                               onClick={() => handleMoveDetailImage(index, 'up')}
                               className="p-1 bg-blue-500 text-white rounded text-xs"
                               title="위로"
@@ -1096,6 +1097,7 @@ export default function ProductsAdminPage() {
                           )}
                           {index < detailImages.length - 1 && (
                             <button
+                              type="button"
                               onClick={() => handleMoveDetailImage(index, 'down')}
                               className="p-1 bg-blue-500 text-white rounded text-xs"
                               title="아래로"
@@ -1104,6 +1106,7 @@ export default function ProductsAdminPage() {
                             </button>
                           )}
                           <button
+                            type="button"
                             onClick={() => handleDeleteDetailImage(index)}
                             className="p-1 bg-red-500 text-white rounded text-xs"
                             title="삭제"
