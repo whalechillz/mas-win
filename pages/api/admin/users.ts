@@ -102,12 +102,34 @@ export default async function handler(
         });
       }
 
+      // 필수 필드 검증
+      if (name !== undefined && (!name || name.trim() === '')) {
+        return res.status(400).json({
+          success: false,
+          message: '이름은 필수이며 비어있을 수 없습니다.'
+        });
+      }
+
+      if (phone !== undefined && (!phone || phone.trim() === '')) {
+        return res.status(400).json({
+          success: false,
+          message: '전화번호는 필수이며 비어있을 수 없습니다.'
+        });
+      }
+
+      if (role !== undefined && role !== 'admin' && role !== 'editor') {
+        return res.status(400).json({
+          success: false,
+          message: '역할은 admin 또는 editor여야 합니다.'
+        });
+      }
+
       const updateData: any = {};
-      if (name) updateData.name = name;
-      if (phone) updateData.phone = phone.replace(/[^0-9]/g, '');
-      if (role) updateData.role = role;
+      if (name !== undefined) updateData.name = name.trim();
+      if (phone !== undefined) updateData.phone = phone.replace(/[^0-9]/g, '');
+      if (role !== undefined) updateData.role = role;
       if (typeof is_active === 'boolean') updateData.is_active = is_active;
-      if (password) {
+      if (password && password.trim() !== '') {
         updateData.password_hash = await bcrypt.hash(password, 10);
       }
 

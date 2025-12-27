@@ -29,12 +29,14 @@ export default function UserProfileDropdown({ onLogout, onEditProfile }: UserPro
     };
   }, [isOpen]);
 
-  // 세션이 없어도 기본 UI는 표시 (로딩 중이거나 세션이 없을 때)
-  const userName = (session?.user as any)?.name || '관리자';
-  const userRole = (session?.user as any)?.role === 'admin' ? '총관리자' : '편집자';
+  // 세션 데이터 추출 (세션이 완전히 로드된 후에만 사용)
+  const userName = session?.user ? ((session.user as any)?.name || '관리자') : null;
+  const userPhone = session?.user ? ((session.user as any)?.phone || (session.user as any)?.email || '-') : null;
+  const userRoleValue = session?.user ? ((session.user as any)?.role) : null;
+  const userRole = userRoleValue === 'admin' ? '총관리자' : userRoleValue === 'editor' ? '편집자' : null;
   
-  // 세션이 없을 때는 로딩 표시
-  if (status === 'loading') {
+  // 세션이 로딩 중이거나 없을 때는 로딩 표시
+  if (status === 'loading' || !session?.user) {
     return (
       <div className="flex items-center space-x-2 px-3 py-2">
         <div className="w-8 h-8 rounded-full bg-gray-300 animate-pulse"></div>
@@ -53,11 +55,11 @@ export default function UserProfileDropdown({ onLogout, onEditProfile }: UserPro
       >
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium">
-            {userName.charAt(0)}
+            {userName ? userName.charAt(0) : '?'}
           </div>
           <div className="text-left hidden sm:block">
-            <div className="text-sm font-medium text-gray-700">{userName}</div>
-            <div className="text-xs text-gray-500">{userRole}</div>
+            <div className="text-sm font-medium text-gray-700">{userName || '로딩 중...'}</div>
+            {userRole && <div className="text-xs text-gray-500">{userRole}</div>}
           </div>
         </div>
         <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -68,11 +70,15 @@ export default function UserProfileDropdown({ onLogout, onEditProfile }: UserPro
           <div className="py-1">
             {/* 사용자 정보 */}
             <div className="px-4 py-3 border-b border-gray-200">
-              <div className="text-sm font-medium text-gray-900">{userName}</div>
-              <div className="text-xs text-gray-500 mt-1">
-                {(session?.user as any)?.phone || session?.user?.email || '-'}
-              </div>
-              <div className="text-xs text-gray-500 mt-1">{userRole}</div>
+              <div className="text-sm font-medium text-gray-900">{userName || '로딩 중...'}</div>
+              {userPhone && (
+                <div className="text-xs text-gray-500 mt-1">
+                  {userPhone}
+                </div>
+              )}
+              {userRole && (
+                <div className="text-xs text-gray-500 mt-1">{userRole}</div>
+              )}
             </div>
 
             {/* 개인정보 수정 */}
