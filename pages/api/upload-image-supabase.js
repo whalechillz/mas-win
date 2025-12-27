@@ -146,6 +146,25 @@ export default async function handler(req, res) {
 
     console.log('✅ Supabase Storage 업로드 성공:', imageUrl);
 
+    // ✅ 제품 이미지 경로인 경우 제품의 detail_images, composition_images, gallery_images에 자동 추가
+    let productSyncResult = null;
+    try {
+      const { addImageToProduct } = await import('../../lib/product-image-sync');
+      // uploadPath를 전체 경로로 변환 (이미 originals/products/... 형식일 수도 있음)
+      const fullImagePath = uploadPath.startsWith('originals/products/') 
+        ? uploadPath 
+        : uploadPath;
+      
+      const syncSuccess = await addImageToProduct(fullImagePath);
+      if (syncSuccess) {
+        productSyncResult = { synced: true };
+        console.log('✅ 제품 이미지 배열에 자동 추가 완료');
+      }
+    } catch (syncError) {
+      console.warn('⚠️ 제품 이미지 동기화 실패 (계속 진행):', syncError);
+      productSyncResult = { synced: false, error: syncError.message };
+    }
+
     // 해시 생성 (중복 이미지 검사용)
     const hashMd5 = crypto.createHash('md5').update(processedBuffer).digest('hex');
     const hashSha256 = crypto.createHash('sha256').update(processedBuffer).digest('hex');
@@ -306,7 +325,8 @@ export default async function handler(req, res) {
         height: imageMetadata?.height,
         format: imageMetadata?.format,
         file_size: imageMetadata?.size || processedBuffer.length
-      }
+      },
+      productSync: productSyncResult
     });
 
   } catch (error) {

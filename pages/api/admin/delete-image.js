@@ -444,6 +444,25 @@ export default async function handler(req, res) {
         console.warn('⚠️ 모든 메타데이터 삭제 방법 실패:', targetWithExtension);
       }
       
+      // ✅ 제품의 detail_images, composition_images, gallery_images에서도 제거
+      let productSyncResult = null;
+      try {
+        const { removeImageFromProduct } = await import('../../../lib/product-image-sync');
+        // 전체 경로 구성 (imageName이 전체 경로일 수도 있고 파일명만일 수도 있음)
+        const fullImagePath = imageName.startsWith('originals/products/') 
+          ? imageName 
+          : `originals/products/${imageName}`;
+        
+        const syncSuccess = await removeImageFromProduct(fullImagePath);
+        if (syncSuccess) {
+          productSyncResult = { synced: true };
+          console.log('✅ 제품 이미지 배열에서도 제거 완료');
+        }
+      } catch (syncError) {
+        console.warn('⚠️ 제품 이미지 동기화 실패 (계속 진행):', syncError);
+        productSyncResult = { synced: false, error: syncError.message };
+      }
+      
       // ✅ 이미지 목록 캐시 무효화 (삭제 후 목록 동기화)
       try {
         invalidateCache();
@@ -459,10 +478,12 @@ export default async function handler(req, res) {
         originalName: imageName,
         deletionVerified: deletionVerified,
         metadataDeleted: metadataDeleted,
+        productSync: productSyncResult,
         // 삭제 검증 결과 추가
         deletionVerification: {
           fileDeleted: deletionVerified,
           metadataDeleted: metadataDeleted,
+          productSynced: productSyncResult?.synced || false,
           overallSuccess: deletionVerified && metadataDeleted
         }
       });
