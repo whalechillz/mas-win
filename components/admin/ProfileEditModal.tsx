@@ -23,9 +23,6 @@ export default function ProfileEditModal({ isOpen, onClose, onUpdate }: ProfileE
     if (isOpen) {
       // 모달이 열릴 때 세션 데이터로 formData 초기화
       const initializeFormData = async () => {
-        // 이미 사용자가 입력한 값이 있으면 보존
-        const hasUserInput = formData.name || formData.phone || formData.password;
-        
         // 세션이 로딩 중이면 최대 3초 대기
         if (status === 'loading') {
           let attempts = 0;
@@ -35,27 +32,45 @@ export default function ProfileEditModal({ isOpen, onClose, onUpdate }: ProfileE
           }
         }
         
-        // 세션이 있으면 formData 설정 (사용자 입력이 없을 때만)
-        if (session?.user && !hasUserInput) {
-          const sessionName = (session.user as any)?.name;
-          const sessionPhone = (session.user as any)?.phone || (session.user as any)?.email;
+        // 세션이 있으면 formData 설정
+        if (session?.user) {
+          // name을 여러 경로에서 확인
+          const sessionName = (session.user as any)?.name || '';
+          const sessionPhone = (session.user as any)?.phone || (session.user as any)?.email || '';
           
-          setFormData({
-            name: sessionName || '',
-            phone: sessionPhone || '',
-            password: ''
-          });
+          // 사용자가 이미 입력한 값이 있으면 보존, 없으면 세션 데이터로 채움
+          setFormData(prev => ({
+            name: prev.name || sessionName,
+            phone: prev.phone || sessionPhone,
+            password: prev.password || ''
+          }));
           
           if (sessionName) {
             setError('');
           } else {
+            // 세션 API를 직접 호출하여 이름 가져오기 시도
+            try {
+              const res = await fetch('/api/auth/session');
+              const sessionData = await res.json();
+              if (sessionData?.user?.name) {
+                setFormData(prev => ({
+                  name: prev.name || sessionData.user.name,
+                  phone: prev.phone || sessionPhone,
+                  password: prev.password || ''
+                }));
+                setError('');
+                return;
+              }
+            } catch (e) {
+              // 무시
+            }
             setError('이름 정보를 불러올 수 없습니다. 수동으로 입력해주세요.');
           }
           return;
         }
         
-        // 세션이 없고 사용자 입력도 없을 때만 세션 API 호출
-        if (!session?.user && !hasUserInput) {
+        // 세션이 없으면 세션 API 직접 호출
+        if (!session?.user) {
           let attempts = 0;
           const maxAttempts = 10; // 최대 5초 대기
           
@@ -65,14 +80,14 @@ export default function ProfileEditModal({ isOpen, onClose, onUpdate }: ProfileE
               const sessionData = await res.json();
               
               if (sessionData?.user) {
-                const sessionName = sessionData.user.name;
-                const sessionPhone = sessionData.user.phone || sessionData.user.email;
+                const sessionName = sessionData.user.name || '';
+                const sessionPhone = sessionData.user.phone || sessionData.user.email || '';
                 
-                setFormData({
-                  name: sessionName || '',
-                  phone: sessionPhone || '',
-                  password: ''
-                });
+                setFormData(prev => ({
+                  name: prev.name || sessionName,
+                  phone: prev.phone || sessionPhone,
+                  password: prev.password || ''
+                }));
                 
                 if (sessionName) {
                   setError('');

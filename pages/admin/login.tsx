@@ -208,6 +208,14 @@ export default function LoginPage() {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
+  // 로그아웃 파라미터가 있으면 토큰 체크를 건너뛰기
+  // 로그아웃 직후이므로 쿠키가 완전히 삭제되기 전일 수 있음
+  const logoutParam = context.query.logout;
+  if (logoutParam) {
+    // 로그아웃 직후이므로 토큰이 있어도 무시하고 로그인 페이지 표시
+    return { props: {} };
+  }
+
   // getSession 대신 getToken 사용 (API 호출 없이 JWT 직접 읽기)
   // 이렇게 하면 리다이렉트 루프를 방지할 수 있습니다
   try {

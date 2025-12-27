@@ -142,7 +142,8 @@ export const authOptions = {
         session.user.id = (token.id as string) || token.sub
         session.user.role = token.role
         session.user.phone = token.phone
-        session.user.name = token.name || session.user.name
+        // name을 명시적으로 설정 (token.name이 있으면 우선 사용)
+        session.user.name = (token.name as string) || session.user.name || ''
         // email 필드에도 전화번호가 들어가 있으므로 표시용으로 사용
         if (!session.user.email && token.phone) {
           session.user.email = token.phone

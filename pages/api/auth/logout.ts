@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     '__Host-next-auth.csrf-token'
   ];
 
-  const domains = ['', '.masgolf.co.kr', 'www.masgolf.co.kr'];
+  const domains = ['', '.masgolf.co.kr', 'www.masgolf.co.kr', 'masgolf.co.kr'];
   const paths = ['/', '/admin', '/admin/login'];
 
   const cookiesToClear: string[] = [];
@@ -23,12 +23,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   cookieNames.forEach(name => {
     domains.forEach(domain => {
       paths.forEach(path => {
-        // 모든 가능한 조합으로 쿠키 삭제
         const domainPart = domain ? `; Domain=${domain}` : '';
+        // 여러 방법으로 쿠키 삭제 시도
         cookiesToClear.push(
           `${name}=; Path=${path}; Max-Age=0; SameSite=Lax${domainPart}`,
           `${name}=; Path=${path}; Max-Age=0; SameSite=None; Secure${domainPart}`,
-          `${name}=; Path=${path}; Expires=Thu, 01 Jan 1970 00:00:00 GMT${domainPart}`
+          `${name}=; Path=${path}; Expires=Thu, 01 Jan 1970 00:00:00 GMT${domainPart}`,
+          `${name}=deleted; Path=${path}; Max-Age=0${domainPart}`
         );
       });
     });
@@ -36,6 +37,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Set-Cookie 헤더 설정
   res.setHeader('Set-Cookie', cookiesToClear);
+  
+  // 캐시 방지 헤더 추가
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
 
   return res.status(200).json({ success: true, message: '로그아웃 완료' });
 }
