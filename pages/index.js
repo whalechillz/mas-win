@@ -23,6 +23,45 @@ export default function Home({ hostname, initialProducts = [] }) {
     }
   }, []);
 
+  // 제품별 기본 이미지 매핑 (fallback)
+  const getDefaultImages = (slug) => {
+    const defaultImageMap = {
+      'gold2-sapphire': [
+        '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp',
+        '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_01.webp',
+      ],
+      'black-beryl': [
+        '/main/products/black-beryl/massgoo_sw_black_muz_11.webp',
+        '/main/products/black-beryl/massgoo_sw_black_muz_01.webp',
+      ],
+      'pro3-muziik': [
+        '/main/products/pro3-muziik/secret-force-pro-3-muziik-00.webp',
+        '/main/products/pro3-muziik/massgoo_pro3_beryl_240.webp',
+      ],
+      'gold2': [
+        '/main/products/gold2/gold2_00_01.jpg',
+        '/main/products/gold2/gold2_01.jpg',
+      ],
+      'pro3': [
+        '/main/products/pro3/secret-force-pro-3-gallery-00.webp',
+        '/main/products/pro3/secret-force-pro-3-gallery-01.webp',
+      ],
+      'v3': [
+        '/main/products/v3/secret-force-v3-gallery-05-00.webp',
+        '/main/products/v3/secret-force-v3-gallery-02.webp',
+      ],
+      'black-weapon': [
+        '/main/products/black-weapon/secret-weapon-black-00.webp',
+        '/main/products/black-weapon/secret-weapon-black-01.webp',
+      ],
+      'gold-weapon4': [
+        '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-00-01.webp',
+        '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-01.webp',
+      ],
+    };
+    return defaultImageMap[slug] || [];
+  };
+
   const loadProductsFromDB = async () => {
     try {
       setProductsLoading(true);
@@ -30,23 +69,30 @@ export default function Home({ hostname, initialProducts = [] }) {
       const json = await res.json();
       if (json.success && json.products) {
         // 데이터베이스 제품을 페이지 형식으로 변환
-        const formattedProducts = json.products.map((p) => ({
-          id: p.slug || `product-${p.id}`,
-          name: p.name,
-          subtitle: p.subtitle || '',
-          price: p.normal_price ? `${p.normal_price.toLocaleString()}원` : '',
-          features: Array.isArray(p.features) ? p.features : [],
-          images: Array.isArray(p.detail_images) && p.detail_images.length > 0
+        const formattedProducts = json.products.map((p) => {
+          const slug = p.slug || `product-${p.id}`;
+          const dbImages = Array.isArray(p.detail_images) && p.detail_images.length > 0
             ? p.detail_images.map(img => getProductImageUrl(img))
-            : [],
-          badges: {
-            left: p.badge_left || null,
-            right: p.badge_right || null,
-            leftColor: p.badge_left_color || null,
-            rightColor: p.badge_right_color || null,
-          },
-          borderColor: p.border_color || null,
-        }));
+            : [];
+          const fallbackImages = getDefaultImages(slug).map(img => getProductImageUrl(img));
+          const images = dbImages.length > 0 ? dbImages : fallbackImages;
+          
+          return {
+            id: slug,
+            name: p.name,
+            subtitle: p.subtitle || '',
+            price: p.normal_price ? `${p.normal_price.toLocaleString()}원` : '',
+            features: Array.isArray(p.features) ? p.features : [],
+            images: images,
+            badges: {
+              left: p.badge_left || null,
+              right: p.badge_right || null,
+              leftColor: p.badge_left_color || null,
+              rightColor: p.badge_right_color || null,
+            },
+            borderColor: p.border_color || null,
+          };
+        });
         setProducts(formattedProducts);
       }
     } catch (error) {
@@ -888,14 +934,31 @@ export default function Home({ hostname, initialProducts = [] }) {
                     onClick={() => handleProductClick(product)}
                     className={`bg-white rounded-lg shadow-lg overflow-hidden ${borderClass} cursor-pointer hover:shadow-2xl transition-all`}
               >
-                <div className="relative min-h-80 md:h-72">
-                    <Image
+                <div className="relative min-h-80 md:h-72 bg-gray-200">
+                    {product.images && product.images.length > 0 && product.images[0] ? (
+                      <Image
                         src={product.images[0]}
                         alt={product.name}
-                      fill
-                      className="object-cover"
+                        fill
+                        className="object-cover"
                         priority={product.id === 'gold2-sapphire' || product.id === 'black-beryl'}
-                    />
+                        onError={(e) => {
+                          console.error('이미지 로드 실패:', product.images[0], product.name);
+                          const target = e.target;
+                          if (target) {
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-gray-400 text-sm">이미지 없음</span></div>';
+                            }
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-gray-400 text-sm">이미지 없음</span>
+                      </div>
+                    )}
                       {product.badges?.left && (
                         <div className={`absolute top-2 left-2 ${badgeLeftClass} px-2 py-1 rounded text-sm font-bold`}>
                           {product.badges.left}
