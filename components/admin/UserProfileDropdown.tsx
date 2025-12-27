@@ -29,12 +29,21 @@ export default function UserProfileDropdown({ onLogout, onEditProfile }: UserPro
     };
   }, [isOpen]);
 
-  if (status === 'loading' || !session?.user) {
-    return null;
+  // 세션이 없어도 기본 UI는 표시 (로딩 중이거나 세션이 없을 때)
+  const userName = (session?.user as any)?.name || '관리자';
+  const userRole = (session?.user as any)?.role === 'admin' ? '총관리자' : '편집자';
+  
+  // 세션이 없을 때는 로딩 표시
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center space-x-2 px-3 py-2">
+        <div className="w-8 h-8 rounded-full bg-gray-300 animate-pulse"></div>
+        <div className="text-left hidden sm:block">
+          <div className="text-sm font-medium text-gray-400">로딩 중...</div>
+        </div>
+      </div>
+    );
   }
-
-  const userName = (session.user as any)?.name || '관리자';
-  const userRole = (session.user as any)?.role === 'admin' ? '총관리자' : '편집자';
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -70,9 +79,14 @@ export default function UserProfileDropdown({ onLogout, onEditProfile }: UserPro
             <button
               onClick={() => {
                 setIsOpen(false);
-                onEditProfile();
+                if (session?.user) {
+                  onEditProfile();
+                } else {
+                  alert('세션 정보를 불러올 수 없습니다. 페이지를 새로고침해주세요.');
+                }
               }}
-              className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              disabled={!session?.user}
+              className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Settings className="w-4 h-4 mr-3 text-gray-400" />
               개인정보 수정

@@ -146,16 +146,10 @@ const AdminNav = () => {
           
           {/* 사용자 정보 및 로그아웃 버튼 */}
           <div className="flex items-center space-x-3">
-            {status === 'loading' && !showUserInfo && (
-              <span className="text-sm text-gray-400">로딩 중...</span>
-            )}
-            
-            {(status === 'authenticated' && session?.user) || showUserInfo ? (
-              <UserProfileDropdown
-                onLogout={handleLogout}
-                onEditProfile={() => setShowProfileModal(true)}
-              />
-            ) : null}
+            <UserProfileDropdown
+              onLogout={handleLogout}
+              onEditProfile={() => setShowProfileModal(true)}
+            />
           </div>
         </div>
       </div>
