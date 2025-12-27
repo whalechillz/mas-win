@@ -79,11 +79,7 @@ export default function UserProfileDropdown({ onLogout, onEditProfile }: UserPro
             <button
               onClick={() => {
                 setIsOpen(false);
-                if (session?.user || status === 'authenticated') {
-                  onEditProfile();
-                } else {
-                  alert('세션 정보를 불러올 수 없습니다. 페이지를 새로고침해주세요.');
-                }
+                onEditProfile(); // 항상 모달 열기 (모달 내부에서 세션 체크)
               }}
               disabled={status === 'loading'}
               className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

@@ -9,7 +9,7 @@ interface ProfileEditModalProps {
 }
 
 export default function ProfileEditModal({ isOpen, onClose, onUpdate }: ProfileEditModalProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -18,16 +18,35 @@ export default function ProfileEditModal({ isOpen, onClose, onUpdate }: ProfileE
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // 세션을 기다리는 로직 추가
   useEffect(() => {
-    if (isOpen && session?.user) {
-      setFormData({
-        name: (session.user as any)?.name || '',
-        phone: (session.user as any)?.phone || (session.user as any)?.email || '',
-        password: ''
-      });
-      setError('');
+    if (isOpen) {
+      // 세션이 로딩 중이면 기다림
+      if (status === 'loading') {
+        setError('세션 정보를 불러오는 중...');
+        return;
+      }
+      
+      // 세션이 있으면 formData 설정
+      if (session?.user) {
+        setFormData({
+          name: (session.user as any)?.name || '',
+          phone: (session.user as any)?.phone || (session.user as any)?.email || '',
+          password: ''
+        });
+        setError('');
+      } else {
+        // 세션이 없으면 에러 표시 (하지만 모달은 열어둠)
+        setError('세션 정보를 불러올 수 없습니다. 페이지를 새로고침해주세요.');
+        // 기본값이라도 설정
+        setFormData({
+          name: '',
+          phone: '',
+          password: ''
+        });
+      }
     }
-  }, [isOpen, session]);
+  }, [isOpen, session, status]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
