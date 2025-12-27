@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { getProductImageUrl } from '../../lib/product-image-url';
 
 const REVIEW_CATEGORIES = ['고객 후기', '리얼 체험, 비거리 성공 후기'];
 
@@ -10,26 +11,57 @@ export default function Pro3MuziikProduct() {
   const [reviews, setReviews] = useState([]);
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
+  const [productImages, setProductImages] = useState<string[]>([]);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [isLoadingProduct, setIsLoadingProduct] = useState(true);
 
-  // PRO3 MUZIIK 제품 이미지 (샤프트 3장 + 기존 갤러리)
-  const productImages = [
-    // 샤프트 이미지 3장 (상단)
-    '/main/products/pro3-muziik/massgoo_pro3_beryl_240.webp', // 베릴 1장
-    '/main/products/pro3-muziik/massgoo_pro3_sapphire_200.webp', // 사파이어 1장
-    '/main/products/pro3-muziik/massgoo_pro3_sapphire_215.webp', // 사파이어 2장
-    // 기존 PRO3 갤러리 이미지
+  // 기본 이미지 (fallback)
+  const defaultImages = [
+    '/main/products/pro3-muziik/massgoo_pro3_beryl_240.webp',
+    '/main/products/pro3-muziik/massgoo_pro3_sapphire_200.webp',
+    '/main/products/pro3-muziik/massgoo_pro3_sapphire_215.webp',
     '/main/products/pro3-muziik/secret-force-pro-3-muziik-00.webp',
     '/main/products/pro3-muziik/secret-force-pro-3-muziik-03.webp',
-    '/main/products/pro3/secret-force-pro-3-gallery-00.webp',
-    '/main/products/pro3/secret-force-pro-3-gallery-01.webp',
-    '/main/products/pro3/secret-force-pro-3-gallery-02.webp',
-    '/main/products/pro3/secret-force-pro-3-gallery-03.webp',
-    '/main/products/pro3/secret-force-pro-3-gallery-04.webp',
-    '/main/products/pro3/secret-force-pro-3-gallery-05.webp',
-    '/main/products/pro3/secret-force-pro-3-gallery-06.webp',
-    '/main/products/pro3/secret-force-pro-3-gallery-07.webp',
-    '/main/products/pro3/secret-force-pro-3-gallery-08.webp',
   ];
+
+  // 제품 정보 로드
+  useEffect(() => {
+    const loadProduct = async () => {
+      try {
+        setIsLoadingProduct(true);
+        const res = await fetch('/api/products/pro3-muziik');
+        const json = await res.json();
+        
+        if (json.success && json.product) {
+          const product = json.product;
+          
+          // detail_images 처리
+          if (Array.isArray(product.detail_images) && product.detail_images.length > 0) {
+            const detailUrls = product.detail_images.map((img: string) => getProductImageUrl(img));
+            setProductImages(detailUrls);
+          } else {
+            setProductImages(defaultImages.map(img => getProductImageUrl(img)));
+          }
+          
+          // gallery_images 처리 (착용 이미지)
+          if (Array.isArray(product.gallery_images) && product.gallery_images.length > 0) {
+            const galleryUrls = product.gallery_images.map((img: string) => getProductImageUrl(img));
+            setGalleryImages(galleryUrls);
+          }
+        } else {
+          // 데이터베이스에 없으면 기본 이미지 사용
+          setProductImages(defaultImages.map(img => getProductImageUrl(img)));
+        }
+      } catch (error) {
+        console.error('제품 로드 오류:', error);
+        setProductImages(defaultImages.map(img => getProductImageUrl(img)));
+      } finally {
+        setIsLoadingProduct(false);
+      }
+    };
+
+    loadProduct();
+  }, []);
 
   // 블로그 후기 가져오기
   useEffect(() => {
@@ -117,47 +149,59 @@ export default function Pro3MuziikProduct() {
             <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-start">
               {/* 제품 이미지 */}
               <div className="space-y-4 w-full max-w-full overflow-hidden">
-                <div className="relative aspect-square w-full max-w-full">
-                  <div className="relative w-full h-full rounded-2xl shadow-2xl overflow-hidden">
-                    <Image 
-                      src={productImages[selectedImage]} 
-                      alt="시크리트포스 PRO3 MUZIIK" 
-                      fill
-                      className="object-contain rounded-2xl"
-                      onError={(e) => {
-                        console.error('제품 이미지 로드 실패:', productImages[selectedImage]);
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                      }}
-                    />
+                {isLoadingProduct ? (
+                  <div className="relative aspect-square w-full bg-gray-200 rounded-2xl flex items-center justify-center">
+                    <p className="text-gray-500">이미지 로딩 중...</p>
                   </div>
-                </div>
-                
-                {/* 썸네일 이미지들 */}
-                <div className="flex space-x-4 overflow-x-auto pb-2 product-scrollbar-light w-full">
-                  {productImages.map((image, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedImage(index)}
-                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
-                        selectedImage === index ? 'border-red-600' : 'border-gray-300'
-                      }`}
-                    >
-                      <Image 
-                        src={image} 
-                        alt={`제품 이미지 ${index + 1}`} 
-                        width={80} 
-                        height={80}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          console.error('썸네일 이미지 로드 실패:', image);
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                        }}
-                      />
-                    </button>
-                  ))}
-                </div>
+                ) : productImages.length > 0 ? (
+                  <>
+                    <div className="relative aspect-square w-full max-w-full">
+                      <div className="relative w-full h-full rounded-2xl shadow-2xl overflow-hidden">
+                        <Image 
+                          src={productImages[selectedImage]} 
+                          alt="시크리트포스 PRO3 MUZIIK" 
+                          fill
+                          className="object-contain rounded-2xl"
+                          onError={(e) => {
+                            console.error('제품 이미지 로드 실패:', productImages[selectedImage]);
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* 썸네일 이미지들 */}
+                    <div className="flex space-x-4 overflow-x-auto pb-2 product-scrollbar-light w-full">
+                      {productImages.map((image, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setSelectedImage(index)}
+                          className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
+                            selectedImage === index ? 'border-red-600' : 'border-gray-300'
+                          }`}
+                        >
+                          <Image 
+                            src={image} 
+                            alt={`제품 이미지 ${index + 1}`} 
+                            width={80} 
+                            height={80}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              console.error('썸네일 이미지 로드 실패:', image);
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="relative aspect-square w-full bg-gray-200 rounded-2xl flex items-center justify-center">
+                    <p className="text-gray-500">이미지가 없습니다.</p>
+                  </div>
+                )}
               </div>
 
               {/* 제품 정보 */}
@@ -371,6 +415,35 @@ export default function Pro3MuziikProduct() {
             </div>
           </div>
         </section>
+
+        {/* 제품 착용 이미지 섹션 */}
+        {galleryImages.length > 0 && (
+          <section className="py-16 bg-white">
+            <div className="container mx-auto px-4 max-w-7xl">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">제품 착용 이미지</h2>
+                <p className="text-lg text-gray-600">실제 사용 모습을 확인하세요</p>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {galleryImages.map((image, index) => (
+                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden shadow-lg">
+                    <Image
+                      src={image}
+                      alt={`제품 착용 이미지 ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      onError={(e) => {
+                        console.error('착용 이미지 로드 실패:', image);
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* 실제 고객 후기 섹션 */}
         <section className="py-12 bg-gray-50">

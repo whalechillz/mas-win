@@ -90,15 +90,14 @@ export const menuCategories: MenuCategory[] = [
     ]
   },
   {
-    id: 'inventory',
-    name: '재고 & 물류',
+    id: 'products',
+    name: '제품 관리',
     icon: '📦',
     color: 'orange',
-    description: '재고 및 공급업체 관리',
+    description: '제품 및 재고 관리',
     menus: [
-      { id: 'products', name: '굿즈 / 사은품', icon: '🎁', path: '/admin/products', description: '굿즈 및 사은품 관리' },
+      { id: 'products', name: '제품 관리', icon: '🎁', path: '/admin/products', description: '드라이버 및 굿즈 제품 관리' },
       { id: 'inventory', name: '재고 대시보드', icon: '📦', path: '/admin/inventory/dashboard', description: '재고 현황 대시보드' },
-      { id: 'suppliers', name: '공급업체', icon: '🏢', path: '/admin/suppliers', description: '공급업체 관리' },
     ]
   },
   {
@@ -109,6 +108,7 @@ export const menuCategories: MenuCategory[] = [
     description: '경비 및 지출 관리',
     menus: [
       { id: 'expenses', name: '경비 / 지출', icon: '💰', path: '/admin/finance/expenses', description: '경비 및 지출 관리' },
+      { id: 'suppliers', name: '공급업체', icon: '🏢', path: '/admin/suppliers', description: '공급업체 관리' },
     ]
   },
 ];
