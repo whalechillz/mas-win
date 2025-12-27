@@ -35,44 +35,28 @@ const AdminNav = () => {
     setIsLoggingOut(true);
     
     try {
-      // 1. NextAuth signOut 먼저 시도
+      // 1. 서버 사이드 로그아웃 API 호출 (HttpOnly 쿠키 삭제)
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      } catch (e) {
+        console.log('로그아웃 API 호출 실패 (무시):', e);
+      }
+      
+      // 2. NextAuth signOut
       try {
         const { signOut } = await import('next-auth/react');
         await signOut({ 
-          redirect: false,
-          callbackUrl: 'https://www.masgolf.co.kr/admin/login'
+          redirect: false
         });
       } catch (e) {
         console.log('signOut 실패 (무시):', e);
       }
-      
-      // 2. 모든 쿠키 삭제 (더 강력하게)
-      const cookieNames = [
-        'next-auth.session-token',
-        '__Secure-next-auth.session-token',
-        '__Host-next-auth.session-token',
-        'next-auth.csrf-token',
-        '__Secure-next-auth.csrf-token',
-        '__Host-next-auth.csrf-token'
-      ];
-      
-      const domains = ['', '.masgolf.co.kr', 'www.masgolf.co.kr', 'masgolf.co.kr'];
-      const paths = ['/', '/admin', '/admin/login'];
-      
-      cookieNames.forEach(name => {
-        domains.forEach(domain => {
-          paths.forEach(path => {
-            // 모든 가능한 조합으로 삭제
-            document.cookie = `${name}=; Path=${path}; Max-Age=0; SameSite=Lax${domain ? `; Domain=${domain}` : ''}`;
-            document.cookie = `${name}=; Path=${path}; Max-Age=0; SameSite=None; Secure${domain ? `; Domain=${domain}` : ''}`;
-            document.cookie = `${name}=; Path=${path}; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT${domain ? `; Domain=${domain}` : ''}`;
-            // Secure 없이도 시도
-            if (!domain) {
-              document.cookie = `${name}=; Path=${path}; Max-Age=0`;
-            }
-          });
-        });
-      });
       
       // 3. localStorage/sessionStorage 정리
       if (typeof window !== 'undefined') {
@@ -88,13 +72,15 @@ const AdminNav = () => {
         }
       }
       
-      // 4. 즉시 리다이렉트 (타임아웃 없이, replace 사용)
-      window.location.replace('https://www.masgolf.co.kr/admin/login');
+      // 4. 강제 리다이렉트 (쿼리 파라미터 추가로 캐시 방지)
+      const logoutTimestamp = Date.now();
+      window.location.href = `https://www.masgolf.co.kr/admin/login?logout=${logoutTimestamp}`;
       
     } catch (error) {
       console.error('로그아웃 오류:', error);
       // 에러 발생 시에도 강제 리다이렉트
-      window.location.replace('https://www.masgolf.co.kr/admin/login');
+      const logoutTimestamp = Date.now();
+      window.location.href = `https://www.masgolf.co.kr/admin/login?logout=${logoutTimestamp}`;
     }
   };
 
