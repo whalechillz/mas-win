@@ -435,7 +435,7 @@ export default function AccountManagement({ session }: AccountManagementProps) {
           )}
           
           {/* 세션 데이터가 있을 때만 표시 (showProfile은 fallback) */}
-          {(status === 'authenticated' && (sessionData?.user || session?.user)) || (showProfile && status !== 'loading') ? (
+          {((status === 'authenticated' && (sessionData?.user || session?.user)) || (showProfile && status !== 'loading')) ? (
             <>
               {isEditingProfile ? (
                 <div className="space-y-4">
@@ -530,7 +530,7 @@ export default function AccountManagement({ session }: AccountManagementProps) {
                 </div>
               )}
             </>
-          )}
+          ) : null}
         </div>
       )}
 
