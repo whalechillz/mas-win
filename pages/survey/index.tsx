@@ -58,13 +58,13 @@ export default function SurveyLanding() {
         const firstImage = getProductImageUrl(data.product.detail_images[0]);
         setPro3MuziikImage(firstImage);
       } else {
-        // Fallback: 기본 이미지 사용
-        setPro3MuziikImage(getProductImageUrl('/main/products/pro3-muziik/secret-force-pro-3-muziik-03.webp'));
+        // Fallback: 기본 이미지 사용 (Supabase Storage 경로)
+        setPro3MuziikImage(getProductImageUrl('originals/products/pro3-muziik/detail/secret-force-pro-3-muziik-00.webp'));
       }
     } catch (error) {
       console.error('PRO3 MUZIIK 이미지 로드 오류:', error);
-      // Fallback 사용
-      setPro3MuziikImage(getProductImageUrl('/main/products/pro3-muziik/secret-force-pro-3-muziik-03.webp'));
+      // Fallback 사용 (Supabase Storage 경로)
+      setPro3MuziikImage(getProductImageUrl('originals/products/pro3-muziik/detail/secret-force-pro-3-muziik-00.webp'));
     }
   };
 

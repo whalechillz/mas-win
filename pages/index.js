@@ -27,16 +27,16 @@ export default function Home({ hostname, initialProducts = [] }) {
   const getDefaultImages = (slug) => {
     const defaultImageMap = {
       'gold2-sapphire': [
-        '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp',
-        '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_01.webp',
+        'originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_11.webp',
+        'originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_01.webp',
       ],
       'black-beryl': [
-        '/main/products/black-beryl/massgoo_sw_black_muz_11.webp',
-        '/main/products/black-beryl/massgoo_sw_black_muz_01.webp',
+        'originals/products/black-beryl/detail/massgoo_sw_black_muz_11.webp',
+        'originals/products/black-beryl/detail/massgoo_sw_black_muz_01.webp',
       ],
       'pro3-muziik': [
-        '/main/products/pro3-muziik/secret-force-pro-3-muziik-00.webp',
-        '/main/products/pro3-muziik/massgoo_pro3_beryl_240.webp',
+        'originals/products/pro3-muziik/detail/secret-force-pro-3-muziik-00.webp',
+        'originals/products/pro3-muziik/detail/massgoo_pro3_beryl_240.webp',
       ],
       'gold2': [
         '/main/products/gold2/gold2_00_01.jpg',
