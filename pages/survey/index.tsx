@@ -3,32 +3,32 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { getProductImageUrl } from '../../lib/product-image-url';
 
-// 버킷햇 이미지 (12개)
-const bucketHatImages = [
-  { src: '/main/products/goods/good-reviews/bucket-hat-muziik-1.webp', alt: 'MASSGOO X MUZIIK 버킷햇 1' },
-  { src: '/main/products/goods/good-reviews/bucket-hat-muziik-2.webp', alt: 'MASSGOO X MUZIIK 버킷햇 2' },
-  { src: '/main/products/goods/good-reviews/bucket-hat-muziik-3.webp', alt: 'MASSGOO X MUZIIK 버킷햇 3' },
-  { src: '/main/products/goods/good-reviews/bucket-hat-muziik-4.webp', alt: 'MASSGOO X MUZIIK 버킷햇 4' },
-  { src: '/main/products/goods/good-reviews/bucket-hat-muziik-5.webp', alt: 'MASSGOO X MUZIIK 버킷햇 5' },
-  { src: '/main/products/goods/good-reviews/bucket-hat-muziik-6.webp', alt: 'MASSGOO X MUZIIK 버킷햇 6' },
-  { src: '/main/products/goods/good-reviews/bucket-hat-muziik-7.webp', alt: 'MASSGOO X MUZIIK 버킷햇 7' },
-  { src: '/main/products/goods/good-reviews/bucket-hat-muziik-8.webp', alt: 'MASSGOO X MUZIIK 버킷햇 8' },
-  { src: '/main/products/goods/good-reviews/bucket-hat-muziik-9.webp', alt: 'MASSGOO X MUZIIK 버킷햇 9' },
-  { src: '/main/products/goods/good-reviews/bucket-hat-muziik-10.webp', alt: 'MASSGOO X MUZIIK 버킷햇 10' },
-  { src: '/main/products/goods/good-reviews/bucket-hat-muziik-11.webp', alt: 'MASSGOO X MUZIIK 버킷햇 11' },
-  { src: '/main/products/goods/good-reviews/bucket-hat-muziik-12.webp', alt: 'MASSGOO X MUZIIK 버킷햇 12' },
+// Fallback 이미지 (데이터베이스에 없을 때 사용)
+const defaultBucketHatImages = [
+  '/main/products/goods/good-reviews/bucket-hat-muziik-1.webp',
+  '/main/products/goods/good-reviews/bucket-hat-muziik-2.webp',
+  '/main/products/goods/good-reviews/bucket-hat-muziik-3.webp',
+  '/main/products/goods/good-reviews/bucket-hat-muziik-4.webp',
+  '/main/products/goods/good-reviews/bucket-hat-muziik-5.webp',
+  '/main/products/goods/good-reviews/bucket-hat-muziik-6.webp',
+  '/main/products/goods/good-reviews/bucket-hat-muziik-7.webp',
+  '/main/products/goods/good-reviews/bucket-hat-muziik-8.webp',
+  '/main/products/goods/good-reviews/bucket-hat-muziik-9.webp',
+  '/main/products/goods/good-reviews/bucket-hat-muziik-10.webp',
+  '/main/products/goods/good-reviews/bucket-hat-muziik-11.webp',
+  '/main/products/goods/good-reviews/bucket-hat-muziik-12.webp',
 ];
 
-// 골프모자 이미지 (7개)
-const golfCapImages = [
-  { src: '/main/products/goods/good-reviews/golf-hat-muziik-1.webp', alt: 'MASSGOO X MUZIIK 골프모자 1' },
-  { src: '/main/products/goods/good-reviews/golf-hat-muziik-2.webp', alt: 'MASSGOO X MUZIIK 골프모자 2' },
-  { src: '/main/products/goods/good-reviews/golf-hat-muziik-3.webp', alt: 'MASSGOO X MUZIIK 골프모자 3' },
-  { src: '/main/products/goods/good-reviews/golf-hat-muziik-4.webp', alt: 'MASSGOO X MUZIIK 골프모자 4' },
-  { src: '/main/products/goods/good-reviews/golf-hat-muziik-5.webp', alt: 'MASSGOO X MUZIIK 골프모자 5' },
-  { src: '/main/products/goods/good-reviews/golf-hat-muziik-6.webp', alt: 'MASSGOO X MUZIIK 골프모자 6' },
-  { src: '/main/products/goods/good-reviews/golf-hat-muziik-7.webp', alt: 'MASSGOO X MUZIIK 골프모자 7' },
+const defaultGolfCapImages = [
+  '/main/products/goods/good-reviews/golf-hat-muziik-1.webp',
+  '/main/products/goods/good-reviews/golf-hat-muziik-2.webp',
+  '/main/products/goods/good-reviews/golf-hat-muziik-3.webp',
+  '/main/products/goods/good-reviews/golf-hat-muziik-4.webp',
+  '/main/products/goods/good-reviews/golf-hat-muziik-5.webp',
+  '/main/products/goods/good-reviews/golf-hat-muziik-6.webp',
+  '/main/products/goods/good-reviews/golf-hat-muziik-7.webp',
 ];
 
 export default function SurveyLanding() {
@@ -36,6 +36,71 @@ export default function SurveyLanding() {
   const [bucketHatIndex, setBucketHatIndex] = useState(0);
   const [golfCapIndex, setGolfCapIndex] = useState(0);
   const [isHovering, setIsHovering] = useState({ bucket: false, golf: false });
+  const [bucketHatImages, setBucketHatImages] = useState<Array<{ src: string; alt: string }>>([]);
+  const [golfCapImages, setGolfCapImages] = useState<Array<{ src: string; alt: string }>>([]);
+  const [imagesLoading, setImagesLoading] = useState(true);
+
+  // 설문 이미지 로드 (데이터베이스에서)
+  useEffect(() => {
+    loadSurveyImages();
+  }, []);
+
+  const loadSurveyImages = async () => {
+    try {
+      setImagesLoading(true);
+      
+      // 버킷햇 이미지 로드
+      const bucketRes = await fetch('/api/products/bucket-hat-muziik');
+      const bucketData = await bucketRes.json();
+      
+      if (bucketData.success && bucketData.product?.gallery_images && bucketData.product.gallery_images.length > 0) {
+        const bucketImages = bucketData.product.gallery_images.map((img: string, index: number) => ({
+          src: getProductImageUrl(img),
+          alt: `MASSGOO X MUZIIK 버킷햇 ${index + 1}`
+        }));
+        setBucketHatImages(bucketImages);
+      } else {
+        // Fallback: 기본 이미지 사용
+        const fallbackImages = defaultBucketHatImages.map((img, index) => ({
+          src: getProductImageUrl(img),
+          alt: `MASSGOO X MUZIIK 버킷햇 ${index + 1}`
+        }));
+        setBucketHatImages(fallbackImages);
+      }
+      
+      // 골프모자 이미지 로드
+      const golfRes = await fetch('/api/products/golf-hat-muziik');
+      const golfData = await golfRes.json();
+      
+      if (golfData.success && golfData.product?.gallery_images && golfData.product.gallery_images.length > 0) {
+        const golfImages = golfData.product.gallery_images.map((img: string, index: number) => ({
+          src: getProductImageUrl(img),
+          alt: `MASSGOO X MUZIIK 골프모자 ${index + 1}`
+        }));
+        setGolfCapImages(golfImages);
+      } else {
+        // Fallback: 기본 이미지 사용
+        const fallbackImages = defaultGolfCapImages.map((img, index) => ({
+          src: getProductImageUrl(img),
+          alt: `MASSGOO X MUZIIK 골프모자 ${index + 1}`
+        }));
+        setGolfCapImages(fallbackImages);
+      }
+    } catch (error) {
+      console.error('설문 이미지 로드 오류:', error);
+      // Fallback: 기본 이미지 사용
+      setBucketHatImages(defaultBucketHatImages.map((img, index) => ({
+        src: getProductImageUrl(img),
+        alt: `MASSGOO X MUZIIK 버킷햇 ${index + 1}`
+      })));
+      setGolfCapImages(defaultGolfCapImages.map((img, index) => ({
+        src: getProductImageUrl(img),
+        alt: `MASSGOO X MUZIIK 골프모자 ${index + 1}`
+      })));
+    } finally {
+      setImagesLoading(false);
+    }
+  };
 
   // 자동 롤링 (3초 간격)
   useEffect(() => {
@@ -214,13 +279,34 @@ export default function SurveyLanding() {
                   >
                     {/* 골드 글로우 효과 */}
                     <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/0 via-yellow-400/10 to-yellow-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <Image
-                      src={bucketHatImages[bucketHatIndex]?.src || '/main/products/goods/good-reviews/bucket-hat-muziik-1.webp'}
-                      alt={bucketHatImages[bucketHatIndex]?.alt || '버킷햇'}
-                      fill
-                      className="object-contain p-4 transition-transform duration-500 group-hover:scale-110"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
+                    {imagesLoading ? (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-gray-400 text-sm">이미지 로딩 중...</span>
+                      </div>
+                    ) : bucketHatImages.length > 0 ? (
+                      <Image
+                        src={bucketHatImages[bucketHatIndex]?.src || bucketHatImages[0]?.src}
+                        alt={bucketHatImages[bucketHatIndex]?.alt || '버킷햇'}
+                        fill
+                        className="object-contain p-4 transition-transform duration-500 group-hover:scale-110"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        onError={(e) => {
+                          console.error('버킷햇 이미지 로드 실패:', bucketHatImages[bucketHatIndex]?.src);
+                          const target = e.target as HTMLImageElement;
+                          if (target) {
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-gray-400 text-sm">이미지 없음</span></div>';
+                            }
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-gray-400 text-sm">이미지 없음</span>
+                      </div>
+                    )}
                     {/* 썸네일 인디케이터 */}
                     <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 z-10">
                       {bucketHatImages.map((_, index) => (
@@ -253,13 +339,34 @@ export default function SurveyLanding() {
                   >
                     {/* 레드 글로우 효과 */}
                     <div className="absolute inset-0 bg-gradient-to-br from-red-400/0 via-red-400/10 to-red-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <Image
-                      src={golfCapImages[golfCapIndex]?.src || '/main/products/goods/good-reviews/golf-hat-muziik-1.webp'}
-                      alt={golfCapImages[golfCapIndex]?.alt || '골프모자'}
-                      fill
-                      className="object-contain p-4 transition-transform duration-500 group-hover:scale-110"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
+                    {imagesLoading ? (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-gray-400 text-sm">이미지 로딩 중...</span>
+                      </div>
+                    ) : golfCapImages.length > 0 ? (
+                      <Image
+                        src={golfCapImages[golfCapIndex]?.src || golfCapImages[0]?.src}
+                        alt={golfCapImages[golfCapIndex]?.alt || '골프모자'}
+                        fill
+                        className="object-contain p-4 transition-transform duration-500 group-hover:scale-110"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        onError={(e) => {
+                          console.error('골프모자 이미지 로드 실패:', golfCapImages[golfCapIndex]?.src);
+                          const target = e.target as HTMLImageElement;
+                          if (target) {
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-gray-400 text-sm">이미지 없음</span></div>';
+                            }
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-gray-400 text-sm">이미지 없음</span>
+                      </div>
+                    )}
                     {/* 썸네일 인디케이터 */}
                     <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 z-10">
                       {golfCapImages.map((_, index) => (
