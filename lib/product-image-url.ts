@@ -7,12 +7,12 @@ import { createClient } from '@supabase/supabase-js';
 
 // 클라이언트 사이드에서도 환경 변수 접근 가능하도록 수정
 const getSupabaseUrl = () => {
-  // 서버 사이드
-  if (typeof window === 'undefined') {
-    return process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-  }
-  // 클라이언트 사이드 - 환경 변수는 빌드 타임에 주입됨
-  return process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  // 환경 변수에서 가져오기 (서버/클라이언트 모두)
+  const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (envUrl) return envUrl;
+  
+  // 환경 변수가 없으면 하드코딩된 URL 사용 (프로덕션)
+  return 'https://yyytjudftvpmcnppaymw.supabase.co';
 };
 
 const SUPABASE_URL = getSupabaseUrl();
