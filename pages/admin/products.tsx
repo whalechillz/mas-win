@@ -467,7 +467,8 @@ export default function ProductsAdminPage() {
 
   // 세션 체크 (프로덕션에서 활성화)
   // DEBUG_MODE는 환경 변수로만 제어 (SSR 호환성)
-  const DEBUG_MODE = process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true';
+  // 프로덕션에서는 디버깅 모드 비활성화
+  const DEBUG_MODE = false;
   
   if (!DEBUG_MODE && !session) {
     return null;
