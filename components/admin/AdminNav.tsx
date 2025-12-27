@@ -1,11 +1,29 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
 
 const AdminNav = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const [showUserInfo, setShowUserInfo] = useState(false);
   const isActive = (path: string) => router.pathname === path;
+
+  // 미들웨어가 통과시켰다면 세션이 곧 올 것이므로 일정 시간 후 표시
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user) {
+      setShowUserInfo(true);
+      return;
+    }
+    
+    // 세션이 없어도 미들웨어가 통과시켰다면 2초 후 표시 시도
+    if (status !== 'loading') {
+      const timer = setTimeout(() => {
+        setShowUserInfo(true);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [status, session]);
 
   return (
     <div className="bg-white border-b sticky top-0 z-40">
@@ -38,14 +56,14 @@ const AdminNav = () => {
           
           {/* 사용자 정보 및 로그아웃 버튼 */}
           <div className="flex items-center space-x-3">
-            {status === 'loading' && (
+            {status === 'loading' && !showUserInfo && (
               <span className="text-sm text-gray-400">로딩 중...</span>
             )}
             
-            {status === 'authenticated' && session?.user && (
+            {(status === 'authenticated' && session?.user) || showUserInfo ? (
               <>
                 <span className="text-sm text-gray-600">
-                  {session.user?.name} ({(session.user as any)?.role === 'admin' ? '총관리자' : '편집자'})
+                  {session?.user?.name || '관리자'} ({session?.user?.role === 'admin' ? '총관리자' : '편집자'})
                 </span>
                 <button
                   onClick={async () => {
@@ -57,10 +75,7 @@ const AdminNav = () => {
                   로그아웃
                 </button>
               </>
-            )}
-            
-            {/* 미들웨어가 이미 인증을 체크했으므로 클라이언트 사이드에서 디버깅 모드 표시 제거 */}
-            {/* 세션이 없으면 미들웨어가 이미 리다이렉트했을 것 */}
+            ) : null}
           </div>
         </div>
       </div>

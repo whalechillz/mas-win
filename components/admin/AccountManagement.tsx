@@ -166,8 +166,13 @@ export default function AccountManagement({ session }: AccountManagementProps) {
             </div>
           )}
           
-          {/* 미들웨어가 이미 인증을 체크했으므로 세션이 없으면 리다이렉트됨 */}
-          {/* 디버깅 모드 표시 제거 - 미들웨어가 처리 */}
+          {/* 세션이 없을 때 - 미들웨어가 통과시켰다면 곧 올 것 */}
+          {status !== 'loading' && !sessionData?.user && !session?.user && (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+              <p className="mt-2 text-sm text-gray-500">세션 정보를 불러오는 중...</p>
+            </div>
+          )}
         </div>
       )}
 
