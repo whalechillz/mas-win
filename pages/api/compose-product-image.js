@@ -19,10 +19,31 @@ if (process.env.FAL_KEY) {
 
 /**
  * 이미지를 Supabase Storage에 저장
+ * 제품별 gallery 폴더에 저장
  */
 async function saveImageToSupabase(imageUrl, productId, prefix = 'composed') {
   try {
     console.log('💾 이미지 저장 시작:', { imageUrl, productId });
+    
+    // 제품 정보 조회 (slug 가져오기)
+    let productSlug = productId;
+    let category = 'driver';
+    
+    try {
+      const { data: productData, error: productError } = await supabase
+        .from('product_composition')
+        .select('slug, category')
+        .or(`id.eq.${productId},slug.eq.${productId}`)
+        .limit(1)
+        .maybeSingle();
+      
+      if (!productError && productData) {
+        productSlug = productData.slug;
+        category = productData.category;
+      }
+    } catch (err) {
+      console.warn('⚠️ 제품 정보 조회 실패, 기본값 사용:', err.message);
+    }
     
     // 이미지 다운로드
     const imageResponse = await fetch(imageUrl);
@@ -33,7 +54,13 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed') {
     const imageBuffer = await imageResponse.arrayBuffer();
     const timestamp = Date.now();
     const fileExtension = imageUrl.split('.').pop()?.split('?')[0] || 'png';
-    const fileName = `originals/composed/${new Date().toISOString().split('T')[0]}/${prefix}-${productId}-${timestamp}.${fileExtension}`;
+    
+    // 제품별 gallery 폴더에 저장
+    const storageFolder = category === 'hat' || category === 'accessory'
+      ? `originals/products/goods/${productSlug}/gallery`
+      : `originals/products/${productSlug}/gallery`;
+    
+    const fileName = `${storageFolder}/${prefix}-${productId}-${timestamp}.${fileExtension}`;
     
     // Supabase Storage에 업로드
     const { data: uploadData, error: uploadError } = await supabase.storage

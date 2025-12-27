@@ -7,7 +7,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // 공통으로 사용하는 컬럼 목록 (SELECT 시 재사용)
 const PRODUCT_SELECT_COLUMNS =
-  'id, name, sku, category, color, size, legacy_name, is_gift, is_sellable, is_active, normal_price, sale_price, is_component, condition';
+  'id, name, sku, category, color, size, legacy_name, is_gift, is_sellable, is_active, normal_price, sale_price, is_component, condition, product_type, slug, subtitle, badge_left, badge_right, badge_left_color, badge_right_color, border_color, features, specifications, display_order, detail_images, composition_images, gallery_images';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -52,6 +52,8 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
       isComponentParam === 'true' ? true : isComponentParam === 'false' ? false : undefined;
     const condition =
       typeof req.query.condition === 'string' ? req.query.condition.trim() : '';
+    const productType =
+      typeof req.query.productType === 'string' ? req.query.productType.trim() : '';
 
     const sortBy = typeof req.query.sortBy === 'string' ? req.query.sortBy : 'name';
     const sortOrder = req.query.sortOrder === 'desc' ? 'desc' : 'asc';
@@ -102,6 +104,10 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
 
     if (condition) {
       query = query.eq('condition', condition);
+    }
+
+    if (productType) {
+      query = query.eq('product_type', productType);
     }
 
     if (typeof minPrice === 'number' && !Number.isNaN(minPrice)) {

@@ -2608,3 +2608,54 @@ WHERE
   - 굿즈 재고/판매 대시보드와 연동 (상품별 지급 수량 집계)
   - 특정 굿즈를 여러 번 받은 VIP 고객 타깃 마케팅 (예: 모자/공 재구매 유도 캠페인)
 
+---
+
+## ✅ 최근 작업: 제품 관리 시스템 통합 및 이미지 타입별 분리 (2025-12-27)
+
+### 완료된 작업
+- **제품 합성 관리 페이지 수정** ✅:
+  - `pages/admin/product-composition.tsx`: 이미지 업로드 시 `imageType='composition'` 파라미터 추가
+  - 합성용 이미지가 `originals/products/{product-slug}/composition/` 폴더에 저장되도록 수정
+  - 메인 이미지와 참조 이미지 모두 합성용 폴더에 저장
+- **데이터베이스 스키마 확장 준비** ✅:
+  - `database/extend-products-table-for-drivers.sql`: 드라이버 제품 필드 추가 SQL 작성
+  - 이미지 타입별 배열 필드 (`detail_images`, `composition_images`, `gallery_images`) 추가
+  - PG 연동 및 재고 관리 확장 필드 추가
+- **드라이버 제품 마이그레이션 스크립트** ✅:
+  - `scripts/migrate-driver-products-to-db.js`: 하드코딩된 8개 드라이버 제품을 데이터베이스로 마이그레이션
+  - 이미지 경로를 새 구조(`originals/products/{slug}/{type}/`)로 업데이트
+- **이미지 URL 헬퍼 함수 개선** ✅:
+  - `lib/product-image-url.ts`: `getSupabasePublicUrl` 함수 추가
+  - Supabase Storage 경로를 공개 URL로 변환하는 통합 함수 제공
+- **최종 계획 문서 작성** ✅:
+  - `docs/final-product-management-plan.md`: 통합 제품 관리 시스템 최종 계획 문서 작성
+  - `docs/implementation-checklist.md`: 구현 체크리스트 작성
+
+### 제품 이미지 Storage 구조
+- **드라이버 제품**: `originals/products/{product-slug}/{type}/`
+  - `detail/`: 상세페이지용 이미지
+  - `composition/`: 합성용 참조 이미지
+  - `gallery/`: AI 합성 결과 이미지
+- **굿즈 제품**: `originals/products/goods/{product-slug}/{type}/`
+  - 동일한 구조로 관리
+
+### 관리 페이지 역할 분담
+- `/admin/products`: 상세페이지 이미지 (`detail`) 관리
+- `/admin/product-composition`: 합성용 이미지 (`composition`) 관리 ✅ 수정 완료
+- `/admin/ai-image-generator`: 갤러리 이미지 (`gallery`) 자동 저장
+
+### 남은 작업
+- [ ] 데이터베이스 스키마 확장 실행 (Supabase 대시보드에서 SQL 실행)
+- [ ] 드라이버 제품 마이그레이션 실행 (`node scripts/migrate-driver-products-to-db.js`)
+- [ ] 통합 제품 관리 페이지 개선 (드라이버 제품 관리 기능 추가)
+- [ ] 메인 페이지 연동 (하드코딩 제거, 데이터베이스에서 로드)
+
+### 관련 파일
+- `pages/admin/product-composition.tsx` (수정)
+- `pages/api/admin/upload-product-image.js` (확인 완료)
+- `database/extend-products-table-for-drivers.sql` (신규)
+- `scripts/migrate-driver-products-to-db.js` (신규)
+- `lib/product-image-url.ts` (개선)
+- `docs/final-product-management-plan.md` (신규)
+- `docs/implementation-checklist.md` (신규)
+

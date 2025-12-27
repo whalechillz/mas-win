@@ -19,6 +19,22 @@ type Product = {
   sale_price?: number | null;
   is_component?: boolean;
   condition?: string | null;
+  // 드라이버 제품 필드
+  product_type?: 'goods' | 'driver' | 'component' | null;
+  slug?: string | null;
+  subtitle?: string | null;
+  badge_left?: string | null;
+  badge_right?: string | null;
+  badge_left_color?: string | null;
+  badge_right_color?: string | null;
+  border_color?: string | null;
+  features?: string[] | null;
+  specifications?: Record<string, any> | null;
+  display_order?: number | null;
+  // 이미지 타입별 배열
+  detail_images?: string[] | null;
+  composition_images?: string[] | null;
+  gallery_images?: string[] | null;
 };
 
 export default function ProductsAdminPage() {
@@ -37,6 +53,8 @@ export default function ProductsAdminPage() {
   );
   const [productTypeFilter, setProductTypeFilter] =
     useState<'all' | 'finished' | 'component'>('all');
+  const [productCategoryFilter, setProductCategoryFilter] =
+    useState<'all' | 'driver' | 'goods'>('all');
   const [conditionFilter, setConditionFilter] =
     useState<'all' | 'new' | 'used' | 'scrap'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'sku' | 'category' | 'normal_price' | 'sale_price'>(
@@ -93,6 +111,7 @@ export default function ProductsAdminPage() {
     categoryFilter,
     isSellableFilter,
     productTypeFilter,
+    productCategoryFilter,
     conditionFilter,
     sortBy,
     sortOrder,
@@ -110,6 +129,8 @@ export default function ProductsAdminPage() {
       if (isSellableFilter === 'not_sellable') params.set('isSellable', 'false');
       if (productTypeFilter === 'finished') params.set('isComponent', 'false');
       if (productTypeFilter === 'component') params.set('isComponent', 'true');
+      if (productCategoryFilter === 'driver') params.set('productType', 'driver');
+      if (productCategoryFilter === 'goods') params.set('productType', 'goods');
       if (conditionFilter !== 'all') params.set('condition', conditionFilter);
       params.set('sortBy', sortBy);
       params.set('sortOrder', sortOrder);
@@ -477,7 +498,7 @@ export default function ProductsAdminPage() {
   return (
     <>
       <Head>
-        <title>굿즈 / 사은품 관리 - MASGOLF</title>
+        <title>제품 관리 - MASGOLF</title>
       </Head>
       <div className="min-h-screen bg-gray-50">
         <AdminNav />
@@ -519,6 +540,15 @@ export default function ProductsAdminPage() {
               />
               사은품만
             </label>
+            <select
+              value={productCategoryFilter}
+              onChange={(e) => setProductCategoryFilter(e.target.value as 'all' | 'driver' | 'goods')}
+              className="px-3 py-2 border rounded-md text-sm"
+            >
+              <option value="all">전체 제품</option>
+              <option value="driver">드라이버</option>
+              <option value="goods">굿즈/사은품</option>
+            </select>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
@@ -678,12 +708,42 @@ export default function ProductsAdminPage() {
                       </td>
                       <td className="p-2">
                         <div className="font-medium text-gray-900">{p.name}</div>
+                        {p.product_type === 'driver' && p.subtitle && (
+                          <div className="text-xs text-gray-500">{p.subtitle}</div>
+                        )}
                         {p.legacy_name && (
                           <div className="text-xs text-gray-500">{p.legacy_name}</div>
                         )}
+                        {p.product_type === 'driver' && (p.badge_left || p.badge_right) && (
+                          <div className="flex gap-1 mt-1">
+                            {p.badge_left && (
+                              <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                p.badge_left_color === 'red' ? 'bg-red-100 text-red-800' :
+                                p.badge_left_color === 'yellow' ? 'bg-yellow-100 text-yellow-800' :
+                                p.badge_left_color === 'purple' ? 'bg-purple-100 text-purple-800' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {p.badge_left}
+                              </span>
+                            )}
+                            {p.badge_right && (
+                              <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                p.badge_right_color === 'green' ? 'bg-green-100 text-green-800' :
+                                p.badge_right_color === 'yellow' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {p.badge_right}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </td>
-                      <td className="p-2">{p.sku || '-'}</td>
-                      <td className="p-2">{p.category || '-'}</td>
+                      <td className="p-2">
+                        {p.product_type === 'driver' ? (p.slug || '-') : (p.sku || '-')}
+                      </td>
+                      <td className="p-2">
+                        {p.product_type === 'driver' ? 'driver' : (p.category || '-')}
+                      </td>
                       <td className="p-2">
                         {(p.color || '-')}/{p.size || '-'}
                       </td>

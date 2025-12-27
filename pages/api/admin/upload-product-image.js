@@ -25,12 +25,13 @@ export const config = {
  * 제품 slug를 기반으로 Storage 경로 결정
  * @param {string} productSlug - 제품 slug
  * @param {string} category - 제품 카테고리 (hat, driver, accessory)
+ * @param {string} imageType - 이미지 타입 (detail, composition, gallery)
  * @returns {string} Storage 폴더 경로
  */
-function getProductStoragePath(productSlug, category) {
-  // 굿즈/액세서리 제품은 goods 폴더에 저장
+function getProductStoragePath(productSlug, category, imageType = 'detail') {
+  // 굿즈/액세서리도 제품별 폴더 구조 사용
   if (category === 'hat' || category === 'accessory') {
-    return 'main/products/goods';
+    return `originals/products/goods/${productSlug}/${imageType}`;
   }
 
   // 드라이버 제품 slug → 폴더 매핑
@@ -46,7 +47,7 @@ function getProductStoragePath(productSlug, category) {
   };
 
   const folderName = driverSlugToFolder[productSlug] || productSlug;
-  return `main/products/${folderName}`;
+  return `originals/products/${folderName}/${imageType}`;
 }
 
 export default async function handler(req, res) {
@@ -75,9 +76,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: '이미지 파일이 필요합니다.' });
     }
 
-    // 제품 정보 가져오기 (slug, category)
+    // 제품 정보 가져오기 (slug, category, imageType)
     const productSlug = fields.productSlug?.[0] || '';
     const category = fields.category?.[0] || 'hat'; // 기본값: hat
+    const imageType = fields.imageType?.[0] || 'detail'; // detail, composition, gallery
 
     // 파일 읽기
     const fileBuffer = fs.readFileSync(file.filepath);
@@ -89,8 +91,8 @@ export default async function handler(req, res) {
       .webp({ quality: 85 })
       .toBuffer();
 
-    // Storage 경로 결정
-    const storageFolder = getProductStoragePath(productSlug, category);
+    // Storage 경로 결정 (새 구조 사용)
+    const storageFolder = getProductStoragePath(productSlug, category, imageType);
     const timestamp = Date.now();
     const webpFileName = `${baseName}-${timestamp}.webp`;
     const storagePath = `${storageFolder}/${webpFileName}`;
@@ -120,14 +122,13 @@ export default async function handler(req, res) {
     // 임시 파일 삭제
     fs.unlinkSync(file.filepath);
 
-    // 상대 경로 형태로 반환 (기존 코드와 호환)
-    // Storage 경로를 상대 경로로 변환
+    // Storage 경로를 상대 경로로 변환 (기존 코드 호환)
     const relativePath = `/${storagePath}`;
 
     res.status(200).json({
       success: true,
-      url: relativePath, // 상대 경로: /main/products/goods/...
-      storageUrl: publicUrl, // 전체 URL (참고용)
+      url: relativePath, // 상대 경로: /originals/products/{slug}/{type}/...
+      storageUrl: publicUrl, // Supabase Storage 공개 URL (전체 URL)
       fileName: webpFileName,
       storagePath: storagePath,
       message: '이미지가 Supabase Storage에 업로드되고 WebP로 변환되었습니다.'

@@ -1,0 +1,411 @@
+{
+  "startTime": "2025-12-27T03:55:59.700Z",
+  "redirectChain": [
+    {
+      "from": "https://unpkg.com/feather-icons",
+      "to": "https://unpkg.com/feather-icons@4.29.2/dist/feather.min.js",
+      "timestamp": "2025-12-27T03:56:00.282Z"
+    }
+  ],
+  "urlHistory": [
+    {
+      "url": "http://localhost:3000/admin/login",
+      "timestamp": "2025-12-27T03:56:00.239Z"
+    },
+    {
+      "url": "http://localhost:3000/admin/login",
+      "timestamp": "2025-12-27T03:56:00.477Z"
+    },
+    {
+      "url": "http://localhost:3000/admin/dashboard",
+      "timestamp": "2025-12-27T03:56:05.187Z"
+    }
+  ],
+  "cookies": [
+    {
+      "stage": "before_login",
+      "cookies": [
+        {
+          "name": "next-auth.csrf-token",
+          "value": "74340f1b22269f3b5521b4e6293ab627f19cc8ec96820229b4603a0b0431c1d8%7C75834f0c7d0810271ff62d6cfb548d14af0524fa228b34f6c2dd4eec6f828123",
+          "domain": "localhost",
+          "path": "/",
+          "expires": 1769399760.524545,
+          "httpOnly": true,
+          "secure": false,
+          "sameSite": "Lax"
+        },
+        {
+          "name": "next-auth.callback-url",
+          "value": "http%3A%2F%2Flocalhost%3A3000",
+          "domain": "localhost",
+          "path": "/",
+          "expires": 1769399760.52459,
+          "httpOnly": true,
+          "secure": false,
+          "sameSite": "Lax"
+        }
+      ]
+    },
+    {
+      "stage": "after_login",
+      "cookies": [
+        {
+          "name": "next-auth.csrf-token",
+          "value": "74340f1b22269f3b5521b4e6293ab627f19cc8ec96820229b4603a0b0431c1d8%7C75834f0c7d0810271ff62d6cfb548d14af0524fa228b34f6c2dd4eec6f828123",
+          "domain": "localhost",
+          "path": "/",
+          "expires": 1769399760.524545,
+          "httpOnly": true,
+          "secure": false,
+          "sameSite": "Lax"
+        },
+        {
+          "name": "next-auth.callback-url",
+          "value": "http%3A%2F%2Flocalhost%3A3000%2Fadmin%2Flogin",
+          "domain": "localhost",
+          "path": "/",
+          "expires": 1769399764.729761,
+          "httpOnly": true,
+          "secure": false,
+          "sameSite": "Lax"
+        },
+        {
+          "name": "next-auth.session-token",
+          "value": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0.._NFiAn2u_P9ZRzas.dvPErL8gckglblBftCPz5BsT9irVQZFiXt2F0GiZq3mVvJ35J72CHFBRIjP58DNN7uZiJhpk8PH8iIKucdcI5Nrl5-tW4Li_CbhqQ3gqJjdYHV91B8siXP4vA7n9J_SnTcnV4KKL04JjHpRXhDN-23gBF3NhDfPhhHUF96m0hfrrZV0ykGlQ1lBk2-elFUHqnu-tubosQtaMxc7J6XWiABhzf9iWqf-OTrxGtKkWqNFqEHgzn1netn0IgqU3o7sQ4FTlJ1szWwOUAmY.bb9DPryJecUSAm5hjuIgaw",
+          "domain": "localhost",
+          "path": "/",
+          "expires": 1769399764.739485,
+          "httpOnly": true,
+          "secure": false,
+          "sameSite": "Lax"
+        }
+      ]
+    }
+  ],
+  "networkRequests": [
+    {
+      "url": "http://localhost:3000/admin/login",
+      "method": "GET",
+      "headers": {
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "timestamp": "2025-12-27T03:55:59.736Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "https://unpkg.com/feather-icons",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:00.244Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/webpack.js?ts=1766807760230",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:00.244Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/main.js?ts=1766807760230",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:00.244Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/pages/_app.js?ts=1766807760230",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:00.244Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/pages/admin/login.js?ts=1766807760230",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:00.244Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/_next/static/development/_buildManifest.js?ts=1766807760230",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:00.244Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/_next/static/development/_ssgManifest.js?ts=1766807760230",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:00.244Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/react-refresh.js?ts=1766807760230",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:00.245Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "https://unpkg.com/feather-icons@4.29.2/dist/feather.min.js",
+      "method": "GET",
+      "headers": {
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "referer": "http://localhost:3000/"
+      },
+      "timestamp": "2025-12-27T03:56:00.282Z",
+      "redirectedFrom": "https://unpkg.com/feather-icons"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/development/_devMiddlewareManifest.json",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:00.442Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/api/auth/session",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "content-type": "application/json",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:00.482Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/_next/static/webpack/cdded61c1df09e4f.webpack.hot-update.json",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:00.483Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/_next/static/webpack/webpack.cdded61c1df09e4f.hot-update.js",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:00.490Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/api/auth/providers",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "content-type": "application/json",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:04.097Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/api/auth/csrf",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "content-type": "application/json",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:04.106Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/api/auth/callback/credentials",
+      "method": "POST",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "content-type": "application/x-www-form-urlencoded",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:04.116Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/api/auth/session",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "content-type": "application/json",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:04.730Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/_next/static/development/_devPagesManifest.json",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:04.944Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/_next/data/development/ko/admin/dashboard.json",
+      "method": "GET",
+      "headers": {
+        "x-nextjs-data": "1",
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:04.947Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/_next/static/webpack/356f7b3cfc100d6b.webpack.hot-update.json",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:05.011Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/_next/static/webpack/webpack.356f7b3cfc100d6b.hot-update.js",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:05.019Z",
+      "redirectedFrom": null
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/pages/admin/dashboard.js",
+      "method": "GET",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "http://localhost:3000/admin/login",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"141\", \"Not?A_Brand\";v=\"8\"",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "timestamp": "2025-12-27T03:56:05.151Z",
+      "redirectedFrom": null
+    }
+  ],
+  "errors": [],
+  "consoleErrors": [
+    {
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "timestamp": "2025-12-27T03:56:00.512Z"
+    }
+  ],
+  "finalState": {
+    "url": "http://localhost:3000/admin/dashboard",
+    "isDashboard": true,
+    "isLogin": false,
+    "hasRedirecting": false,
+    "hasLoading": false,
+    "cookiesCount": 3,
+    "sessionCookiesCount": 3,
+    "urlHistoryCount": 3,
+    "redirectChainCount": 1
+  },
+  "endTime": "2025-12-27T03:56:05.493Z",
+  "issues": [],
+  "success": true
+}

@@ -1,0 +1,14 @@
+{
+  "success": [],
+  "failed": [],
+  "duplicates": [],
+  "removedFromGoods": [],
+  "summary": {
+    "detail": 0,
+    "composition": 0,
+    "gallery": 0,
+    "total": 0,
+    "koreanFiles": 0,
+    "duplicateFiles": 0
+  }
+}

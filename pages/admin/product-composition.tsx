@@ -250,22 +250,24 @@ export default function ProductCompositionManagement() {
     }
   };
 
-  // 이미지 업로드 (메인 이미지)
+  // 이미지 업로드 (메인 이미지 - 합성용)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingImage(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
       // 제품 정보 전송 (Storage 경로 결정용)
       if (formData.slug) {
-        formData.append('productSlug', formData.slug);
+        uploadFormData.append('productSlug', formData.slug);
       }
       if (formData.category) {
-        formData.append('category', formData.category);
+        uploadFormData.append('category', formData.category);
       }
+      // ✅ 합성용 이미지로 지정
+      uploadFormData.append('imageType', 'composition');
 
       const response = await fetch('/api/admin/upload-product-image', {
         method: 'POST',
@@ -289,7 +291,7 @@ export default function ProductCompositionManagement() {
     }
   };
 
-  // 참조 이미지 업로드
+  // 참조 이미지 업로드 (합성용)
   const handleReferenceImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -305,6 +307,8 @@ export default function ProductCompositionManagement() {
       if (formData.category) {
         uploadFormData.append('category', formData.category);
       }
+      // ✅ 합성용 이미지로 지정
+      uploadFormData.append('imageType', 'composition');
 
       const response = await fetch('/api/admin/upload-product-image', {
         method: 'POST',

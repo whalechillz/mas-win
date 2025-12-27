@@ -2,19 +2,57 @@ import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatBrandYearsTradition, BRAND_FOUNDED_YEAR } from '../lib/brand-utils';
+import { getProductImageUrl } from '../lib/product-image-url';
 
-export default function Home({ hostname }) {
+export default function Home({ hostname, initialProducts = [] }) {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [footerExpanded, setFooterExpanded] = useState(false);
   const [driverMenuOpen, setDriverMenuOpen] = useState(false);
+  const [products, setProducts] = useState(initialProducts);
+  const [productsLoading, setProductsLoading] = useState(!initialProducts.length);
 
-  // 제품 데이터 정의
-  const products = [
+  // 제품 데이터 로드 (데이터베이스에서)
+  useEffect(() => {
+    if (initialProducts.length === 0) {
+      loadProductsFromDB();
+    }
+  }, []);
+
+  const loadProductsFromDB = async () => {
+    try {
+      setProductsLoading(true);
+      const res = await fetch('/api/products/drivers');
+      const json = await res.json();
+      if (json.success && json.products) {
+        // 데이터베이스 제품을 페이지 형식으로 변환
+        const formattedProducts = json.products.map((p) => ({
+          id: p.slug || `product-${p.id}`,
+          name: p.name,
+          subtitle: p.subtitle || '',
+          price: p.normal_price ? `${p.normal_price.toLocaleString()}원` : '',
+          features: Array.isArray(p.features) ? p.features : [],
+          images: Array.isArray(p.detail_images) && p.detail_images.length > 0
+            ? p.detail_images.map(img => getProductImageUrl(img))
+            : [],
+          badges: {
+            left: p.badge_left || null,
+            right: p.badge_right || null,
+            leftColor: p.badge_left_color || null,
+            rightColor: p.badge_right_color || null,
+          },
+          borderColor: p.border_color || null,
+        }));
+        setProducts(formattedProducts);
+      }
+    } catch (error) {
+      console.error('제품 로드 오류:', error);
+      // 오류 시 기본 제품 데이터 사용 (fallback)
+      setProducts([
     {
       id: 'gold2-sapphire',
       name: '시크리트포스 골드 2 MUZIIK',
@@ -171,7 +209,11 @@ export default function Home({ hostname }) {
       badges: null,
       borderColor: null,
     },
-  ];
+      ]);
+    } finally {
+      setProductsLoading(false);
+    }
+  };
 
   const handleProductClick = (product) => {
     // 1,2,3번 제품은 각각의 제품 페이지로 이동
@@ -815,7 +857,16 @@ export default function Home({ hostname }) {
             <h2 className="text-3xl font-bold text-center mb-4">프리미엄 드라이버 컬렉션</h2>
             <p className="text-center text-gray-600 mb-12">엄격한 품질관리로 한정 생산되는 특별한 선택</p>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {products.map((product) => {
+              {productsLoading ? (
+                <div className="col-span-full text-center py-10 text-gray-500">
+                  제품을 불러오는 중...
+                </div>
+              ) : products.length === 0 ? (
+                <div className="col-span-full text-center py-10 text-gray-500">
+                  등록된 제품이 없습니다.
+                </div>
+              ) : (
+                products.map((product) => {
                 let borderClass = '';
                 if (product.borderColor === 'yellow') {
                   borderClass = 'border-2 border-yellow-400';
@@ -868,8 +919,9 @@ export default function Home({ hostname }) {
                 </div>
               </div>
                 );
-              })}
-                </div>
+              })
+              )}
+            </div>
             <div className="text-center mt-8">
               <Link
                 href="/try-a-massgoo"

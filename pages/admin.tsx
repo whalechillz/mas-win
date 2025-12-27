@@ -11,7 +11,8 @@ import { useSession } from 'next-auth/react';
 export default function Admin() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const DEBUG_MODE = process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true';
+  // 프로덕션에서는 디버깅 모드 비활성화
+  const DEBUG_MODE = false;
 
   useEffect(() => {
     if (status === 'loading') return;

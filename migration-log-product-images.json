@@ -1,0 +1,964 @@
+{
+  "success": [
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/beige-golf-cap.webp",
+      "new": "originals/products/goods/beige-golf-cap/detail/beige-golf-cap.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/black-bucket-hat.webp",
+      "new": "originals/products/goods/black-bucket-hat/detail/black-bucket-hat.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/black-golf-cap.webp",
+      "new": "originals/products/goods/black-golf-cap/detail/black-golf-cap.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/bucket-hat-muziik-1.webp",
+      "new": "originals/products/goods/bucket-hat-muziik-1/detail/bucket-hat-muziik-1.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/bucket-hat-muziik-10.webp",
+      "new": "originals/products/goods/bucket-hat-muziik-10/detail/bucket-hat-muziik-10.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/bucket-hat-muziik-11.webp",
+      "new": "originals/products/goods/bucket-hat-muziik-11/detail/bucket-hat-muziik-11.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/bucket-hat-muziik-12.webp",
+      "new": "originals/products/goods/bucket-hat-muziik-12/detail/bucket-hat-muziik-12.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/bucket-hat-muziik-2.webp",
+      "new": "originals/products/goods/bucket-hat-muziik-2/detail/bucket-hat-muziik-2.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/bucket-hat-muziik-3.webp",
+      "new": "originals/products/goods/bucket-hat-muziik-3/detail/bucket-hat-muziik-3.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/bucket-hat-muziik-4.webp",
+      "new": "originals/products/goods/bucket-hat-muziik-4/detail/bucket-hat-muziik-4.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/bucket-hat-muziik-5.webp",
+      "new": "originals/products/goods/bucket-hat-muziik-5/detail/bucket-hat-muziik-5.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/bucket-hat-muziik-6.webp",
+      "new": "originals/products/goods/bucket-hat-muziik-6/detail/bucket-hat-muziik-6.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/bucket-hat-muziik-7.webp",
+      "new": "originals/products/goods/bucket-hat-muziik-7/detail/bucket-hat-muziik-7.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/bucket-hat-muziik-8.webp",
+      "new": "originals/products/goods/bucket-hat-muziik-8/detail/bucket-hat-muziik-8.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/bucket-hat-muziik-9.webp",
+      "new": "originals/products/goods/bucket-hat-muziik-9/detail/bucket-hat-muziik-9.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/golf-hat-muziik-1.webp",
+      "new": "originals/products/goods/golf-hat-muziik-1/detail/golf-hat-muziik-1.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/golf-hat-muziik-2.webp",
+      "new": "originals/products/goods/golf-hat-muziik-2/detail/golf-hat-muziik-2.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/golf-hat-muziik-3.webp",
+      "new": "originals/products/goods/golf-hat-muziik-3/detail/golf-hat-muziik-3.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/golf-hat-muziik-4.webp",
+      "new": "originals/products/goods/golf-hat-muziik-4/detail/golf-hat-muziik-4.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/golf-hat-muziik-5.webp",
+      "new": "originals/products/goods/golf-hat-muziik-5/detail/golf-hat-muziik-5.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/golf-hat-muziik-6.webp",
+      "new": "originals/products/goods/golf-hat-muziik-6/detail/golf-hat-muziik-6.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/good-reviews/golf-hat-muziik-7.webp",
+      "new": "originals/products/goods/golf-hat-muziik-7/detail/golf-hat-muziik-7.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/mas-limited-cap-black-front.webp",
+      "new": "originals/products/goods/mas-limited-cap-black-front/detail/mas-limited-cap-black-front.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/mas-limited-cap-gray-front.webp",
+      "new": "originals/products/goods/mas-limited-cap-gray-front/detail/mas-limited-cap-gray-front.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/massgoo-black-cap-front.webp",
+      "new": "originals/products/goods/massgoo-black-cap-front/detail/massgoo-black-cap-front.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/massgoo-muziik-clutch-beige-back.png",
+      "new": "originals/products/goods/massgoo-muziik-clutch-beige-back/detail/massgoo-muziik-clutch-beige-back.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/massgoo-muziik-clutch-beige-back.webp",
+      "new": "originals/products/goods/massgoo-muziik-clutch-beige-back/detail/massgoo-muziik-clutch-beige-back.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/massgoo-muziik-clutch-beige-front.png",
+      "new": "originals/products/goods/massgoo-muziik-clutch-beige-front/detail/massgoo-muziik-clutch-beige-front.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/massgoo-muziik-clutch-beige-front.webp",
+      "new": "originals/products/goods/massgoo-muziik-clutch-beige-front/detail/massgoo-muziik-clutch-beige-front.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/massgoo-muziik-clutch-gray-back.png",
+      "new": "originals/products/goods/massgoo-muziik-clutch-gray-back/detail/massgoo-muziik-clutch-gray-back.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/massgoo-muziik-clutch-gray-back.webp",
+      "new": "originals/products/goods/massgoo-muziik-clutch-gray-back/detail/massgoo-muziik-clutch-gray-back.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/massgoo-muziik-clutch-gray-front.png",
+      "new": "originals/products/goods/massgoo-muziik-clutch-gray-front/detail/massgoo-muziik-clutch-gray-front.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/massgoo-muziik-clutch-gray-front.webp",
+      "new": "originals/products/goods/massgoo-muziik-clutch-gray-front/detail/massgoo-muziik-clutch-gray-front.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/massgoo-white-cap-front.webp",
+      "new": "originals/products/goods/massgoo-white-cap-front/detail/massgoo-white-cap-front.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/navy-golf-cap.webp",
+      "new": "originals/products/goods/navy-golf-cap/detail/navy-golf-cap.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/white-bucket-hat.webp",
+      "new": "originals/products/goods/white-bucket-hat/detail/white-bucket-hat.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/goods/white-golf-cap.webp",
+      "new": "originals/products/goods/white-golf-cap/detail/white-golf-cap.webp",
+      "type": "detail"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-beryl/massgoo_sw_black_muz_01.webp",
+      "new": "originals/products/black-beryl/detail/massgoo_sw_black_muz_01.webp",
+      "type": "detail",
+      "product": "black-beryl"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-beryl/massgoo_sw_black_muz_01_n.webp",
+      "new": "originals/products/black-beryl/detail/massgoo_sw_black_muz_01_n.webp",
+      "type": "detail",
+      "product": "black-beryl"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-beryl/massgoo_sw_black_muz_11.webp",
+      "new": "originals/products/black-beryl/detail/massgoo_sw_black_muz_11.webp",
+      "type": "detail",
+      "product": "black-beryl"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-beryl/massgoo_sw_black_muz_12.webp",
+      "new": "originals/products/black-beryl/detail/massgoo_sw_black_muz_12.webp",
+      "type": "detail",
+      "product": "black-beryl"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-beryl/massgoo_sw_black_muz_13.webp",
+      "new": "originals/products/black-beryl/detail/massgoo_sw_black_muz_13.webp",
+      "type": "detail",
+      "product": "black-beryl"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-beryl/massgoo_sw_black_muz_14_b.webp",
+      "new": "originals/products/black-beryl/detail/massgoo_sw_black_muz_14_b.webp",
+      "type": "detail",
+      "product": "black-beryl"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-beryl/massgoo_sw_black_muz_15.webp",
+      "new": "originals/products/black-beryl/detail/massgoo_sw_black_muz_15.webp",
+      "type": "detail",
+      "product": "black-beryl"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-beryl/massgoo_sw_black_muz_18.webp",
+      "new": "originals/products/black-beryl/detail/massgoo_sw_black_muz_18.webp",
+      "type": "detail",
+      "product": "black-beryl"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-beryl/massgoo_sw_black_muz_23.webp",
+      "new": "originals/products/black-beryl/detail/massgoo_sw_black_muz_23.webp",
+      "type": "detail",
+      "product": "black-beryl"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-beryl/secret-weapon-black-sole-500.webp",
+      "new": "originals/products/black-beryl/composition/secret-weapon-black-sole-500.webp",
+      "type": "composition",
+      "product": "black-beryl"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/secret-weapon-black-gallery-00-01.webp",
+      "new": "originals/products/black-weapon/gallery/secret-weapon-black-gallery-00-01.webp",
+      "type": "gallery",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/secret-weapon-black-gallery-01.webp",
+      "new": "originals/products/black-weapon/gallery/secret-weapon-black-gallery-01.webp",
+      "type": "gallery",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/secret-weapon-black-gallery-02.webp",
+      "new": "originals/products/black-weapon/gallery/secret-weapon-black-gallery-02.webp",
+      "type": "gallery",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/secret-weapon-black-gallery-03.webp",
+      "new": "originals/products/black-weapon/gallery/secret-weapon-black-gallery-03.webp",
+      "type": "gallery",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/secret-weapon-black-gallery-04.webp",
+      "new": "originals/products/black-weapon/gallery/secret-weapon-black-gallery-04.webp",
+      "type": "gallery",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/secret-weapon-black-gallery-05.webp",
+      "new": "originals/products/black-weapon/gallery/secret-weapon-black-gallery-05.webp",
+      "type": "gallery",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/secret-weapon-black-gallery-06.webp",
+      "new": "originals/products/black-weapon/gallery/secret-weapon-black-gallery-06.webp",
+      "type": "gallery",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/secret-weapon-black-gallery-07.webp",
+      "new": "originals/products/black-weapon/gallery/secret-weapon-black-gallery-07.webp",
+      "type": "gallery",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/secret-weapon-black-gallery-08-01.webp",
+      "new": "originals/products/black-weapon/gallery/secret-weapon-black-gallery-08-01.webp",
+      "type": "gallery",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/secret-weapon-black-sole-500.webp",
+      "new": "originals/products/black-weapon/composition/secret-weapon-black-sole-500.webp",
+      "type": "composition",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-00-01.webp",
+      "new": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-00-01.webp",
+      "type": "gallery",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-01.webp",
+      "new": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-01.webp",
+      "type": "gallery",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-02.webp",
+      "new": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-02.webp",
+      "type": "gallery",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-03.webp",
+      "new": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-03.webp",
+      "type": "gallery",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-04.webp",
+      "new": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-04.webp",
+      "type": "gallery",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-05.webp",
+      "new": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-05.webp",
+      "type": "gallery",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-06.webp",
+      "new": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-06.webp",
+      "type": "gallery",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-07.webp",
+      "new": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-07.webp",
+      "type": "gallery",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-08-01.webp",
+      "new": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-08-01.webp",
+      "type": "gallery",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/secret-weapon-gold-4-1-sole-500.webp",
+      "new": "originals/products/gold-weapon4/composition/secret-weapon-gold-4-1-sole-500.webp",
+      "type": "composition",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2/gold2_00_01.jpg",
+      "new": "originals/products/gold2/detail/gold2_00_01.webp",
+      "type": "detail",
+      "product": "secret-force-gold-2"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2/gold2_01.jpg",
+      "new": "originals/products/gold2/detail/gold2_01.webp",
+      "type": "detail",
+      "product": "secret-force-gold-2"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2/gold2_02.jpg",
+      "new": "originals/products/gold2/detail/gold2_02.webp",
+      "type": "detail",
+      "product": "secret-force-gold-2"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2/gold2_03.jpg",
+      "new": "originals/products/gold2/detail/gold2_03.webp",
+      "type": "detail",
+      "product": "secret-force-gold-2"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2/gold2_04.jpg",
+      "new": "originals/products/gold2/detail/gold2_04.webp",
+      "type": "detail",
+      "product": "secret-force-gold-2"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2/gold2_05.jpg",
+      "new": "originals/products/gold2/detail/gold2_05.webp",
+      "type": "detail",
+      "product": "secret-force-gold-2"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2/gold2_06.jpg",
+      "new": "originals/products/gold2/detail/gold2_06.webp",
+      "type": "detail",
+      "product": "secret-force-gold-2"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2/gold2_07.jpg",
+      "new": "originals/products/gold2/detail/gold2_07.webp",
+      "type": "detail",
+      "product": "secret-force-gold-2"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2/gold2_08_01.jpg",
+      "new": "originals/products/gold2/detail/gold2_08_01.webp",
+      "type": "detail",
+      "product": "secret-force-gold-2"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2/secret-force-gold-2-sole-500.webp",
+      "new": "originals/products/gold2/composition/secret-force-gold-2-sole-500.webp",
+      "type": "composition",
+      "product": "secret-force-gold-2"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2-sapphire/massgoo_sf_gold2_muz_01.webp",
+      "new": "originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_01.webp",
+      "type": "detail",
+      "product": "gold2-sapphire"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp",
+      "new": "originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_11.webp",
+      "type": "detail",
+      "product": "gold2-sapphire"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2-sapphire/massgoo_sf_gold2_muz_12.webp",
+      "new": "originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_12.webp",
+      "type": "detail",
+      "product": "gold2-sapphire"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2-sapphire/massgoo_sf_gold2_muz_13.webp",
+      "new": "originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_13.webp",
+      "type": "detail",
+      "product": "gold2-sapphire"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2-sapphire/massgoo_sf_gold2_muz_14.webp",
+      "new": "originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_14.webp",
+      "type": "detail",
+      "product": "gold2-sapphire"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2-sapphire/massgoo_sf_gold2_muz_16.webp",
+      "new": "originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_16.webp",
+      "type": "detail",
+      "product": "gold2-sapphire"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2-sapphire/massgoo_sf_gold2_muz_17.webp",
+      "new": "originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_17.webp",
+      "type": "detail",
+      "product": "gold2-sapphire"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2-sapphire/massgoo_sf_gold2_muz_18.webp",
+      "new": "originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_18.webp",
+      "type": "detail",
+      "product": "gold2-sapphire"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2-sapphire/massgoo_sf_gold2_muz_22.webp",
+      "new": "originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_22.webp",
+      "type": "detail",
+      "product": "gold2-sapphire"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2-sapphire/massgoo_sf_gold2_muz_23.webp",
+      "new": "originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_23.webp",
+      "type": "detail",
+      "product": "gold2-sapphire"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2-sapphire/secret-force-gold-2-sole-500.webp",
+      "new": "originals/products/gold2-sapphire/composition/secret-force-gold-2-sole-500.webp",
+      "type": "composition",
+      "product": "gold2-sapphire"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/secret-force-pro-3-gallery-00.webp",
+      "new": "originals/products/pro3/gallery/secret-force-pro-3-gallery-00.webp",
+      "type": "gallery",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/secret-force-pro-3-gallery-01.webp",
+      "new": "originals/products/pro3/gallery/secret-force-pro-3-gallery-01.webp",
+      "type": "gallery",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/secret-force-pro-3-gallery-02.webp",
+      "new": "originals/products/pro3/gallery/secret-force-pro-3-gallery-02.webp",
+      "type": "gallery",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/secret-force-pro-3-gallery-03.webp",
+      "new": "originals/products/pro3/gallery/secret-force-pro-3-gallery-03.webp",
+      "type": "gallery",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/secret-force-pro-3-gallery-04.webp",
+      "new": "originals/products/pro3/gallery/secret-force-pro-3-gallery-04.webp",
+      "type": "gallery",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/secret-force-pro-3-gallery-05.webp",
+      "new": "originals/products/pro3/gallery/secret-force-pro-3-gallery-05.webp",
+      "type": "gallery",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/secret-force-pro-3-gallery-06.webp",
+      "new": "originals/products/pro3/gallery/secret-force-pro-3-gallery-06.webp",
+      "type": "gallery",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/secret-force-pro-3-gallery-07.webp",
+      "new": "originals/products/pro3/gallery/secret-force-pro-3-gallery-07.webp",
+      "type": "gallery",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/secret-force-pro-3-gallery-08.webp",
+      "new": "originals/products/pro3/gallery/secret-force-pro-3-gallery-08.webp",
+      "type": "gallery",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/secret-force-pro-3-sole-500.webp",
+      "new": "originals/products/pro3/composition/secret-force-pro-3-sole-500.webp",
+      "type": "composition",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3-muziik/massgoo_pro3_beryl_230.webp",
+      "new": "originals/products/pro3-muziik/detail/massgoo_pro3_beryl_230.webp",
+      "type": "detail",
+      "product": "pro3-muziik"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3-muziik/massgoo_pro3_beryl_240.webp",
+      "new": "originals/products/pro3-muziik/detail/massgoo_pro3_beryl_240.webp",
+      "type": "detail",
+      "product": "pro3-muziik"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3-muziik/massgoo_pro3_beryl_250.webp",
+      "new": "originals/products/pro3-muziik/detail/massgoo_pro3_beryl_250.webp",
+      "type": "detail",
+      "product": "pro3-muziik"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3-muziik/massgoo_pro3_sapphire_200.webp",
+      "new": "originals/products/pro3-muziik/detail/massgoo_pro3_sapphire_200.webp",
+      "type": "detail",
+      "product": "pro3-muziik"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3-muziik/massgoo_pro3_sapphire_215.webp",
+      "new": "originals/products/pro3-muziik/detail/massgoo_pro3_sapphire_215.webp",
+      "type": "detail",
+      "product": "pro3-muziik"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3-muziik/secret-force-pro-3-muziik-00.webp",
+      "new": "originals/products/pro3-muziik/detail/secret-force-pro-3-muziik-00.webp",
+      "type": "detail",
+      "product": "pro3-muziik"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3-muziik/secret-force-pro-3-muziik-03.webp",
+      "new": "originals/products/pro3-muziik/detail/secret-force-pro-3-muziik-03.webp",
+      "type": "detail",
+      "product": "pro3-muziik"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3-muziik/secret-force-pro-3-sole-500.webp",
+      "new": "originals/products/pro3-muziik/composition/secret-force-pro-3-sole-500.webp",
+      "type": "composition",
+      "product": "pro3-muziik"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/secret-force-v3-gallery-02.webp",
+      "new": "originals/products/v3/gallery/secret-force-v3-gallery-02.webp",
+      "type": "gallery",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/secret-force-v3-gallery-03.webp",
+      "new": "originals/products/v3/gallery/secret-force-v3-gallery-03.webp",
+      "type": "gallery",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/secret-force-v3-gallery-04.webp",
+      "new": "originals/products/v3/gallery/secret-force-v3-gallery-04.webp",
+      "type": "gallery",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/secret-force-v3-gallery-05-00.webp",
+      "new": "originals/products/v3/gallery/secret-force-v3-gallery-05-00.webp",
+      "type": "gallery",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/secret-force-v3-gallery-05.webp",
+      "new": "originals/products/v3/gallery/secret-force-v3-gallery-05.webp",
+      "type": "gallery",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/secret-force-v3-gallery-06.webp",
+      "new": "originals/products/v3/gallery/secret-force-v3-gallery-06.webp",
+      "type": "gallery",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/secret-force-v3-gallery-07.webp",
+      "new": "originals/products/v3/gallery/secret-force-v3-gallery-07.webp",
+      "type": "gallery",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/secret-force-v3-sole-350-bg.webp",
+      "new": "originals/products/v3/composition/secret-force-v3-sole-350-bg.webp",
+      "type": "composition",
+      "product": "secret-force-v3"
+    }
+  ],
+  "failed": [
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-beryl/마쓰구_시크리트웨폰_블랙_500.png",
+      "type": "detail",
+      "product": "black-beryl"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-beryl/마쓰구_시크리트웨폰_블랙_500_long.png",
+      "type": "detail",
+      "product": "black-beryl"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-beryl/마쓰구_시크리트웨폰_블랙_공홈_01.png",
+      "type": "detail",
+      "product": "black-beryl"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_500.png",
+      "type": "detail",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_500_long.png",
+      "type": "detail",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_500_long.webp",
+      "type": "detail",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_00_01.jpg",
+      "type": "detail",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_01.jpg",
+      "type": "detail",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_01.png",
+      "type": "detail",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_02.jpg",
+      "type": "detail",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_03.jpg",
+      "type": "detail",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_04.jpg",
+      "type": "detail",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_05.jpg",
+      "type": "detail",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_06.jpg",
+      "type": "detail",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_07.jpg",
+      "type": "detail",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/black-weapon/마쓰구_시크리트웨폰_블랙_공홈_08_01.jpg",
+      "type": "detail",
+      "product": "secret-weapon-black"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_500.png",
+      "type": "detail",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_00_01.webp",
+      "type": "detail",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_01.jpg",
+      "type": "detail",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_01.webp",
+      "type": "detail",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_02.webp",
+      "type": "detail",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_03.webp",
+      "type": "detail",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_04.webp",
+      "type": "detail",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_05.webp",
+      "type": "detail",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_06.webp",
+      "type": "detail",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_07.webp",
+      "type": "detail",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold-weapon4/마쓰구_시크리트웨폰_4.1_공홈_08_01.webp",
+      "type": "detail",
+      "product": "secret-weapon-4-1"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2/마쓰구_시크리트포스_골드_2_350_long.png",
+      "type": "detail",
+      "product": "secret-force-gold-2"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2/마쓰구_시크리트포스_골드_2_500.png",
+      "type": "detail",
+      "product": "secret-force-gold-2"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2/마쓰구_시크리트포스_골드_2_공홈_01.png",
+      "type": "detail",
+      "product": "secret-force-gold-2"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2-sapphire/마쓰구_시크리트포스_골드_2_350_long.png",
+      "type": "detail",
+      "product": "gold2-sapphire"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2-sapphire/마쓰구_시크리트포스_골드_2_500.png",
+      "type": "detail",
+      "product": "gold2-sapphire"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/gold2-sapphire/마쓰구_시크리트포스_골드_2_공홈_01.png",
+      "type": "detail",
+      "product": "gold2-sapphire"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/마쓰구_시크리트포스_PRO_1000.png",
+      "type": "detail",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/마쓰구_시크리트포스_PRO_1000.webp",
+      "type": "detail",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/마쓰구_시크리트포스_PRO_350_long.png",
+      "type": "detail",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/마쓰구_시크리트포스_PRO_350_long.webp",
+      "type": "detail",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_00.jpg",
+      "type": "detail",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_01.jpg",
+      "type": "detail",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_02.jpg",
+      "type": "detail",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_03.jpg",
+      "type": "detail",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_04.jpg",
+      "type": "detail",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_05.jpg",
+      "type": "detail",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_06.jpg",
+      "type": "detail",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_07.jpg",
+      "type": "detail",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/마쓰구_시크리트포스_PRO_3_공홈_08.jpg",
+      "type": "detail",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/pro3/마쓰구_시크리트포스_PRO_500.png",
+      "type": "detail",
+      "product": "secret-force-pro-3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/마쓰구_시크리트포스_V3_05_00.jpg",
+      "type": "detail",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/마쓰구_시크리트포스_V3_350_bg.png",
+      "type": "detail",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/마쓰구_시크리트포스_V3_350_long.png",
+      "type": "detail",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/마쓰구_시크리트포스_V3_350_long.webp",
+      "type": "detail",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/마쓰구_시크리트포스_V3_공홈_01.png",
+      "type": "detail",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/마쓰구_시크리트포스_V3_공홈_01.webp",
+      "type": "detail",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/마쓰구_시크리트포스_V3_공홈_02.jpg",
+      "type": "detail",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/마쓰구_시크리트포스_V3_공홈_03.jpg",
+      "type": "detail",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/마쓰구_시크리트포스_V3_공홈_04.jpg",
+      "type": "detail",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/마쓰구_시크리트포스_V3_공홈_05.jpg",
+      "type": "detail",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/마쓰구_시크리트포스_V3_공홈_06.jpg",
+      "type": "detail",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/마쓰구_시크리트포스_V3_공홈_07.jpg",
+      "type": "detail",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/마쓰구_시크리트포스_V3_공홈_08.jpg",
+      "type": "detail",
+      "product": "secret-force-v3"
+    },
+    {
+      "original": "/Users/m2/MASLABS/win.masgolf.co.kr/public/main/products/v3/마쓰구_시크리트포스_V3_공홈_08.webp",
+      "type": "detail",
+      "product": "secret-force-v3"
+    }
+  ],
+  "summary": {
+    "detail": 72,
+    "composition": 8,
+    "gallery": 34,
+    "total": 114
+  }
+}
