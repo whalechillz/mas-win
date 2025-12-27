@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
+import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import AdminNav from '../../components/admin/AdminNav';
+import { getProductImageUrl } from '../../lib/product-image-url';
 
 type Product = {
   id: number;
@@ -77,6 +79,8 @@ export default function ProductsAdminPage() {
   const [inventorySupplierId, setInventorySupplierId] = useState<number | ''>('');
   const [inventorySuppliers, setInventorySuppliers] = useState<{ id: number; name: string }[]>([]);
   const [editingTransaction, setEditingTransaction] = useState<any | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [detailImages, setDetailImages] = useState<string[]>([]);
   const [formState, setFormState] = useState<Partial<Product>>({
     name: '',
     sku: '',
@@ -106,6 +110,7 @@ export default function ProductsAdminPage() {
   }, [
     session,
     status,
+    // 필터 변경 시에만 리로딩 (불필요한 리로딩 방지)
     showGiftOnly,
     includeInactive,
     categoryFilter,
@@ -305,6 +310,7 @@ export default function ProductsAdminPage() {
       normal_price: undefined,
       sale_price: undefined,
     });
+    setDetailImages([]);
     setShowModal(true);
   };
 
@@ -313,6 +319,7 @@ export default function ProductsAdminPage() {
     setFormState({
       ...product,
     });
+    setDetailImages(Array.isArray(product.detail_images) ? product.detail_images : []);
     setShowModal(true);
   };
 
@@ -359,6 +366,7 @@ export default function ProductsAdminPage() {
           formState.sale_price === undefined || formState.sale_price === null
             ? ''
             : formState.sale_price,
+        detail_images: detailImages,
       };
 
       const res = await fetch(url, {
@@ -505,9 +513,9 @@ export default function ProductsAdminPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">굿즈 / 사은품 관리</h1>
+              <h1 className="text-2xl font-bold text-gray-900">제품 관리</h1>
               <p className="text-sm text-gray-600 mt-1">
-                MASSGOO × MUZIIK 콜라보 모자, 버킷햇, 티셔츠 등 사은품/굿즈를 관리합니다.
+                드라이버 제품과 굿즈/사은품을 통합 관리합니다.
               </p>
             </div>
             <button
@@ -986,6 +994,78 @@ export default function ProductsAdminPage() {
                   활성
                 </label>
               </div>
+              
+              {/* 상세페이지 이미지 관리 */}
+              <div className="border-t pt-4 mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  상세페이지 이미지
+                </label>
+                <div className="mb-3">
+                  <label className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 cursor-pointer inline-block">
+                    {uploadingImage ? '업로드 중...' : '📷 이미지 업로드'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleDetailImageUpload}
+                      className="hidden"
+                      disabled={uploadingImage}
+                    />
+                  </label>
+                </div>
+                {detailImages.length > 0 && (
+                  <div className="grid grid-cols-4 gap-3">
+                    {detailImages.map((imageUrl, index) => (
+                      <div key={index} className="relative group">
+                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                          <Image
+                            src={getProductImageUrl(imageUrl)}
+                            alt={`상세 이미지 ${index + 1}`}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </div>
+                        <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {index > 0 && (
+                            <button
+                              onClick={() => handleMoveDetailImage(index, 'up')}
+                              className="p-1 bg-blue-500 text-white rounded text-xs"
+                              title="위로"
+                            >
+                              ↑
+                            </button>
+                          )}
+                          {index < detailImages.length - 1 && (
+                            <button
+                              onClick={() => handleMoveDetailImage(index, 'down')}
+                              className="p-1 bg-blue-500 text-white rounded text-xs"
+                              title="아래로"
+                            >
+                              ↓
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDeleteDetailImage(index)}
+                            className="p-1 bg-red-500 text-white rounded text-xs"
+                            title="삭제"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <div className="mt-1 text-xs text-center text-gray-500">
+                          {index + 1}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {detailImages.length === 0 && (
+                  <div className="text-sm text-gray-500 py-4 text-center">
+                    업로드된 이미지가 없습니다.
+                  </div>
+                )}
+              </div>
+              
               <div className="flex justify-end gap-2 pt-4">
                 <button
                   type="button"

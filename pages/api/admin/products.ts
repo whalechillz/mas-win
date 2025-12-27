@@ -159,6 +159,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       sale_price,
       is_component = false,
       condition = 'new',
+      detail_images,
     } = req.body || {};
 
     if (!name) {
@@ -184,6 +185,9 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     }
     if (sale_price !== undefined && sale_price !== null && sale_price !== '') {
       payload.sale_price = Number(sale_price);
+    }
+    if (detail_images !== undefined) {
+      payload.detail_images = Array.isArray(detail_images) ? detail_images : [];
     }
 
     const { data, error } = await supabase
@@ -231,6 +235,7 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
       sale_price,
       is_component,
       condition,
+      detail_images,
     } = req.body || {};
 
     if (!id) {
@@ -258,6 +263,9 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     if (sale_price !== undefined) {
       update.sale_price =
         sale_price === null || sale_price === '' ? null : Number(sale_price);
+    }
+    if (detail_images !== undefined) {
+      update.detail_images = Array.isArray(detail_images) ? detail_images : [];
     }
 
     if (Object.keys(update).length === 0) {
