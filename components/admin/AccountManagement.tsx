@@ -201,8 +201,7 @@ export default function AccountManagement({ session }: AccountManagementProps) {
     <div className="space-y-6">
       {/* 팀 관리 */}
       <div className="bg-white shadow rounded-lg">
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-xl font-semibold text-gray-900">팀 관리</h2>
             <button
               onClick={openCreateModal}
