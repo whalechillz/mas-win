@@ -24,6 +24,16 @@ export default function AccountManagement({ session }: AccountManagementProps) {
   const [activeTab, setActiveTab] = useState<'profile' | 'team'>('profile');
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    role: 'editor' as 'admin' | 'editor',
+    password: '',
+    is_active: true
+  });
 
   useEffect(() => {
     loadUsers();
@@ -64,29 +74,121 @@ export default function AccountManagement({ session }: AccountManagementProps) {
     }
   };
 
+  const handleCreate = async () => {
+    if (!formData.name || !formData.phone || !formData.password) {
+      alert('이름, 전화번호, 비밀번호는 필수입니다.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        loadUsers();
+        setShowCreateModal(false);
+        setFormData({ name: '', phone: '', role: 'editor', password: '', is_active: true });
+        alert('사용자가 생성되었습니다.');
+      } else {
+        alert(data.message || '사용자 생성에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('사용자 생성 오류:', err);
+      alert('사용자 생성 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!editingUser) return;
+    if (!formData.name || !formData.phone) {
+      alert('이름과 전화번호는 필수입니다.');
+      return;
+    }
+
+    try {
+      const updateData: any = {
+        id: editingUser.id,
+        name: formData.name,
+        phone: formData.phone,
+        role: formData.role,
+        is_active: formData.is_active
+      };
+      
+      if (formData.password) {
+        updateData.password = formData.password;
+      }
+
+      const response = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData),
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        loadUsers();
+        setShowEditModal(false);
+        setEditingUser(null);
+        setFormData({ name: '', phone: '', role: 'editor', password: '', is_active: true });
+        alert('사용자 정보가 수정되었습니다.');
+      } else {
+        alert(data.message || '사용자 수정에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('사용자 수정 오류:', err);
+      alert('사용자 수정 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`정말 "${name}" 사용자를 삭제하시겠습니까?`)) return;
+
+    try {
+      const response = await fetch(`/api/admin/users?id=${id}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        loadUsers();
+        alert('사용자가 삭제되었습니다.');
+      } else {
+        alert(data.message || '사용자 삭제에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('사용자 삭제 오류:', err);
+      alert('사용자 삭제 중 오류가 발생했습니다.');
+    }
+  };
+
+  const openCreateModal = () => {
+    setFormData({ name: '', phone: '', role: 'editor', password: '', is_active: true });
+    setShowCreateModal(true);
+  };
+
+  const openEditModal = (user: AdminUser) => {
+    setEditingUser(user);
+    setFormData({
+      name: user.name,
+      phone: user.phone,
+      role: user.role,
+      password: '',
+      is_active: user.is_active
+    });
+    setShowEditModal(true);
+  };
+
   const handleLogout = async () => {
     if (isLoggingOut) return;
     
     setIsLoggingOut(true);
     
     try {
-      // 1. NextAuth signOut API 직접 호출 (서버 사이드에서 쿠키 삭제)
-      try {
-        await fetch('/api/auth/signout', {
-          method: 'POST',
-          credentials: 'include'
-        });
-      } catch (apiError) {
-        console.log('signOut API 호출 실패 (무시):', apiError);
-      }
-      
-      // 2. 클라이언트 사이드 signOut 시도
-      await signOut({ 
-        callbackUrl: '/admin/login',
-        redirect: false // 수동 리다이렉트를 위해 false
-      });
-      
-      // 3. 쿠키 직접 삭제 (모든 변형 버전)
+      // 1. 모든 쿠키 즉시 삭제 (signOut 전에 먼저 삭제)
       const cookieNames = [
         'next-auth.session-token',
         '__Secure-next-auth.session-token',
@@ -96,27 +198,39 @@ export default function AccountManagement({ session }: AccountManagementProps) {
         '__Host-next-auth.csrf-token'
       ];
       
+      // 모든 가능한 경로와 도메인 조합으로 삭제
+      const domains = ['', '.masgolf.co.kr', 'www.masgolf.co.kr', 'masgolf.co.kr'];
+      const paths = ['/', '/admin', '/admin/login'];
+      
       cookieNames.forEach(name => {
-        // 일반 쿠키
-        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
-        // Secure 쿠키
-        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure`;
-        // Domain 쿠키
-        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Domain=.masgolf.co.kr`;
-        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure; Domain=.masgolf.co.kr`;
-        // www 도메인
-        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Domain=www.masgolf.co.kr`;
-        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure; Domain=www.masgolf.co.kr`;
+        domains.forEach(domain => {
+          paths.forEach(path => {
+            // 일반 쿠키
+            document.cookie = `${name}=; Path=${path}; Max-Age=0; SameSite=Lax${domain ? `; Domain=${domain}` : ''}`;
+            // Secure 쿠키
+            document.cookie = `${name}=; Path=${path}; Max-Age=0; SameSite=Lax; Secure${domain ? `; Domain=${domain}` : ''}`;
+          });
+        });
       });
       
-      // 4. localStorage도 정리 (혹시 모를 경우)
+      // 2. localStorage/sessionStorage 정리
       if (typeof window !== 'undefined') {
         localStorage.clear();
         sessionStorage.clear();
       }
       
-      // 5. 강제 리다이렉트 (완전 새로고침)
-      window.location.replace('/admin/login');
+      // 3. NextAuth signOut 시도 (실패해도 무시)
+      try {
+        await signOut({ redirect: false });
+      } catch (e) {
+        console.log('signOut 실패 (무시):', e);
+      }
+      
+      // 4. 즉시 리다이렉트 (replace로 히스토리 제거, 절대 경로 사용)
+      setTimeout(() => {
+        window.location.replace('https://www.masgolf.co.kr/admin/login');
+      }, 100);
+      
     } catch (error) {
       console.error('로그아웃 오류:', error);
       
@@ -130,11 +244,16 @@ export default function AccountManagement({ session }: AccountManagementProps) {
         '__Host-next-auth.csrf-token'
       ];
       
+      const domains = ['', '.masgolf.co.kr', 'www.masgolf.co.kr', 'masgolf.co.kr'];
+      const paths = ['/', '/admin', '/admin/login'];
+      
       cookieNames.forEach(name => {
-        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
-        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure`;
-        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Domain=.masgolf.co.kr`;
-        document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; Secure; Domain=.masgolf.co.kr`;
+        domains.forEach(domain => {
+          paths.forEach(path => {
+            document.cookie = `${name}=; Path=${path}; Max-Age=0; SameSite=Lax${domain ? `; Domain=${domain}` : ''}`;
+            document.cookie = `${name}=; Path=${path}; Max-Age=0; SameSite=Lax; Secure${domain ? `; Domain=${domain}` : ''}`;
+          });
+        });
       });
       
       if (typeof window !== 'undefined') {
@@ -142,7 +261,7 @@ export default function AccountManagement({ session }: AccountManagementProps) {
         sessionStorage.clear();
       }
       
-      window.location.replace('/admin/login');
+      window.location.replace('https://www.masgolf.co.kr/admin/login');
     } finally {
       setIsLoggingOut(false);
     }
@@ -266,8 +385,14 @@ export default function AccountManagement({ session }: AccountManagementProps) {
       {/* 팀 관리 탭 */}
       {activeTab === 'team' && (
         <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-xl font-semibold text-gray-900">팀 관리</h2>
+            <button
+              onClick={openCreateModal}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              + 사용자 추가
+            </button>
           </div>
           
           {loading ? (
@@ -302,6 +427,9 @@ export default function AccountManagement({ session }: AccountManagementProps) {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       최종 로그인
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      작업
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -325,6 +453,20 @@ export default function AccountManagement({ session }: AccountManagementProps) {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {user.last_login ? formatDate(user.last_login) : '-'}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button
+                          onClick={() => openEditModal(user)}
+                          className="text-indigo-600 hover:text-indigo-900 mr-3"
+                        >
+                          수정
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user.id, user.name)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          삭제
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -336,6 +478,156 @@ export default function AccountManagement({ session }: AccountManagementProps) {
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* 사용자 생성 모달 */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">사용자 추가</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">이름 *</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">전화번호 *</label>
+                  <input
+                    type="text"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="010-1234-5678"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">역할 *</label>
+                  <select
+                    value={formData.role}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value as 'admin' | 'editor' })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="editor">편집자</option>
+                    <option value="admin">총관리자</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">비밀번호 *</label>
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setFormData({ name: '', phone: '', role: 'editor', password: '', is_active: true });
+                  }}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleCreate}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                >
+                  생성
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 사용자 수정 모달 */}
+      {showEditModal && editingUser && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">사용자 수정</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">이름 *</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">전화번호 *</label>
+                  <input
+                    type="text"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">역할 *</label>
+                  <select
+                    value={formData.role}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value as 'admin' | 'editor' })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="editor">편집자</option>
+                    <option value="admin">총관리자</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">비밀번호 (변경 시에만 입력)</label>
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    placeholder="변경하지 않으려면 비워두세요"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.is_active}
+                      onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">활성 상태</span>
+                  </label>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingUser(null);
+                    setFormData({ name: '', phone: '', role: 'editor', password: '', is_active: true });
+                  }}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleUpdate}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                >
+                  수정
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
