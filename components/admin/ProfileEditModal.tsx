@@ -27,7 +27,7 @@ export default function ProfileEditModal({ isOpen, onClose, onUpdate }: ProfileE
         return;
       }
       
-      // 세션이 있으면 formData 설정
+      // 세션이 있으면 즉시 formData 설정
       if (session?.user) {
         setFormData({
           name: (session.user as any)?.name || '',
@@ -35,16 +35,57 @@ export default function ProfileEditModal({ isOpen, onClose, onUpdate }: ProfileE
           password: ''
         });
         setError('');
-      } else {
-        // 세션이 없으면 에러 표시 (하지만 모달은 열어둠)
-        setError('세션 정보를 불러올 수 없습니다. 페이지를 새로고침해주세요.');
-        // 기본값이라도 설정
-        setFormData({
-          name: '',
-          phone: '',
-          password: ''
-        });
+        return;
       }
+      
+      // 세션이 없으면 세션 API를 직접 호출하여 기다리기
+      const waitForSession = async () => {
+        let attempts = 0;
+        const maxAttempts = 10; // 최대 5초 대기 (500ms * 10)
+        
+        while (attempts < maxAttempts) {
+          try {
+            const res = await fetch('/api/auth/session');
+            const sessionData = await res.json();
+            
+            if (sessionData?.user) {
+              setFormData({
+                name: sessionData.user.name || '',
+                phone: sessionData.user.phone || sessionData.user.email || '',
+                password: ''
+              });
+              setError('');
+              return;
+            }
+          } catch (e) {
+            // 무시하고 계속 시도
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 500));
+          attempts++;
+        }
+        
+        // 세션을 찾지 못했지만 전화번호라도 있으면 사용
+        if (session?.user?.phone || session?.user?.email) {
+          setFormData({
+            name: (session.user as any)?.name || '',
+            phone: (session.user as any)?.phone || (session.user as any)?.email || '',
+            password: ''
+          });
+          setError('이름 정보를 불러올 수 없습니다. 수동으로 입력해주세요.');
+        } else {
+          // 전화번호도 없으면 에러 표시
+          setError('세션 정보를 불러올 수 없습니다. 페이지를 새로고침해주세요.');
+          setFormData({
+            name: '',
+            phone: '',
+            password: ''
+          });
+        }
+      };
+      
+      // 세션이 없으면 기다리기 시작
+      waitForSession();
     }
   }, [isOpen, session, status]);
 
