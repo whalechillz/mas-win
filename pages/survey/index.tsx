@@ -39,11 +39,34 @@ export default function SurveyLanding() {
   const [bucketHatImages, setBucketHatImages] = useState<Array<{ src: string; alt: string }>>([]);
   const [golfCapImages, setGolfCapImages] = useState<Array<{ src: string; alt: string }>>([]);
   const [imagesLoading, setImagesLoading] = useState(true);
+  const [pro3MuziikImage, setPro3MuziikImage] = useState<string>('/main/products/pro3-muziik/secret-force-pro-3-muziik-03.webp'); // Fallback
 
   // 설문 이미지 로드 (데이터베이스에서)
   useEffect(() => {
     loadSurveyImages();
+    loadPro3MuziikImage();
   }, []);
+
+  // PRO3 MUZIIK 제품 이미지 로드
+  const loadPro3MuziikImage = async () => {
+    try {
+      const res = await fetch('/api/products/pro3-muziik');
+      const data = await res.json();
+      
+      if (data.success && data.product?.detail_images && data.product.detail_images.length > 0) {
+        // 첫 번째 이미지 사용
+        const firstImage = getProductImageUrl(data.product.detail_images[0]);
+        setPro3MuziikImage(firstImage);
+      } else {
+        // Fallback: 기본 이미지 사용
+        setPro3MuziikImage(getProductImageUrl('/main/products/pro3-muziik/secret-force-pro-3-muziik-03.webp'));
+      }
+    } catch (error) {
+      console.error('PRO3 MUZIIK 이미지 로드 오류:', error);
+      // Fallback 사용
+      setPro3MuziikImage(getProductImageUrl('/main/products/pro3-muziik/secret-force-pro-3-muziik-03.webp'));
+    }
+  };
 
   const loadSurveyImages = async () => {
     try {
@@ -149,11 +172,22 @@ export default function SurveyLanding() {
               <div className="relative w-full max-w-md aspect-square rounded-2xl overflow-hidden shadow-2xl border-4 border-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 group hover:scale-105 transition-transform duration-500">
                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 via-transparent to-red-500/20 pointer-events-none"></div>
                 <Image
-                  src="/main/products/pro3-muziik/secret-force-pro-3-muziik-03.webp"
+                  src={pro3MuziikImage}
                   alt="시크리트포스 PRO3 MUZIIK"
                   fill
                   className="object-contain p-4"
                   priority
+                  onError={(e) => {
+                    console.error('PRO3 MUZIIK 이미지 로드 실패:', pro3MuziikImage);
+                    const target = e.target as HTMLImageElement;
+                    if (target) {
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent) {
+                        parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-gray-400 text-sm">이미지 없음</span></div>';
+                      }
+                    }
+                  }}
                 />
                 {/* 골드 글로우 효과 */}
                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/0 via-yellow-400/10 to-yellow-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
