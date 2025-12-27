@@ -35,8 +35,25 @@ export default function UserProfileDropdown({ onLogout, onEditProfile }: UserPro
   const userRoleValue = session?.user ? ((session.user as any)?.role) : null;
   const userRole = userRoleValue === 'admin' ? '총관리자' : userRoleValue === 'editor' ? '편집자' : null;
   
-  // 세션이 로딩 중이거나 없을 때는 로딩 표시
-  if (status === 'loading' || !session?.user) {
+  // 세션이 로딩 중일 때만 로딩 표시 (최대 3초)
+  // 미들웨어가 통과시켰다면 세션이 곧 올 것이므로, 세션이 없어도 기본 UI 표시
+  const [showLoading, setShowLoading] = useState(true);
+  
+  useEffect(() => {
+    if (status === 'loading') {
+      setShowLoading(true);
+      // 최대 3초 후 로딩 해제
+      const timer = setTimeout(() => {
+        setShowLoading(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowLoading(false);
+    }
+  }, [status]);
+  
+  // 로딩 중일 때만 로딩 표시
+  if (status === 'loading' && showLoading) {
     return (
       <div className="flex items-center space-x-2 px-3 py-2">
         <div className="w-8 h-8 rounded-full bg-gray-300 animate-pulse"></div>
@@ -46,6 +63,11 @@ export default function UserProfileDropdown({ onLogout, onEditProfile }: UserPro
       </div>
     );
   }
+  
+  // 세션이 없어도 기본 UI 표시 (미들웨어가 통과시켰으므로)
+  // 단, userName이 없으면 기본값 사용
+  const displayName = userName || '관리자';
+  const displayRole = userRole || '편집자';
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -55,11 +77,11 @@ export default function UserProfileDropdown({ onLogout, onEditProfile }: UserPro
       >
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium">
-            {userName ? userName.charAt(0) : '?'}
+            {displayName.charAt(0)}
           </div>
           <div className="text-left hidden sm:block">
-            <div className="text-sm font-medium text-gray-700">{userName || '로딩 중...'}</div>
-            {userRole && <div className="text-xs text-gray-500">{userRole}</div>}
+            <div className="text-sm font-medium text-gray-700">{displayName}</div>
+            <div className="text-xs text-gray-500">{displayRole}</div>
           </div>
         </div>
         <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -70,15 +92,13 @@ export default function UserProfileDropdown({ onLogout, onEditProfile }: UserPro
           <div className="py-1">
             {/* 사용자 정보 */}
             <div className="px-4 py-3 border-b border-gray-200">
-              <div className="text-sm font-medium text-gray-900">{userName || '로딩 중...'}</div>
+              <div className="text-sm font-medium text-gray-900">{displayName}</div>
               {userPhone && (
                 <div className="text-xs text-gray-500 mt-1">
                   {userPhone}
                 </div>
               )}
-              {userRole && (
-                <div className="text-xs text-gray-500 mt-1">{userRole}</div>
-              )}
+              <div className="text-xs text-gray-500 mt-1">{displayRole}</div>
             </div>
 
             {/* 개인정보 수정 */}
