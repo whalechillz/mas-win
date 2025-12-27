@@ -166,25 +166,8 @@ export default function AccountManagement({ session }: AccountManagementProps) {
             </div>
           )}
           
-          {/* 디버깅 모드: 세션이 없을 때 */}
-          {status === 'unauthenticated' && (
-            <div className="text-center py-8 border-2 border-dashed border-yellow-300 bg-yellow-50 rounded-lg">
-              <div className="text-4xl mb-4">🔧</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">디버깅 모드</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                현재 세션 체크가 비활성화된 디버깅 모드입니다.
-              </p>
-              <p className="text-xs text-gray-500 mb-4">
-                프로필 정보를 보려면 로그인이 필요합니다.
-              </p>
-              <a
-                href="/admin/login"
-                className="inline-block px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700"
-              >
-                로그인 페이지로 이동
-              </a>
-            </div>
-          )}
+          {/* 미들웨어가 이미 인증을 체크했으므로 세션이 없으면 리다이렉트됨 */}
+          {/* 디버깅 모드 표시 제거 - 미들웨어가 처리 */}
         </div>
       )}
 
