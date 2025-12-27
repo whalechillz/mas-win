@@ -113,50 +113,62 @@ export default function WeaponBerylProduct() {
             <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-start">
               {/* 제품 이미지 */}
               <div className="space-y-4 w-full max-w-full overflow-hidden">
-                <div className="relative aspect-square w-full max-w-full">
-                  <div className="relative w-full h-full rounded-2xl shadow-2xl overflow-hidden">
-                    <Image 
-                      src={productImages[selectedImage]} 
-                      alt="웨폰 블랙 + 베릴 콤보" 
-                      fill
-                      className="object-contain rounded-2xl"
-                      onError={(e) => {
-                        console.error('제품 이미지 로드 실패:', productImages[selectedImage]);
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                      }}
-                    />
+                {isLoadingProduct ? (
+                  <div className="relative aspect-square w-full bg-gray-200 rounded-2xl flex items-center justify-center">
+                    <p className="text-gray-500">이미지 로딩 중...</p>
                   </div>
-                  <div className="absolute top-4 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold z-10">
-                    LIMITED
+                ) : productImages.length > 0 ? (
+                  <>
+                    <div className="relative aspect-square w-full max-w-full">
+                      <div className="relative w-full h-full rounded-2xl shadow-2xl overflow-hidden">
+                        <Image 
+                          src={productImages[selectedImage]} 
+                          alt="웨폰 블랙 + 베릴 콤보" 
+                          fill
+                          className="object-contain rounded-2xl"
+                          onError={(e) => {
+                            console.error('제품 이미지 로드 실패:', productImages[selectedImage]);
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                      <div className="absolute top-4 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold z-10">
+                        LIMITED
+                      </div>
+                    </div>
+                    
+                    {/* 썸네일 이미지들 - 모바일에서 가로 스크롤 */}
+                    <div className="flex space-x-4 overflow-x-auto pb-2 product-scrollbar-light w-full">
+                      {productImages.map((image, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setSelectedImage(index)}
+                          className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
+                            selectedImage === index ? 'border-green-600' : 'border-gray-300'
+                          }`}
+                        >
+                          <Image 
+                            src={image} 
+                            alt={`제품 이미지 ${index + 1}`} 
+                            width={80} 
+                            height={80}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              console.error('썸네일 이미지 로드 실패:', image);
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="relative aspect-square w-full bg-gray-200 rounded-2xl flex items-center justify-center">
+                    <p className="text-gray-500">이미지를 불러올 수 없습니다.</p>
                   </div>
-                </div>
-                
-                {/* 썸네일 이미지들 - 모바일에서 가로 스크롤 */}
-                <div className="flex space-x-4 overflow-x-auto pb-2 product-scrollbar-light w-full">
-                  {productImages.map((image, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedImage(index)}
-                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
-                        selectedImage === index ? 'border-green-600' : 'border-gray-300'
-                      }`}
-                    >
-                      <Image 
-                        src={image} 
-                        alt={`제품 이미지 ${index + 1}`} 
-                        width={80} 
-                        height={80}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          console.error('썸네일 이미지 로드 실패:', image);
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                        }}
-                      />
-                    </button>
-                  ))}
-                </div>
+                )}
               </div>
 
               {/* 제품 정보 */}
