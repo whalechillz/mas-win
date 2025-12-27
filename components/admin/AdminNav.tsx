@@ -72,15 +72,16 @@ const AdminNav = () => {
         }
       }
       
-      // 4. 강제 리다이렉트 (쿼리 파라미터 추가로 캐시 방지)
+      // 4. 강제 리다이렉트 (replace 사용하여 히스토리 교체, 쿼리 파라미터 추가로 캐시 방지)
       const logoutTimestamp = Date.now();
-      window.location.href = `https://www.masgolf.co.kr/admin/login?logout=${logoutTimestamp}`;
+      // replace를 사용하여 뒤로 가기로 이전 페이지로 돌아갈 수 없도록 함
+      window.location.replace(`https://www.masgolf.co.kr/admin/login?logout=${logoutTimestamp}`);
       
     } catch (error) {
       console.error('로그아웃 오류:', error);
       // 에러 발생 시에도 강제 리다이렉트
       const logoutTimestamp = Date.now();
-      window.location.href = `https://www.masgolf.co.kr/admin/login?logout=${logoutTimestamp}`;
+      window.location.replace(`https://www.masgolf.co.kr/admin/login?logout=${logoutTimestamp}`);
     }
   };
 

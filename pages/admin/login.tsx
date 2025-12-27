@@ -13,11 +13,19 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  // URL 파라미터에서 오류 메시지 읽기
+  // URL 파라미터에서 오류 메시지 및 로그아웃 파라미터 읽기
   useEffect(() => {
     const errorParam = router.query.error as string;
     if (errorParam) {
       setError(decodeURIComponent(errorParam));
+    }
+    
+    // 로그아웃 파라미터가 있으면 성공 메시지 표시 (선택사항)
+    const logoutParam = router.query.logout as string;
+    if (logoutParam) {
+      // 로그아웃 성공 시 쿼리 파라미터 정리 (히스토리 교체)
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
     }
   }, [router.query]);
 
