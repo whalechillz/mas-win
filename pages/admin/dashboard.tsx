@@ -17,9 +17,8 @@ export default function AdminDashboard() {
   // 세션 체크는 미들웨어에서 처리하므로 클라이언트 사이드 리다이렉트 제거
   // 미들웨어가 이미 인증되지 않은 사용자를 로그인 페이지로 리다이렉트함
   // 클라이언트 사이드에서 추가 리다이렉트를 하면 루프가 발생할 수 있음
-  const DEBUG_MODE = process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true' || 
-                     (typeof window !== 'undefined' && 
-                      localStorage.getItem('admin_debug_mode') === 'true');
+  // 프로덕션에서는 디버깅 모드 비활성화 (환경 변수로만 제어)
+  const DEBUG_MODE = false;
   
   // ✅ 모든 hooks는 조건부 return 전에 호출되어야 함 (React Hooks 규칙)
   // 디버깅 모드가 아니고 세션이 없을 때 렌더링 허용 로직

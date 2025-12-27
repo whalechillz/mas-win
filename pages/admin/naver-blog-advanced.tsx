@@ -1341,10 +1341,8 @@ export default function NaverBlogAdvanced() {
   }
 
   // 세션 체크 (프로덕션에서 활성화)
-  // DEBUG_MODE 체크 개선 (클라이언트 사이드에서도 확인)
-  const DEBUG_MODE = process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true' || 
-                     (typeof window !== 'undefined' && 
-                      localStorage.getItem('admin_debug_mode') === 'true');
+  // 프로덕션에서는 디버깅 모드 비활성화 (환경 변수로만 제어)
+  const DEBUG_MODE = false;
   
   if (!DEBUG_MODE && status === 'unauthenticated') {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center">로그인이 필요합니다.</div>;

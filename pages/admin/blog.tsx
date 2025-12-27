@@ -4685,10 +4685,8 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
   const categories = Array.from(new Set(posts.map(post => post.category))).filter(Boolean);
 
   // 인증 체크 (프로덕션에서 활성화)
-  // DEBUG_MODE 체크 개선 (클라이언트 사이드에서도 확인)
-  const DEBUG_MODE = process.env.NEXT_PUBLIC_ADMIN_DEBUG === 'true' || 
-                     (typeof window !== 'undefined' && 
-                      localStorage.getItem('admin_debug_mode') === 'true');
+  // 프로덕션에서는 디버깅 모드 비활성화 (환경 변수로만 제어)
+  const DEBUG_MODE = false;
   
   useEffect(() => {
     // 디버깅 모드가 아닐 때만 세션 체크
