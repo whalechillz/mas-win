@@ -4842,21 +4842,18 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
     }
   }, [sortBy, sortOrder]);
 
-  // 세션 체크 및 리다이렉트 (프로덕션에서 활성화)
+  // 세션 체크는 미들웨어에서 처리하므로 클라이언트 사이드 리다이렉트 제거
+  // 미들웨어가 이미 인증되지 않은 사용자를 로그인 페이지로 리다이렉트함
   useEffect(() => {
-    // 디버깅 모드가 아닐 때만 세션 체크
+    // 디버깅 모드이면 세션 체크 스킵
     if (DEBUG_MODE) return;
     
-    if (status === 'loading') return;
-    
-    if (!session) {
-      if (!redirectingRef.current) {
-        redirectingRef.current = true;
-        router.push('/admin/login');
-      }
-      return;
+    // 세션이 없고 로딩이 완료되었을 때만 로그 (리다이렉트는 미들웨어가 처리)
+    if (status === 'unauthenticated' && !session && status !== 'loading') {
+      // 미들웨어가 이미 리다이렉트했을 것이므로 여기서는 아무것도 하지 않음
+      console.log('[Blog] 세션 없음 - 미들웨어가 리다이렉트 처리');
     }
-  }, [status, session, router, DEBUG_MODE]);
+  }, [status, session, DEBUG_MODE]);
 
   // 로딩 중이거나 인증되지 않은 경우 (디버깅 모드가 아닐 때만 체크)
   // 디버깅 모드일 때는 세션 체크 없이 렌더링

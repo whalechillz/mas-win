@@ -9,6 +9,7 @@ export async function middleware(request: NextRequest) {
   // ✅ 로컬 개발 환경 감지 (안전한 로컬 테스트 허용)
   const isLocal = hostname.includes('localhost') || hostname.includes('127.0.0.1');
   const isDev = process.env.NODE_ENV === 'development';
+  const isProduction = process.env.NODE_ENV === 'production';
   const allowLocalTest = process.env.ALLOW_LOCAL_API_TEST === 'true';
   
   // 1) API 경로는 가장 먼저 처리 (i18n 라우팅보다 우선)
@@ -81,7 +82,8 @@ export async function middleware(request: NextRequest) {
                        request.headers.get('x-debug-mode') === 'true';
     
     // 로컬 개발 환경에서는 디버깅 모드 허용
-    const isLocalDev = isLocal || isDev;
+    // 프로덕션에서는 isLocalDev를 false로 강제 (디버깅 모드 활성화 방지)
+    const isLocalDev = (isLocal || isDev) && !isProduction;
     
     // 디버깅 모드이거나 로컬 개발 환경이면 세션 체크 없이 통과
     if (DEBUG_MODE || isLocalDev) {

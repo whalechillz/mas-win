@@ -21,6 +21,29 @@ export default function AdminDashboard() {
                      (typeof window !== 'undefined' && 
                       localStorage.getItem('admin_debug_mode') === 'true');
   
+  // ✅ 모든 hooks는 조건부 return 전에 호출되어야 함 (React Hooks 규칙)
+  // 디버깅 모드가 아니고 세션이 없을 때 렌더링 허용 로직
+  useEffect(() => {
+    if (DEBUG_MODE) {
+      setCanRender(true);
+      return;
+    }
+    
+    // 세션이 있으면 즉시 렌더링
+    if (session) {
+      setCanRender(true);
+      return;
+    }
+    
+    // 세션이 없어도 미들웨어가 통과시켰다면 2초 후 렌더링 시도
+    // (useSession이 세션을 가져오는 데 시간이 걸릴 수 있음)
+    const timer = setTimeout(() => {
+      setCanRender(true);
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  }, [session, DEBUG_MODE]);
+
   // 디버깅 모드가 아닐 때만 세션 상태 확인 (리다이렉트는 하지 않음)
   useEffect(() => {
     // 디버깅 모드이면 세션 체크 스킵
@@ -75,42 +98,7 @@ export default function AdminDashboard() {
     return null;
   };
 
-  // 로딩 중 표시 (세션 체크는 미들웨어가 처리하므로 여기서는 로딩만 표시)
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">로딩 중...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // 디버깅 모드가 아니고 세션이 없을 때 렌더링 허용 로직
-  // 미들웨어가 이미 통과시켰으므로 세션 확인 중일 수 있음
-  // 무한 로딩 방지를 위해 일정 시간 후 렌더링 시도
-  useEffect(() => {
-    if (DEBUG_MODE) {
-      setCanRender(true);
-      return;
-    }
-    
-    // 세션이 있으면 즉시 렌더링
-    if (session) {
-      setCanRender(true);
-      return;
-    }
-    
-    // 세션이 없어도 미들웨어가 통과시켰다면 2초 후 렌더링 시도
-    // (useSession이 세션을 가져오는 데 시간이 걸릴 수 있음)
-    const timer = setTimeout(() => {
-      setCanRender(true);
-    }, 2000);
-    
-    return () => clearTimeout(timer);
-  }, [session, DEBUG_MODE]);
-
+  // ✅ 이제 조건부 return (모든 hooks 호출 후)
   // 로딩 중 표시 (세션 체크는 미들웨어가 처리하므로 여기서는 로딩만 표시)
   if (status === 'loading') {
     return (
