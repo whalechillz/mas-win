@@ -1,0 +1,328 @@
+{
+  "summary": {
+    "total": 37,
+    "categorized": 8,
+    "uncategorized": 0,
+    "success": 37,
+    "failed": 0,
+    "skipped": 0
+  },
+  "categorized": [
+    {
+      "slug": "golf-hat-muziik",
+      "count": 11
+    },
+    {
+      "slug": "bucket-hat-muziik",
+      "count": 14
+    },
+    {
+      "slug": "mas-limited-cap-black",
+      "count": 1
+    },
+    {
+      "slug": "mas-limited-cap-gray",
+      "count": 1
+    },
+    {
+      "slug": "massgoo-black-cap",
+      "count": 1
+    },
+    {
+      "slug": "massgoo-muziik-clutch-beige",
+      "count": 4
+    },
+    {
+      "slug": "massgoo-muziik-clutch-gray",
+      "count": 4
+    },
+    {
+      "slug": "massgoo-white-cap",
+      "count": 1
+    }
+  ],
+  "productImages": {
+    "golf-hat-muziik": [
+      "originals/products/goods/golf-hat-muziik/gallery/beige-golf-cap.webp",
+      "originals/products/goods/golf-hat-muziik/gallery/black-golf-cap.webp",
+      "originals/products/goods/golf-hat-muziik/gallery/golf-hat-muziik-1.webp",
+      "originals/products/goods/golf-hat-muziik/gallery/golf-hat-muziik-2.webp",
+      "originals/products/goods/golf-hat-muziik/gallery/golf-hat-muziik-3.webp",
+      "originals/products/goods/golf-hat-muziik/gallery/golf-hat-muziik-4.webp",
+      "originals/products/goods/golf-hat-muziik/gallery/golf-hat-muziik-5.webp",
+      "originals/products/goods/golf-hat-muziik/gallery/golf-hat-muziik-6.webp",
+      "originals/products/goods/golf-hat-muziik/gallery/golf-hat-muziik-7.webp",
+      "originals/products/goods/golf-hat-muziik/gallery/navy-golf-cap.webp",
+      "originals/products/goods/golf-hat-muziik/gallery/white-golf-cap.webp"
+    ],
+    "bucket-hat-muziik": [
+      "originals/products/goods/bucket-hat-muziik/gallery/black-bucket-hat.webp",
+      "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-1.webp",
+      "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-10.webp",
+      "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-11.webp",
+      "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-12.webp",
+      "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-2.webp",
+      "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-3.webp",
+      "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-4.webp",
+      "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-5.webp",
+      "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-6.webp",
+      "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-7.webp",
+      "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-8.webp",
+      "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-9.webp",
+      "originals/products/goods/bucket-hat-muziik/gallery/white-bucket-hat.webp"
+    ],
+    "mas-limited-cap-black": [
+      "originals/products/goods/mas-limited-cap-black/gallery/mas-limited-cap-black-front.webp"
+    ],
+    "mas-limited-cap-gray": [
+      "originals/products/goods/mas-limited-cap-gray/gallery/mas-limited-cap-gray-front.webp"
+    ],
+    "massgoo-black-cap": [
+      "originals/products/goods/massgoo-black-cap/gallery/massgoo-black-cap-front.webp"
+    ],
+    "massgoo-muziik-clutch-beige": [
+      "originals/products/goods/massgoo-muziik-clutch-beige/gallery/massgoo-muziik-clutch-beige-back.png",
+      "originals/products/goods/massgoo-muziik-clutch-beige/gallery/massgoo-muziik-clutch-beige-back.webp",
+      "originals/products/goods/massgoo-muziik-clutch-beige/gallery/massgoo-muziik-clutch-beige-front.png",
+      "originals/products/goods/massgoo-muziik-clutch-beige/gallery/massgoo-muziik-clutch-beige-front.webp"
+    ],
+    "massgoo-muziik-clutch-gray": [
+      "originals/products/goods/massgoo-muziik-clutch-gray/gallery/massgoo-muziik-clutch-gray-back.png",
+      "originals/products/goods/massgoo-muziik-clutch-gray/gallery/massgoo-muziik-clutch-gray-back.webp",
+      "originals/products/goods/massgoo-muziik-clutch-gray/gallery/massgoo-muziik-clutch-gray-front.png",
+      "originals/products/goods/massgoo-muziik-clutch-gray/gallery/massgoo-muziik-clutch-gray-front.webp"
+    ],
+    "massgoo-white-cap": [
+      "originals/products/goods/massgoo-white-cap/gallery/massgoo-white-cap-front.webp"
+    ]
+  },
+  "uncategorized": [],
+  "results": {
+    "success": [
+      {
+        "original": "originals/products/goods/beige-golf-cap.webp",
+        "new": "originals/products/goods/golf-hat-muziik/gallery/beige-golf-cap.webp",
+        "product": "golf-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/black-golf-cap.webp",
+        "new": "originals/products/goods/golf-hat-muziik/gallery/black-golf-cap.webp",
+        "product": "golf-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/golf-hat-muziik-1.webp",
+        "new": "originals/products/goods/golf-hat-muziik/gallery/golf-hat-muziik-1.webp",
+        "product": "golf-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/golf-hat-muziik-2.webp",
+        "new": "originals/products/goods/golf-hat-muziik/gallery/golf-hat-muziik-2.webp",
+        "product": "golf-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/golf-hat-muziik-3.webp",
+        "new": "originals/products/goods/golf-hat-muziik/gallery/golf-hat-muziik-3.webp",
+        "product": "golf-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/golf-hat-muziik-4.webp",
+        "new": "originals/products/goods/golf-hat-muziik/gallery/golf-hat-muziik-4.webp",
+        "product": "golf-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/golf-hat-muziik-5.webp",
+        "new": "originals/products/goods/golf-hat-muziik/gallery/golf-hat-muziik-5.webp",
+        "product": "golf-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/golf-hat-muziik-6.webp",
+        "new": "originals/products/goods/golf-hat-muziik/gallery/golf-hat-muziik-6.webp",
+        "product": "golf-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/golf-hat-muziik-7.webp",
+        "new": "originals/products/goods/golf-hat-muziik/gallery/golf-hat-muziik-7.webp",
+        "product": "golf-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/navy-golf-cap.webp",
+        "new": "originals/products/goods/golf-hat-muziik/gallery/navy-golf-cap.webp",
+        "product": "golf-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/white-golf-cap.webp",
+        "new": "originals/products/goods/golf-hat-muziik/gallery/white-golf-cap.webp",
+        "product": "golf-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/black-bucket-hat.webp",
+        "new": "originals/products/goods/bucket-hat-muziik/gallery/black-bucket-hat.webp",
+        "product": "bucket-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/bucket-hat-muziik-1.webp",
+        "new": "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-1.webp",
+        "product": "bucket-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/bucket-hat-muziik-10.webp",
+        "new": "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-10.webp",
+        "product": "bucket-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/bucket-hat-muziik-11.webp",
+        "new": "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-11.webp",
+        "product": "bucket-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/bucket-hat-muziik-12.webp",
+        "new": "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-12.webp",
+        "product": "bucket-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/bucket-hat-muziik-2.webp",
+        "new": "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-2.webp",
+        "product": "bucket-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/bucket-hat-muziik-3.webp",
+        "new": "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-3.webp",
+        "product": "bucket-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/bucket-hat-muziik-4.webp",
+        "new": "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-4.webp",
+        "product": "bucket-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/bucket-hat-muziik-5.webp",
+        "new": "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-5.webp",
+        "product": "bucket-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/bucket-hat-muziik-6.webp",
+        "new": "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-6.webp",
+        "product": "bucket-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/bucket-hat-muziik-7.webp",
+        "new": "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-7.webp",
+        "product": "bucket-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/bucket-hat-muziik-8.webp",
+        "new": "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-8.webp",
+        "product": "bucket-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/bucket-hat-muziik-9.webp",
+        "new": "originals/products/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-9.webp",
+        "product": "bucket-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/white-bucket-hat.webp",
+        "new": "originals/products/goods/bucket-hat-muziik/gallery/white-bucket-hat.webp",
+        "product": "bucket-hat-muziik",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/mas-limited-cap-black-front.webp",
+        "new": "originals/products/goods/mas-limited-cap-black/gallery/mas-limited-cap-black-front.webp",
+        "product": "mas-limited-cap-black",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/mas-limited-cap-gray-front.webp",
+        "new": "originals/products/goods/mas-limited-cap-gray/gallery/mas-limited-cap-gray-front.webp",
+        "product": "mas-limited-cap-gray",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/massgoo-black-cap-front.webp",
+        "new": "originals/products/goods/massgoo-black-cap/gallery/massgoo-black-cap-front.webp",
+        "product": "massgoo-black-cap",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/massgoo-muziik-clutch-beige-back.png",
+        "new": "originals/products/goods/massgoo-muziik-clutch-beige/gallery/massgoo-muziik-clutch-beige-back.png",
+        "product": "massgoo-muziik-clutch-beige",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/massgoo-muziik-clutch-beige-back.webp",
+        "new": "originals/products/goods/massgoo-muziik-clutch-beige/gallery/massgoo-muziik-clutch-beige-back.webp",
+        "product": "massgoo-muziik-clutch-beige",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/massgoo-muziik-clutch-beige-front.png",
+        "new": "originals/products/goods/massgoo-muziik-clutch-beige/gallery/massgoo-muziik-clutch-beige-front.png",
+        "product": "massgoo-muziik-clutch-beige",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/massgoo-muziik-clutch-beige-front.webp",
+        "new": "originals/products/goods/massgoo-muziik-clutch-beige/gallery/massgoo-muziik-clutch-beige-front.webp",
+        "product": "massgoo-muziik-clutch-beige",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/massgoo-muziik-clutch-gray-back.png",
+        "new": "originals/products/goods/massgoo-muziik-clutch-gray/gallery/massgoo-muziik-clutch-gray-back.png",
+        "product": "massgoo-muziik-clutch-gray",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/massgoo-muziik-clutch-gray-back.webp",
+        "new": "originals/products/goods/massgoo-muziik-clutch-gray/gallery/massgoo-muziik-clutch-gray-back.webp",
+        "product": "massgoo-muziik-clutch-gray",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/massgoo-muziik-clutch-gray-front.png",
+        "new": "originals/products/goods/massgoo-muziik-clutch-gray/gallery/massgoo-muziik-clutch-gray-front.png",
+        "product": "massgoo-muziik-clutch-gray",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/massgoo-muziik-clutch-gray-front.webp",
+        "new": "originals/products/goods/massgoo-muziik-clutch-gray/gallery/massgoo-muziik-clutch-gray-front.webp",
+        "product": "massgoo-muziik-clutch-gray",
+        "type": "gallery"
+      },
+      {
+        "original": "originals/products/goods/massgoo-white-cap-front.webp",
+        "new": "originals/products/goods/massgoo-white-cap/gallery/massgoo-white-cap-front.webp",
+        "product": "massgoo-white-cap",
+        "type": "gallery"
+      }
+    ],
+    "failed": [],
+    "skipped": []
+  }
+}
