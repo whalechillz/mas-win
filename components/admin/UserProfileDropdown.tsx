@@ -79,13 +79,13 @@ export default function UserProfileDropdown({ onLogout, onEditProfile }: UserPro
             <button
               onClick={() => {
                 setIsOpen(false);
-                if (session?.user) {
+                if (session?.user || status === 'authenticated') {
                   onEditProfile();
                 } else {
                   alert('세션 정보를 불러올 수 없습니다. 페이지를 새로고침해주세요.');
                 }
               }}
-              disabled={!session?.user}
+              disabled={status === 'loading'}
               className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Settings className="w-4 h-4 mr-3 text-gray-400" />
