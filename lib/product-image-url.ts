@@ -70,21 +70,12 @@ export function getProductImageUrl(imagePath: string): string {
   
   // originals/products/... 경로는 그대로 사용 (이미 새 형식)
   // Supabase Storage 공개 URL 직접 생성 (클라이언트 사이드에서도 안정적으로 작동)
-  // 함수 내부에서 직접 URL 가져오기 (런타임에 확실하게 작동)
-  const supabaseUrl = typeof window !== 'undefined'
-    ? (window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_SUPABASE_URL 
-      || process.env.NEXT_PUBLIC_SUPABASE_URL
-      || 'https://yyytjudftvpmcnppaymw.supabase.co'
-    : process.env.NEXT_PUBLIC_SUPABASE_URL 
-      || 'https://yyytjudftvpmcnppaymw.supabase.co';
+  // 항상 하드코딩된 URL 사용 (확실하게 작동)
+  const SUPABASE_BASE_URL = 'https://yyytjudftvpmcnppaymw.supabase.co';
+  const finalPath = storagePath.startsWith('/') ? storagePath.slice(1) : storagePath;
   
-  if (supabaseUrl) {
-    const finalPath = storagePath.startsWith('/') ? storagePath.slice(1) : storagePath;
-    return `${supabaseUrl}/storage/v1/object/public/${STORAGE_BUCKET}/${finalPath}`;
-  }
-  
-  // 환경 변수가 없으면 상대 경로 반환 (개발 환경)
-  return `/${storagePath}`;
+  // 항상 절대 URL 반환
+  return `${SUPABASE_BASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${finalPath}`;
 }
 
 /**
