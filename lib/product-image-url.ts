@@ -30,6 +30,56 @@ const supabase = SUPABASE_URL && SUPABASE_ANON_KEY
   : null;
 
 /**
+ * 파일명에서 goods 제품의 slug 추출
+ * @param fileName - 파일명 (예: white-bucket-hat.webp)
+ * @returns 제품 slug 또는 null
+ */
+function extractGoodsProductSlug(fileName: string): string | null {
+  const lowerName = fileName.toLowerCase();
+  
+  // 버킷햇 패턴
+  if (lowerName.includes('bucket-hat-muziik') || lowerName.includes('bucket-hat')) {
+    return 'bucket-hat-muziik';
+  }
+  
+  // 골프모자 패턴
+  if (lowerName.includes('golf-hat-muziik') || lowerName.includes('golf-cap') || lowerName.includes('golf-hat')) {
+    return 'golf-hat-muziik';
+  }
+  
+  // 클러치백 패턴
+  if (lowerName.includes('clutch')) {
+    if (lowerName.includes('beige') || lowerName.includes('베이지')) {
+      return 'massgoo-muziik-clutch-beige';
+    }
+    if (lowerName.includes('gray') || lowerName.includes('grey') || lowerName.includes('그레이')) {
+      return 'massgoo-muziik-clutch-gray';
+    }
+    return 'massgoo-muziik-clutch-beige'; // 기본값
+  }
+  
+  // 마쓰구 캡 패턴
+  if (lowerName.includes('massgoo-white-cap') || lowerName.includes('massgoo-white')) {
+    return 'massgoo-white-cap';
+  }
+  if (lowerName.includes('massgoo-black-cap') || lowerName.includes('massgoo-black')) {
+    return 'massgoo-black-cap';
+  }
+  
+  // MAS 한정판 모자
+  if (lowerName.includes('mas-limited-cap')) {
+    if (lowerName.includes('gray') || lowerName.includes('grey')) {
+      return 'mas-limited-cap-gray';
+    }
+    if (lowerName.includes('black')) {
+      return 'mas-limited-cap-black';
+    }
+  }
+  
+  return null;
+}
+
+/**
  * 상대 경로를 Supabase Storage 공개 URL로 변환
  * @param imagePath - 상대 경로 (예: /originals/products/black-beryl/detail/image.webp)
  * @returns Supabase Storage 공개 URL
@@ -54,17 +104,51 @@ export function getProductImageUrl(imagePath: string): string {
     const parts = oldPath.split('/');
     
     if (parts.length >= 2) {
-      const productSlug = parts[0];
+      const firstPart = parts[0];
       const fileName = parts[1];
       
-      // 파일명으로 타입 추정
-      const imageType = fileName.includes('-sole-') || fileName.includes('-500')
-        ? 'composition'
-        : fileName.includes('gallery-')
-        ? 'gallery'
-        : 'detail';
+      // /main/products/goods/... 경로 처리
+      if (firstPart === 'goods') {
+        // 파일명에서 product-slug 추출
+        const productSlug = extractGoodsProductSlug(fileName);
+        
+        if (productSlug) {
+          // 파일명으로 타입 추정 (goods는 대부분 gallery)
+          const imageType = fileName.includes('-sole-') || fileName.includes('-500')
+            ? 'composition'
+            : fileName.includes('gallery-')
+            ? 'gallery'
+            : 'gallery'; // goods는 기본적으로 gallery
+          
+          storagePath = `originals/products/goods/${productSlug}/${imageType}/${fileName}`;
+        } else {
+          // 추출 실패 시 기본 경로 사용 (fallback)
+          storagePath = `originals/products/goods/${fileName}`;
+        }
+      } else {
+        // 드라이버 제품 경로 처리 (기존 로직)
+        const productSlug = firstPart;
+        
+        // 파일명으로 타입 추정
+        const imageType = fileName.includes('-sole-') || fileName.includes('-500')
+          ? 'composition'
+          : fileName.includes('gallery-')
+          ? 'gallery'
+          : 'detail';
+        
+        storagePath = `originals/products/${productSlug}/${imageType}/${fileName}`;
+      }
+    } else if (parts.length === 1 && oldPath.startsWith('goods/')) {
+      // /main/products/goods/filename.webp 형식 (2단계 경로)
+      const fileName = oldPath.replace('goods/', '');
+      const productSlug = extractGoodsProductSlug(fileName);
       
-      storagePath = `originals/products/${productSlug}/${imageType}/${fileName}`;
+      if (productSlug) {
+        const imageType = 'gallery'; // goods는 기본적으로 gallery
+        storagePath = `originals/products/goods/${productSlug}/${imageType}/${fileName}`;
+      } else {
+        storagePath = `originals/products/goods/${fileName}`;
+      }
     }
   }
   
