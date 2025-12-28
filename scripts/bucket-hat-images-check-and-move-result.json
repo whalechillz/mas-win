@@ -1,0 +1,43 @@
+{
+  "currentLocations": {
+    "black-bucket-hat.webp": "originals/products/goods/bucket-hat-muziik/gallery/black-bucket-hat.webp",
+    "white-bucket-hat.webp": "originals/products/goods/bucket-hat-muziik/gallery/white-bucket-hat.webp"
+  },
+  "productCompositionPaths": {
+    "hat-white-bucket": {
+      "image_url": "/main/products/goods/white-bucket-hat.webp",
+      "reference_images": null
+    },
+    "hat-black-bucket": {
+      "image_url": "/main/products/goods/black-bucket-hat.webp",
+      "reference_images": null
+    }
+  },
+  "moved": [
+    {
+      "fileName": "black-bucket-hat.webp",
+      "from": "originals/products/goods/bucket-hat-muziik/gallery/black-bucket-hat.webp",
+      "to": "originals/products/goods/bucket-hat-muziik/composition/black-bucket-hat.webp"
+    },
+    {
+      "fileName": "white-bucket-hat.webp",
+      "from": "originals/products/goods/bucket-hat-muziik/gallery/white-bucket-hat.webp",
+      "to": "originals/products/goods/bucket-hat-muziik/composition/white-bucket-hat.webp"
+    }
+  ],
+  "updated": [
+    {
+      "product": "MASSGOO 버킷햇 (화이트)",
+      "slug": "hat-white-bucket",
+      "image_url": "originals/products/goods/bucket-hat-muziik/composition/white-bucket-hat.webp",
+      "reference_images": []
+    },
+    {
+      "product": "MASSGOO 버킷햇 (블랙)",
+      "slug": "hat-black-bucket",
+      "image_url": "originals/products/goods/bucket-hat-muziik/composition/black-bucket-hat.webp",
+      "reference_images": []
+    }
+  ],
+  "errors": []
+}

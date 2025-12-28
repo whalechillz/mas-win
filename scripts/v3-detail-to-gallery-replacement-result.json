@@ -1,0 +1,54 @@
+{
+  "productSlug": "v3",
+  "detailDeleted": [
+    "V3_01.webp",
+    "V3_02.webp",
+    "V3_03.webp",
+    "V3_04.webp",
+    "V3_05_00.webp",
+    "V3_05.webp",
+    "V3_06.webp",
+    "V3_07.webp",
+    "V3_08.webp",
+    "v3-05-00.webp"
+  ],
+  "galleryMoved": [
+    {
+      "fileName": "secret-force-v3-gallery-02.webp",
+      "from": "originals/products/v3/gallery/secret-force-v3-gallery-02.webp",
+      "to": "originals/products/v3/detail/secret-force-v3-gallery-02.webp"
+    },
+    {
+      "fileName": "secret-force-v3-gallery-03.webp",
+      "from": "originals/products/v3/gallery/secret-force-v3-gallery-03.webp",
+      "to": "originals/products/v3/detail/secret-force-v3-gallery-03.webp"
+    },
+    {
+      "fileName": "secret-force-v3-gallery-04.webp",
+      "from": "originals/products/v3/gallery/secret-force-v3-gallery-04.webp",
+      "to": "originals/products/v3/detail/secret-force-v3-gallery-04.webp"
+    },
+    {
+      "fileName": "secret-force-v3-gallery-05-00.webp",
+      "from": "originals/products/v3/gallery/secret-force-v3-gallery-05-00.webp",
+      "to": "originals/products/v3/detail/secret-force-v3-gallery-05-00.webp"
+    },
+    {
+      "fileName": "secret-force-v3-gallery-05.webp",
+      "from": "originals/products/v3/gallery/secret-force-v3-gallery-05.webp",
+      "to": "originals/products/v3/detail/secret-force-v3-gallery-05.webp"
+    },
+    {
+      "fileName": "secret-force-v3-gallery-06.webp",
+      "from": "originals/products/v3/gallery/secret-force-v3-gallery-06.webp",
+      "to": "originals/products/v3/detail/secret-force-v3-gallery-06.webp"
+    },
+    {
+      "fileName": "secret-force-v3-gallery-07.webp",
+      "from": "originals/products/v3/gallery/secret-force-v3-gallery-07.webp",
+      "to": "originals/products/v3/detail/secret-force-v3-gallery-07.webp"
+    }
+  ],
+  "dbUpdated": true,
+  "errors": []
+}

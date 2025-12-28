@@ -1,0 +1,489 @@
+[
+  {
+    "product": "시크리트웨폰 블랙",
+    "folder": "black-weapon",
+    "deleted": [
+      {
+        "fileName": "_-_-_-_00_01.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/black-weapon/detail/_-_-_-_00_01.webp"
+      },
+      {
+        "fileName": "_-_-_-_01.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/black-weapon/detail/_-_-_-_01.webp"
+      },
+      {
+        "fileName": "_-_-_-_02.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/black-weapon/detail/_-_-_-_02.webp"
+      },
+      {
+        "fileName": "_-_-_-_03.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/black-weapon/detail/_-_-_-_03.webp"
+      },
+      {
+        "fileName": "_-_-_-_04.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/black-weapon/detail/_-_-_-_04.webp"
+      },
+      {
+        "fileName": "_-_-_-_05.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/black-weapon/detail/_-_-_-_05.webp"
+      },
+      {
+        "fileName": "_-_-_-_06.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/black-weapon/detail/_-_-_-_06.webp"
+      },
+      {
+        "fileName": "_-_-_-_07.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/black-weapon/detail/_-_-_-_07.webp"
+      },
+      {
+        "fileName": "_-_-_-_08_01.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/black-weapon/detail/_-_-_-_08_01.webp"
+      },
+      {
+        "fileName": "_-_-_500_long.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/black-weapon/detail/_-_-_500_long.webp"
+      },
+      {
+        "fileName": "_-_-_500.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/black-weapon/detail/_-_-_500.webp"
+      },
+      {
+        "fileName": "500_long.webp",
+        "reason": "composition_file_in_detail",
+        "path": "originals/products/black-weapon/detail/500_long.webp"
+      },
+      {
+        "fileName": "500.webp",
+        "reason": "composition_file_in_detail",
+        "path": "originals/products/black-weapon/detail/500.webp"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "product": "시크리트웨폰 골드 4.1",
+    "folder": "gold-weapon4",
+    "deleted": [
+      {
+        "fileName": "_-_4.1_-_00_01.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/gold-weapon4/detail/_-_4.1_-_00_01.webp"
+      },
+      {
+        "fileName": "_-_4.1_-_01.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/gold-weapon4/detail/_-_4.1_-_01.webp"
+      },
+      {
+        "fileName": "_-_4.1_-_02.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/gold-weapon4/detail/_-_4.1_-_02.webp"
+      },
+      {
+        "fileName": "_-_4.1_-_03.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/gold-weapon4/detail/_-_4.1_-_03.webp"
+      },
+      {
+        "fileName": "_-_4.1_-_04.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/gold-weapon4/detail/_-_4.1_-_04.webp"
+      },
+      {
+        "fileName": "_-_4.1_-_05.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/gold-weapon4/detail/_-_4.1_-_05.webp"
+      },
+      {
+        "fileName": "_-_4.1_-_06.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/gold-weapon4/detail/_-_4.1_-_06.webp"
+      },
+      {
+        "fileName": "_-_4.1_-_07.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/gold-weapon4/detail/_-_4.1_-_07.webp"
+      },
+      {
+        "fileName": "_-_4.1_-_08_01.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/gold-weapon4/detail/_-_4.1_-_08_01.webp"
+      },
+      {
+        "fileName": "_-_4.1_500.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/gold-weapon4/detail/_-_4.1_500.webp"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "product": "시크리트포스 골드 2",
+    "folder": "gold2",
+    "deleted": [
+      {
+        "fileName": "_-_-_2_-_01.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/gold2/detail/_-_-_2_-_01.webp"
+      },
+      {
+        "fileName": "_-_-_2_350_long.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/gold2/detail/_-_-_2_350_long.webp"
+      },
+      {
+        "fileName": "_-_-_2_500.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/gold2/detail/_-_-_2_500.webp"
+      },
+      {
+        "fileName": "2_350_long.webp",
+        "reason": "composition_file_in_detail",
+        "path": "originals/products/gold2/detail/2_350_long.webp"
+      },
+      {
+        "fileName": "2_500.webp",
+        "reason": "composition_file_in_detail",
+        "path": "originals/products/gold2/detail/2_500.webp"
+      },
+      {
+        "fileName": "2-350-long.webp",
+        "reason": "composition_file_in_detail",
+        "path": "originals/products/gold2/detail/2-350-long.webp"
+      },
+      {
+        "fileName": "2-01.webp",
+        "reason": "duplicate",
+        "path": "originals/products/gold2/detail/2-01.webp"
+      },
+      {
+        "fileName": "gold2_01.jpg",
+        "reason": "duplicate",
+        "path": "originals/products/gold2/detail/gold2_01.jpg"
+      },
+      {
+        "fileName": "gold2_01.webp",
+        "reason": "duplicate",
+        "path": "originals/products/gold2/detail/gold2_01.webp"
+      },
+      {
+        "fileName": "gold2_00_01.webp",
+        "reason": "duplicate",
+        "path": "originals/products/gold2/detail/gold2_00_01.webp"
+      },
+      {
+        "fileName": "gold2_02.webp",
+        "reason": "duplicate",
+        "path": "originals/products/gold2/detail/gold2_02.webp"
+      },
+      {
+        "fileName": "gold2_03.webp",
+        "reason": "duplicate",
+        "path": "originals/products/gold2/detail/gold2_03.webp"
+      },
+      {
+        "fileName": "gold2_04.webp",
+        "reason": "duplicate",
+        "path": "originals/products/gold2/detail/gold2_04.webp"
+      },
+      {
+        "fileName": "gold2_05.webp",
+        "reason": "duplicate",
+        "path": "originals/products/gold2/detail/gold2_05.webp"
+      },
+      {
+        "fileName": "gold2_06.webp",
+        "reason": "duplicate",
+        "path": "originals/products/gold2/detail/gold2_06.webp"
+      },
+      {
+        "fileName": "gold2_07.webp",
+        "reason": "duplicate",
+        "path": "originals/products/gold2/detail/gold2_07.webp"
+      },
+      {
+        "fileName": "gold2_08_01.webp",
+        "reason": "duplicate",
+        "path": "originals/products/gold2/detail/gold2_08_01.webp"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "product": "시크리트포스 골드 2 MUZIIK",
+    "folder": "gold2-sapphire",
+    "deleted": [
+      {
+        "fileName": "2-350-long.webp",
+        "reason": "composition_file_in_detail",
+        "path": "originals/products/gold2-sapphire/detail/2-350-long.webp"
+      },
+      {
+        "fileName": "massgoo_sf_gold2_muz_01.webp",
+        "reason": "duplicate",
+        "path": "originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_01.webp"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "product": "시크리트포스 PRO 3",
+    "folder": "pro3",
+    "deleted": [
+      {
+        "fileName": "_-_PRO_1000.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/pro3/detail/_-_PRO_1000.webp"
+      },
+      {
+        "fileName": "_-_PRO_3_-_00.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/pro3/detail/_-_PRO_3_-_00.webp"
+      },
+      {
+        "fileName": "_-_PRO_3_-_01.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/pro3/detail/_-_PRO_3_-_01.webp"
+      },
+      {
+        "fileName": "_-_PRO_3_-_02.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/pro3/detail/_-_PRO_3_-_02.webp"
+      },
+      {
+        "fileName": "_-_PRO_3_-_03.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/pro3/detail/_-_PRO_3_-_03.webp"
+      },
+      {
+        "fileName": "_-_PRO_3_-_04.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/pro3/detail/_-_PRO_3_-_04.webp"
+      },
+      {
+        "fileName": "_-_PRO_3_-_05.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/pro3/detail/_-_PRO_3_-_05.webp"
+      },
+      {
+        "fileName": "_-_PRO_3_-_06.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/pro3/detail/_-_PRO_3_-_06.webp"
+      },
+      {
+        "fileName": "_-_PRO_3_-_07.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/pro3/detail/_-_PRO_3_-_07.webp"
+      },
+      {
+        "fileName": "_-_PRO_3_-_08.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/pro3/detail/_-_PRO_3_-_08.webp"
+      },
+      {
+        "fileName": "_-_PRO_350_long.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/pro3/detail/_-_PRO_350_long.webp"
+      },
+      {
+        "fileName": "PRO_350_long.webp",
+        "reason": "composition_file_in_detail",
+        "path": "originals/products/pro3/detail/PRO_350_long.webp"
+      },
+      {
+        "fileName": "PRO_500.webp",
+        "reason": "composition_file_in_detail",
+        "path": "originals/products/pro3/detail/PRO_500.webp"
+      },
+      {
+        "fileName": "pro-350-long.webp",
+        "reason": "composition_file_in_detail",
+        "path": "originals/products/pro3/detail/pro-350-long.webp"
+      },
+      {
+        "fileName": "pro-1000.webp",
+        "reason": "duplicate",
+        "path": "originals/products/pro3/detail/pro-1000.webp"
+      },
+      {
+        "fileName": "pro-3-00.webp",
+        "reason": "duplicate",
+        "path": "originals/products/pro3/detail/pro-3-00.webp"
+      },
+      {
+        "fileName": "pro-3-01.webp",
+        "reason": "duplicate",
+        "path": "originals/products/pro3/detail/pro-3-01.webp"
+      },
+      {
+        "fileName": "pro-3-02.webp",
+        "reason": "duplicate",
+        "path": "originals/products/pro3/detail/pro-3-02.webp"
+      },
+      {
+        "fileName": "pro-3-03.webp",
+        "reason": "duplicate",
+        "path": "originals/products/pro3/detail/pro-3-03.webp"
+      },
+      {
+        "fileName": "pro-3-04.webp",
+        "reason": "duplicate",
+        "path": "originals/products/pro3/detail/pro-3-04.webp"
+      },
+      {
+        "fileName": "pro-3-05.webp",
+        "reason": "duplicate",
+        "path": "originals/products/pro3/detail/pro-3-05.webp"
+      },
+      {
+        "fileName": "pro-3-06.webp",
+        "reason": "duplicate",
+        "path": "originals/products/pro3/detail/pro-3-06.webp"
+      },
+      {
+        "fileName": "pro-3-07.webp",
+        "reason": "duplicate",
+        "path": "originals/products/pro3/detail/pro-3-07.webp"
+      },
+      {
+        "fileName": "pro-3-08.webp",
+        "reason": "duplicate",
+        "path": "originals/products/pro3/detail/pro-3-08.webp"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "product": "시크리트포스 V3",
+    "folder": "v3",
+    "deleted": [
+      {
+        "fileName": "_-_V3_-_01.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/v3/detail/_-_V3_-_01.webp"
+      },
+      {
+        "fileName": "_-_V3_-_02.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/v3/detail/_-_V3_-_02.webp"
+      },
+      {
+        "fileName": "_-_V3_-_03.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/v3/detail/_-_V3_-_03.webp"
+      },
+      {
+        "fileName": "_-_V3_-_04.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/v3/detail/_-_V3_-_04.webp"
+      },
+      {
+        "fileName": "_-_V3_-_05.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/v3/detail/_-_V3_-_05.webp"
+      },
+      {
+        "fileName": "_-_V3_-_06.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/v3/detail/_-_V3_-_06.webp"
+      },
+      {
+        "fileName": "_-_V3_-_07.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/v3/detail/_-_V3_-_07.webp"
+      },
+      {
+        "fileName": "_-_V3_-_08.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/v3/detail/_-_V3_-_08.webp"
+      },
+      {
+        "fileName": "_-_V3_05_00.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/v3/detail/_-_V3_05_00.webp"
+      },
+      {
+        "fileName": "_-_V3_350_bg.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/v3/detail/_-_V3_350_bg.webp"
+      },
+      {
+        "fileName": "_-_V3_350_long.webp",
+        "reason": "malformed_filename",
+        "path": "originals/products/v3/detail/_-_V3_350_long.webp"
+      },
+      {
+        "fileName": "V3_350_bg.webp",
+        "reason": "composition_file_in_detail",
+        "path": "originals/products/v3/detail/V3_350_bg.webp"
+      },
+      {
+        "fileName": "V3_350_long.webp",
+        "reason": "composition_file_in_detail",
+        "path": "originals/products/v3/detail/V3_350_long.webp"
+      },
+      {
+        "fileName": "v3-350-bg.webp",
+        "reason": "composition_file_in_detail",
+        "path": "originals/products/v3/detail/v3-350-bg.webp"
+      },
+      {
+        "fileName": "v3-350-long.webp",
+        "reason": "composition_file_in_detail",
+        "path": "originals/products/v3/detail/v3-350-long.webp"
+      },
+      {
+        "fileName": "v3-01.webp",
+        "reason": "duplicate",
+        "path": "originals/products/v3/detail/v3-01.webp"
+      },
+      {
+        "fileName": "v3-02.webp",
+        "reason": "duplicate",
+        "path": "originals/products/v3/detail/v3-02.webp"
+      },
+      {
+        "fileName": "v3-03.webp",
+        "reason": "duplicate",
+        "path": "originals/products/v3/detail/v3-03.webp"
+      },
+      {
+        "fileName": "v3-04.webp",
+        "reason": "duplicate",
+        "path": "originals/products/v3/detail/v3-04.webp"
+      },
+      {
+        "fileName": "v3-05.webp",
+        "reason": "duplicate",
+        "path": "originals/products/v3/detail/v3-05.webp"
+      },
+      {
+        "fileName": "v3-06.webp",
+        "reason": "duplicate",
+        "path": "originals/products/v3/detail/v3-06.webp"
+      },
+      {
+        "fileName": "v3-07.webp",
+        "reason": "duplicate",
+        "path": "originals/products/v3/detail/v3-07.webp"
+      },
+      {
+        "fileName": "v3-08.webp",
+        "reason": "duplicate",
+        "path": "originals/products/v3/detail/v3-08.webp"
+      }
+    ],
+    "errors": []
+  }
+]

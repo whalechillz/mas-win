@@ -1,0 +1,26 @@
+{
+  "moved": [
+    {
+      "fileName": "massgoo_sw_black_muz_12.webp",
+      "oldPath": "originals/products/black-beryl/composition/massgoo_sw_black_muz_12.webp",
+      "newPath": "originals/products/black-beryl/detail/massgoo_sw_black_muz_12.webp"
+    },
+    {
+      "fileName": "massgoo_sw_black_muz_13.webp",
+      "oldPath": "originals/products/black-beryl/composition/massgoo_sw_black_muz_13.webp",
+      "newPath": "originals/products/black-beryl/detail/massgoo_sw_black_muz_13.webp"
+    },
+    {
+      "fileName": "massgoo_sw_black_muz_15.webp",
+      "oldPath": "originals/products/black-beryl/composition/massgoo_sw_black_muz_15.webp",
+      "newPath": "originals/products/black-beryl/detail/massgoo_sw_black_muz_15.webp"
+    }
+  ],
+  "updated": {
+    "id": "96e8e90e-d6db-4973-b2d3-4ac79fd7a8c4",
+    "name": "시크리트웨폰 블랙 MUZIIK",
+    "image_url": "originals/products/black-beryl/composition/secret-weapon-black-sole-500.webp",
+    "reference_images": []
+  },
+  "errors": []
+}

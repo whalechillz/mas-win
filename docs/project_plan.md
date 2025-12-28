@@ -2682,3 +2682,151 @@ WHERE
 - `docs/final-product-management-plan.md` (신규)
 - `docs/implementation-checklist.md` (신규)
 
+---
+
+## 2025-01-XX: black-beryl 제품 이미지 재정비 ✅
+
+### 작업 내용
+- **문제**: `black-beryl` 제품의 3개 이미지(`massgoo_sw_black_muz_12.webp`, `13.webp`, `15.webp`)가 `composition` 폴더에 있었지만, 실제로는 상세페이지용(`detail`) 이미지였음
+- **해결**: 
+  1. Storage에서 3개 파일을 `composition` → `detail` 폴더로 이동
+  2. `product_composition` 테이블의 `reference_images`를 빈 배열로 업데이트
+  3. `product_composition.image_url`은 `secret-weapon-black-sole-500.webp`만 유지
+
+### 변경된 파일
+- `scripts/reorganize-black-beryl-images.js` (신규): 이미지 재정비 스크립트
+- `scripts/black-beryl-reorganization-result.json` (신규): 재정비 결과 로그
+
+### 최종 상태
+- ✅ Storage: 3개 파일이 `detail` 폴더로 이동 완료
+- ✅ `product_composition.reference_images`: 빈 배열 `[]`
+- ✅ `product_composition.image_url`: `secret-weapon-black-sole-500.webp`만 유지
+- ✅ `products.detail_images`: 9개 모두 정상 (12, 13, 15 포함)
+
+---
+
+## 2025-01-XX: black-beryl 루트 폴더 정리 완료 ✅
+
+### 작업 내용
+- **문제**: `black-beryl` 루트 폴더에 13개 파일이 남아있어 정리가 필요했음
+- **해결**: 
+  1. 루트 폴더의 모든 파일을 하위 폴더(`detail/`, `composition/`)로 이동 또는 삭제
+  2. `composition` 폴더는 `secret-weapon-black-sole-500.webp`만 유지 (500 관련 다른 파일 삭제)
+  3. 데이터베이스의 `detail_images`와 `composition_images` 업데이트
+  4. 루트 폴더 완전히 정리
+
+### 변경된 파일
+- `scripts/clean-black-beryl-root-files.js` (신규): 루트 폴더 정리 스크립트
+- `scripts/remove-unnecessary-500-files.js` (신규): 불필요한 500 관련 파일 삭제 스크립트
+- `scripts/black-beryl-root-cleanup-result.json` (신규): 정리 결과 로그
+- `scripts/remove-500-files-result.json` (신규): 삭제 결과 로그
+
+### 최종 상태
+- ✅ 루트 폴더: 완전히 비어있음 (0개 파일)
+- ✅ `detail/` 폴더: 10개 파일 (상세페이지용 이미지)
+- ✅ `composition/` 폴더: 1개 파일 (`secret-weapon-black-sole-500.webp`만 유지)
+- ✅ `products.detail_images`: 10개 이미지 (500 관련 파일 제거됨)
+- ✅ `products.composition_images`: 1개 이미지 (`secret-weapon-black-sole-500.webp`)
+
+---
+
+## 2025-01-XX: 모든 드라이버 제품 루트 폴더 정리 완료 ✅
+
+### 작업 내용
+- **문제**: 7개 드라이버 제품의 루트 폴더에 총 117개 파일이 남아있어 정리가 필요했음
+- **해결**: 
+  1. 모든 제품의 루트 폴더 파일을 하위 폴더(`detail/`, `composition/`, `gallery/`)로 이동 또는 삭제
+  2. 각 제품의 `composition` 폴더는 500 사이즈 파일 1개만 유지 (나머지 500 관련 파일 삭제)
+  3. 데이터베이스의 `detail_images`, `composition_images`, `gallery_images` 업데이트
+  4. 모든 제품의 루트 폴더 완전히 정리
+
+### 정리된 제품 목록
+1. ✅ **black-weapon**: 21개 파일 처리 (7개 이동, 16개 삭제)
+2. ✅ **gold-weapon4**: 20개 파일 처리 (10개 이동, 11개 삭제)
+3. ✅ **gold2**: 13개 파일 처리 (12개 이동, 2개 삭제)
+4. ✅ **gold2-sapphire**: 14개 파일 처리 (3개 이동, 12개 삭제)
+5. ✅ **pro3**: 22개 파일 처리 (12개 이동, 11개 삭제)
+6. ✅ **pro3-muziik**: 8개 파일 처리 (0개 이동, 8개 삭제)
+7. ✅ **v3**: 19개 파일 처리 (11개 이동, 8개 삭제)
+
+### 변경된 파일
+- `scripts/check-all-driver-products-status.js` (신규): 모든 드라이버 제품 상태 확인 스크립트
+- `scripts/clean-all-driver-products-root-files.js` (신규): 모든 드라이버 제품 루트 폴더 정리 스크립트
+- `scripts/all-driver-products-status.json` (신규): 상태 확인 결과
+- `scripts/all-driver-products-cleanup-result.json` (신규): 정리 결과 로그
+
+### 최종 상태
+- ✅ **모든 제품의 루트 폴더**: 완전히 비어있음 (0개 파일)
+- ✅ **총 처리 파일**: 123개 (55개 이동, 68개 삭제)
+- ✅ **각 제품의 `composition/` 폴더**: 500 사이즈 파일 1개만 유지
+- ✅ **데이터베이스**: 모든 제품의 `detail_images`, `composition_images`, `gallery_images` 업데이트 완료
+
+### 정리 통계
+- **총 이동**: 55개 파일
+- **총 삭제**: 68개 파일 (중복 파일 및 불필요한 500 파일)
+- **오류**: 0개
+
+---
+
+## 2025-01-XX: detail 폴더 정리 및 pro3 gallery 이미지 대체 완료 ✅
+
+### 작업 내용
+- **문제**: 
+  1. 여러 제품의 detail 폴더에 불필요한 파일들(`_-_-_-_`로 시작), 중복 파일, composition 파일들이 섞여있었음
+  2. pro3 제품의 detail 이미지를 gallery 이미지로 대체 필요
+- **해결**: 
+  1. 모든 드라이버 제품의 detail 폴더에서 불필요한 파일 삭제 (89개)
+  2. pro3 제품의 detail 폴더를 gallery 이미지로 완전 대체
+
+### 정리된 제품 (detail 폴더 정리)
+1. ✅ **black-weapon**: 13개 삭제
+2. ✅ **gold-weapon4**: 10개 삭제
+3. ✅ **gold2**: 17개 삭제
+4. ✅ **gold2-sapphire**: 2개 삭제
+5. ✅ **pro3**: 24개 삭제 (이후 gallery 이미지로 대체)
+6. ✅ **v3**: 23개 삭제
+
+### pro3, gold-weapon4, black-weapon gallery 이미지 대체
+- **pro3**:
+  - **삭제**: detail 폴더의 기존 파일 9개
+  - **복사**: gallery 폴더의 9개 파일을 detail 폴더로 복사
+  - **데이터베이스**: `detail_images`를 gallery 이미지 경로로 업데이트
+- **gold-weapon4**:
+  - **삭제**: detail 폴더의 기존 파일 9개
+  - **복사**: gallery 폴더의 9개 파일을 detail 폴더로 복사
+  - **데이터베이스**: `detail_images`를 gallery 이미지 경로로 업데이트
+- **black-weapon**:
+  - **삭제**: detail 폴더의 기존 파일 9개
+  - **복사**: gallery 폴더의 9개 파일을 detail 폴더로 복사
+  - **데이터베이스**: `detail_images`를 gallery 이미지 경로로 업데이트
+
+### 변경된 파일
+- `scripts/check-unnecessary-files-in-detail.js` (신규): detail 폴더 불필요한 파일 확인 스크립트
+- `scripts/clean-detail-folders.js` (신규): detail 폴더 정리 스크립트
+- `scripts/replace-pro3-detail-with-gallery.js` (신규): pro3 gallery 이미지 대체 스크립트
+- `scripts/replace-gold-weapon4-detail-with-gallery.js` (신규): gold-weapon4 gallery 이미지 대체 스크립트
+- `scripts/replace-black-weapon-detail-with-gallery.js` (신규): black-weapon gallery 이미지 대체 스크립트
+- `scripts/unnecessary-files-in-detail.json` (신규): 불필요한 파일 확인 결과
+- `scripts/detail-folders-cleanup-result.json` (신규): detail 폴더 정리 결과
+- `scripts/pro3-detail-to-gallery-replacement-result.json` (신규): pro3 대체 결과
+- `scripts/gold-weapon4-detail-to-gallery-replacement-result.json` (신규): gold-weapon4 대체 결과
+- `scripts/black-weapon-detail-to-gallery-replacement-result.json` (신규): black-weapon 대체 결과
+- `scripts/delete-gallery-files-for-weapons.js` (신규): black-weapon, gold-weapon4 gallery 파일 삭제 스크립트
+- `scripts/gallery-files-deletion-result.json` (신규): gallery 파일 삭제 결과
+
+### 최종 상태
+- ✅ **모든 제품의 detail 폴더**: 불필요한 파일 제거 완료
+- ✅ **pro3 detail 폴더**: gallery 이미지로 완전 대체 (9개 파일)
+- ✅ **pro3 gallery 폴더**: 원본 유지 (9개 파일)
+- ✅ **gold-weapon4 detail 폴더**: gallery 이미지로 완전 대체 (9개 파일)
+- ✅ **gold-weapon4 gallery 폴더**: 삭제 완료 (0개 파일)
+- ✅ **black-weapon detail 폴더**: gallery 이미지로 완전 대체 (9개 파일)
+- ✅ **black-weapon gallery 폴더**: 삭제 완료 (0개 파일)
+- ✅ **gold-weapon4 gallery 폴더**: 삭제 완료 (0개 파일)
+- ✅ **데이터베이스**: 모든 제품의 `detail_images`, `gallery_images` 업데이트 완료
+
+### 삭제된 파일 유형
+1. **불필요한 파일**: `_-_-_-_`로 시작하는 파일 (46개)
+2. **Composition 파일**: detail에 있던 500/350 관련 파일 (14개)
+3. **중복 파일**: 같은 번호의 중복 파일 (29개)
+

@@ -5,11 +5,11 @@
     "display_name": "시크리트웨폰 블랙 MUZIIK",
     "category": "driver",
     "composition_target": "hands",
-    "image_url": "/main/products/black-beryl/secret-weapon-black-sole-500.webp",
+    "image_url": "originals/products/black-beryl/composition/secret-weapon-black-sole-500.webp",
     "reference_images": [
-      "/main/products/black-beryl/massgoo_sw_black_muz_12.webp",
-      "/main/products/black-beryl/massgoo_sw_black_muz_13.webp",
-      "/main/products/black-beryl/massgoo_sw_black_muz_15.webp"
+      "/originals/products/black-beryl/composition/massgoo_sw_black_muz_12.webp",
+      "/originals/products/black-beryl/composition/massgoo_sw_black_muz_13.webp",
+      "/originals/products/black-beryl/composition/massgoo_sw_black_muz_15.webp"
     ],
     "driver_parts": null,
     "hat_type": null,
@@ -25,7 +25,7 @@
     "is_active": true,
     "display_order": 2,
     "created_at": "2025-12-11T03:44:00.024493+00:00",
-    "updated_at": "2025-12-28T10:42:21.235151+00:00",
+    "updated_at": "2025-12-28T12:14:21.561425+00:00",
     "color_variants": {}
   },
   "products": {
@@ -63,6 +63,7 @@
     "detail_images": [
       "originals/products/black-beryl/detail/massgoo_sw_black_muz_11.webp",
       "originals/products/black-beryl/detail/massgoo_sw_black_muz_01.webp",
+      "originals/products/black-beryl/detail/massgoo_sw_black_muz_01_n.webp",
       "originals/products/black-beryl/detail/massgoo_sw_black_muz_12.webp",
       "originals/products/black-beryl/detail/massgoo_sw_black_muz_13.webp",
       "originals/products/black-beryl/detail/massgoo_sw_black_muz_14_b.webp",
@@ -133,38 +134,6 @@
         }
       },
       {
-        "name": "massgoo_sw_black_muz_12.webp",
-        "id": "f28d291a-7f7a-4b26-b592-6b716a57dc43",
-        "updated_at": "2025-12-27T13:27:17.874Z",
-        "created_at": "2025-12-27T13:27:17.874Z",
-        "last_accessed_at": "2025-12-27T13:27:17.874Z",
-        "metadata": {
-          "eTag": "\"0c2220d51d3647f17c7c5fa06ad7b4c8\"",
-          "size": 22156,
-          "mimetype": "image/webp",
-          "cacheControl": "max-age=3600",
-          "lastModified": "2025-12-27T13:27:18.000Z",
-          "contentLength": 22156,
-          "httpStatusCode": 200
-        }
-      },
-      {
-        "name": "massgoo_sw_black_muz_13.webp",
-        "id": "b5d0aa84-0778-44a3-86e1-af4a77b5d677",
-        "updated_at": "2025-12-27T13:27:17.994Z",
-        "created_at": "2025-12-27T13:27:17.994Z",
-        "last_accessed_at": "2025-12-27T13:27:17.994Z",
-        "metadata": {
-          "eTag": "\"42872f8959ec68ddba27b1794ca43bc4\"",
-          "size": 16394,
-          "mimetype": "image/webp",
-          "cacheControl": "max-age=3600",
-          "lastModified": "2025-12-27T13:27:18.000Z",
-          "contentLength": 16394,
-          "httpStatusCode": 200
-        }
-      },
-      {
         "name": "massgoo_sw_black_muz_14_b.webp",
         "id": "2a78d4d3-1353-45e6-b5e9-5231ac63b6e6",
         "updated_at": "2025-12-27T13:27:18.111Z",
@@ -177,22 +146,6 @@
           "cacheControl": "max-age=3600",
           "lastModified": "2025-12-27T13:27:19.000Z",
           "contentLength": 54816,
-          "httpStatusCode": 200
-        }
-      },
-      {
-        "name": "massgoo_sw_black_muz_15.webp",
-        "id": "f02056aa-6fe5-45d8-9597-484809d18e9c",
-        "updated_at": "2025-12-27T13:27:18.214Z",
-        "created_at": "2025-12-27T13:27:18.214Z",
-        "last_accessed_at": "2025-12-27T13:27:18.214Z",
-        "metadata": {
-          "eTag": "\"269e2dcf3092f0bcfd6a53fe22c61d0e\"",
-          "size": 22866,
-          "mimetype": "image/webp",
-          "cacheControl": "max-age=3600",
-          "lastModified": "2025-12-27T13:27:19.000Z",
-          "contentLength": 22866,
           "httpStatusCode": 200
         }
       },
@@ -231,6 +184,54 @@
     ],
     "composition": [
       {
+        "name": "massgoo_sw_black_muz_12.webp",
+        "id": "1ee61607-0e11-4c97-b4e7-bc5dda2776d3",
+        "updated_at": "2025-12-28T12:14:19.563Z",
+        "created_at": "2025-12-28T12:14:19.563Z",
+        "last_accessed_at": "2025-12-28T12:14:19.563Z",
+        "metadata": {
+          "eTag": "\"0c2220d51d3647f17c7c5fa06ad7b4c8\"",
+          "size": 22156,
+          "mimetype": "image/webp",
+          "cacheControl": "max-age=3600",
+          "lastModified": "2025-12-28T12:14:20.000Z",
+          "contentLength": 22156,
+          "httpStatusCode": 200
+        }
+      },
+      {
+        "name": "massgoo_sw_black_muz_13.webp",
+        "id": "1e217b47-8a35-463a-a798-077193a191f7",
+        "updated_at": "2025-12-28T12:14:20.476Z",
+        "created_at": "2025-12-28T12:14:20.476Z",
+        "last_accessed_at": "2025-12-28T12:14:20.476Z",
+        "metadata": {
+          "eTag": "\"42872f8959ec68ddba27b1794ca43bc4\"",
+          "size": 16394,
+          "mimetype": "image/webp",
+          "cacheControl": "max-age=3600",
+          "lastModified": "2025-12-28T12:14:21.000Z",
+          "contentLength": 16394,
+          "httpStatusCode": 200
+        }
+      },
+      {
+        "name": "massgoo_sw_black_muz_15.webp",
+        "id": "10b54bc4-b4f3-4a45-819f-ccc0df1a615d",
+        "updated_at": "2025-12-28T12:14:21.328Z",
+        "created_at": "2025-12-28T12:14:21.328Z",
+        "last_accessed_at": "2025-12-28T12:14:21.328Z",
+        "metadata": {
+          "eTag": "\"269e2dcf3092f0bcfd6a53fe22c61d0e\"",
+          "size": 22866,
+          "mimetype": "image/webp",
+          "cacheControl": "max-age=3600",
+          "lastModified": "2025-12-28T12:14:22.000Z",
+          "contentLength": 22866,
+          "httpStatusCode": 200
+        }
+      },
+      {
         "name": "secret-weapon-black-sole-500.webp",
         "id": "60b7fc3b-c5ee-490b-bd37-e9aeb9625579",
         "updated_at": "2025-12-27T13:27:18.564Z",
@@ -249,8 +250,6 @@
     ]
   },
   "issues": [
-    "⚠️ detail_images에 massgoo_sw_black_muz_01_n.webp가 없습니다.",
-    "1개 파일이 Storage에만 있습니다.",
-    "⚠️ massgoo_sw_black_muz_01_n.webp가 Storage에는 있지만 DB에 없습니다."
+    "3개 파일이 데이터베이스에만 있습니다."
   ]
 }

@@ -1,0 +1,62 @@
+{
+  "product": "시크리트웨폰 골드 4.1",
+  "deletedFromDetail": [
+    "secret-weapon-gold-4-1-gallery-00-01.webp",
+    "secret-weapon-gold-4-1-gallery-01.webp",
+    "secret-weapon-gold-4-1-gallery-02.webp",
+    "secret-weapon-gold-4-1-gallery-03.webp",
+    "secret-weapon-gold-4-1-gallery-04.webp",
+    "secret-weapon-gold-4-1-gallery-05.webp",
+    "secret-weapon-gold-4-1-gallery-06.webp",
+    "secret-weapon-gold-4-1-gallery-07.webp",
+    "secret-weapon-gold-4-1-gallery-08-01.webp"
+  ],
+  "copiedFromGallery": [
+    {
+      "fileName": "secret-weapon-gold-4-1-gallery-00-01.webp",
+      "galleryPath": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-00-01.webp",
+      "detailPath": "originals/products/gold-weapon4/detail/secret-weapon-gold-4-1-gallery-00-01.webp"
+    },
+    {
+      "fileName": "secret-weapon-gold-4-1-gallery-01.webp",
+      "galleryPath": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-01.webp",
+      "detailPath": "originals/products/gold-weapon4/detail/secret-weapon-gold-4-1-gallery-01.webp"
+    },
+    {
+      "fileName": "secret-weapon-gold-4-1-gallery-02.webp",
+      "galleryPath": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-02.webp",
+      "detailPath": "originals/products/gold-weapon4/detail/secret-weapon-gold-4-1-gallery-02.webp"
+    },
+    {
+      "fileName": "secret-weapon-gold-4-1-gallery-03.webp",
+      "galleryPath": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-03.webp",
+      "detailPath": "originals/products/gold-weapon4/detail/secret-weapon-gold-4-1-gallery-03.webp"
+    },
+    {
+      "fileName": "secret-weapon-gold-4-1-gallery-04.webp",
+      "galleryPath": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-04.webp",
+      "detailPath": "originals/products/gold-weapon4/detail/secret-weapon-gold-4-1-gallery-04.webp"
+    },
+    {
+      "fileName": "secret-weapon-gold-4-1-gallery-05.webp",
+      "galleryPath": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-05.webp",
+      "detailPath": "originals/products/gold-weapon4/detail/secret-weapon-gold-4-1-gallery-05.webp"
+    },
+    {
+      "fileName": "secret-weapon-gold-4-1-gallery-06.webp",
+      "galleryPath": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-06.webp",
+      "detailPath": "originals/products/gold-weapon4/detail/secret-weapon-gold-4-1-gallery-06.webp"
+    },
+    {
+      "fileName": "secret-weapon-gold-4-1-gallery-07.webp",
+      "galleryPath": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-07.webp",
+      "detailPath": "originals/products/gold-weapon4/detail/secret-weapon-gold-4-1-gallery-07.webp"
+    },
+    {
+      "fileName": "secret-weapon-gold-4-1-gallery-08-01.webp",
+      "galleryPath": "originals/products/gold-weapon4/gallery/secret-weapon-gold-4-1-gallery-08-01.webp",
+      "detailPath": "originals/products/gold-weapon4/detail/secret-weapon-gold-4-1-gallery-08-01.webp"
+    }
+  ],
+  "errors": []
+}

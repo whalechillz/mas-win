@@ -1,0 +1,62 @@
+{
+  "product": "시크리트포스 PRO 3",
+  "deletedFromDetail": [
+    "secret-force-pro-3-gallery-00.webp",
+    "secret-force-pro-3-gallery-01.webp",
+    "secret-force-pro-3-gallery-02.webp",
+    "secret-force-pro-3-gallery-03.webp",
+    "secret-force-pro-3-gallery-04.webp",
+    "secret-force-pro-3-gallery-05.webp",
+    "secret-force-pro-3-gallery-06.webp",
+    "secret-force-pro-3-gallery-07.webp",
+    "secret-force-pro-3-gallery-08.webp"
+  ],
+  "copiedFromGallery": [
+    {
+      "fileName": "secret-force-pro-3-gallery-00.webp",
+      "galleryPath": "originals/products/pro3/gallery/secret-force-pro-3-gallery-00.webp",
+      "detailPath": "originals/products/pro3/detail/secret-force-pro-3-gallery-00.webp"
+    },
+    {
+      "fileName": "secret-force-pro-3-gallery-01.webp",
+      "galleryPath": "originals/products/pro3/gallery/secret-force-pro-3-gallery-01.webp",
+      "detailPath": "originals/products/pro3/detail/secret-force-pro-3-gallery-01.webp"
+    },
+    {
+      "fileName": "secret-force-pro-3-gallery-02.webp",
+      "galleryPath": "originals/products/pro3/gallery/secret-force-pro-3-gallery-02.webp",
+      "detailPath": "originals/products/pro3/detail/secret-force-pro-3-gallery-02.webp"
+    },
+    {
+      "fileName": "secret-force-pro-3-gallery-03.webp",
+      "galleryPath": "originals/products/pro3/gallery/secret-force-pro-3-gallery-03.webp",
+      "detailPath": "originals/products/pro3/detail/secret-force-pro-3-gallery-03.webp"
+    },
+    {
+      "fileName": "secret-force-pro-3-gallery-04.webp",
+      "galleryPath": "originals/products/pro3/gallery/secret-force-pro-3-gallery-04.webp",
+      "detailPath": "originals/products/pro3/detail/secret-force-pro-3-gallery-04.webp"
+    },
+    {
+      "fileName": "secret-force-pro-3-gallery-05.webp",
+      "galleryPath": "originals/products/pro3/gallery/secret-force-pro-3-gallery-05.webp",
+      "detailPath": "originals/products/pro3/detail/secret-force-pro-3-gallery-05.webp"
+    },
+    {
+      "fileName": "secret-force-pro-3-gallery-06.webp",
+      "galleryPath": "originals/products/pro3/gallery/secret-force-pro-3-gallery-06.webp",
+      "detailPath": "originals/products/pro3/detail/secret-force-pro-3-gallery-06.webp"
+    },
+    {
+      "fileName": "secret-force-pro-3-gallery-07.webp",
+      "galleryPath": "originals/products/pro3/gallery/secret-force-pro-3-gallery-07.webp",
+      "detailPath": "originals/products/pro3/detail/secret-force-pro-3-gallery-07.webp"
+    },
+    {
+      "fileName": "secret-force-pro-3-gallery-08.webp",
+      "galleryPath": "originals/products/pro3/gallery/secret-force-pro-3-gallery-08.webp",
+      "detailPath": "originals/products/pro3/detail/secret-force-pro-3-gallery-08.webp"
+    }
+  ],
+  "errors": []
+}

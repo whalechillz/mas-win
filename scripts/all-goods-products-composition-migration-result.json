@@ -1,0 +1,212 @@
+{
+  "products": {
+    "golf-hat-muziik": {
+      "slug": "golf-hat-muziik",
+      "files": [
+        {
+          "fileName": "beige-golf-cap.webp",
+          "from": "originals/products/goods/golf-hat-muziik/gallery/beige-golf-cap.webp",
+          "to": "originals/products/goods/golf-hat-muziik/composition/beige-golf-cap.webp"
+        },
+        {
+          "fileName": "black-golf-cap.webp",
+          "from": "originals/products/goods/golf-hat-muziik/gallery/black-golf-cap.webp",
+          "to": "originals/products/goods/golf-hat-muziik/composition/black-golf-cap.webp"
+        },
+        {
+          "fileName": "navy-golf-cap.webp",
+          "from": "originals/products/goods/golf-hat-muziik/gallery/navy-golf-cap.webp",
+          "to": "originals/products/goods/golf-hat-muziik/composition/navy-golf-cap.webp"
+        },
+        {
+          "fileName": "white-golf-cap.webp",
+          "from": "originals/products/goods/golf-hat-muziik/gallery/white-golf-cap.webp",
+          "to": "originals/products/goods/golf-hat-muziik/composition/white-golf-cap.webp"
+        }
+      ],
+      "dbUpdates": [
+        {
+          "product": "MASSGOO 골프모자 (베이지)",
+          "slug": "hat-beige-golf",
+          "image_url": "originals/products/goods/golf-hat-muziik/composition/beige-golf-cap.webp",
+          "reference_images": []
+        },
+        {
+          "product": "MASSGOO 골프모자 (화이트)",
+          "slug": "hat-white-golf",
+          "image_url": "originals/products/goods/golf-hat-muziik/composition/white-golf-cap.webp",
+          "reference_images": []
+        },
+        {
+          "product": "MASSGOO 골프모자 (네이비)",
+          "slug": "hat-navy-golf",
+          "image_url": "originals/products/goods/golf-hat-muziik/composition/navy-golf-cap.webp",
+          "reference_images": []
+        },
+        {
+          "product": "MASSGOO 골프모자 (블랙)",
+          "slug": "hat-black-golf",
+          "image_url": "originals/products/goods/golf-hat-muziik/composition/black-golf-cap.webp",
+          "reference_images": []
+        }
+      ],
+      "errors": []
+    },
+    "massgoo-white-cap": {
+      "slug": "massgoo-white-cap",
+      "files": [
+        {
+          "fileName": "massgoo-white-cap-front.webp",
+          "from": "originals/products/goods/massgoo-white-cap/gallery/massgoo-white-cap-front.webp",
+          "to": "originals/products/goods/massgoo-white-cap/composition/massgoo-white-cap-front.webp"
+        }
+      ],
+      "dbUpdates": [
+        {
+          "product": "마쓰구 화이트캡",
+          "slug": "massgoo-white-cap",
+          "image_url": "originals/products/goods/massgoo-white-cap/composition/massgoo-white-cap-front.webp",
+          "reference_images": []
+        }
+      ],
+      "errors": [
+        {
+          "file": "massgoo-white-cap-side.webp",
+          "error": "파일을 찾을 수 없음"
+        }
+      ]
+    },
+    "massgoo-black-cap": {
+      "slug": "massgoo-black-cap",
+      "files": [
+        {
+          "fileName": "massgoo-black-cap-front.webp",
+          "from": "originals/products/goods/massgoo-black-cap/gallery/massgoo-black-cap-front.webp",
+          "to": "originals/products/goods/massgoo-black-cap/composition/massgoo-black-cap-front.webp"
+        }
+      ],
+      "dbUpdates": [
+        {
+          "product": "마쓰구 블랙캡",
+          "slug": "massgoo-black-cap",
+          "image_url": "originals/products/goods/massgoo-black-cap/composition/massgoo-black-cap-front.webp",
+          "reference_images": []
+        }
+      ],
+      "errors": [
+        {
+          "file": "massgoo-black-cap-side.webp",
+          "error": "파일을 찾을 수 없음"
+        }
+      ]
+    },
+    "mas-limited-cap-gray": {
+      "slug": "mas-limited-cap-gray",
+      "files": [
+        {
+          "fileName": "mas-limited-cap-gray-front.webp",
+          "from": "originals/products/goods/mas-limited-cap-gray/gallery/mas-limited-cap-gray-front.webp",
+          "to": "originals/products/goods/mas-limited-cap-gray/composition/mas-limited-cap-gray-front.webp"
+        }
+      ],
+      "dbUpdates": [
+        {
+          "product": "MAS 한정판 모자(그레이)",
+          "slug": "mas-limited-cap-gray",
+          "image_url": "originals/products/goods/mas-limited-cap-gray/composition/mas-limited-cap-gray-front.webp",
+          "reference_images": []
+        }
+      ],
+      "errors": [
+        {
+          "file": "mas-limited-cap-gray-side.webp",
+          "error": "파일을 찾을 수 없음"
+        }
+      ]
+    },
+    "mas-limited-cap-black": {
+      "slug": "mas-limited-cap-black",
+      "files": [
+        {
+          "fileName": "mas-limited-cap-black-front.webp",
+          "from": "originals/products/goods/mas-limited-cap-black/gallery/mas-limited-cap-black-front.webp",
+          "to": "originals/products/goods/mas-limited-cap-black/composition/mas-limited-cap-black-front.webp"
+        }
+      ],
+      "dbUpdates": [
+        {
+          "product": "MAS 한정판 모자(블랙)",
+          "slug": "mas-limited-cap-black",
+          "image_url": "originals/products/goods/mas-limited-cap-black/composition/mas-limited-cap-black-front.webp",
+          "reference_images": []
+        }
+      ],
+      "errors": [
+        {
+          "file": "mas-limited-cap-black-side.webp",
+          "error": "파일을 찾을 수 없음"
+        }
+      ]
+    },
+    "massgoo-muziik-clutch-beige": {
+      "slug": "massgoo-muziik-clutch-beige",
+      "files": [
+        {
+          "fileName": "massgoo-muziik-clutch-beige-front.webp",
+          "from": "originals/products/goods/massgoo-muziik-clutch-beige/gallery/massgoo-muziik-clutch-beige-front.webp",
+          "to": "originals/products/goods/massgoo-muziik-clutch-beige/composition/massgoo-muziik-clutch-beige-front.webp"
+        },
+        {
+          "fileName": "massgoo-muziik-clutch-beige-back.webp",
+          "from": "originals/products/goods/massgoo-muziik-clutch-beige/gallery/massgoo-muziik-clutch-beige-back.webp",
+          "to": "originals/products/goods/massgoo-muziik-clutch-beige/composition/massgoo-muziik-clutch-beige-back.webp"
+        }
+      ],
+      "dbUpdates": [
+        {
+          "product": "MASSGOO × MUZIIK 프리미엄 클러치백 (베이지)",
+          "slug": "massgoo-muziik-clutch-beige",
+          "image_url": "originals/products/goods/massgoo-muziik-clutch-beige/composition/massgoo-muziik-clutch-beige-front.webp",
+          "reference_images": [
+            "originals/products/goods/massgoo-muziik-clutch-beige/composition/massgoo-muziik-clutch-beige-front.webp",
+            "originals/products/goods/massgoo-muziik-clutch-beige/composition/massgoo-muziik-clutch-beige-back.webp"
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "massgoo-muziik-clutch-gray": {
+      "slug": "massgoo-muziik-clutch-gray",
+      "files": [
+        {
+          "fileName": "massgoo-muziik-clutch-gray-front.webp",
+          "from": "originals/products/goods/massgoo-muziik-clutch-gray/gallery/massgoo-muziik-clutch-gray-front.webp",
+          "to": "originals/products/goods/massgoo-muziik-clutch-gray/composition/massgoo-muziik-clutch-gray-front.webp"
+        },
+        {
+          "fileName": "massgoo-muziik-clutch-gray-back.webp",
+          "from": "originals/products/goods/massgoo-muziik-clutch-gray/gallery/massgoo-muziik-clutch-gray-back.webp",
+          "to": "originals/products/goods/massgoo-muziik-clutch-gray/composition/massgoo-muziik-clutch-gray-back.webp"
+        }
+      ],
+      "dbUpdates": [
+        {
+          "product": "MASSGOO × MUZIIK 프리미엄 클러치백 (그레이)",
+          "slug": "massgoo-muziik-clutch-gray",
+          "image_url": "originals/products/goods/massgoo-muziik-clutch-gray/composition/massgoo-muziik-clutch-gray-front.webp",
+          "reference_images": [
+            "originals/products/goods/massgoo-muziik-clutch-gray/composition/massgoo-muziik-clutch-gray-front.webp",
+            "originals/products/goods/massgoo-muziik-clutch-gray/composition/massgoo-muziik-clutch-gray-back.webp"
+          ]
+        }
+      ],
+      "errors": []
+    }
+  },
+  "summary": {
+    "filesMoved": 12,
+    "filesSkipped": 0,
+    "productsUpdated": 10,
+    "errors": 0
+  }
+}

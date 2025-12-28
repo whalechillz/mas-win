@@ -408,6 +408,28 @@ export default function ProductsAdminPage() {
     }
   };
 
+  const handleHardDelete = async (product: Product) => {
+    if (!confirm(`정말 "${product.name}" 상품을 완전히 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다.\n재고 이력도 함께 삭제됩니다.`)) return;
+    try {
+      const res = await fetch(`/api/admin/products?id=${product.id}`, {
+        method: 'DELETE',
+        headers: {
+          'X-Hard-Delete': 'true'
+        },
+      });
+      const json = await res.json();
+      if (!json.success) {
+        alert(json.message || '삭제에 실패했습니다.');
+        return;
+      }
+      alert('상품이 완전히 삭제되었습니다.');
+      await loadProducts();
+    } catch (error: any) {
+      console.error('상품 삭제 오류:', error);
+      alert(error.message || '상품 삭제 중 오류가 발생했습니다.');
+    }
+  };
+
   // 상세페이지 이미지 업로드
   const handleDetailImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -875,13 +897,22 @@ export default function ProductsAdminPage() {
                           >
                             복제
                           </button>
-                          <button
-                            onClick={() => handleDelete(p)}
+                          <select
+                            onChange={(e) => {
+                              if (e.target.value === 'deactivate') {
+                                handleDelete(p);
+                              } else if (e.target.value === 'delete') {
+                                handleHardDelete(p);
+                              }
+                              e.target.value = '';
+                            }}
+                            className="px-2 py-1 text-xs border border-gray-300 rounded bg-white"
                             disabled={!p.is_active}
-                            className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-40"
                           >
-                            비활성
-                          </button>
+                            <option value="">작업 선택</option>
+                            <option value="deactivate">비활성화</option>
+                            <option value="delete">삭제</option>
+                          </select>
                         </div>
                       </td>
                     </tr>

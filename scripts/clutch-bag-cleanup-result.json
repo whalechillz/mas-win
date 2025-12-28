@@ -1,0 +1,30 @@
+{
+  "products": {
+    "massgoo-muziik-clutch-beige": {
+      "slug": "massgoo-muziik-clutch-beige",
+      "compositionDeleted": [],
+      "galleryDeleted": [
+        "massgoo-muziik-clutch-beige-back.png",
+        "massgoo-muziik-clutch-beige-front.png"
+      ],
+      "dbUpdated": true,
+      "errors": []
+    },
+    "massgoo-muziik-clutch-gray": {
+      "slug": "massgoo-muziik-clutch-gray",
+      "compositionDeleted": [],
+      "galleryDeleted": [
+        "massgoo-muziik-clutch-gray-back.png",
+        "massgoo-muziik-clutch-gray-front.png"
+      ],
+      "dbUpdated": true,
+      "errors": []
+    }
+  },
+  "summary": {
+    "compositionFilesDeleted": 0,
+    "galleryFilesDeleted": 4,
+    "dbUpdated": 2,
+    "errors": 0
+  }
+}

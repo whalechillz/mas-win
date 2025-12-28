@@ -63,6 +63,8 @@ export default function ProductCompositionManagement() {
   }>({});
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingRefImage, setUploadingRefImage] = useState(false);
+  const [selectedColor, setSelectedColor] = useState<string>('default');
+  const [uploadingColorImage, setUploadingColorImage] = useState<string | null>(null);
 
   // 제품 목록 로드 (useCallback으로 메모이제이션)
   const loadProducts = useCallback(async () => {
@@ -351,6 +353,54 @@ export default function ProductCompositionManagement() {
       ...formData,
       reference_images: currentRefs.filter((_, i) => i !== index),
     });
+  };
+
+  // 색상별 이미지 업로드
+  const handleColorImageUpload = async (color: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!formData.slug || !formData.category) {
+      alert('제품 정보(Slug, 카테고리)를 먼저 입력해주세요.');
+      e.target.value = '';
+      return;
+    }
+
+    setUploadingColorImage(color);
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('productSlug', formData.slug);
+      uploadFormData.append('category', formData.category);
+      uploadFormData.append('imageType', 'composition');
+
+      const response = await fetch('/api/admin/upload-product-image', {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const currentVariants = formData.color_variants || {};
+        setFormData({
+          ...formData,
+          color_variants: {
+            ...currentVariants,
+            [color]: data.url
+          }
+        });
+        alert(`${color} 색상 이미지가 추가되었습니다.`);
+      } else {
+        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
+        alert(`오류: ${errorData.error || errorData.details || '이미지 업로드에 실패했습니다.'}`);
+      }
+    } catch (error) {
+      console.error('색상별 이미지 업로드 오류:', error);
+      alert('이미지 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setUploadingColorImage(null);
+      e.target.value = '';
+    }
   };
 
   // Slug 자동 생성
@@ -658,6 +708,35 @@ export default function ProductCompositionManagement() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       이미지 URL *
                     </label>
+                    {/* 색상 선택 드롭다운 (color_variants가 있을 때만 표시) */}
+                    {formData.color_variants && Object.keys(formData.color_variants).length > 0 && (
+                      <div className="mb-2">
+                        <label className="block text-xs text-gray-600 mb-1">
+                          색상 선택
+                        </label>
+                        <select
+                          value={selectedColor}
+                          onChange={(e) => {
+                            setSelectedColor(e.target.value);
+                            if (e.target.value === 'default') {
+                              // 기본 이미지 URL 유지
+                            } else {
+                              // color_variants에서 선택한 색상 이미지 사용
+                              const colorImage = formData.color_variants?.[e.target.value];
+                              if (colorImage) {
+                                setFormData({ ...formData, image_url: colorImage });
+                              }
+                            }
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        >
+                          <option value="default">기본 이미지</option>
+                          {Object.keys(formData.color_variants).map(color => (
+                            <option key={color} value={color}>{color}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                     <div className="flex gap-2">
                     <input
                       type="text"
@@ -691,6 +770,41 @@ export default function ProductCompositionManagement() {
                             target.style.display = 'none';
                           }}
                         />
+                      </div>
+                    )}
+                    {/* 색상별 이미지 관리 섹션 */}
+                    {formData.color_variants && Object.keys(formData.color_variants).length > 0 && (
+                      <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                        <label className="block text-xs font-medium text-gray-700 mb-2">
+                          색상별 이미지 관리
+                        </label>
+                        <div className="space-y-2">
+                          {Object.entries(formData.color_variants).map(([color, imageUrl]) => (
+                            <div key={color} className="flex items-center gap-2">
+                              <span className="text-xs text-gray-600 w-16">{color}:</span>
+                              <input
+                                type="text"
+                                value={imageUrl}
+                                onChange={(e) => {
+                                  const newVariants = { ...formData.color_variants };
+                                  newVariants[color] = e.target.value;
+                                  setFormData({ ...formData, color_variants: newVariants });
+                                }}
+                                className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded"
+                              />
+                              <label className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 cursor-pointer">
+                                {uploadingColorImage === color ? '업로드 중...' : '📷'}
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handleColorImageUpload(color, e)}
+                                  className="hidden"
+                                  disabled={uploadingColorImage === color}
+                                />
+                              </label>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>

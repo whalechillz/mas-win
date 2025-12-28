@@ -1,0 +1,118 @@
+{
+  "rootFiles": [
+    "composition",
+    "detail",
+    "01.webp",
+    "500-long.webp",
+    "500.webp",
+    "massgoo_sw_black_muz_01_n.webp",
+    "massgoo_sw_black_muz_01.webp",
+    "massgoo_sw_black_muz_11.webp",
+    "massgoo_sw_black_muz_12.webp",
+    "massgoo_sw_black_muz_13.webp",
+    "massgoo_sw_black_muz_14_b.webp",
+    "massgoo_sw_black_muz_15.webp",
+    "massgoo_sw_black_muz_18.webp",
+    "massgoo_sw_black_muz_23.webp",
+    "secret-weapon-black-sole-500.webp"
+  ],
+  "detailFiles": [
+    "massgoo_sw_black_muz_01_n.webp",
+    "massgoo_sw_black_muz_01.webp",
+    "massgoo_sw_black_muz_11.webp",
+    "massgoo_sw_black_muz_12.webp",
+    "massgoo_sw_black_muz_13.webp",
+    "massgoo_sw_black_muz_14_b.webp",
+    "massgoo_sw_black_muz_15.webp",
+    "massgoo_sw_black_muz_18.webp",
+    "massgoo_sw_black_muz_23.webp"
+  ],
+  "compositionFiles": [
+    "secret-weapon-black-sole-500.webp"
+  ],
+  "moved": [
+    {
+      "fileName": "01.webp",
+      "from": "originals/products/black-beryl/01.webp",
+      "to": "originals/products/black-beryl/detail/01.webp",
+      "type": "detail"
+    },
+    {
+      "fileName": "500-long.webp",
+      "from": "originals/products/black-beryl/500-long.webp",
+      "to": "originals/products/black-beryl/detail/500-long.webp",
+      "type": "detail"
+    },
+    {
+      "fileName": "500.webp",
+      "from": "originals/products/black-beryl/500.webp",
+      "to": "originals/products/black-beryl/detail/500.webp",
+      "type": "detail"
+    }
+  ],
+  "deleted": [
+    {
+      "type": "root_duplicate",
+      "fileName": "massgoo_sw_black_muz_01_n.webp",
+      "path": "originals/products/black-beryl/massgoo_sw_black_muz_01_n.webp"
+    },
+    {
+      "type": "root_duplicate",
+      "fileName": "massgoo_sw_black_muz_01.webp",
+      "path": "originals/products/black-beryl/massgoo_sw_black_muz_01.webp"
+    },
+    {
+      "type": "root_duplicate",
+      "fileName": "massgoo_sw_black_muz_11.webp",
+      "path": "originals/products/black-beryl/massgoo_sw_black_muz_11.webp"
+    },
+    {
+      "type": "root_duplicate",
+      "fileName": "massgoo_sw_black_muz_12.webp",
+      "path": "originals/products/black-beryl/massgoo_sw_black_muz_12.webp"
+    },
+    {
+      "type": "root_duplicate",
+      "fileName": "massgoo_sw_black_muz_13.webp",
+      "path": "originals/products/black-beryl/massgoo_sw_black_muz_13.webp"
+    },
+    {
+      "type": "root_duplicate",
+      "fileName": "massgoo_sw_black_muz_14_b.webp",
+      "path": "originals/products/black-beryl/massgoo_sw_black_muz_14_b.webp"
+    },
+    {
+      "type": "root_duplicate",
+      "fileName": "massgoo_sw_black_muz_15.webp",
+      "path": "originals/products/black-beryl/massgoo_sw_black_muz_15.webp"
+    },
+    {
+      "type": "root_duplicate",
+      "fileName": "massgoo_sw_black_muz_18.webp",
+      "path": "originals/products/black-beryl/massgoo_sw_black_muz_18.webp"
+    },
+    {
+      "type": "root_duplicate",
+      "fileName": "massgoo_sw_black_muz_23.webp",
+      "path": "originals/products/black-beryl/massgoo_sw_black_muz_23.webp"
+    },
+    {
+      "type": "root_duplicate",
+      "fileName": "secret-weapon-black-sole-500.webp",
+      "path": "originals/products/black-beryl/secret-weapon-black-sole-500.webp"
+    }
+  ],
+  "skipped": [],
+  "errors": [
+    {
+      "file": "composition",
+      "step": "download",
+      "error": "{}"
+    },
+    {
+      "file": "detail",
+      "step": "download",
+      "error": "{}"
+    }
+  ]
+}

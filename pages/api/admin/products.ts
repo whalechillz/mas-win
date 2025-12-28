@@ -302,40 +302,79 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
 }
 
 // DELETE는 실제 삭제 대신 is_active=false 로 소프트 삭제
+// X-Hard-Delete 헤더가 있으면 실제 삭제 수행
 async function handleDelete(req: NextApiRequest, res: NextApiResponse) {
   try {
     const idParam = req.query.id ?? (req.body && req.body.id);
     const id = typeof idParam === 'string' ? Number(idParam) : idParam;
+    const hardDelete = req.headers['x-hard-delete'] === 'true';
 
     if (!id) {
       return res.status(400).json({ success: false, message: '상품 ID가 필요합니다.' });
     }
 
-    const { data, error } = await supabase
-      .from('products')
-      .update({ is_active: false })
-      .eq('id', id)
-      .select(PRODUCT_SELECT_COLUMNS)
-      .single();
+    if (hardDelete) {
+      // 실제 삭제: 재고 이력도 함께 삭제
+      // 1. 재고 이력 삭제
+      const { error: inventoryError } = await supabase
+        .from('inventory_transactions')
+        .delete()
+        .eq('product_id', id);
 
-    if (error) {
-      console.error('[admin/products][DELETE] ERROR', error);
-      return res.status(500).json({
-        success: false,
-        message: error.message || '상품 비활성화에 실패했습니다.',
+      if (inventoryError) {
+        console.error('[admin/products][DELETE] Inventory deletion error', inventoryError);
+        return res.status(500).json({
+          success: false,
+          message: '재고 이력 삭제 중 오류가 발생했습니다.',
+        });
+      }
+
+      // 2. 제품 삭제
+      const { error: deleteError } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+
+      if (deleteError) {
+        console.error('[admin/products][DELETE] ERROR', deleteError);
+        return res.status(500).json({
+          success: false,
+          message: deleteError.message || '상품 삭제에 실패했습니다.',
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: '상품이 완전히 삭제되었습니다.',
+      });
+    } else {
+      // 소프트 삭제: is_active = false
+      const { data, error } = await supabase
+        .from('products')
+        .update({ is_active: false })
+        .eq('id', id)
+        .select(PRODUCT_SELECT_COLUMNS)
+        .single();
+
+      if (error) {
+        console.error('[admin/products][DELETE] ERROR', error);
+        return res.status(500).json({
+          success: false,
+          message: error.message || '상품 비활성화에 실패했습니다.',
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: '상품이 비활성화되었습니다.',
+        product: data,
       });
     }
-
-    return res.status(200).json({
-      success: true,
-      message: '상품이 비활성화되었습니다.',
-      product: data,
-    });
   } catch (error: any) {
     console.error('[admin/products][DELETE] ERROR', error);
     return res.status(500).json({
       success: false,
-      message: error.message || '상품 비활성화 중 서버 오류가 발생했습니다.',
+      message: error.message || '상품 삭제 중 서버 오류가 발생했습니다.',
     });
   }
 }
