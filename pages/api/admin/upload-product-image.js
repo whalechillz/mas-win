@@ -81,6 +81,14 @@ export default async function handler(req, res) {
     const category = fields.category?.[0] || 'hat'; // 기본값: hat
     const imageType = fields.imageType?.[0] || 'detail'; // detail, composition, gallery
 
+    // ✅ productSlug 검증 추가
+    if (!productSlug || productSlug.trim() === '') {
+      return res.status(400).json({
+        error: '제품 Slug가 필요합니다.',
+        details: '제품 수정 모달에서 Slug를 먼저 입력해주세요.'
+      });
+    }
+
     // 파일 읽기
     const fileBuffer = fs.readFileSync(file.filepath);
     const originalName = file.originalFilename || `product-${Date.now()}.jpg`;

@@ -255,17 +255,20 @@ export default function ProductCompositionManagement() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // ✅ slug와 category 검증 추가
+    if (!formData.slug || !formData.category) {
+      alert('제품 정보(Slug, 카테고리)를 먼저 입력해주세요.');
+      e.target.value = ''; // 파일 입력 초기화
+      return;
+    }
+
     setUploadingImage(true);
     try {
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
-      // 제품 정보 전송 (Storage 경로 결정용)
-      if (formData.slug) {
-        uploadFormData.append('productSlug', formData.slug);
-      }
-      if (formData.category) {
-        uploadFormData.append('category', formData.category);
-      }
+      // ✅ 필수 필드이므로 항상 전달
+      uploadFormData.append('productSlug', formData.slug);
+      uploadFormData.append('category', formData.category);
       // ✅ 합성용 이미지로 지정
       uploadFormData.append('imageType', 'composition');
 
@@ -279,8 +282,9 @@ export default function ProductCompositionManagement() {
         setFormData({ ...formData, image_url: data.url });
         alert('이미지가 업로드되었습니다.');
       } else {
-        const error = await response.json();
-        alert(`오류: ${error.error || '이미지 업로드에 실패했습니다.'}`);
+        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
+        console.error('업로드 오류 상세:', errorData);
+        alert(`오류: ${errorData.error || errorData.details || '이미지 업로드에 실패했습니다.'}`);
       }
     } catch (error) {
       console.error('이미지 업로드 오류:', error);
@@ -296,17 +300,20 @@ export default function ProductCompositionManagement() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // ✅ slug와 category 검증 추가
+    if (!formData.slug || !formData.category) {
+      alert('제품 정보(Slug, 카테고리)를 먼저 입력해주세요.');
+      e.target.value = ''; // 파일 입력 초기화
+      return;
+    }
+
     setUploadingRefImage(true);
     try {
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
-      // 제품 정보 전송 (Storage 경로 결정용)
-      if (formData.slug) {
-        uploadFormData.append('productSlug', formData.slug);
-      }
-      if (formData.category) {
-        uploadFormData.append('category', formData.category);
-      }
+      // ✅ 필수 필드이므로 항상 전달
+      uploadFormData.append('productSlug', formData.slug);
+      uploadFormData.append('category', formData.category);
       // ✅ 합성용 이미지로 지정
       uploadFormData.append('imageType', 'composition');
 
@@ -324,8 +331,9 @@ export default function ProductCompositionManagement() {
         });
         alert('참조 이미지가 추가되었습니다.');
       } else {
-        const error = await response.json();
-        alert(`오류: ${error.error || '이미지 업로드에 실패했습니다.'}`);
+        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
+        console.error('업로드 오류 상세:', errorData);
+        alert(`오류: ${errorData.error || errorData.details || '이미지 업로드에 실패했습니다.'}`);
       }
     } catch (error) {
       console.error('참조 이미지 업로드 오류:', error);
