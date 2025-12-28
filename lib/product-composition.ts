@@ -465,19 +465,19 @@ export async function getProductsFromSupabase(
 
     if (data.success && data.products) {
       // Supabase 데이터를 ProductForComposition 형식으로 변환
-      // .png를 .webp로 자동 변환
+      // .png를 .webp로 자동 변환하고, getAbsoluteImageUrl로 경로 변환
       return data.products.map((p: any) => ({
         id: p.id,
         name: p.name,
         displayName: p.display_name || p.name,
         category: p.category as ProductCategory,
         compositionTarget: p.composition_target as CompositionTarget,
-        imageUrl: convertPngToWebp(p.image_url), // .png를 .webp로 변환
-        referenceImages: convertPngToWebpInArray(p.reference_images || []), // 배열 내부도 변환
+        imageUrl: getAbsoluteImageUrl(convertPngToWebp(p.image_url)), // 경로 변환 추가
+        referenceImages: convertPngToWebpInArray(p.reference_images || []).map(img => getAbsoluteImageUrl(img)), // 배열 내부도 변환
         driverParts: p.driver_parts ? {
-          crown: p.driver_parts.crown ? convertPngToWebpInArray(p.driver_parts.crown) : undefined,
-          sole: p.driver_parts.sole ? convertPngToWebpInArray(p.driver_parts.sole) : undefined,
-          face: p.driver_parts.face ? convertPngToWebpInArray(p.driver_parts.face) : undefined,
+          crown: p.driver_parts.crown ? convertPngToWebpInArray(p.driver_parts.crown).map(img => getAbsoluteImageUrl(img)) : undefined,
+          sole: p.driver_parts.sole ? convertPngToWebpInArray(p.driver_parts.sole).map(img => getAbsoluteImageUrl(img)) : undefined,
+          face: p.driver_parts.face ? convertPngToWebpInArray(p.driver_parts.face).map(img => getAbsoluteImageUrl(img)) : undefined,
         } : undefined,
         hatType: p.hat_type as HatType | undefined,
         slug: p.slug,
@@ -485,7 +485,12 @@ export async function getProductsFromSupabase(
         description: p.description,
         price: p.price,
         features: p.features || [],
-        colorVariants: convertPngToWebpInObject(p.color_variants || {}), // color_variants 내부도 변환
+        colorVariants: Object.fromEntries(
+          Object.entries(convertPngToWebpInObject(p.color_variants || {})).map(([key, value]) => [
+            key,
+            getAbsoluteImageUrl(value as string)
+          ])
+        ), // color_variants 내부도 변환
       }));
     }
 
