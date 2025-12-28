@@ -8,6 +8,27 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const SOLAPI_API_KEY = process.env.SOLAPI_API_KEY || "";
 const SOLAPI_API_SECRET = process.env.SOLAPI_API_SECRET || "";
 
+// 타임아웃이 있는 fetch 유틸리티 함수
+const fetchWithTimeout = async (url, options, timeoutMs = 5000) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error(`요청 시간 초과 (${timeoutMs}ms)`);
+    }
+    throw error;
+  }
+};
+
 export const config = {
   api: {
     bodyParser: {
@@ -193,15 +214,17 @@ export default async function handler(req, res) {
           // 그룹 ID로 찾지 못한 경우, 솔라피 API로 그룹 정보 조회 후 시간 기반 매칭
           let groupTime = payload.dateCreated || payload.dateSent || payload.groupInfo?.dateCreated || payload.groupInfo?.dateSent;
           
-          // 웹훅에 시간 정보가 없으면 솔라피 API로 직접 조회
+          // 웹훅에 시간 정보가 없으면 솔라피 API로 직접 조회 (타임아웃 적용)
           if (!groupTime) {
             try {
               if (SOLAPI_API_KEY && SOLAPI_API_SECRET) {
                 const authHeaders = createSolapiSignature(SOLAPI_API_KEY, SOLAPI_API_SECRET);
                 
-                const groupInfoResponse = await fetch(
+                // 5초 타임아웃 적용하여 응답 지연 방지
+                const groupInfoResponse = await fetchWithTimeout(
                   `https://api.solapi.com/messages/v4/groups/${groupId}`,
-                  { method: 'GET', headers: authHeaders }
+                  { method: 'GET', headers: authHeaders },
+                  5000 // 5초 타임아웃
                 );
                 
                 if (groupInfoResponse.ok) {
@@ -215,6 +238,7 @@ export default async function handler(req, res) {
                 }
               }
             } catch (apiError) {
+              // 타임아웃 또는 기타 오류 발생 시 경고만 로그하고 계속 진행
               console.warn(`솔라피 API 조회 실패 (무시하고 계속):`, apiError.message);
             }
           }
