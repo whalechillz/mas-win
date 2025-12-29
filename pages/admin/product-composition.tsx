@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import AdminNav from '../../components/admin/AdminNav';
 import Image from 'next/image';
 import { getAbsoluteImageUrl } from '../../lib/product-composition';
+import GalleryPicker from '../../components/admin/GalleryPicker';
 
 interface ProductComposition {
   id: string;
@@ -65,6 +66,8 @@ export default function ProductCompositionManagement() {
   const [uploadingRefImage, setUploadingRefImage] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string>('default');
   const [uploadingColorImage, setUploadingColorImage] = useState<string | null>(null);
+  const [showGalleryPicker, setShowGalleryPicker] = useState(false);
+  const [galleryPickerMode, setGalleryPickerMode] = useState<'image' | 'reference' | null>(null);
 
   // 제품 목록 로드 (useCallback으로 메모이제이션)
   const loadProducts = useCallback(async () => {
@@ -756,6 +759,13 @@ export default function ProductCompositionManagement() {
                           disabled={uploadingImage}
                         />
                       </label>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenGallery('image')}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                      >
+                        🖼️ 갤러리에서 선택
+                      </button>
                     </div>
                     {formData.image_url && (
                       <div className="mt-2 relative w-32 h-32 bg-gray-100 rounded overflow-hidden">
@@ -898,6 +908,13 @@ export default function ProductCompositionManagement() {
                             disabled={uploadingRefImage}
                           />
                         </label>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenGallery('reference')}
+                          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                        >
+                          🖼️ 갤러리에서 선택
+                        </button>
                       </div>
                       {formData.reference_images && formData.reference_images.length > 0 && (
                         <div className="grid grid-cols-3 gap-2 mt-2">
@@ -991,6 +1008,19 @@ export default function ProductCompositionManagement() {
               </div>
             </div>
           )}
+
+          {/* 갤러리 이미지 선택 모달 */}
+          <GalleryPicker
+            isOpen={showGalleryPicker}
+            onClose={() => {
+              setShowGalleryPicker(false);
+              setGalleryPickerMode(null);
+            }}
+            onSelect={handleGalleryImageSelect}
+            autoFilterFolder={getCompositionFolderPath()}
+            showCompareMode={true}
+            maxCompareCount={3}
+          />
         </div>
       </div>
     </>
