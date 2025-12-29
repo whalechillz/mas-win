@@ -6266,8 +6266,16 @@ export default function GalleryAdmin() {
                               });
                               
                               setShowAddModal(false);
+                              const uploadFolder = selectedUploadFolder || folderFilter;
                               setSelectedUploadFolder(''); // 업로드 후 폴더 선택 초기화
-                              fetchImages(1, true);
+                              
+                              // 업로드한 폴더만 새로고침 (전체 조회 방지로 타임아웃 방지)
+                              if (uploadFolder && uploadFolder !== 'all' && uploadFolder !== 'root') {
+                                fetchImages(1, true, uploadFolder, includeChildren, '', true); // forceRefresh=true
+                              } else {
+                                // 폴더가 없으면 현재 필터 사용 (전체 조회는 피함)
+                                fetchImages(1, true, folderFilter !== 'all' ? folderFilter : 'root', includeChildren, searchQuery, true);
+                              }
                               alert('이미지 업로드 완료');
                             } catch (e: any) {
                               console.error('❌ 이미지 업로드 오류:', e);
