@@ -5012,8 +5012,12 @@ export default function GalleryAdmin() {
                             const data = await response.json();
                             if (data.success) {
                               alert(`✅ 이미지가 반시계방향으로 90도 회전되었습니다.\n포맷: ${format.toUpperCase()}\n크기: ${(data.size / 1024).toFixed(2)}KB`);
-                              // 이미지 목록 새로고침
-                              fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+                              // 확대 모달 닫기
+                              setSelectedImageForZoom(null);
+                              // 약간의 지연 후 이미지 목록 새로고침 (Supabase 반영 시간 고려)
+                              setTimeout(async () => {
+                                await fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+                              }, 500);
                             }
                           } catch (error: any) {
                             console.error('❌ 회전 오류:', error);
@@ -5067,8 +5071,12 @@ export default function GalleryAdmin() {
                             const data = await response.json();
                             if (data.success) {
                               alert(`✅ 이미지가 시계방향으로 90도 회전되었습니다.\n포맷: ${format.toUpperCase()}\n크기: ${(data.size / 1024).toFixed(2)}KB`);
-                              // 이미지 목록 새로고침
-                              fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+                              // 확대 모달 닫기
+                              setSelectedImageForZoom(null);
+                              // 약간의 지연 후 이미지 목록 새로고침 (Supabase 반영 시간 고려)
+                              setTimeout(async () => {
+                                await fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+                              }, 500);
                             }
                           } catch (error: any) {
                             console.error('❌ 회전 오류:', error);
@@ -5146,8 +5154,12 @@ export default function GalleryAdmin() {
                                 ? ((1 - data.size / originalSize) * 100).toFixed(1)
                                 : '0';
                               alert(`✅ WebP 변환 완료!\n크기: ${(data.size / 1024).toFixed(2)}KB\n원본 대비: ${reduction}% 감소\n투명도: 지원`);
-                              // 이미지 목록 새로고침
-                              fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+                              // 확대 모달 닫기
+                              setSelectedImageForZoom(null);
+                              // 약간의 지연 후 이미지 목록 새로고침 (Supabase 반영 시간 고려)
+                              setTimeout(async () => {
+                                await fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+                              }, 500);
                             }
                           } catch (error: any) {
                             console.error('❌ 변환 오류:', error);
@@ -5204,8 +5216,12 @@ export default function GalleryAdmin() {
                                 ? ((1 - data.size / originalSize) * 100).toFixed(1)
                                 : '0';
                               alert(`✅ JPG 변환 완료!\n크기: ${(data.size / 1024).toFixed(2)}KB\n원본 대비: ${reduction}% 감소`);
-                              // 이미지 목록 새로고침
-                              fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+                              // 확대 모달 닫기
+                              setSelectedImageForZoom(null);
+                              // 약간의 지연 후 이미지 목록 새로고침 (Supabase 반영 시간 고려)
+                              setTimeout(async () => {
+                                await fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+                              }, 500);
                             }
                           } catch (error: any) {
                             console.error('❌ 변환 오류:', error);
@@ -5255,8 +5271,12 @@ export default function GalleryAdmin() {
                             if (data.success) {
                               const metadata = await getImageMetadata(selectedImageForZoom.url);
                               alert(`✅ PNG 변환 완료!\n크기: ${(data.size / 1024).toFixed(2)}KB\n무손실 압축\n투명도: ${metadata.hasAlpha ? '지원' : '없음'}`);
-                              // 이미지 목록 새로고침
-                              fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+                              // 확대 모달 닫기
+                              setSelectedImageForZoom(null);
+                              // 약간의 지연 후 이미지 목록 새로고침 (Supabase 반영 시간 고려)
+                              setTimeout(async () => {
+                                await fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+                              }, 500);
                             }
                           } catch (error: any) {
                             console.error('❌ 변환 오류:', error);
