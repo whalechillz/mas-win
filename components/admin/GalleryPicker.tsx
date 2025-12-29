@@ -142,16 +142,26 @@ const GalleryPicker: React.FC<Props> = ({
       
       if (folderFilter) {
         params.append('prefix', folderFilter);
-        // originals/daily-branding/kakao 또는 originals/mms로 시작하는 경로인 경우 하위 폴더 포함
-        // 날짜별 폴더(YYYY-MM-DD 패턴)가 포함된 경우에도 하위 폴더 포함
-        // originals/blog/YYYY-MM/{blog-id} 폴더인 경우 하위 폴더 포함 (이미지가 해당 폴더 안에 있음)
-        // originals/products/ 폴더인 경우 하위 폴더 포함 (composition, detail, gallery 폴더 포함)
-        const isKakaoFolder = folderFilter.startsWith('originals/daily-branding/kakao');
-        const isMmsFolder = folderFilter.startsWith('originals/mms');
-        const isBlogFolder = folderFilter.startsWith('originals/blog/');
-        const isProductsFolder = folderFilter.startsWith('originals/products/');
-        const includeChildren = (isKakaoFolder || isMmsFolder || isBlogFolder || isProductsFolder) ? 'true' : 'false';
-        params.append('includeChildren', includeChildren);
+        
+        // ✅ 제품 합성 관리에서 사용할 때는 현재 폴더만 조회 (빠른 응답)
+        // "이미지 갤러리 관리"처럼 현재 폴더만 빠르게 조회하여 타임아웃 방지
+        const isFromProductComposition = typeof window !== 'undefined' && 
+                                         window.location.pathname.includes('/product-composition');
+        
+        if (isFromProductComposition) {
+          // 제품 합성 관리에서는 현재 폴더만 조회 (includeChildren=false)
+          // 사용자가 필요한 하위 폴더(composition, detail, gallery)를 직접 선택할 수 있음
+          params.append('includeChildren', 'false');
+          console.log(`📁 [GalleryPicker] 제품 합성 관리: 현재 폴더만 조회 (빠른 응답)`);
+        } else {
+          // 기존 로직 (카카오 콘텐츠 등에서는 하위 폴더 포함)
+          const isKakaoFolder = folderFilter.startsWith('originals/daily-branding/kakao');
+          const isMmsFolder = folderFilter.startsWith('originals/mms');
+          const isBlogFolder = folderFilter.startsWith('originals/blog/');
+          const isProductsFolder = folderFilter.startsWith('originals/products/');
+          const includeChildren = (isKakaoFolder || isMmsFolder || isBlogFolder || isProductsFolder) ? 'true' : 'false';
+          params.append('includeChildren', includeChildren);
+        }
       }
       
       // source 필터 추가

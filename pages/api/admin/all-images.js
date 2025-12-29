@@ -910,8 +910,19 @@ export default async function handler(req, res) {
           
           console.log(`📁 [getAllImagesForPagination] 시작: "${folderPath || '루트'}"`);
           
-          // ✅ 최적화: originals/products/ 폴더는 하위 폴더를 직접 지정하여 조회 (재귀 탐색 최소화)
-          if (folderPath.startsWith('originals/products/') && !folderPath.includes('/composition') && !folderPath.includes('/detail') && !folderPath.includes('/gallery')) {
+          // ✅ 최적화: originals/products/ 또는 originals/products/goods/ 폴더는 하위 폴더를 직접 지정하여 조회 (재귀 탐색 최소화)
+          const isProductsRoot = folderPath.startsWith('originals/products/') && 
+                                 !folderPath.startsWith('originals/products/goods/') &&
+                                 !folderPath.includes('/composition') && 
+                                 !folderPath.includes('/detail') && 
+                                 !folderPath.includes('/gallery');
+          
+          const isProductsGoods = folderPath.startsWith('originals/products/goods/') &&
+                                  !folderPath.includes('/composition') && 
+                                  !folderPath.includes('/detail') && 
+                                  !folderPath.includes('/gallery');
+          
+          if (isProductsRoot || isProductsGoods) {
             // 하위 폴더를 직접 조회 (재귀 탐색 대신)
             const subFolders = ['composition', 'detail', 'gallery'];
             console.log(`⚡ [getAllImagesForPagination] 최적화: "${folderPath}" 하위 폴더 직접 조회`);
