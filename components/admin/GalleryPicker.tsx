@@ -257,9 +257,11 @@ const GalleryPicker: React.FC<Props> = ({
     }
   };
 
-  // 최근 폴더 목록 로드
+  // 최근 폴더 목록 로드 및 현재 폴더 자동 추가
   useEffect(() => {
     if (!isOpen) return;
+    
+    // localStorage에서 최근 폴더 로드
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('gallery-picker-recent-folders');
       if (saved) {
@@ -271,7 +273,23 @@ const GalleryPicker: React.FC<Props> = ({
         }
       }
     }
-  }, [isOpen]);
+    
+    // autoFilterFolder나 folderFilter가 있으면 최근 폴더에 추가
+    const currentFolder = autoFilterFolder || folderFilter;
+    if (currentFolder && currentFolder.trim() !== '') {
+      // 이미 최근 폴더에 있으면 추가하지 않음 (중복 방지)
+      setRecentFolders(prev => {
+        if (prev.includes(currentFolder)) {
+          return prev;
+        }
+        const updated = [currentFolder, ...prev].slice(0, 6);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('gallery-picker-recent-folders', JSON.stringify(updated));
+        }
+        return updated;
+      });
+    }
+  }, [isOpen, autoFilterFolder, folderFilter]);
 
   // 최근 폴더에 추가
   const addRecentFolder = (folderPath: string) => {
@@ -936,12 +954,28 @@ const GalleryPicker: React.FC<Props> = ({
         {/* 필터 및 검색 바 */}
         <div className="p-4 border-b bg-white">
           {/* 최근 사용 폴더 섹션 */}
-          {recentFolders.length > 0 && (
+          {(recentFolders.length > 0 || folderFilter) && (
             <div className="mb-3">
               <label className="block text-xs text-gray-500 font-medium mb-2">
                 📁 최근 사용 폴더
               </label>
               <div className="flex flex-wrap gap-2">
+                {/* 현재 폴더가 최근 폴더 목록에 없으면 먼저 표시 */}
+                {folderFilter && !recentFolders.includes(folderFilter) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      addRecentFolder(folderFilter);
+                      setPage(1);
+                      fetchImages(true);
+                    }}
+                    className="px-3 py-1.5 text-xs border border-blue-500 bg-blue-50 text-blue-700 rounded-lg transition-all hover:bg-blue-100"
+                    title={folderFilter}
+                  >
+                    {folderFilter.replace(/^originals\//, '')}
+                  </button>
+                )}
+                {/* 기존 최근 폴더들 */}
                 {recentFolders.map((folder, index) => {
                   const displayPath = folder.replace(/^originals\//, '');
                   return (
