@@ -2051,7 +2051,7 @@ ${compositionSpec}${improveHandQuality ? `
           
           setShowBaseImageGallery(false);
         }}
-        autoFilterFolder={recentUploadFolder || undefined} // 동적 폴더 필터 (최근 선택 폴더 우선)
+        autoFilterFolder={selectedFolder || recentUploadFolder || undefined} // 동적 폴더 필터 (선택된 폴더 우선)
         showCompareMode={true}
         maxCompareCount={3}
       />
