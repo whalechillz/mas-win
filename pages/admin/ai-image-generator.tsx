@@ -525,6 +525,24 @@ ${compositionSpec}${improveHandQuality ? `
       setCompositionStatus('제품 합성 준비 중...');
 
       try {
+        // 모델 이미지 URL 검증
+        if (!formData.selectedBaseImageUrl) {
+          alert('베이스 이미지를 선택해주세요.');
+          return;
+        }
+        
+        if (!formData.selectedBaseImageUrl.startsWith('https://')) {
+          alert('이미지 URL이 올바르지 않습니다. HTTPS URL이 필요합니다.');
+          console.error('❌ 잘못된 이미지 URL:', formData.selectedBaseImageUrl);
+          return;
+        }
+        
+        console.log('📤 제품 합성 요청:', {
+          modelImageUrl: formData.selectedBaseImageUrl,
+          productId: formData.selectedProductId,
+          compositionMethod: formData.compositionMethod
+        });
+        
         // 갤러리에서 선택한 이미지로 바로 제품 합성
         const composeResponse = await fetch('/api/compose-product-image', {
           method: 'POST',
@@ -548,8 +566,25 @@ ${compositionSpec}${improveHandQuality ? `
         });
 
         if (!composeResponse.ok) {
-          const error = await composeResponse.json();
-          throw new Error(error.error || '제품 합성에 실패했습니다.');
+          let errorMessage = '제품 합성에 실패했습니다.';
+          try {
+            const error = await composeResponse.json();
+            errorMessage = error.error || error.message || errorMessage;
+            console.error('❌ 제품 합성 API 오류:', {
+              status: composeResponse.status,
+              statusText: composeResponse.statusText,
+              error: error
+            });
+          } catch (parseError) {
+            const errorText = await composeResponse.text();
+            console.error('❌ 제품 합성 API 오류 (JSON 파싱 실패):', {
+              status: composeResponse.status,
+              statusText: composeResponse.statusText,
+              responseText: errorText
+            });
+            errorMessage = `서버 오류 (${composeResponse.status}): ${errorText.substring(0, 200)}`;
+          }
+          throw new Error(errorMessage);
         }
 
         const composeResult = await composeResponse.json();
