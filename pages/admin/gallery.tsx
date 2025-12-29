@@ -1265,6 +1265,14 @@ export default function GalleryAdmin() {
   
   // 업스케일링 관련 상태
   const [isUpscaling, setIsUpscaling] = useState(false);
+  
+  // 이미지 회전 관련 상태
+  const [showRotateMenu, setShowRotateMenu] = useState(false);
+  const [isRotating, setIsRotating] = useState(false);
+  
+  // 이미지 변환 관련 상태
+  const [showConvertMenu, setShowConvertMenu] = useState(false);
+  const [isConverting, setIsConverting] = useState(false);
   const [upscaleModel, setUpscaleModel] = useState<'fal' | 'replicate'>('fal');
   const [upscaleScale, setUpscaleScale] = useState<2 | 4>(2);
   const [navigateSelectedOnly, setNavigateSelectedOnly] = useState(false);
@@ -1277,6 +1285,40 @@ export default function GalleryAdmin() {
   const getImageUniqueId = (image: ImageMetadata) => {
     return image.id || image.name;
   };
+
+  // 메뉴 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      // 회전 메뉴가 열려있고, 클릭이 메뉴 외부인 경우
+      if (showRotateMenu) {
+        const rotateMenu = document.querySelector('[data-rotate-menu]');
+        const rotateButton = document.querySelector('[data-rotate-button]');
+        if (rotateMenu && rotateButton && 
+            !rotateMenu.contains(target) && 
+            !rotateButton.contains(target)) {
+          setShowRotateMenu(false);
+        }
+      }
+      // 변환 메뉴가 열려있고, 클릭이 메뉴 외부인 경우
+      if (showConvertMenu) {
+        const convertMenu = document.querySelector('[data-convert-menu]');
+        const convertButton = document.querySelector('[data-convert-button]');
+        if (convertMenu && convertButton && 
+            !convertMenu.contains(target) && 
+            !convertButton.contains(target)) {
+          setShowConvertMenu(false);
+        }
+      }
+    };
+
+    if (showRotateMenu || showConvertMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showRotateMenu, showConvertMenu]);
 
   // 썸네일을 가운데로 스크롤하는 함수
   const scrollThumbnailToCenter = (imageName: string) => {
@@ -4910,6 +4952,247 @@ export default function GalleryAdmin() {
                 >
                   🗑️ 삭제
                 </button>
+                {/* 회전 버튼 */}
+                <div className="relative inline-block">
+                  <button
+                    data-rotate-button
+                    onClick={() => setShowRotateMenu(!showRotateMenu)}
+                    disabled={isRotating}
+                    className={`px-3 py-1 text-sm rounded transition-colors ${
+                      isRotating
+                        ? 'bg-blue-300 text-white cursor-not-allowed'
+                        : 'bg-blue-500 text-white hover:bg-blue-600'
+                    }`}
+                    title="회전"
+                  >
+                    {isRotating ? '⏳ 회전 중...' : '🔄 회전'}
+                  </button>
+                  {showRotateMenu && !isRotating && (
+                    <div data-rotate-menu className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-10 min-w-[220px]">
+                      <div className="px-3 py-2 text-xs text-gray-500 border-b">회전 방향</div>
+                      <button
+                        onClick={async () => {
+                          if (!selectedImageForZoom) return;
+                          setIsRotating(true);
+                          setShowRotateMenu(false);
+                          try {
+                            const response = await fetch('/api/admin/rotate-image', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                imageUrl: selectedImageForZoom.url,
+                                rotation: -90,
+                                folderPath: selectedImageForZoom.folder_path,
+                                fileName: selectedImageForZoom.name,
+                                format: 'auto'
+                              })
+                            });
+                            
+                            if (!response.ok) {
+                              const error = await response.json();
+                              throw new Error(error.error || '회전 실패');
+                            }
+                            
+                            const data = await response.json();
+                            if (data.success) {
+                              alert(`✅ 이미지가 반시계방향으로 90도 회전되었습니다.\n포맷: ${data.format.toUpperCase()}\n크기: ${(data.size / 1024).toFixed(2)}KB`);
+                              // 이미지 목록 새로고침
+                              fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+                            }
+                          } catch (error: any) {
+                            console.error('❌ 회전 오류:', error);
+                            alert(`회전 실패: ${error.message}`);
+                          } finally {
+                            setIsRotating(false);
+                          }
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                      >
+                        ↺ 반시계방향 90도
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (!selectedImageForZoom) return;
+                          setIsRotating(true);
+                          setShowRotateMenu(false);
+                          try {
+                            const response = await fetch('/api/admin/rotate-image', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                imageUrl: selectedImageForZoom.url,
+                                rotation: 90,
+                                folderPath: selectedImageForZoom.folder_path,
+                                fileName: selectedImageForZoom.name,
+                                format: 'auto'
+                              })
+                            });
+                            
+                            if (!response.ok) {
+                              const error = await response.json();
+                              throw new Error(error.error || '회전 실패');
+                            }
+                            
+                            const data = await response.json();
+                            if (data.success) {
+                              alert(`✅ 이미지가 시계방향으로 90도 회전되었습니다.\n포맷: ${data.format.toUpperCase()}\n크기: ${(data.size / 1024).toFixed(2)}KB`);
+                              // 이미지 목록 새로고침
+                              fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+                            }
+                          } catch (error: any) {
+                            console.error('❌ 회전 오류:', error);
+                            alert(`회전 실패: ${error.message}`);
+                          } finally {
+                            setIsRotating(false);
+                          }
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 rounded-b-lg"
+                      >
+                        ↻ 시계방향 90도
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {/* 변환 버튼 */}
+                <div className="relative inline-block">
+                  <button
+                    data-convert-button
+                    onClick={() => setShowConvertMenu(!showConvertMenu)}
+                    disabled={isConverting}
+                    className={`px-3 py-1 text-sm rounded transition-colors ${
+                      isConverting
+                        ? 'bg-green-300 text-white cursor-not-allowed'
+                        : 'bg-green-500 text-white hover:bg-green-600'
+                    }`}
+                    title="변환"
+                  >
+                    {isConverting ? '⏳ 변환 중...' : '🎨 변환'}
+                  </button>
+                  {showConvertMenu && !isConverting && (
+                    <div data-convert-menu className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-10 min-w-[200px]">
+                      <div className="px-3 py-2 text-xs text-gray-500 border-b">포맷 선택</div>
+                      <button
+                        onClick={async () => {
+                          if (!selectedImageForZoom) return;
+                          setIsConverting(true);
+                          setShowConvertMenu(false);
+                          try {
+                            const response = await fetch('/api/admin/convert-image', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                imageUrl: selectedImageForZoom.url,
+                                format: 'webp',
+                                quality: 85,
+                                folderPath: selectedImageForZoom.folder_path,
+                                fileName: selectedImageForZoom.name
+                              })
+                            });
+                            
+                            if (!response.ok) {
+                              const error = await response.json();
+                              throw new Error(error.error || '변환 실패');
+                            }
+                            
+                            const data = await response.json();
+                            if (data.success) {
+                              alert(`✅ WebP 변환 완료!\n크기: ${(data.size / 1024).toFixed(2)}KB\n원본 대비: ${data.reduction.toFixed(1)}% 감소\n투명도: ${data.hasAlpha ? '지원' : '없음'}`);
+                              // 이미지 목록 새로고침
+                              fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+                            }
+                          } catch (error: any) {
+                            console.error('❌ 변환 오류:', error);
+                            alert(`변환 실패: ${error.message}`);
+                          } finally {
+                            setIsConverting(false);
+                          }
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                      >
+                        WebP 85% (투명도 지원)
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (!selectedImageForZoom) return;
+                          setIsConverting(true);
+                          setShowConvertMenu(false);
+                          try {
+                            const response = await fetch('/api/admin/convert-image', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                imageUrl: selectedImageForZoom.url,
+                                format: 'jpg',
+                                quality: 85,
+                                folderPath: selectedImageForZoom.folder_path,
+                                fileName: selectedImageForZoom.name
+                              })
+                            });
+                            
+                            if (!response.ok) {
+                              const error = await response.json();
+                              throw new Error(error.error || '변환 실패');
+                            }
+                            
+                            const data = await response.json();
+                            if (data.success) {
+                              alert(`✅ JPG 변환 완료!\n크기: ${(data.size / 1024).toFixed(2)}KB\n원본 대비: ${data.reduction.toFixed(1)}% 감소`);
+                              // 이미지 목록 새로고침
+                              fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+                            }
+                          } catch (error: any) {
+                            console.error('❌ 변환 오류:', error);
+                            alert(`변환 실패: ${error.message}`);
+                          } finally {
+                            setIsConverting(false);
+                          }
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                      >
+                        JPG 85% (투명도 없음)
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (!selectedImageForZoom) return;
+                          setIsConverting(true);
+                          setShowConvertMenu(false);
+                          try {
+                            const response = await fetch('/api/admin/convert-image', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                imageUrl: selectedImageForZoom.url,
+                                format: 'png',
+                                folderPath: selectedImageForZoom.folder_path,
+                                fileName: selectedImageForZoom.name
+                              })
+                            });
+                            
+                            if (!response.ok) {
+                              const error = await response.json();
+                              throw new Error(error.error || '변환 실패');
+                            }
+                            
+                            const data = await response.json();
+                            if (data.success) {
+                              alert(`✅ PNG 변환 완료!\n크기: ${(data.size / 1024).toFixed(2)}KB\n무손실 압축\n투명도: ${data.hasAlpha ? '지원' : '없음'}`);
+                              // 이미지 목록 새로고침
+                              fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+                            }
+                          } catch (error: any) {
+                            console.error('❌ 변환 오류:', error);
+                            alert(`변환 실패: ${error.message}`);
+                          } finally {
+                            setIsConverting(false);
+                          }
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 rounded-b-lg"
+                      >
+                        PNG (무손실, 투명도 지원)
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={() => {
                     // 기존 이미지 변형 모달 열기 (FAL AI - 프롬프트 입력 가능)
