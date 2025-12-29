@@ -35,6 +35,7 @@ interface ImageGenerationRequest {
   improveHandQuality?: boolean; // 손 표현 개선 (손가락 개수, 비율, 자세 개선)
   enhanceFullShot?: boolean; // 전신 풀샷 강화 (카메라 각도 최적화)
   removeForegroundObstruction?: boolean; // 인물 앞 장애물 제거
+  fastCompositionMode?: boolean; // 빠른 합성 모드 (처리 시간 단축)
 }
 
 export default function AIImageGenerator() {
@@ -72,6 +73,7 @@ export default function AIImageGenerator() {
     improveHandQuality: false, // 기본값: 손 표현 개선 비활성화
     enhanceFullShot: false, // 기본값: 전신 풀샷 강화 비활성화
     removeForegroundObstruction: false, // 기본값: 인물 앞 장애물 제거 비활성화
+    fastCompositionMode: false, // 기본값: 빠른 합성 모드 비활성화
   });
 
   // localStorage에서 ChatGPT 최적화 설정 불러오기
@@ -543,6 +545,15 @@ ${compositionSpec}${improveHandQuality ? `
           compositionMethod: formData.compositionMethod
         });
         
+        // 빠른 합성 모드에 따른 파라미터 조정
+        const compositionMethod = formData.fastCompositionMode 
+          ? 'nano-banana'  // 빠른 모드: nano-banana 사용
+          : (formData.compositionMethod || 'nano-banana-pro');
+        
+        const outputFormat = formData.fastCompositionMode 
+          ? 'jpeg'  // 빠른 모드: JPEG 사용 (PNG보다 빠름)
+          : 'png';
+        
         // 갤러리에서 선택한 이미지로 바로 제품 합성
         const composeResponse = await fetch('/api/compose-product-image', {
           method: 'POST',
@@ -552,12 +563,12 @@ ${compositionSpec}${improveHandQuality ? `
           body: JSON.stringify({
             modelImageUrl: formData.selectedBaseImageUrl,
             productId: formData.selectedProductId,
-            compositionMethod: formData.compositionMethod || 'nano-banana-pro',
+            compositionMethod: compositionMethod,
             replaceLogo: formData.replaceLogo || false,
             numImages: 1,
             resolution: '1K',
             aspectRatio: 'auto',
-            outputFormat: 'png',
+            outputFormat: outputFormat,
             compositionBackground: formData.compositionTarget === 'head'
               ? formData.compositionBackground || 'natural'
               : undefined,
@@ -1582,6 +1593,39 @@ ${compositionSpec}${improveHandQuality ? `
                       <p className="mt-1 text-xs text-gray-500">
                         💡 Nano Banana Pro는 더 정확하고 자연스러운 합성 결과를 제공합니다.
                       </p>
+                    </div>
+
+                    {/* 빠른 합성 모드 토글 */}
+                    <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            ⚡ 빠른 합성 모드
+                          </label>
+                          <p className="text-xs text-gray-500">
+                            처리 시간을 약 40-60% 단축합니다 (품질 약간 저하)
+                          </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.fastCompositionMode || false}
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              fastCompositionMode: e.target.checked,
+                              // 빠른 모드 활성화 시 자동으로 nano-banana로 변경
+                              compositionMethod: e.target.checked ? 'nano-banana' : (formData.compositionMethod || 'nano-banana-pro')
+                            })}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                      </div>
+                      {formData.fastCompositionMode && (
+                        <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+                          ⚡ 빠른 모드 활성화: Nano Banana 사용 + JPEG 형식으로 처리 시간 단축
+                        </div>
+                      )}
                     </div>
 
                     {/* 제품 색상 변경 옵션 (제품 선택 시에만 표시) */}
