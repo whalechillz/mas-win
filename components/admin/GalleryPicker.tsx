@@ -123,7 +123,7 @@ const GalleryPicker: React.FC<Props> = ({
   };
 
   // 이미지 로드 함수
-  const fetchImages = async (resetPage = false) => {
+  const fetchImages = async (resetPage = false, retryCount = 0) => {
     // Solapi 탭이면 Solapi 이미지 로드
     if (imageSource === 'solapi') {
       return fetchSolapiImages(resetPage);
@@ -165,11 +165,19 @@ const GalleryPicker: React.FC<Props> = ({
       }
       
       const apiUrl = `/api/admin/all-images?${params.toString()}`;
-      console.log('🔍 GalleryPicker 이미지 로드 요청:', apiUrl);
+      console.log('🔍 GalleryPicker 이미지 로드 요청:', apiUrl, retryCount > 0 ? `(재시도 ${retryCount})` : '');
       
       const res = await fetch(apiUrl);
       
       if (!res.ok) {
+        // ✅ 504 타임아웃 시 자동 재시도 (최대 2회)
+        if (res.status === 504 && retryCount < 2) {
+          const retryDelay = (retryCount + 1) * 2000; // 2초, 4초
+          console.log(`⚠️ 타임아웃 발생 (${res.status}), ${retryDelay}ms 후 재시도... (${retryCount + 1}/2)`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          return fetchImages(resetPage, retryCount + 1);
+        }
+        
         console.error('❌ 이미지 로드 실패:', res.status, res.statusText);
         const errorText = await res.text().catch(() => 'Unknown error');
         console.error('에러 상세:', errorText);
@@ -182,13 +190,22 @@ const GalleryPicker: React.FC<Props> = ({
       console.log('✅ 이미지 로드 성공:', {
         count: data.images?.length || 0,
         total: data.total || 0,
-        folderFilter: folderFilter || '전체'
+        folderFilter: folderFilter || '전체',
+        retryCount: retryCount > 0 ? `(재시도 ${retryCount}회 후 성공)` : ''
       });
       
       setAllImages(data.images || []);
       setTotal(data.total || 0);
       if (resetPage) setPage(1);
-    } catch (error) {
+    } catch (error: any) {
+      // ✅ 네트워크 에러 시 재시도
+      if (retryCount < 2 && (error.message?.includes('timeout') || error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError'))) {
+        const retryDelay = (retryCount + 1) * 2000; // 2초, 4초
+        console.log(`⚠️ 네트워크 에러, ${retryDelay}ms 후 재시도... (${retryCount + 1}/2):`, error.message);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        return fetchImages(resetPage, retryCount + 1);
+      }
+      
       console.error('❌ 이미지 로드 중 오류:', error);
       setAllImages([]);
       setTotal(0);
