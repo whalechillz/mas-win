@@ -24,11 +24,34 @@ if (process.env.FAL_KEY) {
 
 /**
  * 이미지를 Supabase Storage에 저장
- * 제품별 gallery 폴더에 저장
+ * 베이스 이미지의 폴더 경로를 기반으로 저장 위치 결정
+ * 블로그 폴더인 경우 같은 폴더에 저장, 아니면 제품별 gallery 폴더에 저장
  */
-async function saveImageToSupabase(imageUrl, productId, prefix = 'composed') {
+async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', baseImageUrl = null) {
   try {
-    console.log('💾 이미지 저장 시작:', { imageUrl, productId });
+    console.log('💾 이미지 저장 시작:', { imageUrl, productId, baseImageUrl });
+    
+    // 베이스 이미지 URL에서 폴더 경로 추출
+    let targetFolder = null;
+    if (baseImageUrl) {
+      try {
+        const match = baseImageUrl.match(/blog-images\/([^?]+)/);
+        if (match) {
+          const fullPath = decodeURIComponent(match[1]);
+          const pathParts = fullPath.split('/');
+          if (pathParts.length > 1) {
+            const baseFolder = pathParts.slice(0, -1).join('/');
+            // 블로그 폴더인 경우 같은 폴더에 저장
+            if (baseFolder.startsWith('originals/blog/')) {
+              targetFolder = baseFolder;
+              console.log('📁 블로그 폴더 감지, 같은 폴더에 저장:', targetFolder);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('⚠️ 베이스 이미지 폴더 경로 추출 실패:', err.message);
+      }
+    }
     
     // 제품 정보 조회 (slug 가져오기)
     let productSlug = productId;
@@ -60,12 +83,13 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed') {
     const timestamp = Date.now();
     const fileExtension = imageUrl.split('.').pop()?.split('?')[0] || 'png';
     
-    // 제품별 gallery 폴더에 저장
-    // 굿즈/액세서리: originals/goods/{slug}/gallery
-    // 드라이버 제품: originals/products/{slug}/gallery
-    const storageFolder = category === 'hat' || category === 'accessory' || category === 'goods'
-      ? `originals/goods/${productSlug}/gallery`
-      : `originals/products/${productSlug}/gallery`;
+    // 저장 폴더 결정
+    // 블로그 폴더인 경우 같은 폴더에 저장, 아니면 제품별 gallery 폴더에 저장
+    const storageFolder = targetFolder 
+      ? targetFolder // 블로그 폴더인 경우 같은 폴더에 저장
+      : (category === 'hat' || category === 'accessory' || category === 'goods')
+        ? `originals/goods/${productSlug}/gallery`
+        : `originals/products/${productSlug}/gallery`;
     
     const fileName = `${storageFolder}/${prefix}-${productId}-${timestamp}.${fileExtension}`;
     
@@ -163,7 +187,8 @@ export default async function handler(req, res) {
       aspectRatio = 'auto', // 'auto' | '1:1' | '16:9' 등
       outputFormat = 'png',  // 'png' | 'jpeg' | 'webp'
       compositionBackground = 'natural', // 배경 타입: 'natural' | 'studio' | 'product-page'
-      productOnlyMode = false // 제품컷 전용 모드
+      productOnlyMode = false, // 제품컷 전용 모드
+      baseImageUrl = null // 베이스 이미지 URL (저장 위치 결정용)
     } = req.body;
 
     // 필수 파라미터 확인

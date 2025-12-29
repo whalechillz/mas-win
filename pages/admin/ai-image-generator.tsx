@@ -48,6 +48,7 @@ export default function AIImageGenerator() {
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null); // 선택된 프리셋
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false); // 고급 설정 토글
   const [expandedTone, setExpandedTone] = useState<'senior' | 'hightech' | 'both' | 'none'>('none'); // 펼쳐진 톤 카드
+  const [recentUploadFolder, setRecentUploadFolder] = useState<string | null>(null); // 최근 업로드/선택한 이미지 폴더
   const [formData, setFormData] = useState<ImageGenerationRequest>({
     prompt: '',
     brandTone: 'senior_emotional',
@@ -73,6 +74,27 @@ export default function AIImageGenerator() {
     removeForegroundObstruction: false, // 기본값: 인물 앞 장애물 제거 비활성화
   });
 
+  // 폴더 경로 추출 함수
+  const extractFolderPathFromUrl = (url: string): string | null => {
+    try {
+      // Supabase Storage URL에서 경로 추출
+      // 예: https://.../storage/v1/object/public/blog-images/originals/blog/2025-12/487/image.jpg
+      const match = url.match(/blog-images\/([^?]+)/);
+      if (match) {
+        const fullPath = decodeURIComponent(match[1]);
+        const pathParts = fullPath.split('/');
+        // 파일명 제외하고 폴더 경로만 반환
+        if (pathParts.length > 1) {
+          return pathParts.slice(0, -1).join('/');
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('폴더 경로 추출 실패:', error);
+      return null;
+    }
+  };
+
   // localStorage에서 ChatGPT 최적화 설정 불러오기
   useEffect(() => {
     const savedUseChatGPT = localStorage.getItem('ai-image-generator-useChatGPT');
@@ -81,6 +103,14 @@ export default function AIImageGenerator() {
         ...prev,
         useChatGPT: savedUseChatGPT === 'true'
       }));
+    }
+  }, []);
+
+  // 컴포넌트 마운트 시 최근 선택 폴더 복원
+  useEffect(() => {
+    const lastFolder = localStorage.getItem('lastSelectedImageFolder');
+    if (lastFolder) {
+      setRecentUploadFolder(lastFolder);
     }
   }, []);
 
@@ -534,6 +564,7 @@ ${compositionSpec}${improveHandQuality ? `
             compositionBackground: formData.compositionTarget === 'head'
               ? formData.compositionBackground || 'natural'
               : undefined,
+            baseImageUrl: formData.selectedBaseImageUrl, // 베이스 이미지 URL 전달 (저장 위치 결정용)
           }),
         });
 
@@ -1901,14 +1932,25 @@ ${compositionSpec}${improveHandQuality ? `
         isOpen={showBaseImageGallery}
         onClose={() => setShowBaseImageGallery(false)}
         onSelect={(imageUrl) => {
+          // URL에서 폴더 경로 추출
+          const folderPath = extractFolderPathFromUrl(imageUrl);
+          
           setFormData({ 
             ...formData, 
             selectedBaseImageUrl: imageUrl,
             enableProductComposition: true // 갤러리에서 선택 시 자동으로 제품 합성 활성화
           });
+          
+          // 최근 선택 폴더 저장 (localStorage)
+          if (folderPath) {
+            localStorage.setItem('lastSelectedImageFolder', folderPath);
+            setRecentUploadFolder(folderPath);
+            console.log('📁 선택한 이미지 폴더:', folderPath);
+          }
+          
           setShowBaseImageGallery(false);
         }}
-        autoFilterFolder="originals/daily-branding/kakao"
+        autoFilterFolder={recentUploadFolder || undefined} // 동적 폴더 필터 (최근 선택 폴더 우선)
         showCompareMode={true}
         maxCompareCount={3}
       />
