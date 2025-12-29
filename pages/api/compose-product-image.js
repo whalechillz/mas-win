@@ -2,6 +2,11 @@ import { fal } from "@fal-ai/client";
 import { createClient } from '@supabase/supabase-js';
 import { getProductById, generateCompositionPrompt, generateLogoReplacementPrompt, getAbsoluteImageUrl, generateColorChangePrompt } from '../../lib/product-composition';
 
+// API 타임아웃 설정 (5분)
+export const config = {
+  maxDuration: 300, // 5분 (초 단위)
+};
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);

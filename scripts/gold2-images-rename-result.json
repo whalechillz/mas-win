@@ -1,0 +1,56 @@
+{
+  "filesFound": [],
+  "filesRenamed": [
+    {
+      "old": "gold2_00_01.jpg",
+      "new": "secret-force-gold-2-gallery-01.webp",
+      "oldPath": "originals/products/gold2/detail/gold2_00_01.jpg",
+      "newPath": "originals/products/gold2/detail/secret-force-gold-2-gallery-01.webp"
+    },
+    {
+      "old": "gold2_02.jpg",
+      "new": "secret-force-gold-2-gallery-03.webp",
+      "oldPath": "originals/products/gold2/detail/gold2_02.jpg",
+      "newPath": "originals/products/gold2/detail/secret-force-gold-2-gallery-03.webp"
+    },
+    {
+      "old": "gold2_03.jpg",
+      "new": "secret-force-gold-2-gallery-04.webp",
+      "oldPath": "originals/products/gold2/detail/gold2_03.jpg",
+      "newPath": "originals/products/gold2/detail/secret-force-gold-2-gallery-04.webp"
+    },
+    {
+      "old": "gold2_04.jpg",
+      "new": "secret-force-gold-2-gallery-05.webp",
+      "oldPath": "originals/products/gold2/detail/gold2_04.jpg",
+      "newPath": "originals/products/gold2/detail/secret-force-gold-2-gallery-05.webp"
+    },
+    {
+      "old": "gold2_05.jpg",
+      "new": "secret-force-gold-2-gallery-06.webp",
+      "oldPath": "originals/products/gold2/detail/gold2_05.jpg",
+      "newPath": "originals/products/gold2/detail/secret-force-gold-2-gallery-06.webp"
+    },
+    {
+      "old": "gold2_06.jpg",
+      "new": "secret-force-gold-2-gallery-07.webp",
+      "oldPath": "originals/products/gold2/detail/gold2_06.jpg",
+      "newPath": "originals/products/gold2/detail/secret-force-gold-2-gallery-07.webp"
+    },
+    {
+      "old": "gold2_07.jpg",
+      "new": "secret-force-gold-2-gallery-08.webp",
+      "oldPath": "originals/products/gold2/detail/gold2_07.jpg",
+      "newPath": "originals/products/gold2/detail/secret-force-gold-2-gallery-08.webp"
+    },
+    {
+      "old": "gold2_08_01.jpg",
+      "new": "secret-force-gold-2-gallery-09.webp",
+      "oldPath": "originals/products/gold2/detail/gold2_08_01.jpg",
+      "newPath": "originals/products/gold2/detail/secret-force-gold-2-gallery-09.webp"
+    }
+  ],
+  "filesFailed": [],
+  "dbUpdated": true,
+  "errors": []
+}
