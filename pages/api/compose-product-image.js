@@ -137,28 +137,28 @@ function getAbsoluteProductImageUrl(productImageUrl) {
     if (productImageUrl.includes('localhost') || productImageUrl.includes('127.0.0.1')) {
       throw new Error(`로컬호스트 URL은 FAL AI에서 사용할 수 없습니다: ${productImageUrl}. 프로덕션 도메인을 사용하거나 Supabase 공개 URL을 사용해주세요.`);
     }
+    // 이미 Supabase URL이면 그대로 반환
+    if (productImageUrl.includes('supabase.co')) {
+      return productImageUrl;
+    }
+    // 다른 절대 URL도 그대로 반환 (예: 외부 이미지)
     return productImageUrl;
   }
   
-  // 상대 경로인 경우
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
-                  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
+  // 상대 경로인 경우 Supabase Storage 공개 URL로 변환
+  // 제품 이미지는 항상 Supabase Storage에 저장되어 있음
+  const SUPABASE_BASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+  const STORAGE_BUCKET = 'blog-images';
   
-  if (!baseUrl) {
-    // 로컬 개발 환경에서는 제품 이미지를 제외하고 계속 진행
-    if (process.env.NODE_ENV === 'development') {
-      return null; // null 반환하여 제품 이미지 제외
-    }
-    throw new Error(`제품 이미지 URL을 공개 URL로 변환할 수 없습니다. NEXT_PUBLIC_SITE_URL 또는 VERCEL_URL 환경 변수를 설정해주세요. 상대 경로: ${productImageUrl}`);
-  }
+  // 경로 정규화
+  const cleanPath = productImageUrl.startsWith('/') ? productImageUrl.slice(1) : productImageUrl;
   
-  // baseUrl이 /로 끝나지 않으면 / 추가
-  const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+  // Supabase Storage 공개 URL 생성
+  const supabaseUrl = `${SUPABASE_BASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${cleanPath}`;
   
-  // productImageUrl이 /로 시작하면 제거
-  const normalizedPath = productImageUrl.startsWith('/') ? productImageUrl.slice(1) : productImageUrl;
+  console.log(`🔗 제품 이미지 URL 변환: ${productImageUrl} → ${supabaseUrl}`);
   
-  return `${normalizedBaseUrl}${normalizedPath}`;
+  return supabaseUrl;
 }
 
 export default async function handler(req, res) {
