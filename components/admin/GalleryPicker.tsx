@@ -175,9 +175,13 @@ const GalleryPicker: React.FC<Props> = ({
       }
       
       const apiUrl = `/api/admin/all-images?${params.toString()}`;
+      const requestStartTime = Date.now();
       console.log('🔍 GalleryPicker 이미지 로드 요청:', apiUrl, retryCount > 0 ? `(재시도 ${retryCount})` : '');
       
       const res = await fetch(apiUrl);
+      
+      const requestDuration = Date.now() - requestStartTime;
+      console.log(`⏱️ API 응답 시간: ${requestDuration}ms`);
       
       if (!res.ok) {
         // ✅ 504 타임아웃 시 자동 재시도 (최대 2회)
@@ -1092,6 +1096,12 @@ const GalleryPicker: React.FC<Props> = ({
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 <div className="text-gray-600 font-medium">이미지 로딩 중...</div>
+                <div className="text-sm text-gray-400 mt-2">
+                  {folderFilter ? `폴더: ${folderFilter}` : '전체 이미지 조회 중'}
+                </div>
+                <div className="text-xs text-gray-400 mt-1">
+                  Supabase에서 이미지를 불러오는 중입니다. 잠시만 기다려주세요...
+                </div>
               </div>
             </div>
           ) : filtered.length === 0 ? (
