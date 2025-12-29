@@ -49,8 +49,6 @@ export default function AIImageGenerator() {
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false); // 고급 설정 토글
   const [expandedTone, setExpandedTone] = useState<'senior' | 'hightech' | 'both' | 'none'>('none'); // 펼쳐진 톤 카드
   const [recentUploadFolder, setRecentUploadFolder] = useState<string | null>(null); // 최근 업로드/선택한 이미지 폴더
-  const [recentFolders, setRecentFolders] = useState<string[]>([]); // 최근 사용 폴더 목록
-  const [selectedFolder, setSelectedFolder] = useState<string | null>(null); // 선택된 폴더
   const [formData, setFormData] = useState<ImageGenerationRequest>({
     prompt: '',
     brandTone: 'senior_emotional',
@@ -76,27 +74,6 @@ export default function AIImageGenerator() {
     removeForegroundObstruction: false, // 기본값: 인물 앞 장애물 제거 비활성화
   });
 
-  // 폴더 경로 추출 함수
-  const extractFolderPathFromUrl = (url: string): string | null => {
-    try {
-      // Supabase Storage URL에서 경로 추출
-      // 예: https://.../storage/v1/object/public/blog-images/originals/blog/2025-12/487/image.jpg
-      const match = url.match(/blog-images\/([^?]+)/);
-      if (match) {
-        const fullPath = decodeURIComponent(match[1]);
-        const pathParts = fullPath.split('/');
-        // 파일명 제외하고 폴더 경로만 반환
-        if (pathParts.length > 1) {
-          return pathParts.slice(0, -1).join('/');
-        }
-      }
-      return null;
-    } catch (error) {
-      console.error('폴더 경로 추출 실패:', error);
-      return null;
-    }
-  };
-
   // localStorage에서 ChatGPT 최적화 설정 불러오기
   useEffect(() => {
     const savedUseChatGPT = localStorage.getItem('ai-image-generator-useChatGPT');
@@ -108,53 +85,8 @@ export default function AIImageGenerator() {
     }
   }, []);
 
-  // 최근 폴더 목록 로드
-  const loadRecentFolders = () => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('ai-image-generator-recent-folders');
-      if (saved) {
-        try {
-          const folders = JSON.parse(saved);
-          setRecentFolders(folders);
-          // 가장 최근 폴더를 기본 선택 폴더로 설정
-          if (folders.length > 0 && !recentUploadFolder) {
-            setRecentUploadFolder(folders[0]);
-          }
-        } catch (e) {
-          console.error('최근 폴더 로드 실패:', e);
-        }
-      }
-    }
-  };
-
-  // 최근 폴더에 추가
-  const addRecentFolder = (folderPath: string) => {
-    if (!folderPath) return;
-    const updated = [folderPath, ...recentFolders.filter(f => f !== folderPath)].slice(0, 6);
-    setRecentFolders(updated);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('ai-image-generator-recent-folders', JSON.stringify(updated));
-    }
-  };
-
-  // 최근 폴더 삭제
-  const removeRecentFolder = (folderPath: string) => {
-    const updated = recentFolders.filter(f => f !== folderPath);
-    setRecentFolders(updated);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('ai-image-generator-recent-folders', JSON.stringify(updated));
-    }
-    // 선택된 폴더가 삭제되면 선택 해제
-    if (selectedFolder === folderPath) {
-      setSelectedFolder(null);
-      setRecentUploadFolder(null);
-    }
-  };
-
-  // 컴포넌트 마운트 시 최근 폴더 목록 로드
+  // 컴포넌트 마운트 시 최근 선택 폴더 복원 (하위 호환성)
   useEffect(() => {
-    loadRecentFolders();
-    // 기존 lastSelectedImageFolder도 복원 (하위 호환성)
     const lastFolder = localStorage.getItem('lastSelectedImageFolder');
     if (lastFolder && !recentUploadFolder) {
       setRecentUploadFolder(lastFolder);
@@ -1751,55 +1683,6 @@ ${compositionSpec}${improveHandQuality ? `
                   {/* 갤러리 모드일 때 베이스 이미지 선택 */}
                   {formData.baseImageMode === 'gallery' && (
                     <div className="mt-4">
-                      {/* 최근 사용 폴더 섹션 */}
-                      {recentFolders.length > 0 && (
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            📁 최근 사용 폴더
-                          </label>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                            {recentFolders.map((folder, index) => {
-                              // 폴더 경로를 읽기 쉽게 표시 (originals/ 제거)
-                              const displayPath = folder.replace(/^originals\//, '');
-                              return (
-                                <div
-                                  key={index}
-                                  className={`relative p-3 border-2 rounded-lg cursor-pointer transition-all group ${
-                                    selectedFolder === folder
-                                      ? 'border-blue-500 bg-blue-50'
-                                      : 'border-gray-200 hover:border-gray-300 bg-white'
-                                  }`}
-                                  onClick={() => {
-                                    setSelectedFolder(folder);
-                                    setRecentUploadFolder(folder);
-                                    // 하위 호환성을 위해 기존 키도 저장
-                                    if (typeof window !== 'undefined') {
-                                      localStorage.setItem('lastSelectedImageFolder', folder);
-                                    }
-                                  }}
-                                  title={folder} // 전체 경로를 툴팁으로 표시
-                                >
-                                  <div className="text-xs font-medium text-gray-700 truncate pr-6">
-                                    {displayPath}
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      removeRecentFolder(folder);
-                                    }}
-                                    className="absolute top-1 right-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-                                    title="폴더 삭제"
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                      
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         베이스 이미지 선택 *
                       </label>
@@ -2028,30 +1911,14 @@ ${compositionSpec}${improveHandQuality ? `
         isOpen={showBaseImageGallery}
         onClose={() => setShowBaseImageGallery(false)}
         onSelect={(imageUrl) => {
-          // URL에서 폴더 경로 추출
-          const folderPath = extractFolderPathFromUrl(imageUrl);
-          
           setFormData({ 
             ...formData, 
             selectedBaseImageUrl: imageUrl,
             enableProductComposition: true // 갤러리에서 선택 시 자동으로 제품 합성 활성화
           });
-          
-          // 최근 폴더에 추가 및 선택
-          if (folderPath) {
-            addRecentFolder(folderPath);
-            setSelectedFolder(folderPath);
-            setRecentUploadFolder(folderPath);
-            // 하위 호환성을 위해 기존 키도 저장
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('lastSelectedImageFolder', folderPath);
-            }
-            console.log('📁 선택한 이미지 폴더:', folderPath);
-          }
-          
           setShowBaseImageGallery(false);
         }}
-        autoFilterFolder={selectedFolder || recentUploadFolder || undefined} // 동적 폴더 필터 (선택된 폴더 우선)
+        autoFilterFolder={recentUploadFolder || undefined} // 동적 폴더 필터
         showCompareMode={true}
         maxCompareCount={3}
       />

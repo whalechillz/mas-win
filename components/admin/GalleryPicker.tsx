@@ -58,6 +58,7 @@ const GalleryPicker: React.FC<Props> = ({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pageSize = 24;
+  const [recentFolders, setRecentFolders] = useState<string[]>([]); // 최근 사용 폴더 목록
   
   // 이미지 복사/링크 모달 관련 상태
   const [showCopyLinkModal, setShowCopyLinkModal] = useState(false);
@@ -235,6 +236,53 @@ const GalleryPicker: React.FC<Props> = ({
   };
 
   // 이미지 소스 변경 시 이미지 다시 로드
+  // 폴더 경로 추출 함수
+  const extractFolderPathFromUrl = (url: string): string | null => {
+    try {
+      // Supabase Storage URL에서 경로 추출
+      // 예: https://.../storage/v1/object/public/blog-images/originals/blog/2025-12/487/image.jpg
+      const match = url.match(/blog-images\/([^?]+)/);
+      if (match) {
+        const fullPath = decodeURIComponent(match[1]);
+        const pathParts = fullPath.split('/');
+        // 파일명 제외하고 폴더 경로만 반환
+        if (pathParts.length > 1) {
+          return pathParts.slice(0, -1).join('/');
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('폴더 경로 추출 실패:', error);
+      return null;
+    }
+  };
+
+  // 최근 폴더 목록 로드
+  useEffect(() => {
+    if (!isOpen) return;
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('gallery-picker-recent-folders');
+      if (saved) {
+        try {
+          const folders = JSON.parse(saved);
+          setRecentFolders(folders);
+        } catch (e) {
+          console.error('최근 폴더 로드 실패:', e);
+        }
+      }
+    }
+  }, [isOpen]);
+
+  // 최근 폴더에 추가
+  const addRecentFolder = (folderPath: string) => {
+    if (!folderPath) return;
+    const updated = [folderPath, ...recentFolders.filter(f => f !== folderPath)].slice(0, 6);
+    setRecentFolders(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('gallery-picker-recent-folders', JSON.stringify(updated));
+    }
+  };
+
   useEffect(() => {
     if (!isOpen) return;
     fetchImages(true);
@@ -321,6 +369,17 @@ const GalleryPicker: React.FC<Props> = ({
       });
       
       console.log('✅ 이미지 업로드 완료:', url);
+      
+      // 업로드한 폴더를 최근 폴더에 추가
+      if (targetFolder) {
+        addRecentFolder(targetFolder);
+      } else {
+        // targetFolder가 없으면 업로드된 이미지 URL에서 폴더 경로 추출
+        const folderPath = extractFolderPathFromUrl(url);
+        if (folderPath) {
+          addRecentFolder(folderPath);
+        }
+      }
       
       // 업로드 후 갤러리 새로고침
       await fetchImages(true);
@@ -533,6 +592,11 @@ const GalleryPicker: React.FC<Props> = ({
       onSelect(solapiImageId, { alt: altText || img.name });
     } else {
       // Supabase 이미지는 기존대로 URL 전달
+      // 이미지 선택 시 폴더 경로 추출 및 최근 폴더에 추가
+      const folderPath = extractFolderPathFromUrl(img.url);
+      if (folderPath) {
+        addRecentFolder(folderPath);
+      }
       onSelect(img.url, { alt: altText || img.name });
     }
     if (!keepOpenAfterSelect) {
@@ -744,6 +808,11 @@ const GalleryPicker: React.FC<Props> = ({
                     <button
                       type="button"
                       onClick={() => {
+                        // 이미지 선택 시 폴더 경로 추출 및 최근 폴더에 추가
+                        const folderPath = extractFolderPathFromUrl(img.url);
+                        if (folderPath) {
+                          addRecentFolder(folderPath);
+                        }
                         onSelect(img.url, { alt: altText || img.name });
                         if (!keepOpenAfterSelect) {
                           onClose();
@@ -866,6 +935,39 @@ const GalleryPicker: React.FC<Props> = ({
         </div>
         {/* 필터 및 검색 바 */}
         <div className="p-4 border-b bg-white">
+          {/* 최근 사용 폴더 섹션 */}
+          {recentFolders.length > 0 && (
+            <div className="mb-3">
+              <label className="block text-xs text-gray-500 font-medium mb-2">
+                📁 최근 사용 폴더
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {recentFolders.map((folder, index) => {
+                  const displayPath = folder.replace(/^originals\//, '');
+                  return (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => {
+                        setFolderFilter(folder);
+                        setPage(1);
+                        fetchImages(true);
+                      }}
+                      className={`px-3 py-1.5 text-xs border rounded-lg transition-all ${
+                        folderFilter === folder
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                      }`}
+                      title={folder}
+                    >
+                      {displayPath}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          
           <div className="flex items-center gap-3 flex-wrap">
             {/* 날짜 선택 (kakao 폴더인 경우) */}
             {autoFilterFolder && autoFilterFolder.includes('kakao') && (
