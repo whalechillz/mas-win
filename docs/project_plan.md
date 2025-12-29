@@ -38,6 +38,37 @@
 
 # 🎯 프로젝트 진행 현황
 
+## ✅ 최근 작업: 클라이언트 Canvas API로 이미지 회전/변환 기능 구현 (2025-12-27)
+
+### 완료된 작업
+- **클라이언트 측 이미지 처리 유틸리티** ✅:
+  - Canvas API를 사용한 이미지 회전/변환 함수 생성
+  - 투명도 자동 감지 및 포맷 선택
+  - 파일: `lib/client/image-processor.ts`
+- **처리된 이미지 업로드 API** ✅:
+  - Sharp 없이 단순 업로드만 수행
+  - FormData 처리 및 Supabase Storage 저장
+  - 파일: `pages/api/admin/upload-processed-image.js`
+- **갤러리 UI 수정** ✅:
+  - 회전 버튼: 클라이언트 Canvas로 처리 후 업로드
+  - 변환 버튼: WebP/JPG/PNG 변환 (클라이언트 Canvas)
+  - 기존 Sharp API는 유지 (다른 기능에 영향 없음)
+- **Vercel 환경 문제 해결** ✅:
+  - Sharp 로드 오류 완전 회피
+  - 브라우저 Canvas API 사용으로 안정성 향상
+
+### 변경된 파일
+- `lib/client/image-processor.ts` (신규)
+- `pages/api/admin/upload-processed-image.js` (신규)
+- `pages/admin/gallery.tsx` (회전/변환 핸들러 수정)
+
+### 기술적 결정
+- **Sharp 대신 Canvas API 선택**: Vercel 환경에서 Sharp 로드 실패 문제 해결
+- **클라이언트 측 처리**: 브라우저에서 처리하여 서버 부하 감소
+- **기존 기능 보존**: 다른 Sharp 사용 기능들은 그대로 유지
+
+---
+
 ## ✅ 최근 작업: 이미지 갤러리 회전 및 변환 기능 추가 (2025-12-27)
 
 ### 완료된 작업
