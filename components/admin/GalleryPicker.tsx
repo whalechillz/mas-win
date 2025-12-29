@@ -174,9 +174,15 @@ const GalleryPicker: React.FC<Props> = ({
         params.append('channel', channelFilter);
       }
       
+      // ✅ 캐시 무효화: folderFilter가 변경되거나 재로딩 시 forceRefresh 추가
+      // 재시도가 아닌 첫 요청이고 폴더 필터가 있을 때만 캐시 무효화
+      if (retryCount === 0 && folderFilter) {
+        params.append('forceRefresh', 'true');
+      }
+      
       const apiUrl = `/api/admin/all-images?${params.toString()}`;
       const requestStartTime = Date.now();
-      console.log('🔍 GalleryPicker 이미지 로드 요청:', apiUrl, retryCount > 0 ? `(재시도 ${retryCount})` : '');
+      console.log('🔍 GalleryPicker 이미지 로드 요청:', apiUrl, retryCount > 0 ? `(재시도 ${retryCount})` : folderFilter ? '(캐시 무효화)' : '');
       
       const res = await fetch(apiUrl);
       
@@ -282,6 +288,14 @@ const GalleryPicker: React.FC<Props> = ({
       setShowCompareView(false);
     };
   }, [isOpen, autoFilterFolder]);
+
+  // ✅ folderFilter가 변경될 때마다 이미지 다시 로드 (캐시 무효화)
+  useEffect(() => {
+    if (!isOpen || !folderFilter) return;
+    console.log('📁 folderFilter 변경 감지, 이미지 다시 로드:', folderFilter);
+    // 캐시 무효화를 위해 forceRefresh 파라미터 추가
+    fetchImages(true);
+  }, [folderFilter]);
 
   // 폴더 필터나 페이지 변경 시 이미지 로드
   useEffect(() => {
