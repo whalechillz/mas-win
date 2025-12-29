@@ -115,7 +115,7 @@ async function updateSurveyProductsGalleryImages() {
   try {
     const { data: golfFiles, error: golfError } = await supabase.storage
       .from('blog-images')
-      .list('originals/products/goods/golf-hat-muziik/gallery', {
+      .list('originals/goods/golf-hat-muziik/gallery', {
         limit: 100,
         sortBy: { column: 'name', order: 'asc' }
       });
@@ -127,7 +127,7 @@ async function updateSurveyProductsGalleryImages() {
       // .webp 파일만 필터링하고 정렬
       const golfImages = golfFiles
         .filter(file => file.name.endsWith('.webp'))
-        .map(file => `originals/products/goods/golf-hat-muziik/gallery/${file.name}`)
+        .map(file => `originals/goods/golf-hat-muziik/gallery/${file.name}`)
         .sort();
 
       console.log(`   ✅ 골프모자 이미지 ${golfImages.length}개 발견`);
