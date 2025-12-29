@@ -362,10 +362,14 @@ export default function ProductCompositionManagement() {
   const getCompositionFolderPath = (): string | undefined => {
     if (!formData.slug || !formData.category) return undefined;
     
+    // 상위 폴더를 지정하여 composition, detail, gallery 폴더 모두 검색 가능하도록
     if (formData.category === 'goods') {
-      return `originals/products/goods/${formData.slug}/composition`;
+      // goods 제품: originals/products/goods/{slug}/ 까지만 지정
+      // 이렇게 하면 composition, detail, gallery 폴더 모두 검색됨
+      return `originals/products/goods/${formData.slug}`;
     } else {
-      return `originals/products/${formData.slug}/composition`;
+      // 드라이버 제품: originals/products/{slug}/ 까지만 지정
+      return `originals/products/${formData.slug}`;
     }
   };
 
