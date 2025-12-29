@@ -4988,12 +4988,24 @@ export default function GalleryAdmin() {
                               })
                             });
                             
-                            if (!response.ok) {
-                              const error = await response.json();
-                              throw new Error(error.error || '회전 실패');
+                            // 응답 본문 확인
+                            const text = await response.text();
+                            if (!text) {
+                              throw new Error('서버에서 응답이 없습니다.');
                             }
                             
-                            const data = await response.json();
+                            let data;
+                            try {
+                              data = JSON.parse(text);
+                            } catch (parseError) {
+                              console.error('JSON 파싱 오류:', parseError, '응답:', text);
+                              throw new Error(`서버 응답 오류: ${text.substring(0, 100)}`);
+                            }
+                            
+                            if (!response.ok) {
+                              throw new Error(data.error || '회전 실패');
+                            }
+                            
                             if (data.success) {
                               alert(`✅ 이미지가 반시계방향으로 90도 회전되었습니다.\n포맷: ${data.format.toUpperCase()}\n크기: ${(data.size / 1024).toFixed(2)}KB`);
                               // 이미지 목록 새로고침
@@ -5028,12 +5040,24 @@ export default function GalleryAdmin() {
                               })
                             });
                             
-                            if (!response.ok) {
-                              const error = await response.json();
-                              throw new Error(error.error || '회전 실패');
+                            // 응답 본문 확인
+                            const text = await response.text();
+                            if (!text) {
+                              throw new Error('서버에서 응답이 없습니다.');
                             }
                             
-                            const data = await response.json();
+                            let data;
+                            try {
+                              data = JSON.parse(text);
+                            } catch (parseError) {
+                              console.error('JSON 파싱 오류:', parseError, '응답:', text);
+                              throw new Error(`서버 응답 오류: ${text.substring(0, 100)}`);
+                            }
+                            
+                            if (!response.ok) {
+                              throw new Error(data.error || '회전 실패');
+                            }
+                            
                             if (data.success) {
                               alert(`✅ 이미지가 시계방향으로 90도 회전되었습니다.\n포맷: ${data.format.toUpperCase()}\n크기: ${(data.size / 1024).toFixed(2)}KB`);
                               // 이미지 목록 새로고침
@@ -5089,12 +5113,24 @@ export default function GalleryAdmin() {
                               })
                             });
                             
-                            if (!response.ok) {
-                              const error = await response.json();
-                              throw new Error(error.error || '변환 실패');
+                            // 응답 본문 확인
+                            const text = await response.text();
+                            if (!text) {
+                              throw new Error('서버에서 응답이 없습니다.');
                             }
                             
-                            const data = await response.json();
+                            let data;
+                            try {
+                              data = JSON.parse(text);
+                            } catch (parseError) {
+                              console.error('JSON 파싱 오류:', parseError, '응답:', text);
+                              throw new Error(`서버 응답 오류: ${text.substring(0, 100)}`);
+                            }
+                            
+                            if (!response.ok) {
+                              throw new Error(data.error || '변환 실패');
+                            }
+                            
                             if (data.success) {
                               alert(`✅ WebP 변환 완료!\n크기: ${(data.size / 1024).toFixed(2)}KB\n원본 대비: ${data.reduction.toFixed(1)}% 감소\n투명도: ${data.hasAlpha ? '지원' : '없음'}`);
                               // 이미지 목록 새로고침
@@ -5129,12 +5165,24 @@ export default function GalleryAdmin() {
                               })
                             });
                             
-                            if (!response.ok) {
-                              const error = await response.json();
-                              throw new Error(error.error || '변환 실패');
+                            // 응답 본문 확인
+                            const text = await response.text();
+                            if (!text) {
+                              throw new Error('서버에서 응답이 없습니다.');
                             }
                             
-                            const data = await response.json();
+                            let data;
+                            try {
+                              data = JSON.parse(text);
+                            } catch (parseError) {
+                              console.error('JSON 파싱 오류:', parseError, '응답:', text);
+                              throw new Error(`서버 응답 오류: ${text.substring(0, 100)}`);
+                            }
+                            
+                            if (!response.ok) {
+                              throw new Error(data.error || '변환 실패');
+                            }
+                            
                             if (data.success) {
                               alert(`✅ JPG 변환 완료!\n크기: ${(data.size / 1024).toFixed(2)}KB\n원본 대비: ${data.reduction.toFixed(1)}% 감소`);
                               // 이미지 목록 새로고침
@@ -5168,12 +5216,24 @@ export default function GalleryAdmin() {
                               })
                             });
                             
-                            if (!response.ok) {
-                              const error = await response.json();
-                              throw new Error(error.error || '변환 실패');
+                            // 응답 본문 확인
+                            const text = await response.text();
+                            if (!text) {
+                              throw new Error('서버에서 응답이 없습니다.');
                             }
                             
-                            const data = await response.json();
+                            let data;
+                            try {
+                              data = JSON.parse(text);
+                            } catch (parseError) {
+                              console.error('JSON 파싱 오류:', parseError, '응답:', text);
+                              throw new Error(`서버 응답 오류: ${text.substring(0, 100)}`);
+                            }
+                            
+                            if (!response.ok) {
+                              throw new Error(data.error || '변환 실패');
+                            }
+                            
                             if (data.success) {
                               alert(`✅ PNG 변환 완료!\n크기: ${(data.size / 1024).toFixed(2)}KB\n무손실 압축\n투명도: ${data.hasAlpha ? '지원' : '없음'}`);
                               // 이미지 목록 새로고침

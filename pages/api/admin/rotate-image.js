@@ -1,17 +1,17 @@
-import sharp from 'sharp';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    // Sharp와 Supabase 동적 import (Vercel 환경 호환성)
+    const sharp = (await import('sharp')).default;
+    const { createClient } = await import('@supabase/supabase-js');
+    
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
     const { 
       imageUrl, 
       rotation, 
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     // 이미지 다운로드
     const imageResponse = await fetch(imageUrl);
     if (!imageResponse.ok) {
-      throw new Error('이미지 다운로드 실패');
+      throw new Error(`이미지 다운로드 실패: ${imageResponse.status} ${imageResponse.statusText}`);
     }
     const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
 
@@ -144,7 +144,13 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('❌ 이미지 회전 오류:', error);
-    res.status(500).json({ error: error.message || '이미지 회전 중 오류가 발생했습니다.' });
+    // 에러 응답을 확실히 전송 (이미 전송되지 않은 경우에만)
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        success: false,
+        error: error.message || '이미지 회전 중 오류가 발생했습니다.' 
+      });
+    }
   }
 }
 
