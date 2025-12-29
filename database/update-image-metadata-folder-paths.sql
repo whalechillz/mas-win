@@ -36,9 +36,11 @@ WHERE folder_path LIKE '%goods%' OR original_path LIKE '%goods%';
 -- 4. 샘플 데이터 확인
 SELECT 
   id,
+  image_url,
   folder_path,
   original_path,
-  name
+  title,
+  alt_text
 FROM image_metadata
 WHERE folder_path LIKE 'originals/goods/%'
    OR original_path LIKE '%originals/goods/%'
