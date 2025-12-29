@@ -467,7 +467,8 @@ export default async function handler(req, res) {
         const saved = await saveImageToSupabase(
           image.url, 
           productId, 
-          `composed-${i + 1}`
+          `composed-${i + 1}`,
+          baseImageUrl || modelImageUrl // 베이스 이미지 URL 전달 (저장 위치 결정용)
         );
         savedImages.push({
           ...saved,
