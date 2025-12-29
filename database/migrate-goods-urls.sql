@@ -10,28 +10,28 @@ SET
 WHERE category IN ('goods', 'hat', 'accessory')
   AND image_url LIKE '%originals/products/goods/%';
 
--- reference_images 필드 (JSONB 배열)
+-- reference_images 필드 (JSONB 배열) - 수정됨
 UPDATE product_composition
 SET 
   reference_images = (
     SELECT jsonb_agg(
-      REPLACE(value::text, 'originals/products/goods/', 'originals/goods/')::jsonb
+      to_jsonb(REPLACE(value::text, 'originals/products/goods/', 'originals/goods/'))
     )
-    FROM jsonb_array_elements_text(reference_images)
+    FROM jsonb_array_elements_text(reference_images) AS t(value)
   ),
   updated_at = NOW()
 WHERE category IN ('goods', 'hat', 'accessory')
   AND reference_images::text LIKE '%originals/products/goods/%';
 
--- color_variants 필드 (JSONB 객체)
+-- color_variants 필드 (JSONB 객체) - 수정됨
 UPDATE product_composition
 SET 
   color_variants = (
     SELECT jsonb_object_agg(
       key,
-      REPLACE(value::text, 'originals/products/goods/', 'originals/goods/')
+      to_jsonb(REPLACE(value, 'originals/products/goods/', 'originals/goods/'))
     )
-    FROM jsonb_each_text(color_variants)
+    FROM jsonb_each_text(color_variants) AS t(key, value)
   ),
   updated_at = NOW()
 WHERE category IN ('goods', 'hat', 'accessory')
