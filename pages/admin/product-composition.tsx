@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { getAbsoluteImageUrl } from '../../lib/product-composition';
 import GalleryPicker from '../../components/admin/GalleryPicker';
 import FolderImagePicker from '../../components/admin/FolderImagePicker';
+import FolderImagePicker from '../../components/admin/FolderImagePicker';
 
 interface ProductComposition {
   id: string;
