@@ -2,9 +2,9 @@ import { fal } from "@fal-ai/client";
 import { createClient } from '@supabase/supabase-js';
 import { getProductById, generateCompositionPrompt, generateLogoReplacementPrompt, getAbsoluteImageUrl, generateColorChangePrompt } from '../../lib/product-composition';
 
-// API 타임아웃 설정 (5분)
+// API 타임아웃 설정 (10분)
 export const config = {
-  maxDuration: 300, // 5분 (초 단위)
+  maxDuration: 600, // 10분 (초 단위) - FAL AI 큐 대기 시간 여유 확보
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -473,13 +473,24 @@ export default async function handler(req, res) {
         },
         logs: true,
         onQueueUpdate: (update) => {
+          console.log('📊 FAL AI 큐 상태:', update.status);
+          
+          if (update.status === "IN_QUEUE") {
+            console.log('⏳ FAL AI 큐 대기 중... (요청이 큐에 추가됨)');
+          }
+          
           if (update.status === "IN_PROGRESS") {
             update.logs?.map((log) => log.message).forEach((msg) => {
               console.log('📊 FAL AI 로그:', msg);
             });
           }
+          
           if (update.status === "FAILED") {
             console.error('❌ FAL AI 큐 실패:', update);
+          }
+          
+          if (update.status === "COMPLETED") {
+            console.log('✅ FAL AI 큐 완료');
           }
         },
       });
@@ -491,14 +502,43 @@ export default async function handler(req, res) {
         response: falError.response || falError.body
       });
       
-      // FAL AI 오류 메시지 추출
+      // FAL AI 오류 메시지 추출 (개선된 파싱)
       let errorMessage = falError.message || 'FAL AI API 호출에 실패했습니다.';
+      
       if (falError.response || falError.body) {
         const errorData = falError.response || falError.body;
-        if (errorData.detail || errorData.message) {
-          errorMessage = errorData.detail || errorData.message;
+        
+        // 다양한 오류 형식 처리
+        if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else if (errorData.detail) {
+          errorMessage = typeof errorData.detail === 'string' 
+            ? errorData.detail 
+            : JSON.stringify(errorData.detail);
+        } else if (errorData.message) {
+          errorMessage = typeof errorData.message === 'string'
+            ? errorData.message
+            : JSON.stringify(errorData.message);
+        } else if (errorData.error) {
+          errorMessage = typeof errorData.error === 'string'
+            ? errorData.error
+            : JSON.stringify(errorData.error);
+        } else {
+          // 전체 오류 객체를 JSON으로 변환 (디버깅용)
+          errorMessage = JSON.stringify(errorData, null, 2);
         }
+      } else if (falError.message) {
+        errorMessage = falError.message;
       }
+      
+      // 전체 에러 정보 로깅 (디버깅용)
+      console.error('❌ FAL AI 전체 에러 정보:', {
+        message: errorMessage,
+        name: falError.name,
+        stack: falError.stack,
+        response: falError.response,
+        body: falError.body
+      });
       
       throw new Error(`FAL AI API 오류: ${errorMessage}`);
     }
