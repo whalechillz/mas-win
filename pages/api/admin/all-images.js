@@ -887,6 +887,13 @@ export default async function handler(req, res) {
       } else {
         console.log('📊 캐시된 전체 이미지 개수 사용:', totalCount, '개');
       }
+      
+      // includeChildren 파라미터 처리 (boolean 또는 문자열 모두 지원)
+      const shouldIncludeChildren = includeChildren === 'true' || includeChildren === true || includeChildren === '1';
+      
+      // ✅ includeChildren='false'일 때는 현재 폴더의 이미지 개수만 사용
+      // 전체 이미지 개수(totalCount)는 includeChildren='true'일 때만 사용
+      // allFilesForPagination은 아직 조회되지 않았을 수 있으므로, 일단 totalCount 사용 (나중에 실제 조회 후 업데이트)
       const totalPages = Math.ceil(totalCount / pageSize);
       
       // 캐시된 이미지 목록 확인
@@ -1737,14 +1744,18 @@ export default async function handler(req, res) {
         };
       }));
 
-      console.log('✅ 전체 이미지 조회 성공:', imagesWithUrl.length, '개 (총', totalCount, '개 중)');
+      // ✅ includeChildren='false'일 때는 현재 폴더의 이미지 개수만 반환
+      // 전체 이미지 개수(totalCountCache)가 아닌 실제 조회된 이미지 개수 사용
+      const actualTotal = shouldIncludeChildren ? totalCount : allFilesForPagination.length;
+      
+      console.log('✅ 전체 이미지 조회 성공:', imagesWithUrl.length, '개 (총', actualTotal, '개 중)', shouldIncludeChildren ? '(하위 폴더 포함)' : '(현재 폴더만)');
       return res.status(200).json({ 
         images: imagesWithUrl,
         count: imagesWithUrl.length,
-        total: totalCount,
+        total: actualTotal,
         pagination: {
           currentPage,
-          totalPages,
+          totalPages: Math.ceil(actualTotal / pageSize),
           pageSize,
           hasNextPage: currentPage < totalPages,
           hasPrevPage: currentPage > 1,
