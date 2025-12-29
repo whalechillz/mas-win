@@ -341,16 +341,27 @@ export default async function handler(req, res) {
     
     console.log('📝 최종 합성 프롬프트:', compositionPrompt);
 
-    // 모델 이미지 URL 검증 (로컬호스트인지 확인) - URL이 있을 때만 체크
-    if (modelImageUrl && (modelImageUrl.includes('localhost') || modelImageUrl.includes('127.0.0.1'))) {
-      throw new Error(`모델 이미지 URL이 로컬호스트입니다. FAL AI는 공개적으로 접근 가능한 URL만 사용할 수 있습니다. Supabase 공개 URL을 사용해주세요: ${modelImageUrl}`);
+    // 모델 이미지 URL 검증 및 변환
+    let validatedModelImageUrl = null;
+    if (!productOnlyMode && modelImageUrl) {
+      // 로컬호스트 체크
+      if (modelImageUrl.includes('localhost') || modelImageUrl.includes('127.0.0.1')) {
+        throw new Error(`모델 이미지 URL이 로컬호스트입니다. FAL AI는 공개적으로 접근 가능한 URL만 사용할 수 있습니다. Supabase 공개 URL을 사용해주세요: ${modelImageUrl}`);
+      }
+      
+      // HTTPS 체크
+      if (!modelImageUrl.startsWith('https://')) {
+        throw new Error(`모델 이미지 URL은 HTTPS로 시작해야 합니다: ${modelImageUrl}`);
+      }
+      
+      validatedModelImageUrl = modelImageUrl;
+      console.log('📸 모델 이미지 URL 검증 완료:', validatedModelImageUrl);
     }
     
     // 이미지 URL 배열 구성
     const imageUrls = [];
-    if (!productOnlyMode && modelImageUrl) {
-      imageUrls.push(modelImageUrl);
-      console.log('📸 모델 이미지 URL:', modelImageUrl);
+    if (validatedModelImageUrl) {
+      imageUrls.push(validatedModelImageUrl);
     }
     
     // 제품 이미지 URL 추가 (제공된 경우)
@@ -414,14 +425,24 @@ export default async function handler(req, res) {
     
     // 모든 URL이 공개적으로 접근 가능한지 최종 확인
     const sanitizedUrls = imageUrls.filter(Boolean);
+    
+    // URL 검증
     for (const url of sanitizedUrls) {
       if (!url.startsWith('https://') || url.includes('localhost') || url.includes('127.0.0.1')) {
         throw new Error(`공개적으로 접근 가능하지 않은 URL이 포함되어 있습니다: ${url}. 모든 이미지 URL은 HTTPS로 시작하는 공개 URL이어야 합니다.`);
       }
     }
+    
+    // 이미지 URL 개수 확인
     if (productOnlyMode && sanitizedUrls.length === 0) {
       throw new Error('제품컷 모드에서는 제품/참조 이미지가 최소 1개 이상 필요합니다.');
     }
+    
+    if (!productOnlyMode && sanitizedUrls.length === 0) {
+      throw new Error('합성할 이미지가 없습니다. 모델 이미지 또는 제품 이미지가 필요합니다.');
+    }
+    
+    console.log(`📋 최종 이미지 URL 목록 (${sanitizedUrls.length}개):`, sanitizedUrls);
 
     // 나노바나나 API 호출
     const modelName = compositionMethod === 'nano-banana' 
@@ -429,25 +450,58 @@ export default async function handler(req, res) {
       : 'fal-ai/nano-banana-pro/edit';
 
     console.log(`🚀 FAL AI API 호출: ${modelName}`);
-
-    const result = await fal.subscribe(modelName, {
-      input: {
-        prompt: compositionPrompt,
-        image_urls: imageUrls,
-        num_images: numImages,
-        aspect_ratio: aspectRatio,
-        output_format: outputFormat,
-        resolution: resolution
-      },
-      logs: true,
-      onQueueUpdate: (update) => {
-        if (update.status === "IN_PROGRESS") {
-          update.logs?.map((log) => log.message).forEach((msg) => {
-            console.log('📊 FAL AI 로그:', msg);
-          });
-        }
-      },
+    console.log('📤 FAL AI 요청 파라미터:', {
+      prompt: compositionPrompt.substring(0, 100) + '...',
+      image_urls_count: sanitizedUrls.length,
+      image_urls: sanitizedUrls,
+      num_images: numImages,
+      aspect_ratio: aspectRatio,
+      output_format: outputFormat,
+      resolution: resolution
     });
+
+    let result;
+    try {
+      result = await fal.subscribe(modelName, {
+        input: {
+          prompt: compositionPrompt,
+          image_urls: sanitizedUrls, // 검증된 URL 배열 사용
+          num_images: numImages,
+          aspect_ratio: aspectRatio,
+          output_format: outputFormat,
+          resolution: resolution
+        },
+        logs: true,
+        onQueueUpdate: (update) => {
+          if (update.status === "IN_PROGRESS") {
+            update.logs?.map((log) => log.message).forEach((msg) => {
+              console.log('📊 FAL AI 로그:', msg);
+            });
+          }
+          if (update.status === "FAILED") {
+            console.error('❌ FAL AI 큐 실패:', update);
+          }
+        },
+      });
+    } catch (falError) {
+      console.error('❌ FAL AI API 호출 실패:', {
+        error: falError.message,
+        stack: falError.stack,
+        name: falError.name,
+        response: falError.response || falError.body
+      });
+      
+      // FAL AI 오류 메시지 추출
+      let errorMessage = falError.message || 'FAL AI API 호출에 실패했습니다.';
+      if (falError.response || falError.body) {
+        const errorData = falError.response || falError.body;
+        if (errorData.detail || errorData.message) {
+          errorMessage = errorData.detail || errorData.message;
+        }
+      }
+      
+      throw new Error(`FAL AI API 오류: ${errorMessage}`);
+    }
 
     console.log('✅ FAL AI 응답 수신:', {
       imagesCount: result.data?.images?.length || 0,
