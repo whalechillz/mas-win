@@ -289,18 +289,13 @@ const GalleryPicker: React.FC<Props> = ({
     };
   }, [isOpen, autoFilterFolder]);
 
-  // ✅ folderFilter가 변경될 때마다 이미지 다시 로드 (캐시 무효화)
-  useEffect(() => {
-    if (!isOpen || !folderFilter) return;
-    console.log('📁 folderFilter 변경 감지, 이미지 다시 로드:', folderFilter);
-    // 캐시 무효화를 위해 forceRefresh 파라미터 추가
-    fetchImages(true);
-  }, [folderFilter]);
-
-  // 폴더 필터나 페이지 변경 시 이미지 로드
+  // 폴더 필터나 페이지 변경 시 이미지 로드 (캐시 무효화 포함)
   useEffect(() => {
     if (!isOpen) return;
-    fetchImages();
+    // folderFilter가 변경될 때는 캐시 무효화를 위해 resetPage=true
+    const shouldResetPage = folderFilter !== undefined;
+    console.log('📁 folderFilter 또는 page 변경 감지, 이미지 다시 로드:', { folderFilter, page, shouldResetPage });
+    fetchImages(shouldResetPage);
   }, [isOpen, page, folderFilter]);
 
   // 이미지 업로드 핸들러
