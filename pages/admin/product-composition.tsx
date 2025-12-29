@@ -365,11 +365,12 @@ export default function ProductCompositionManagement() {
     // ✅ includeChildren='false'일 때는 현재 폴더만 조회하므로
     // 기본적으로 composition 폴더를 반환 (이미지가 여기에 있음)
     // 사용자는 브레드크럼으로 detail, gallery 폴더로 이동 가능
-    if (formData.category === 'goods') {
-      // goods 제품: 기본적으로 composition 폴더 조회
-      return `originals/products/goods/${formData.slug}/composition`;
+    
+    // 굿즈/액세서리: originals/goods/{slug}/composition
+    if (formData.category === 'goods' || formData.category === 'hat' || formData.category === 'accessory') {
+      return `originals/goods/${formData.slug}/composition`;
     } else {
-      // 드라이버 제품: 기본적으로 composition 폴더 조회
+      // 드라이버 제품: originals/products/{slug}/composition
       return `originals/products/${formData.slug}/composition`;
     }
   };
@@ -787,7 +788,7 @@ export default function ProductCompositionManagement() {
                       value={formData.image_url}
                       onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
-                        placeholder="/originals/products/goods/white-bucket-hat.webp"
+                        placeholder="/originals/goods/white-bucket-hat.webp"
                       required
                     />
                       <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">

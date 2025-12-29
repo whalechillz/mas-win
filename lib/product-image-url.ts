@@ -120,10 +120,10 @@ export function getProductImageUrl(imagePath: string): string {
             ? 'gallery'
             : 'gallery'; // goods는 기본적으로 gallery
           
-          storagePath = `originals/products/goods/${productSlug}/${imageType}/${fileName}`;
+          storagePath = `originals/goods/${productSlug}/${imageType}/${fileName}`;
         } else {
           // 추출 실패 시 기본 경로 사용 (fallback)
-          storagePath = `originals/products/goods/${fileName}`;
+          storagePath = `originals/goods/${fileName}`;
         }
       } else {
         // 드라이버 제품 경로 처리 (기존 로직)
@@ -145,9 +145,9 @@ export function getProductImageUrl(imagePath: string): string {
       
       if (productSlug) {
         const imageType = 'gallery'; // goods는 기본적으로 gallery
-        storagePath = `originals/products/goods/${productSlug}/${imageType}/${fileName}`;
+        storagePath = `originals/goods/${productSlug}/${imageType}/${fileName}`;
       } else {
-        storagePath = `originals/products/goods/${fileName}`;
+        storagePath = `originals/goods/${fileName}`;
       }
     }
   }
@@ -175,8 +175,8 @@ export function buildProductImageUrl(
   imageType: 'detail' | 'composition' | 'gallery' = 'detail',
   category: 'driver' | 'hat' | 'accessory' = 'driver'
 ): string {
-  const storagePath = category === 'hat' || category === 'accessory'
-    ? `originals/products/goods/${productSlug}/${imageType}/${fileName}`
+  const storagePath = category === 'hat' || category === 'accessory' || category === 'goods'
+    ? `originals/goods/${productSlug}/${imageType}/${fileName}`
     : `originals/products/${productSlug}/${imageType}/${fileName}`;
   
   return getSupabasePublicUrl(storagePath);

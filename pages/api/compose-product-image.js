@@ -61,8 +61,10 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed') {
     const fileExtension = imageUrl.split('.').pop()?.split('?')[0] || 'png';
     
     // 제품별 gallery 폴더에 저장
-    const storageFolder = category === 'hat' || category === 'accessory'
-      ? `originals/products/goods/${productSlug}/gallery`
+    // 굿즈/액세서리: originals/goods/{slug}/gallery
+    // 드라이버 제품: originals/products/{slug}/gallery
+    const storageFolder = category === 'hat' || category === 'accessory' || category === 'goods'
+      ? `originals/goods/${productSlug}/gallery`
       : `originals/products/${productSlug}/gallery`;
     
     const fileName = `${storageFolder}/${prefix}-${productId}-${timestamp}.${fileExtension}`;

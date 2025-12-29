@@ -29,11 +29,12 @@ export const config = {
  * @returns {string} Storage 폴더 경로
  */
 function getProductStoragePath(productSlug, category, imageType = 'detail') {
-  // 굿즈/액세서리도 제품별 폴더 구조 사용
-  if (category === 'hat' || category === 'accessory') {
-    return `originals/products/goods/${productSlug}/${imageType}`;
+  // 굿즈/액세서리: originals/goods/{slug}/{imageType}
+  if (category === 'hat' || category === 'accessory' || category === 'goods') {
+    return `originals/goods/${productSlug}/${imageType}`;
   }
 
+  // 드라이버 제품: originals/products/{slug}/{imageType}
   // 드라이버 제품 slug → 폴더 매핑
   const driverSlugToFolder = {
     'secret-weapon-black': 'black-weapon',
