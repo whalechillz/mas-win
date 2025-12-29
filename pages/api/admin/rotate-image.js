@@ -1,17 +1,19 @@
+import { createClient } from '@supabase/supabase-js';
+// Sharp는 동적 import로 로드 (Vercel 환경 호환성)
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Sharp와 Supabase 동적 import (Vercel 환경 호환성)
+    // Sharp만 동적 import (upload-image-supabase.js와 동일한 방식)
     const sharp = (await import('sharp')).default;
-    const { createClient } = await import('@supabase/supabase-js');
-    
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    );
     const { 
       imageUrl, 
       rotation, 
