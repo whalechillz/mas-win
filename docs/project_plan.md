@@ -38,9 +38,21 @@
 
 # 🎯 프로젝트 진행 현황
 
-## ✅ 최근 작업: 주력제품과 굿즈 폴더 구조 분리 (2025-01-XX)
+## ✅ 최근 작업: AI 이미지 합성 오류 수정 (2025-01-XX)
 
 ### 완료된 작업
+- **제품 이미지 URL 변환 수정** ✅:
+  - `pages/api/compose-product-image.js`: `getAbsoluteProductImageUrl` 함수 수정
+  - Vercel URL 대신 Supabase Storage 공개 URL 사용
+  - FAL AI 파일 다운로드 오류 해결
+  - 상대 경로(`originals/goods/...`)를 Supabase Storage URL로 자동 변환
+- **안정성 개선** ✅:
+  - API 타임아웃 증가: 5분 → 10분 (600초)
+  - FAL AI 에러 메시지 파싱 개선 (JSON.stringify)
+  - 큐 상태 모니터링 강화 (IN_QUEUE, COMPLETED 로깅)
+
+### 이전 작업: 주력제품과 굿즈 폴더 구조 분리 (2025-01-XX)
+
 - **폴더 구조 분리** ✅:
   - 굿즈 이미지 경로 변경: `originals/products/goods/*` → `originals/goods/*`
   - 드라이버 제품: `originals/products/*` 유지
