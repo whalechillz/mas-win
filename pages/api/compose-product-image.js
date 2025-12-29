@@ -152,7 +152,13 @@ function getAbsoluteProductImageUrl(productImageUrl) {
     throw new Error(`제품 이미지 URL을 공개 URL로 변환할 수 없습니다. NEXT_PUBLIC_SITE_URL 또는 VERCEL_URL 환경 변수를 설정해주세요. 상대 경로: ${productImageUrl}`);
   }
   
-  return `${baseUrl}${productImageUrl}`;
+  // baseUrl이 /로 끝나지 않으면 / 추가
+  const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+  
+  // productImageUrl이 /로 시작하면 제거
+  const normalizedPath = productImageUrl.startsWith('/') ? productImageUrl.slice(1) : productImageUrl;
+  
+  return `${normalizedBaseUrl}${normalizedPath}`;
 }
 
 export default async function handler(req, res) {
