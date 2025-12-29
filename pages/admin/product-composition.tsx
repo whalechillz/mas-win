@@ -6,6 +6,7 @@ import AdminNav from '../../components/admin/AdminNav';
 import Image from 'next/image';
 import { getAbsoluteImageUrl } from '../../lib/product-composition';
 import GalleryPicker from '../../components/admin/GalleryPicker';
+import FolderImagePicker from '../../components/admin/FolderImagePicker';
 
 interface ProductComposition {
   id: string;
@@ -317,8 +318,8 @@ export default function ProductCompositionManagement() {
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
       // ✅ 필수 필드이므로 항상 전달
-      uploadFormData.append('productSlug', formData.slug);
-      uploadFormData.append('category', formData.category);
+        uploadFormData.append('productSlug', formData.slug);
+        uploadFormData.append('category', formData.category);
       // ✅ 합성용 이미지로 지정
       uploadFormData.append('imageType', 'composition');
 
