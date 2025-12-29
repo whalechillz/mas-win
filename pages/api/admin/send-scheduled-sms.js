@@ -299,7 +299,7 @@ export default async function handler(req, res) {
             // HTTP URL이면 Solapi에 재업로드
             try {
               console.log(`🔄 메시지 ID ${sms.id}: HTTP URL 감지, Solapi에 재업로드 중:`, sms.image_url);
-              const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://win.masgolf.co.kr';
+              const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.masgolf.co.kr';
               const reuploadResponse = await fetch(`${baseUrl}/api/solapi/reupload-image`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

@@ -223,21 +223,21 @@ export default async function handler(req, res) {
           prompt: smartPrompt,
           size: "1:1",
           fileUrl: null,
-            callBackUrl: `https://win.masgolf.co.kr/api/kie-ai-webhook`
+            callBackUrl: `https://www.masgolf.co.kr/api/kie-ai-webhook`
         },
         {
           prompt: smartPrompt,
           size: "1024x1024",
           quality: "hd",
           n: 1,
-            callBackUrl: `https://win.masgolf.co.kr/api/kie-ai-webhook`
+            callBackUrl: `https://www.masgolf.co.kr/api/kie-ai-webhook`
         },
         {
           prompt: smartPrompt,
           width: 1024,
           height: 1024,
           quality: "high",
-            callBackUrl: `https://win.masgolf.co.kr/api/kie-ai-webhook`
+            callBackUrl: `https://www.masgolf.co.kr/api/kie-ai-webhook`
         }
       ];
       
