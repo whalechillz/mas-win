@@ -10,6 +10,7 @@ import FolderTree from '../../components/gallery/FolderTree';
 import { createClient } from '@supabase/supabase-js';
 import { uploadImageToSupabase } from '../../lib/image-upload-utils';
 import FolderSelector from '../../components/admin/FolderSelector';
+import { rotateImageWithCanvas, convertImageWithCanvas, getImageMetadata } from '../../lib/client/image-processor';
 
 // 디바운스 훅 (PerformanceUtils에서 분리하여 직접 구현)
 function useDebounce<T>(value: T, delay: number): T {
@@ -4976,38 +4977,41 @@ export default function GalleryAdmin() {
                           setIsRotating(true);
                           setShowRotateMenu(false);
                           try {
-                            const response = await fetch('/api/admin/rotate-image', {
+                            // 1. 클라이언트에서 Canvas로 회전 처리
+                            const metadata = await getImageMetadata(selectedImageForZoom.url);
+                            const format = metadata.hasAlpha ? 'png' : 'jpg';
+                            
+                            const rotatedBlob = await rotateImageWithCanvas(
+                              selectedImageForZoom.url,
+                              -90,
+                              format
+                            );
+                            
+                            // 2. 새 파일명 생성
+                            const baseName = selectedImageForZoom.name?.replace(/\.[^/.]+$/, '') || `rotated-${Date.now()}`;
+                            const extension = format === 'webp' ? 'webp' : format === 'jpg' ? 'jpg' : 'png';
+                            const newFileName = `${baseName}-rotated-90.${extension}`;
+                            
+                            // 3. FormData 생성
+                            const formData = new FormData();
+                            formData.append('image', rotatedBlob, newFileName);
+                            formData.append('folderPath', selectedImageForZoom.folder_path || '');
+                            formData.append('fileName', newFileName);
+                            
+                            // 4. 서버에 업로드
+                            const response = await fetch('/api/admin/upload-processed-image', {
                               method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                imageUrl: selectedImageForZoom.url,
-                                rotation: -90,
-                                folderPath: selectedImageForZoom.folder_path,
-                                fileName: selectedImageForZoom.name,
-                                format: 'auto'
-                              })
+                              body: formData
                             });
                             
-                            // 응답 본문 확인
-                            const text = await response.text();
-                            if (!text) {
-                              throw new Error('서버에서 응답이 없습니다.');
-                            }
-                            
-                            let data;
-                            try {
-                              data = JSON.parse(text);
-                            } catch (parseError) {
-                              console.error('JSON 파싱 오류:', parseError, '응답:', text);
-                              throw new Error(`서버 응답 오류: ${text.substring(0, 100)}`);
-                            }
-                            
                             if (!response.ok) {
-                              throw new Error(data.error || '회전 실패');
+                              const error = await response.json();
+                              throw new Error(error.error || '업로드 실패');
                             }
                             
+                            const data = await response.json();
                             if (data.success) {
-                              alert(`✅ 이미지가 반시계방향으로 90도 회전되었습니다.\n포맷: ${data.format.toUpperCase()}\n크기: ${(data.size / 1024).toFixed(2)}KB`);
+                              alert(`✅ 이미지가 반시계방향으로 90도 회전되었습니다.\n포맷: ${format.toUpperCase()}\n크기: ${(data.size / 1024).toFixed(2)}KB`);
                               // 이미지 목록 새로고침
                               fetchImages(1, true, folderFilter, includeChildren, searchQuery);
                             }
@@ -5028,38 +5032,41 @@ export default function GalleryAdmin() {
                           setIsRotating(true);
                           setShowRotateMenu(false);
                           try {
-                            const response = await fetch('/api/admin/rotate-image', {
+                            // 1. 클라이언트에서 Canvas로 회전 처리
+                            const metadata = await getImageMetadata(selectedImageForZoom.url);
+                            const format = metadata.hasAlpha ? 'png' : 'jpg';
+                            
+                            const rotatedBlob = await rotateImageWithCanvas(
+                              selectedImageForZoom.url,
+                              90,
+                              format
+                            );
+                            
+                            // 2. 새 파일명 생성
+                            const baseName = selectedImageForZoom.name?.replace(/\.[^/.]+$/, '') || `rotated-${Date.now()}`;
+                            const extension = format === 'webp' ? 'webp' : format === 'jpg' ? 'jpg' : 'png';
+                            const newFileName = `${baseName}-rotated-90.${extension}`;
+                            
+                            // 3. FormData 생성
+                            const formData = new FormData();
+                            formData.append('image', rotatedBlob, newFileName);
+                            formData.append('folderPath', selectedImageForZoom.folder_path || '');
+                            formData.append('fileName', newFileName);
+                            
+                            // 4. 서버에 업로드
+                            const response = await fetch('/api/admin/upload-processed-image', {
                               method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                imageUrl: selectedImageForZoom.url,
-                                rotation: 90,
-                                folderPath: selectedImageForZoom.folder_path,
-                                fileName: selectedImageForZoom.name,
-                                format: 'auto'
-                              })
+                              body: formData
                             });
                             
-                            // 응답 본문 확인
-                            const text = await response.text();
-                            if (!text) {
-                              throw new Error('서버에서 응답이 없습니다.');
-                            }
-                            
-                            let data;
-                            try {
-                              data = JSON.parse(text);
-                            } catch (parseError) {
-                              console.error('JSON 파싱 오류:', parseError, '응답:', text);
-                              throw new Error(`서버 응답 오류: ${text.substring(0, 100)}`);
-                            }
-                            
                             if (!response.ok) {
-                              throw new Error(data.error || '회전 실패');
+                              const error = await response.json();
+                              throw new Error(error.error || '업로드 실패');
                             }
                             
+                            const data = await response.json();
                             if (data.success) {
-                              alert(`✅ 이미지가 시계방향으로 90도 회전되었습니다.\n포맷: ${data.format.toUpperCase()}\n크기: ${(data.size / 1024).toFixed(2)}KB`);
+                              alert(`✅ 이미지가 시계방향으로 90도 회전되었습니다.\n포맷: ${format.toUpperCase()}\n크기: ${(data.size / 1024).toFixed(2)}KB`);
                               // 이미지 목록 새로고침
                               fetchImages(1, true, folderFilter, includeChildren, searchQuery);
                             }
@@ -5101,38 +5108,44 @@ export default function GalleryAdmin() {
                           setIsConverting(true);
                           setShowConvertMenu(false);
                           try {
-                            const response = await fetch('/api/admin/convert-image', {
+                            // 1. 클라이언트에서 Canvas로 변환 처리
+                            const convertedBlob = await convertImageWithCanvas(
+                              selectedImageForZoom.url,
+                              'webp',
+                              0.85
+                            );
+                            
+                            // 2. 새 파일명 생성
+                            const baseName = selectedImageForZoom.name?.replace(/\.[^/.]+$/, '') || `converted-${Date.now()}`;
+                            const newFileName = `${baseName}.webp`;
+                            
+                            // 3. FormData 생성
+                            const formData = new FormData();
+                            formData.append('image', convertedBlob, newFileName);
+                            formData.append('folderPath', selectedImageForZoom.folder_path || '');
+                            formData.append('fileName', newFileName);
+                            
+                            // 4. 서버에 업로드
+                            const response = await fetch('/api/admin/upload-processed-image', {
                               method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                imageUrl: selectedImageForZoom.url,
-                                format: 'webp',
-                                quality: 85,
-                                folderPath: selectedImageForZoom.folder_path,
-                                fileName: selectedImageForZoom.name
-                              })
+                              body: formData
                             });
                             
-                            // 응답 본문 확인
-                            const text = await response.text();
-                            if (!text) {
-                              throw new Error('서버에서 응답이 없습니다.');
-                            }
-                            
-                            let data;
-                            try {
-                              data = JSON.parse(text);
-                            } catch (parseError) {
-                              console.error('JSON 파싱 오류:', parseError, '응답:', text);
-                              throw new Error(`서버 응답 오류: ${text.substring(0, 100)}`);
-                            }
-                            
                             if (!response.ok) {
-                              throw new Error(data.error || '변환 실패');
+                              const error = await response.json();
+                              throw new Error(error.error || '업로드 실패');
                             }
                             
+                            const data = await response.json();
                             if (data.success) {
-                              alert(`✅ WebP 변환 완료!\n크기: ${(data.size / 1024).toFixed(2)}KB\n원본 대비: ${data.reduction.toFixed(1)}% 감소\n투명도: ${data.hasAlpha ? '지원' : '없음'}`);
+                              // 원본 크기 가져오기
+                              const originalResponse = await fetch(selectedImageForZoom.url);
+                              const originalBlob = await originalResponse.blob();
+                              const originalSize = originalBlob.size;
+                              const reduction = originalSize > 0 
+                                ? ((1 - data.size / originalSize) * 100).toFixed(1)
+                                : '0';
+                              alert(`✅ WebP 변환 완료!\n크기: ${(data.size / 1024).toFixed(2)}KB\n원본 대비: ${reduction}% 감소\n투명도: 지원`);
                               // 이미지 목록 새로고침
                               fetchImages(1, true, folderFilter, includeChildren, searchQuery);
                             }
@@ -5153,38 +5166,44 @@ export default function GalleryAdmin() {
                           setIsConverting(true);
                           setShowConvertMenu(false);
                           try {
-                            const response = await fetch('/api/admin/convert-image', {
+                            // 1. 클라이언트에서 Canvas로 변환 처리
+                            const convertedBlob = await convertImageWithCanvas(
+                              selectedImageForZoom.url,
+                              'jpg',
+                              0.85
+                            );
+                            
+                            // 2. 새 파일명 생성
+                            const baseName = selectedImageForZoom.name?.replace(/\.[^/.]+$/, '') || `converted-${Date.now()}`;
+                            const newFileName = `${baseName}.jpg`;
+                            
+                            // 3. FormData 생성
+                            const formData = new FormData();
+                            formData.append('image', convertedBlob, newFileName);
+                            formData.append('folderPath', selectedImageForZoom.folder_path || '');
+                            formData.append('fileName', newFileName);
+                            
+                            // 4. 서버에 업로드
+                            const response = await fetch('/api/admin/upload-processed-image', {
                               method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                imageUrl: selectedImageForZoom.url,
-                                format: 'jpg',
-                                quality: 85,
-                                folderPath: selectedImageForZoom.folder_path,
-                                fileName: selectedImageForZoom.name
-                              })
+                              body: formData
                             });
                             
-                            // 응답 본문 확인
-                            const text = await response.text();
-                            if (!text) {
-                              throw new Error('서버에서 응답이 없습니다.');
-                            }
-                            
-                            let data;
-                            try {
-                              data = JSON.parse(text);
-                            } catch (parseError) {
-                              console.error('JSON 파싱 오류:', parseError, '응답:', text);
-                              throw new Error(`서버 응답 오류: ${text.substring(0, 100)}`);
-                            }
-                            
                             if (!response.ok) {
-                              throw new Error(data.error || '변환 실패');
+                              const error = await response.json();
+                              throw new Error(error.error || '업로드 실패');
                             }
                             
+                            const data = await response.json();
                             if (data.success) {
-                              alert(`✅ JPG 변환 완료!\n크기: ${(data.size / 1024).toFixed(2)}KB\n원본 대비: ${data.reduction.toFixed(1)}% 감소`);
+                              // 원본 크기 가져오기
+                              const originalResponse = await fetch(selectedImageForZoom.url);
+                              const originalBlob = await originalResponse.blob();
+                              const originalSize = originalBlob.size;
+                              const reduction = originalSize > 0 
+                                ? ((1 - data.size / originalSize) * 100).toFixed(1)
+                                : '0';
+                              alert(`✅ JPG 변환 완료!\n크기: ${(data.size / 1024).toFixed(2)}KB\n원본 대비: ${reduction}% 감소`);
                               // 이미지 목록 새로고침
                               fetchImages(1, true, folderFilter, includeChildren, searchQuery);
                             }
@@ -5205,37 +5224,37 @@ export default function GalleryAdmin() {
                           setIsConverting(true);
                           setShowConvertMenu(false);
                           try {
-                            const response = await fetch('/api/admin/convert-image', {
+                            // 1. 클라이언트에서 Canvas로 변환 처리
+                            const convertedBlob = await convertImageWithCanvas(
+                              selectedImageForZoom.url,
+                              'png'
+                            );
+                            
+                            // 2. 새 파일명 생성
+                            const baseName = selectedImageForZoom.name?.replace(/\.[^/.]+$/, '') || `converted-${Date.now()}`;
+                            const newFileName = `${baseName}.png`;
+                            
+                            // 3. FormData 생성
+                            const formData = new FormData();
+                            formData.append('image', convertedBlob, newFileName);
+                            formData.append('folderPath', selectedImageForZoom.folder_path || '');
+                            formData.append('fileName', newFileName);
+                            
+                            // 4. 서버에 업로드
+                            const response = await fetch('/api/admin/upload-processed-image', {
                               method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                imageUrl: selectedImageForZoom.url,
-                                format: 'png',
-                                folderPath: selectedImageForZoom.folder_path,
-                                fileName: selectedImageForZoom.name
-                              })
+                              body: formData
                             });
                             
-                            // 응답 본문 확인
-                            const text = await response.text();
-                            if (!text) {
-                              throw new Error('서버에서 응답이 없습니다.');
-                            }
-                            
-                            let data;
-                            try {
-                              data = JSON.parse(text);
-                            } catch (parseError) {
-                              console.error('JSON 파싱 오류:', parseError, '응답:', text);
-                              throw new Error(`서버 응답 오류: ${text.substring(0, 100)}`);
-                            }
-                            
                             if (!response.ok) {
-                              throw new Error(data.error || '변환 실패');
+                              const error = await response.json();
+                              throw new Error(error.error || '업로드 실패');
                             }
                             
+                            const data = await response.json();
                             if (data.success) {
-                              alert(`✅ PNG 변환 완료!\n크기: ${(data.size / 1024).toFixed(2)}KB\n무손실 압축\n투명도: ${data.hasAlpha ? '지원' : '없음'}`);
+                              const metadata = await getImageMetadata(selectedImageForZoom.url);
+                              alert(`✅ PNG 변환 완료!\n크기: ${(data.size / 1024).toFixed(2)}KB\n무손실 압축\n투명도: ${metadata.hasAlpha ? '지원' : '없음'}`);
                               // 이미지 목록 새로고침
                               fetchImages(1, true, folderFilter, includeChildren, searchQuery);
                             }
