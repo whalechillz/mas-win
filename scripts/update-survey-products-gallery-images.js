@@ -32,7 +32,7 @@ async function updateSurveyProductsGalleryImages() {
   try {
     const { data: bucketFiles, error: bucketError } = await supabase.storage
       .from('blog-images')
-      .list('originals/products/goods/bucket-hat-muziik/gallery', {
+      .list('originals/goods/bucket-hat-muziik/gallery', {
         limit: 100,
         sortBy: { column: 'name', order: 'asc' }
       });
@@ -44,7 +44,7 @@ async function updateSurveyProductsGalleryImages() {
       // .webp 파일만 필터링하고 정렬
       const bucketImages = bucketFiles
         .filter(file => file.name.endsWith('.webp'))
-        .map(file => `originals/products/goods/bucket-hat-muziik/gallery/${file.name}`)
+        .map(file => `originals/goods/bucket-hat-muziik/gallery/${file.name}`)
         .sort();
 
       console.log(`   ✅ 버킷햇 이미지 ${bucketImages.length}개 발견`);
@@ -217,4 +217,7 @@ async function updateSurveyProductsGalleryImages() {
 }
 
 updateSurveyProductsGalleryImages();
+
+
+
 
