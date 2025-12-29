@@ -797,6 +797,15 @@ ${compositionSpec}${improveHandQuality ? `
           setCompositionStatus(`이미지 ${i + 1}/${modelImages.length} 제품 합성 중...`);
           
           try {
+            // 빠른 합성 모드에 따른 파라미터 조정
+            const compositionMethod = formData.fastCompositionMode 
+              ? 'nano-banana'  // 빠른 모드: nano-banana 사용
+              : (formData.compositionMethod || 'nano-banana-pro');
+            
+            const outputFormat = formData.fastCompositionMode 
+              ? 'jpeg'  // 빠른 모드: JPEG 사용 (PNG보다 빠름)
+              : 'png';
+            
             const composeResponse = await fetch('/api/compose-product-image', {
               method: 'POST',
               headers: {
@@ -807,14 +816,14 @@ ${compositionSpec}${improveHandQuality ? `
                 productId: formData.selectedProductId,
                 compositionTarget: formData.compositionTarget || 'hands',
                 driverPart: formData.driverPart || 'full',
-                compositionMethod: formData.compositionMethod || 'nano-banana-pro',
+                compositionMethod: compositionMethod,
                 replaceLogo: formData.replaceLogo || false,
                 changeProductColor: formData.changeProductColor || false,
                 productColor: formData.productColor,
                 numImages: 1,
                 resolution: '1K',
                 aspectRatio: 'auto',
-                outputFormat: 'png',
+                outputFormat: outputFormat,
                 compositionBackground: (formData.compositionTarget === 'head' || formData.compositionTarget === 'accessory')
                   ? formData.compositionBackground || 'natural'
                   : undefined,
