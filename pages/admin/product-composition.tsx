@@ -362,14 +362,15 @@ export default function ProductCompositionManagement() {
   const getCompositionFolderPath = (): string | undefined => {
     if (!formData.slug || !formData.category) return undefined;
     
-    // 상위 폴더를 지정하여 composition, detail, gallery 폴더 모두 검색 가능하도록
+    // ✅ includeChildren='false'일 때는 현재 폴더만 조회하므로
+    // 기본적으로 composition 폴더를 반환 (이미지가 여기에 있음)
+    // 사용자는 브레드크럼으로 detail, gallery 폴더로 이동 가능
     if (formData.category === 'goods') {
-      // goods 제품: originals/products/goods/{slug}/ 까지만 지정
-      // 이렇게 하면 composition, detail, gallery 폴더 모두 검색됨
-      return `originals/products/goods/${formData.slug}`;
+      // goods 제품: 기본적으로 composition 폴더 조회
+      return `originals/products/goods/${formData.slug}/composition`;
     } else {
-      // 드라이버 제품: originals/products/{slug}/ 까지만 지정
-      return `originals/products/${formData.slug}`;
+      // 드라이버 제품: 기본적으로 composition 폴더 조회
+      return `originals/products/${formData.slug}/composition`;
     }
   };
 
