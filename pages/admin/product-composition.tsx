@@ -5,8 +5,6 @@ import { useRouter } from 'next/router';
 import AdminNav from '../../components/admin/AdminNav';
 import Image from 'next/image';
 import { getAbsoluteImageUrl } from '../../lib/product-composition';
-import GalleryPicker from '../../components/admin/GalleryPicker';
-import FolderImagePicker from '../../components/admin/FolderImagePicker';
 import FolderImagePicker from '../../components/admin/FolderImagePicker';
 
 interface ProductComposition {
@@ -1052,17 +1050,16 @@ export default function ProductCompositionManagement() {
             </div>
           )}
 
-          {/* 갤러리 이미지 선택 모달 */}
-          <GalleryPicker
+          {/* 갤러리 이미지 선택 모달 - 빠른 버전 사용 */}
+          <FolderImagePicker
             isOpen={showGalleryPicker}
             onClose={() => {
               setShowGalleryPicker(false);
               setGalleryPickerMode(null);
             }}
             onSelect={handleGalleryImageSelect}
-            autoFilterFolder={getCompositionFolderPath()}
-            showCompareMode={true}
-            maxCompareCount={3}
+            folderPath={getCompositionFolderPath() || ''}
+            title="갤러리에서 이미지 선택"
           />
         </div>
       </div>
