@@ -358,6 +358,42 @@ export default function ProductCompositionManagement() {
     });
   };
 
+  // 갤러리에서 이미지 선택
+  const getCompositionFolderPath = (): string | undefined => {
+    if (!formData.slug || !formData.category) return undefined;
+    
+    if (formData.category === 'goods') {
+      return `originals/products/goods/${formData.slug}/composition`;
+    } else {
+      return `originals/products/${formData.slug}/composition`;
+    }
+  };
+
+  const handleOpenGallery = (mode: 'image' | 'reference') => {
+    if (!formData.slug || !formData.category) {
+      alert('제품 정보(Slug, 카테고리)를 먼저 입력해주세요.');
+      return;
+    }
+    setGalleryPickerMode(mode);
+    setShowGalleryPicker(true);
+  };
+
+  const handleGalleryImageSelect = (imageUrl: string) => {
+    if (galleryPickerMode === 'image') {
+      setFormData({ ...formData, image_url: imageUrl });
+    } else if (galleryPickerMode === 'reference') {
+      const currentRefs = formData.reference_images || [];
+      if (!currentRefs.includes(imageUrl)) {
+        setFormData({ 
+          ...formData, 
+          reference_images: [...currentRefs, imageUrl] 
+        });
+      }
+    }
+    setShowGalleryPicker(false);
+    setGalleryPickerMode(null);
+  };
+
   // 색상별 이미지 업로드
   const handleColorImageUpload = async (color: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
