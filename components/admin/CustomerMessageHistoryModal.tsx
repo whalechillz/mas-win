@@ -88,16 +88,28 @@ const formatMessageStatus = (status?: string | null) => {
   }
 };
 
+// 한국 시간대 상수 (UTC+9)
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
+
 const formatDateTime = (value?: string | null) => {
   if (!value) return '-';
   try {
-    return new Date(value).toLocaleString('ko-KR', {
+    // UTC 문자열을 파싱 (UTC로 해석)
+    const utcDate = new Date(value);
+    if (Number.isNaN(utcDate.getTime())) return value;
+    
+    // UTC 시간에 9시간을 더하여 KST로 변환
+    const kstDate = new Date(utcDate.getTime() + KST_OFFSET_MS);
+    
+    // KST로 변환된 날짜를 한국 형식으로 포맷팅
+    return kstDate.toLocaleString('ko-KR', {
       year: 'numeric',
       month: 'numeric',
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: 'Asia/Seoul' // 명시적으로 한국 시간대 지정
     });
   } catch {
     return value;
