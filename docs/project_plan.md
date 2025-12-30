@@ -38,9 +38,17 @@
 
 # 🎯 프로젝트 진행 현황
 
-## ✅ 최근 작업: GalleryPicker 이미지 선택 안전성 개선 (2025-01-XX)
+## ✅ 최근 작업: 카카오 콘텐츠 이미지 선택 개선 (2025-01-XX)
 
 ### 완료된 작업
+- **카카오 콘텐츠 이미지 선택 시 프롬프트 경고 추가** ✅:
+  - `components/admin/kakao/ProfileManager.tsx`: 배경/프로필 이미지 선택 시 프롬프트 없으면 경고 표시
+  - `components/admin/kakao/FeedManager.tsx`: 피드 이미지 선택 시 프롬프트 없으면 경고 표시
+  - 프롬프트 없어도 이미지 선택 가능 (유연성 확보)
+  - 나중에 AI 재생성 시 프롬프트 필요하다는 안내 제공
+
+### 이전 작업: GalleryPicker 이미지 선택 안전성 개선 (2025-01-XX)
+
 - **GalleryPicker 이미지 선택 안전성 개선** ✅:
   - `components/admin/GalleryPicker.tsx`: `handleSingleSelect` 함수에 에러 핸들링 추가
   - `img.url` 검증 추가로 안전성 향상
