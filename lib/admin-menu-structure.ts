@@ -64,7 +64,7 @@ export const menuCategories: MenuCategory[] = [
     description: '소셜 미디어 및 메시지 콘텐츠 관리',
     menus: [
       { id: 'sms', name: 'SMS 관리', icon: '📱', path: '/admin/sms-list', description: 'SMS 발송 관리' },
-      { id: 'kakao', name: '카카오 채널', icon: '💬', path: '/admin/kakao', description: '카카오 채널 관리' },
+      { id: 'kakao', name: '카카오 메시지', icon: '💬', path: '/admin/kakao-list', description: '카카오 메시지 작성 및 관리' },
       { id: 'kakao-content', name: '카톡 콘텐츠', icon: '💬', path: '/admin/kakao-content', description: '카카오톡 콘텐츠 관리' },
       { id: 'instagram', name: '인스타그램', icon: '📷', path: '/admin/instagram', description: '인스타그램 콘텐츠 관리' },
       { id: 'shorts', name: '쇼츠', icon: '🎬', path: '/admin/shorts', description: '쇼츠 콘텐츠 관리' },
