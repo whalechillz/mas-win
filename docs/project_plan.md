@@ -38,9 +38,18 @@
 
 # 🎯 프로젝트 진행 현황
 
-## ✅ 최근 작업: AI 이미지 합성 오류 수정 (2025-01-XX)
+## ✅ 최근 작업: GalleryPicker 이미지 선택 안전성 개선 (2025-01-XX)
 
 ### 완료된 작업
+- **GalleryPicker 이미지 선택 안전성 개선** ✅:
+  - `components/admin/GalleryPicker.tsx`: `handleSingleSelect` 함수에 에러 핸들링 추가
+  - `img.url` 검증 추가로 안전성 향상
+  - 최근 폴더 추가 실패 시에도 `onSelect`는 반드시 호출되도록 보장
+  - 기존 동작 유지하면서 안전성 향상
+  - 카카오톡 콘텐츠 갤러리 선택 기능 복구
+
+### 이전 작업: AI 이미지 합성 오류 수정 (2025-01-XX)
+
 - **제품 이미지 URL 변환 수정** ✅:
   - `pages/api/compose-product-image.js`: `getAbsoluteProductImageUrl` 함수 수정
   - Vercel URL 대신 Supabase Storage 공개 URL 사용
