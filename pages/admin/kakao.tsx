@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import AdminNav from '@/components/admin/AdminNav';
-import { KakaoRecipientSelector } from '@/components/admin/KakaoRecipientSelector';
 
 const BaseChannelEditor = dynamic(() => import('@/components/shared/BaseChannelEditor'), { ssr: false });
 
@@ -17,8 +16,6 @@ export default function KakaoChannelEditor() {
     emoji: '',
     tags: []
   });
-  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
-  const [recipientStats, setRecipientStats] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   // 기존 메시지 로드
@@ -44,7 +41,6 @@ export default function KakaoChannelEditor() {
           emoji: message.emoji || '',
           tags: message.tags || []
         });
-        setSelectedRecipients(message.recipient_uuids || []);
       }
     } catch (error) {
       console.error('메시지 로드 오류:', error);
@@ -156,16 +152,6 @@ export default function KakaoChannelEditor() {
         </div>
       </div>
 
-      {/* 수신자 선택 및 필터링 */}
-      <div className="mt-6">
-        <KakaoRecipientSelector
-          onRecipientsChange={(recipients, stats) => {
-            setSelectedRecipients(recipients);
-            setRecipientStats(stats);
-          }}
-          smsMessageIds={[232, 273, 227, 231]}
-        />
-      </div>
     </div>
   );
 

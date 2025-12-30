@@ -134,19 +134,28 @@ export default function BaseChannelEditor({
         </div>
       )}
 
-      {/* 제목 및 점수 */}
+      {/* 제목 */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           제목
         </label>
-        <div className="flex gap-4">
-          <input
-            type="text"
-            value={formData.title || ''}
-            onChange={(e) => updateFormData({ title: e.target.value })}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-md"
-            placeholder="제목을 입력하세요"
-          />
+        <input
+          type="text"
+          value={formData.title || ''}
+          onChange={(e) => updateFormData({ title: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-md"
+          placeholder="제목을 입력하세요"
+        />
+        {titleScore > 0 && (
+          <p className="text-sm text-gray-600 mt-1">
+            제목 점수: {titleScore}/100
+          </p>
+        )}
+      </div>
+
+      {/* 제목 최적화 점수 - 가로 배치 */}
+      {formData.title && (
+        <div className="mb-6">
           <TitleScorer
             title={formData.title || ''}
             persona="unknown"
@@ -157,12 +166,7 @@ export default function BaseChannelEditor({
             onScoreChange={(score) => setTitleScore(score.total)}
           />
         </div>
-        {titleScore > 0 && (
-          <p className="text-sm text-gray-600 mt-1">
-            제목 점수: {titleScore}/100
-          </p>
-        )}
-      </div>
+      )}
 
       {/* 메시지 내용 */}
       <div className="mb-6">
@@ -186,50 +190,27 @@ export default function BaseChannelEditor({
       {/* 채널별 특화 컴포넌트 */}
       {children}
 
-      {/* 이미지 첨부 */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          이미지 첨부
-        </label>
-        <div className="flex gap-4 items-center">
-          <button
-            onClick={() => setShowGallery(true)}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-          >
-            갤러리에서 선택
-          </button>
-          {channelType === 'kakao' && (
-            <a
-              href="/admin/ai-image-generator"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+      {/* 이미지 미리보기 (선택된 이미지가 있을 때만 표시) */}
+      {selectedImage && (
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            선택된 이미지
+          </label>
+          <div className="flex items-center gap-2">
+            <img
+              src={selectedImage}
+              alt="Selected"
+              className="w-32 h-32 object-cover rounded border border-gray-300"
+            />
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700"
             >
-              🎨 AI 이미지 생성
-            </a>
-          )}
-          {selectedImage && (
-            <div className="flex items-center gap-2">
-              <img
-                src={selectedImage}
-                alt="Selected"
-                className="w-16 h-16 object-cover rounded"
-              />
-              <button
-                onClick={() => setSelectedImage(null)}
-                className="text-red-600 hover:text-red-800"
-              >
-                제거
-              </button>
-            </div>
-          )}
+              제거
+            </button>
+          </div>
         </div>
-        {channelType === 'kakao' && (
-          <p className="text-xs text-gray-500 mt-2">
-            💡 AI 이미지 생성에서 젊은 톤의 설문 참여 이미지를 만들 수 있습니다.
-          </p>
-        )}
-      </div>
+      )}
 
       {/* 짧은 링크 생성 */}
       <div className="mb-6">
