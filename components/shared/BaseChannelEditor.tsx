@@ -77,13 +77,19 @@ export default function BaseChannelEditor({
       const buttonText = (initialData as any)?.buttonText;
       const buttonLink = (initialData as any)?.buttonLink;
       
+      // templateType 우선순위: prop > formData > initialData > 기본값
+      const currentTemplateType = templateType || (formData as any).templateType || (initialData as any)?.templateType || 'BASIC_TEXT';
+      
       updateFormData({
         imageUrl: selectedImage || '',
         shortLink,
-        templateType: templateType || 'BASIC_TEXT',
+        templateType: currentTemplateType,
         ...(buttonText && { buttonText }),
         ...(buttonLink && { buttonLink })
-      });
+      } as any);
+      
+      // formData 업데이트 후 약간의 지연을 두고 저장
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       const result = await saveDraft();
       
@@ -102,13 +108,19 @@ export default function BaseChannelEditor({
       const buttonText = (initialData as any)?.buttonText;
       const buttonLink = (initialData as any)?.buttonLink;
       
+      // templateType 우선순위: prop > formData > initialData > 기본값
+      const currentTemplateType = templateType || (formData as any).templateType || (initialData as any)?.templateType || 'BASIC_TEXT';
+      
       updateFormData({
         imageUrl: selectedImage || '',
         shortLink,
-        templateType: templateType || 'BASIC_TEXT',
+        templateType: currentTemplateType,
         ...(buttonText && { buttonText }),
         ...(buttonLink && { buttonLink })
-      });
+      } as any);
+      
+      // formData 업데이트 후 약간의 지연을 두고 발송
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       const result = await sendMessage();
       

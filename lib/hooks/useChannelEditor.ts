@@ -43,8 +43,10 @@ export const useChannelEditor = (
     shortLink: initialData?.shortLink || '',
     status: 'draft',
     messageType: channelType === 'sms' ? 'MMS' : undefined,
-    ...initialData
-  });
+    ...initialData,
+    // templateType을 명시적으로 포함 (카카오 채널용)
+    templateType: initialData?.templateType || 'BASIC_TEXT'
+  } as any);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -267,6 +267,7 @@ export default function KakaoChannelEditor() {
             title: formData.title,
             content: formData.messageText,
             messageType: formData.messageType,
+            templateType: formData.templateType,
             emoji: formData.emoji,
             tags: formData.tags,
             buttonLink: formData.buttonLink,
