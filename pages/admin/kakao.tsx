@@ -241,6 +241,7 @@ export default function KakaoChannelEditor() {
             buttonLink: formData.buttonLink,
             buttonText: formData.buttonText
           }}
+          key={`${formData.title}-${formData.messageText}-${formData.buttonText}-${formData.buttonLink}`}
           onSave={(data) => {
             console.log('Kakao channel saved:', data);
             alert('저장되었습니다.');

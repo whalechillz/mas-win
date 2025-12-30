@@ -71,9 +71,15 @@ export default function BaseChannelEditor({
   // 저장
   const handleSave = async () => {
     try {
+      // initialData에서 buttonText와 buttonLink 가져오기
+      const buttonText = (initialData as any)?.buttonText;
+      const buttonLink = (initialData as any)?.buttonLink;
+      
       updateFormData({
         imageUrl: selectedImage || '',
-        shortLink
+        shortLink,
+        ...(buttonText && { buttonText }),
+        ...(buttonLink && { buttonLink })
       });
       
       const result = await saveDraft();
@@ -89,9 +95,15 @@ export default function BaseChannelEditor({
   // 발송
   const handleSend = async () => {
     try {
+      // initialData에서 buttonText와 buttonLink 가져오기
+      const buttonText = (initialData as any)?.buttonText;
+      const buttonLink = (initialData as any)?.buttonLink;
+      
       updateFormData({
         imageUrl: selectedImage || '',
-        shortLink
+        shortLink,
+        ...(buttonText && { buttonText }),
+        ...(buttonLink && { buttonLink })
       });
       
       const result = await sendMessage();
@@ -139,13 +151,13 @@ export default function BaseChannelEditor({
         <label className="block text-sm font-medium text-gray-700 mb-2">
           제목
         </label>
-        <input
-          type="text"
-          value={formData.title || ''}
-          onChange={(e) => updateFormData({ title: e.target.value })}
+          <input
+            type="text"
+            value={formData.title || ''}
+            onChange={(e) => updateFormData({ title: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-md"
-          placeholder="제목을 입력하세요"
-        />
+            placeholder="제목을 입력하세요"
+          />
         {titleScore > 0 && (
           <p className="text-sm text-gray-600 mt-1">
             제목 점수: {titleScore}/100
@@ -166,7 +178,7 @@ export default function BaseChannelEditor({
             onScoreChange={(score) => setTitleScore(score.total)}
           />
         </div>
-      )}
+        )}
 
       {/* 메시지 내용 */}
       <div className="mb-6">
@@ -192,23 +204,23 @@ export default function BaseChannelEditor({
 
       {/* 이미지 미리보기 (선택된 이미지가 있을 때만 표시) */}
       {selectedImage && (
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
             선택된 이미지
-          </label>
-          <div className="flex items-center gap-2">
-            <img
-              src={selectedImage}
-              alt="Selected"
+        </label>
+            <div className="flex items-center gap-2">
+              <img
+                src={selectedImage}
+                alt="Selected"
               className="w-32 h-32 object-cover rounded border border-gray-300"
-            />
-            <button
-              onClick={() => setSelectedImage(null)}
+              />
+              <button
+                onClick={() => setSelectedImage(null)}
               className="px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700"
-            >
-              제거
-            </button>
-          </div>
+              >
+                제거
+              </button>
+            </div>
         </div>
       )}
 
