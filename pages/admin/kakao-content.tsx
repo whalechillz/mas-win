@@ -2093,7 +2093,9 @@ export default function KakaoContentPage() {
               const profileIndex = updated.profileContent.account1.dailySchedule.findIndex(
                 p => p.date === currentDate
               );
+              
               if (profileIndex >= 0) {
+                // 기존 데이터 업데이트
                 updated.profileContent.account1.dailySchedule[profileIndex] = {
                   ...updated.profileContent.account1.dailySchedule[profileIndex],
                   background: {
@@ -2108,7 +2110,28 @@ export default function KakaoContentPage() {
                   },
                   message: data.message
                 };
+              } else {
+                // ⚠️ 새 데이터 생성 (캘린더 데이터가 없는 경우)
+                updated.profileContent.account1.dailySchedule.push({
+                  date: currentDate,
+                  background: {
+                    image: data.background.image || '',
+                    prompt: data.background.prompt || '',
+                    status: 'created',
+                    imageUrl: data.background.imageUrl
+                  },
+                  profile: {
+                    image: data.profile.image || '',
+                    prompt: data.profile.prompt || '',
+                    status: 'created',
+                    imageUrl: data.profile.imageUrl
+                  },
+                  message: data.message || '',
+                  status: 'created',
+                  created: false
+                });
               }
+              
               setCalendarData(updated);
 
               // Supabase에 저장
@@ -2146,7 +2169,9 @@ export default function KakaoContentPage() {
               const feedIndex = updated.kakaoFeed.dailySchedule.findIndex(
                 f => f.date === currentDate
               );
+              
               if (feedIndex >= 0) {
+                // 기존 데이터 업데이트
                 updated.kakaoFeed.dailySchedule[feedIndex].account1 = {
                   ...updated.kakaoFeed.dailySchedule[feedIndex].account1,
                   imageUrl: data.imageUrl,
@@ -2155,7 +2180,31 @@ export default function KakaoContentPage() {
                   url: data.url, // URL도 저장
                   basePrompt: data.basePrompt // basePrompt도 저장
                 };
+              } else {
+                // ⚠️ 새 데이터 생성 (캘린더 데이터가 없는 경우)
+                updated.kakaoFeed.dailySchedule.push({
+                  date: currentDate,
+                  account1: {
+                    imageCategory: data.imageCategory || '',
+                    imagePrompt: data.imagePrompt || '',
+                    caption: data.caption || '',
+                    status: 'created',
+                    imageUrl: data.imageUrl,
+                    url: data.url,
+                    basePrompt: data.basePrompt
+                  },
+                  account2: {
+                    imageCategory: '',
+                    imagePrompt: '',
+                    caption: '',
+                    status: 'created',
+                    imageUrl: undefined,
+                    url: undefined,
+                    basePrompt: undefined
+                  }
+                });
               }
+              
               setCalendarData(updated);
 
               // Supabase에 저장
@@ -2228,7 +2277,9 @@ export default function KakaoContentPage() {
               const profileIndex = updated.profileContent.account2.dailySchedule.findIndex(
                 p => p.date === currentDate
               );
+              
               if (profileIndex >= 0) {
+                // 기존 데이터 업데이트
                 updated.profileContent.account2.dailySchedule[profileIndex] = {
                   ...updated.profileContent.account2.dailySchedule[profileIndex],
                   background: {
@@ -2243,7 +2294,28 @@ export default function KakaoContentPage() {
                   },
                   message: data.message
                 };
+              } else {
+                // ⚠️ 새 데이터 생성 (캘린더 데이터가 없는 경우)
+                updated.profileContent.account2.dailySchedule.push({
+                  date: currentDate,
+                  background: {
+                    image: data.background.image || '',
+                    prompt: data.background.prompt || '',
+                    status: 'created',
+                    imageUrl: data.background.imageUrl
+                  },
+                  profile: {
+                    image: data.profile.image || '',
+                    prompt: data.profile.prompt || '',
+                    status: 'created',
+                    imageUrl: data.profile.imageUrl
+                  },
+                  message: data.message || '',
+                  status: 'created',
+                  created: false
+                });
               }
+              
               setCalendarData(updated);
 
               // Supabase에 저장
@@ -2281,7 +2353,9 @@ export default function KakaoContentPage() {
               const feedIndex = updated.kakaoFeed.dailySchedule.findIndex(
                 f => f.date === currentDate
               );
+              
               if (feedIndex >= 0) {
+                // 기존 데이터 업데이트
                 updated.kakaoFeed.dailySchedule[feedIndex].account2 = {
                   ...updated.kakaoFeed.dailySchedule[feedIndex].account2,
                   imageUrl: data.imageUrl,
@@ -2290,7 +2364,31 @@ export default function KakaoContentPage() {
                   url: data.url, // URL도 저장
                   basePrompt: data.basePrompt // basePrompt도 저장
                 };
+              } else {
+                // ⚠️ 새 데이터 생성 (캘린더 데이터가 없는 경우)
+                updated.kakaoFeed.dailySchedule.push({
+                  date: currentDate,
+                  account1: {
+                    imageCategory: '',
+                    imagePrompt: '',
+                    caption: '',
+                    status: 'created',
+                    imageUrl: undefined,
+                    url: undefined,
+                    basePrompt: undefined
+                  },
+                  account2: {
+                    imageCategory: data.imageCategory || '',
+                    imagePrompt: data.imagePrompt || '',
+                    caption: data.caption || '',
+                    status: 'created',
+                    imageUrl: data.imageUrl,
+                    url: data.url,
+                    basePrompt: data.basePrompt
+                  }
+                });
               }
+              
               setCalendarData(updated);
 
               // Supabase에 저장
