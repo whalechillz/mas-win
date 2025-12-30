@@ -740,14 +740,26 @@ export default function ProfileManager({
       <GalleryPicker
         isOpen={showBackgroundGallery}
         onSelect={(imageUrl) => {
+          // 프롬프트가 없으면 기본값 설정
+          const currentPrompt = profileData.background.prompt || profileData.background.image || '';
+          
           onUpdate({
             ...profileData,
             background: {
               ...profileData.background,
-              imageUrl
+              imageUrl,
+              // 프롬프트가 비어있으면 경고용 메시지 설정 (하지만 업데이트는 진행)
+              prompt: currentPrompt || '프롬프트를 입력해주세요'
             }
           });
           setShowBackgroundGallery(false);
+          
+          // 프롬프트가 없으면 경고 메시지 (비동기로 표시하여 모달이 닫힌 후 표시)
+          if (!currentPrompt) {
+            setTimeout(() => {
+              alert('⚠️ 프롬프트가 없습니다.\n\n나중에 AI 이미지 재생성을 하려면 프롬프트를 입력해주세요.');
+            }, 300);
+          }
         }}
         onClose={() => setShowBackgroundGallery(false)}
         autoFilterFolder={
@@ -762,14 +774,26 @@ export default function ProfileManager({
       <GalleryPicker
         isOpen={showProfileGallery}
         onSelect={(imageUrl) => {
+          // 프롬프트가 없으면 기본값 설정
+          const currentPrompt = profileData.profile.prompt || profileData.profile.image || '';
+          
           onUpdate({
             ...profileData,
             profile: {
               ...profileData.profile,
-              imageUrl
+              imageUrl,
+              // 프롬프트가 비어있으면 경고용 메시지 설정 (하지만 업데이트는 진행)
+              prompt: currentPrompt || '프롬프트를 입력해주세요'
             }
           });
           setShowProfileGallery(false);
+          
+          // 프롬프트가 없으면 경고 메시지 (비동기로 표시하여 모달이 닫힌 후 표시)
+          if (!currentPrompt) {
+            setTimeout(() => {
+              alert('⚠️ 프롬프트가 없습니다.\n\n나중에 AI 이미지 재생성을 하려면 프롬프트를 입력해주세요.');
+            }, 300);
+          }
         }}
         onClose={() => setShowProfileGallery(false)}
         autoFilterFolder={

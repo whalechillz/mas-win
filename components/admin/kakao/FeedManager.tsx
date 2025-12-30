@@ -542,11 +542,23 @@ export default function FeedManager({
       <GalleryPicker
         isOpen={showGallery}
         onSelect={(imageUrl) => {
+          // 프롬프트가 없으면 기본값 설정
+          const currentPrompt = feedData.imagePrompt || '';
+          
           onUpdate({
             ...feedData,
-            imageUrl
+            imageUrl,
+            // 프롬프트가 비어있으면 경고용 메시지 설정 (하지만 업데이트는 진행)
+            imagePrompt: currentPrompt || '프롬프트를 입력해주세요'
           });
           setShowGallery(false);
+          
+          // 프롬프트가 없으면 경고 메시지 (비동기로 표시하여 모달이 닫힌 후 표시)
+          if (!currentPrompt) {
+            setTimeout(() => {
+              alert('⚠️ 프롬프트가 없습니다.\n\n나중에 AI 이미지 재생성을 하려면 프롬프트를 입력해주세요.');
+            }, 300);
+          }
         }}
         onClose={() => setShowGallery(false)}
         autoFilterFolder={
