@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import AdminNav from '@/components/admin/AdminNav';
+import { KakaoRecipientSelector } from '@/components/admin/KakaoRecipientSelector';
 
 const BaseChannelEditor = dynamic(() => import('@/components/shared/BaseChannelEditor'), { ssr: false });
 
 export default function KakaoChannelEditor() {
   const router = useRouter();
-  const { calendarId } = router.query;
+  const { calendarId, id } = router.query;
   const [formData, setFormData] = useState({
     title: '',
     messageText: '',
@@ -16,6 +17,42 @@ export default function KakaoChannelEditor() {
     emoji: '',
     tags: []
   });
+  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
+  const [recipientStats, setRecipientStats] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  // 기존 메시지 로드
+  useEffect(() => {
+    if (id) {
+      loadExistingMessage(id as string);
+    }
+  }, [id]);
+
+  const loadExistingMessage = async (messageId: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/admin/kakao?id=${messageId}`);
+      const data = await response.json();
+
+      if (data.success && data.data && data.data.length > 0) {
+        const message = data.data[0];
+        setFormData({
+          title: message.title || '',
+          messageText: message.content || '',
+          messageType: message.message_type || 'FRIENDTALK',
+          characterCount: (message.content || '').length,
+          emoji: message.emoji || '',
+          tags: message.tags || []
+        });
+        setSelectedRecipients(message.recipient_uuids || []);
+      }
+    } catch (error) {
+      console.error('메시지 로드 오류:', error);
+      alert('메시지를 불러오는데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // 카카오 채널 특화 컴포넌트
   const KakaoSpecificComponents = () => (
@@ -118,25 +155,74 @@ export default function KakaoChannelEditor() {
           </div>
         </div>
       </div>
+
+      {/* 수신자 선택 및 필터링 */}
+      <div className="mt-6">
+        <KakaoRecipientSelector
+          onRecipientsChange={(recipients, stats) => {
+            setSelectedRecipients(recipients);
+            setRecipientStats(stats);
+          }}
+          smsMessageIds={[232, 273, 227, 231]}
+        />
+      </div>
     </div>
   );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <AdminNav />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <p className="mt-2 text-gray-500">메시지를 불러오는 중...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminNav />
       <div className="py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {id && (
+            <div className="mb-4">
+              <a
+                href="/admin/kakao-list"
+                className="text-blue-600 hover:text-blue-900 text-sm"
+              >
+                ← 목록으로 돌아가기
+              </a>
+            </div>
+          )}
+        </div>
         <BaseChannelEditor
           channelType="kakao"
           channelName="카카오 채널"
           calendarId={calendarId as string}
-          initialData={formData}
+          initialData={{
+            title: formData.title,
+            content: formData.messageText,
+            messageType: formData.messageType,
+            emoji: formData.emoji,
+            tags: formData.tags,
+            buttonLink: undefined, // API에서 로드
+            buttonText: undefined // API에서 로드
+          }}
           onSave={(data) => {
             console.log('Kakao channel saved:', data);
-            // 성공 메시지 표시
+            alert('저장되었습니다.');
+            if (id) {
+              router.push('/admin/kakao-list');
+            }
           }}
           onSend={(data) => {
             console.log('Kakao channel sent:', data);
-            // 성공 메시지 표시
+            alert('발송되었습니다.');
+            router.push('/admin/kakao-list');
           }}
         >
           <KakaoSpecificComponents />

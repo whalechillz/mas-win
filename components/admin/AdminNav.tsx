@@ -115,6 +115,9 @@ const AdminNav = () => {
             <Link href="/admin/kakao-content" className={`px-2 py-1 rounded ${isActive('/admin/kakao-content') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
               📱 데일리 콘텐츠
             </Link>
+            <Link href="/admin/kakao-list" className={`px-2 py-1 rounded ${isActive('/admin/kakao-list') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
+              💬 카카오 메시지
+            </Link>
             <Link href="/admin/dashboard" className={`px-2 py-1 rounded text-gray-400 hover:text-gray-600`}>
               더보기 →
             </Link>

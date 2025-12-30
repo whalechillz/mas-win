@@ -118,6 +118,24 @@ export const useChannelEditor = (
           recipientNumbers: formData.recipientNumbers || [],
           status: formData.status || 'draft'
         };
+      } else if (channelType === 'kakao') {
+        requestData = {
+          title: formData.title || '',
+          content: formData.content || '',
+          messageType: formData.messageType || 'FRIENDTALK',
+          imageUrl: formData.imageUrl || '',
+          shortLink: formData.shortLink || '',
+          buttonLink: formData.buttonLink || formData.shortLink || 'https://www.masgolf.co.kr/survey',
+          buttonText: formData.buttonText || '설문 참여하기',
+          emoji: (formData as any).emoji || '',
+          tags: (formData as any).tags || [],
+          status: formData.status || 'draft',
+          calendarId,
+          blogPostId,
+          hub_content_id: hubId,
+          channelKey,
+          selectedRecipients: (formData as any).selectedRecipients || []
+        };
       } else {
         requestData = {
           ...formData,

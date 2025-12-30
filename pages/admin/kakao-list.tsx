@@ -119,9 +119,19 @@ export default function KakaoChannelList() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 헤더 */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">카카오 채널 관리</h1>
-          <p className="mt-2 text-gray-600">카카오톡 메시지를 관리하고 허브 시스템과 연동합니다.</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">카카오 채널 관리</h1>
+            <p className="mt-2 text-gray-600">카카오톡 메시지를 관리하고 허브 시스템과 연동합니다.</p>
+          </div>
+          <div>
+            <a
+              href="/admin/kakao"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              + 새 메시지 작성
+            </a>
+          </div>
         </div>
 
         {/* 에러 메시지 */}
@@ -241,13 +251,51 @@ export default function KakaoChannelList() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
-                          <button className="text-blue-600 hover:text-blue-900">
+                          <button
+                            onClick={() => {
+                              // 상세 보기 모달 또는 페이지로 이동
+                              const content = `제목: ${channel.title}\n\n내용:\n${channel.content}\n\n타입: ${getMessageTypeText(channel.message_type)}\n상태: ${getStatusText(channel.status)}\n버튼 링크: ${channel.button_link || '-'}\n버튼 텍스트: ${channel.button_text || '-'}`;
+                              alert(content);
+                            }}
+                            className="text-blue-600 hover:text-blue-900"
+                          >
                             보기
                           </button>
-                          <button className="text-indigo-600 hover:text-indigo-900">
+                          <button
+                            onClick={() => {
+                              // 편집 페이지로 이동
+                              window.location.href = `/admin/kakao?id=${channel.id}`;
+                            }}
+                            className="text-indigo-600 hover:text-indigo-900"
+                          >
                             편집
                           </button>
-                          <button className="text-red-600 hover:text-red-900">
+                          <button
+                            onClick={async () => {
+                              if (!confirm(`정말로 "${channel.title}" 메시지를 삭제하시겠습니까?`)) {
+                                return;
+                              }
+                              
+                              try {
+                                const response = await fetch(`/api/admin/kakao?id=${channel.id}`, {
+                                  method: 'DELETE'
+                                });
+                                
+                                const data = await response.json();
+                                
+                                if (data.success) {
+                                  alert('삭제되었습니다.');
+                                  fetchKakaoChannels(); // 목록 새로고침
+                                } else {
+                                  alert(`삭제 실패: ${data.message}`);
+                                }
+                              } catch (error) {
+                                console.error('삭제 오류:', error);
+                                alert('삭제 중 오류가 발생했습니다.');
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-900"
+                          >
                             삭제
                           </button>
                         </div>

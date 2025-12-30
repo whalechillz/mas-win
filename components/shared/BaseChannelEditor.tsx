@@ -144,7 +144,7 @@ export default function BaseChannelEditor({
             type="text"
             value={formData.title || ''}
             onChange={(e) => updateFormData({ title: e.target.value })}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-md"
             placeholder="제목을 입력하세요"
           />
           <TitleScorer
@@ -191,13 +191,23 @@ export default function BaseChannelEditor({
         <label className="block text-sm font-medium text-gray-700 mb-2">
           이미지 첨부
         </label>
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
           <button
             onClick={() => setShowGallery(true)}
             className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
           >
-            이미지 선택
+            갤러리에서 선택
           </button>
+          {channelType === 'kakao' && (
+            <a
+              href="/admin/ai-image-generator"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            >
+              🎨 AI 이미지 생성
+            </a>
+          )}
           {selectedImage && (
             <div className="flex items-center gap-2">
               <img
@@ -214,13 +224,24 @@ export default function BaseChannelEditor({
             </div>
           )}
         </div>
+        {channelType === 'kakao' && (
+          <p className="text-xs text-gray-500 mt-2">
+            💡 AI 이미지 생성에서 젊은 톤의 설문 참여 이미지를 만들 수 있습니다.
+          </p>
+        )}
       </div>
 
       {/* 짧은 링크 생성 */}
       <div className="mb-6">
         <ShortLinkGenerator
-          originalUrl="https://masgolf.co.kr"
-          onLinkGenerated={setShortLink}
+          originalUrl={channelType === 'kakao' ? 'https://www.masgolf.co.kr/survey' : 'https://masgolf.co.kr'}
+          onLinkGenerated={(link) => {
+            setShortLink(link);
+            // 카카오 채널인 경우 버튼 링크로도 설정
+            if (channelType === 'kakao') {
+              updateFormData({ buttonLink: link, shortLink: link });
+            }
+          }}
         />
       </div>
 
