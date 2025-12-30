@@ -16,8 +16,8 @@ export default function KakaoChannelEditor() {
     characterCount: 0,
     emoji: '',
     tags: [],
-    buttonText: '설문 참여하기',
-    buttonLink: 'https://www.masgolf.co.kr/survey'
+    buttonText: '', // 빈 값으로 시작, 사용자가 입력
+    buttonLink: '' // 빈 값으로 시작, 사용자가 입력
   });
   const [loading, setLoading] = useState(false);
 
@@ -44,8 +44,8 @@ export default function KakaoChannelEditor() {
           characterCount: (message.content || '').length,
           emoji: message.emoji || '',
           tags: message.tags || [],
-          buttonText: message.button_text || '설문 참여하기',
-          buttonLink: message.button_link || 'https://www.masgolf.co.kr/survey'
+          buttonText: message.button_text || '',
+          buttonLink: message.button_link || ''
         });
       }
     } catch (error) {
@@ -159,17 +159,17 @@ export default function KakaoChannelEditor() {
             <label className="block text-xs text-gray-600 mb-1">버튼명</label>
             <input
               type="text"
-              value={formData.buttonText || '설문 참여하기'}
+              value={formData.buttonText || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, buttonText: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="설문 참여하기"
+              placeholder="예: 설문 참여하기, 자세히 보기, 바로가기"
             />
           </div>
           <div>
             <label className="block text-xs text-gray-600 mb-1">버튼 링크</label>
             <input
               type="url"
-              value={formData.buttonLink || 'https://www.masgolf.co.kr/survey'}
+              value={formData.buttonLink || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, buttonLink: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="https://www.masgolf.co.kr/survey"

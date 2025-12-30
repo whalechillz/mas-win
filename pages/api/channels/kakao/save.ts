@@ -52,15 +52,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // 카카오 버튼 링크 설정 (shortLink 또는 buttonLink 우선 사용)
-    const finalButtonLink = button_link || buttonLink || short_link || shortLink || 'https://www.masgolf.co.kr/survey';
-    const finalButtonText = button_text || buttonText || '설문 참여하기';
+    // 빈 값이면 null로 저장 (버튼 없음)
+    const finalButtonLink = button_link || buttonLink || short_link || shortLink || null;
+    const finalButtonText = button_text || buttonText || null;
 
     // channel_kakao 테이블에 저장 (기존 API 구조와 동일하게)
     const insertData: any = {
       title: isBasicTextType ? null : (title || null), // 기본 텍스트형이면 null
       content,
       message_type: message_type || messageType || 'FRIENDTALK',
-      template_type: templateType || 'BASIC_TEXT', // 템플릿 타입 저장
       template_id: null,
       button_text: finalButtonText || null,
       button_link: finalButtonLink || null,
@@ -70,6 +70,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
+
+    // template_type 컬럼이 있으면 추가 (없어도 오류 없이 처리)
+    if (templateType) {
+      insertData.template_type = templateType;
+    }
 
     // image_url, emoji, tags는 데이터베이스에 컬럼이 있는 경우에만 추가
     if (image_url || imageUrl) {

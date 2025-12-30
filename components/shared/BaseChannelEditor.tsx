@@ -268,12 +268,16 @@ export default function BaseChannelEditor({
       {/* 짧은 링크 생성 */}
       <div className="mb-6">
         <ShortLinkGenerator
-          originalUrl={channelType === 'kakao' ? 'https://www.masgolf.co.kr/survey' : 'https://masgolf.co.kr'}
+          originalUrl={
+            channelType === 'kakao' 
+              ? ((formData as any).buttonLink || (initialData as any)?.buttonLink || 'https://www.masgolf.co.kr/survey')
+              : 'https://masgolf.co.kr'
+          }
           onLinkGenerated={(link) => {
             setShortLink(link);
             // 카카오 채널인 경우 버튼 링크로도 설정
             if (channelType === 'kakao') {
-              updateFormData({ buttonLink: link, shortLink: link });
+              updateFormData({ buttonLink: link, shortLink: link } as any);
             }
           }}
         />

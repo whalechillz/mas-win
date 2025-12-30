@@ -12,21 +12,40 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    // 카카오 채널 목록 조회
     try {
-      const { id, hub_content_id } = req.query;
+      const { id, hub_content_id, status, sortBy = 'sent_at', sortOrder = 'desc' } = req.query;
       
       let query = supabase
         .from('channel_kakao')
-        .select('*, calendar_id')
-        .order('created_at', { ascending: false });
+        .select('*');
 
+      // 단일 조회 (id가 있으면)
       if (id) {
         query = query.eq('id', id);
       }
 
+      // 허브 콘텐츠 ID로 필터링
       if (hub_content_id) {
         query = query.eq('calendar_id', hub_content_id);
+      }
+
+      // 상태 필터링 (id가 없을 때만)
+      if (!id && status && status !== 'all') {
+        query = query.eq('status', status);
+      }
+
+      // 정렬 (id가 없을 때만)
+      if (!id) {
+        if (sortBy === 'sent_at') {
+          query = query.order('sent_at', { ascending: sortOrder === 'asc', nullsFirst: false });
+        } else if (sortBy === 'created_at') {
+          query = query.order('created_at', { ascending: sortOrder === 'asc' });
+        } else {
+          query = query.order('created_at', { ascending: false });
+        }
+      } else {
+        // 단일 조회 시 기본 정렬
+        query = query.order('created_at', { ascending: false });
       }
 
       const { data: kakaoChannels, error } = await query;
@@ -35,7 +54,7 @@ export default async function handler(req, res) {
         console.error('❌ 카카오 채널 조회 오류:', error);
         return res.status(500).json({
           success: false,
-          message: '카카오 채널을 불러올 수 없습니다.',
+          message: '카카오 채널 조회에 실패했습니다.',
           error: error.message
         });
       }

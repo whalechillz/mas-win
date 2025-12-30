@@ -24,12 +24,23 @@ export default function KakaoChannelList() {
   const [kakaoChannels, setKakaoChannels] = useState<KakaoChannel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'all' | 'draft' | 'sent' | 'scheduled'>('all');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<'sent_at' | 'created_at'>('sent_at');
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
 
   // 카카오 채널 목록 조회
   const fetchKakaoChannels = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/kakao');
+      const params = new URLSearchParams();
+      if (filter !== 'all') {
+        params.append('status', filter);
+      }
+      params.append('sortBy', sortBy);
+      params.append('sortOrder', sortOrder);
+      
+      const response = await fetch(`/api/admin/kakao?${params.toString()}`);
       const data = await response.json();
 
       if (data.success) {
@@ -47,7 +58,7 @@ export default function KakaoChannelList() {
 
   useEffect(() => {
     fetchKakaoChannels();
-  }, []);
+  }, [filter, sortBy, sortOrder]);
 
   // 상태별 색상
   const getStatusColor = (status: string) => {
@@ -124,7 +135,31 @@ export default function KakaoChannelList() {
             <h1 className="text-3xl font-bold text-gray-900">카카오 채널 관리</h1>
             <p className="mt-2 text-gray-600">카카오톡 메시지를 관리하고 허브 시스템과 연동합니다.</p>
           </div>
-          <div>
+          <div className="flex gap-3">
+            {selectedIds.length > 0 && (
+              <button
+                onClick={async () => {
+                  if (!confirm(`선택한 ${selectedIds.length}개의 메시지를 삭제하시겠습니까?`)) {
+                    return;
+                  }
+                  try {
+                    const deletePromises = selectedIds.map(id =>
+                      fetch(`/api/admin/kakao?id=${id}`, { method: 'DELETE' })
+                    );
+                    await Promise.all(deletePromises);
+                    alert('삭제되었습니다.');
+                    setSelectedIds([]);
+                    fetchKakaoChannels();
+                  } catch (error) {
+                    console.error('삭제 오류:', error);
+                    alert('삭제 중 오류가 발생했습니다.');
+                  }
+                }}
+                className="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md shadow-sm text-red-700 bg-white hover:bg-red-50"
+              >
+                선택 삭제 ({selectedIds.length})
+              </button>
+            )}
             <a
               href="/admin/kakao"
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -132,6 +167,32 @@ export default function KakaoChannelList() {
               + 새 메시지 작성
             </a>
           </div>
+        </div>
+
+        {/* 필터 탭 */}
+        <div className="mb-6 border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            {[
+              { key: 'all', label: '전체', count: kakaoChannels.length },
+              { key: 'draft', label: '초안', count: kakaoChannels.filter(c => c.status === 'draft').length },
+              { key: 'sent', label: '발송됨', count: kakaoChannels.filter(c => c.status === 'sent').length },
+              { key: 'scheduled', label: '예약됨', count: kakaoChannels.filter(c => c.status === 'scheduled').length },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setFilter(tab.key as any)}
+                className={`
+                  whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                  ${filter === tab.key
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }
+                `}
+              >
+                {tab.label} ({tab.count})
+              </button>
+            ))}
+          </nav>
         </div>
 
         {/* 에러 메시지 */}
@@ -166,6 +227,23 @@ export default function KakaoChannelList() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.length === kakaoChannels.length && kakaoChannels.length > 0}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedIds(kakaoChannels.map(c => c.id));
+                          } else {
+                            setSelectedIds([]);
+                          }
+                        }}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       제목
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -177,8 +255,21 @@ export default function KakaoChannelList() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       발송 결과
                     </th>
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => {
+                        if (sortBy === 'sent_at') {
+                          setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
+                        } else {
+                          setSortBy('sent_at');
+                          setSortOrder('desc');
+                        }
+                      }}
+                    >
+                      발송일 {sortBy === 'sent_at' && (sortOrder === 'desc' ? '↓' : '↑')}
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      발송일
+                      생성일
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       허브 연동 ID
@@ -189,8 +280,27 @@ export default function KakaoChannelList() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {kakaoChannels.map((channel) => (
+                  {kakaoChannels
+                    .filter(channel => filter === 'all' || channel.status === filter)
+                    .map((channel) => (
                     <tr key={channel.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(channel.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedIds([...selectedIds, channel.id]);
+                            } else {
+                              setSelectedIds(selectedIds.filter(id => id !== channel.id));
+                            }
+                          }}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {channel.id}
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
                           <div className="text-sm font-medium text-gray-900 truncate max-w-xs">
@@ -225,9 +335,24 @@ export default function KakaoChannelList() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {channel.sent_at 
-                          ? new Date(channel.sent_at).toLocaleDateString('ko-KR')
+                          ? new Date(channel.sent_at).toLocaleString('ko-KR', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })
                           : '-'
                         }
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(channel.created_at).toLocaleString('ko-KR', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
                       </td>
                       <td className="px-6 py-4">
                         {channel.calendar_id ? (
