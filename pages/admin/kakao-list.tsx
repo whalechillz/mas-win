@@ -18,6 +18,7 @@ interface KakaoChannel {
   sent_at?: string;
   created_at: string;
   calendar_id?: string; // 허브 콘텐츠 ID
+  kakao_group_id?: string; // 카카오 파트너센터 메시지 ID
 }
 
 export default function KakaoChannelList() {
@@ -272,6 +273,9 @@ export default function KakaoChannelList() {
                       생성일
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      카카오 메시지 ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       허브 연동 ID
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -304,10 +308,10 @@ export default function KakaoChannelList() {
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
                           <div className="text-sm font-medium text-gray-900 truncate max-w-xs">
-                            {channel.title}
+                            {channel.title || '(제목 없음 - 기본 텍스트형)'}
                           </div>
                           <div className="text-sm text-gray-500 truncate max-w-xs">
-                            {channel.content.substring(0, 50)}...
+                            {channel.content ? (channel.content.length > 50 ? `${channel.content.substring(0, 50)}...` : channel.content) : '-'}
                           </div>
                         </div>
                       </td>
@@ -354,6 +358,25 @@ export default function KakaoChannelList() {
                           minute: '2-digit'
                         })}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {(channel as any).kakao_group_id ? (
+                          <div className="flex items-center space-x-2">
+                            <span 
+                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 cursor-pointer hover:bg-blue-200 transition-colors"
+                              title={`카카오 메시지 ID: ${(channel as any).kakao_group_id}`}
+                              onClick={() => {
+                                window.open(`https://business.kakao.com/_vSVuV/messages/${(channel as any).kakao_group_id}`, '_blank');
+                              }}
+                            >
+                              {(channel as any).kakao_group_id}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            미연동
+                          </span>
+                        )}
+                      </td>
                       <td className="px-6 py-4">
                         {channel.calendar_id ? (
                           <div className="flex items-center space-x-2">
@@ -361,7 +384,6 @@ export default function KakaoChannelList() {
                               className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 cursor-pointer hover:bg-green-200 transition-colors"
                               title={`허브 ID: ${channel.calendar_id}`}
                               onClick={() => {
-                                // 허브 콘텐츠로 이동
                                 window.open(`/admin/content-calendar-hub`, '_blank');
                               }}
                             >
@@ -379,7 +401,7 @@ export default function KakaoChannelList() {
                           <button
                             onClick={() => {
                               // 상세 보기 모달 또는 페이지로 이동
-                              const content = `제목: ${channel.title}\n\n내용:\n${channel.content}\n\n타입: ${getMessageTypeText(channel.message_type)}\n상태: ${getStatusText(channel.status)}\n버튼 링크: ${channel.button_link || '-'}\n버튼 텍스트: ${channel.button_text || '-'}`;
+                              const content = `제목: ${channel.title || '(제목 없음)'}\n\n내용:\n${channel.content}\n\n타입: ${getMessageTypeText(channel.message_type)}\n상태: ${getStatusText(channel.status)}\n버튼 링크: ${channel.button_link || '-'}\n버튼 텍스트: ${channel.button_text || '-'}\n카카오 메시지 ID: ${(channel as any).kakao_group_id || '-'}`;
                               alert(content);
                             }}
                             className="text-blue-600 hover:text-blue-900"
@@ -395,9 +417,53 @@ export default function KakaoChannelList() {
                           >
                             편집
                           </button>
+                          {!(channel as any).kakao_group_id && (
+                            <button
+                              onClick={async () => {
+                                const kakaoMessageId = prompt('카카오 파트너센터 메시지 ID를 입력하세요:\n(예: 16147105)');
+                                if (!kakaoMessageId) return;
+
+                                try {
+                                  const response = await fetch('/api/kakao/manual-sync', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      kakaoMessageId,
+                                      channelKakaoId: channel.id,
+                                      title: channel.title,
+                                      content: channel.content,
+                                      status: channel.status,
+                                      sentAt: channel.sent_at,
+                                      sentCount: channel.sent_count,
+                                      successCount: channel.success_count,
+                                      failCount: channel.fail_count,
+                                      buttonText: channel.button_text,
+                                      buttonLink: channel.button_link,
+                                    })
+                                  });
+
+                                  const data = await response.json();
+                                  
+                                  if (data.success) {
+                                    alert('카카오 파트너센터 메시지와 동기화되었습니다.');
+                                    fetchKakaoChannels();
+                                  } else {
+                                    alert(`동기화 실패: ${data.message}`);
+                                  }
+                                } catch (error) {
+                                  console.error('동기화 오류:', error);
+                                  alert('동기화 중 오류가 발생했습니다.');
+                                }
+                              }}
+                              className="text-green-600 hover:text-green-900"
+                              title="카카오 파트너센터 메시지와 동기화"
+                            >
+                              동기화
+                            </button>
+                          )}
                           <button
                             onClick={async () => {
-                              if (!confirm(`정말로 "${channel.title}" 메시지를 삭제하시겠습니까?`)) {
+                              if (!confirm(`정말로 "${channel.title || '이 메시지'}"를 삭제하시겠습니까?`)) {
                                 return;
                               }
                               
@@ -410,7 +476,7 @@ export default function KakaoChannelList() {
                                 
                                 if (data.success) {
                                   alert('삭제되었습니다.');
-                                  fetchKakaoChannels(); // 목록 새로고침
+                                  fetchKakaoChannels();
                                 } else {
                                   alert(`삭제 실패: ${data.message}`);
                                 }
