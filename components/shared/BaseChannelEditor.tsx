@@ -11,6 +11,7 @@ interface BaseChannelEditorProps {
   calendarId?: string;
   hubId?: string;
   channelKey?: string;
+  templateType?: string; // 'BASIC_TEXT' | 'WIDE_IMAGE' | etc.
   initialData?: any;
   onSave?: (data: any) => void;
   onSend?: (data: any) => void;
