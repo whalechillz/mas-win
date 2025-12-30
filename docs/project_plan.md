@@ -38,9 +38,15 @@
 
 # 🎯 프로젝트 진행 현황
 
-## ✅ 최근 작업: 카카오 콘텐츠 이미지 선택 개선 (2025-01-XX)
+## ✅ 최근 작업: 카카오 콘텐츠 이미지 선택 기능 완전 수정 (2025-01-XX)
 
 ### 완료된 작업
+- **캘린더 데이터 없을 때 이미지 선택 가능하도록 수정** ✅:
+  - `pages/admin/kakao-content.tsx`: `onProfileUpdate`, `onFeedUpdate` 함수 수정
+  - `profileIndex < 0` 또는 `feedIndex < 0`인 경우 새 항목 자동 생성
+  - account1, account2 모두 적용
+  - 캘린더 데이터가 없어도 이미지 선택 시 자동으로 데이터 생성
+  - 이미지 선택이 실제로 입력되도록 수정
 - **카카오 콘텐츠 이미지 선택 시 프롬프트 경고 추가** ✅:
   - `components/admin/kakao/ProfileManager.tsx`: 배경/프로필 이미지 선택 시 프롬프트 없으면 경고 표시
   - `components/admin/kakao/FeedManager.tsx`: 피드 이미지 선택 시 프롬프트 없으면 경고 표시
