@@ -14,7 +14,9 @@ export default function KakaoChannelEditor() {
     messageType: 'ALIMTALK',
     characterCount: 0,
     emoji: '',
-    tags: []
+    tags: [],
+    buttonText: '설문 참여하기',
+    buttonLink: 'https://www.masgolf.co.kr/survey'
   });
   const [loading, setLoading] = useState(false);
 
@@ -39,7 +41,9 @@ export default function KakaoChannelEditor() {
           messageType: message.message_type || 'FRIENDTALK',
           characterCount: (message.content || '').length,
           emoji: message.emoji || '',
-          tags: message.tags || []
+          tags: message.tags || [],
+          buttonText: message.button_text || '설문 참여하기',
+          buttonLink: message.button_link || 'https://www.masgolf.co.kr/survey'
         });
       }
     } catch (error) {
@@ -121,6 +125,35 @@ export default function KakaoChannelEditor() {
         />
       </div>
 
+      {/* 카카오톡 버튼 설정 */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          카카오톡 버튼 설정
+        </label>
+        <div className="space-y-3">
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">버튼명</label>
+            <input
+              type="text"
+              value={formData.buttonText || '설문 참여하기'}
+              onChange={(e) => setFormData(prev => ({ ...prev, buttonText: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="설문 참여하기"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">버튼 링크</label>
+            <input
+              type="url"
+              value={formData.buttonLink || 'https://www.masgolf.co.kr/survey'}
+              onChange={(e) => setFormData(prev => ({ ...prev, buttonLink: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="https://www.masgolf.co.kr/survey"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* 카카오톡 미리보기 */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -145,6 +178,16 @@ export default function KakaoChannelEditor() {
               {formData.tags.length > 0 && (
                 <div className="mt-2 text-blue-600">
                   #{formData.tags.join(' #')}
+                </div>
+              )}
+              {formData.buttonText && formData.buttonLink && (
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <a
+                    href={formData.buttonLink}
+                    className="inline-block px-4 py-2 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                  >
+                    {formData.buttonText}
+                  </a>
                 </div>
               )}
             </div>
@@ -195,8 +238,8 @@ export default function KakaoChannelEditor() {
             messageType: formData.messageType,
             emoji: formData.emoji,
             tags: formData.tags,
-            buttonLink: undefined, // API에서 로드
-            buttonText: undefined // API에서 로드
+            buttonLink: formData.buttonLink,
+            buttonText: formData.buttonText
           }}
           onSave={(data) => {
             console.log('Kakao channel saved:', data);

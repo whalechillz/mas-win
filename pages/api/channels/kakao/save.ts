@@ -44,34 +44,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const finalButtonLink = button_link || buttonLink || short_link || shortLink || 'https://www.masgolf.co.kr/survey';
     const finalButtonText = button_text || buttonText || '설문 참여하기';
 
-    // channel_kakao 테이블에 저장
+    // channel_kakao 테이블에 저장 (기존 API 구조와 동일하게)
+    const insertData: any = {
+      title,
+      content,
+      message_type: message_type || messageType || 'FRIENDTALK',
+      template_id: null,
+      button_text: finalButtonText || null,
+      button_link: finalButtonLink || null,
+      recipient_uuids: selectedRecipients || [],
+      status: status || 'draft',
+      calendar_id: hub_content_id || calendarId || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    // image_url, emoji, tags는 데이터베이스에 컬럼이 있는 경우에만 추가
+    if (image_url || imageUrl) {
+      insertData.image_url = image_url || imageUrl;
+    }
+    
+    if (emoji) {
+      insertData.emoji = emoji;
+    }
+    
+    if (tags) {
+      // tags가 배열이면 JSON 문자열로 변환, 문자열이면 그대로 사용
+      insertData.tags = Array.isArray(tags) 
+        ? JSON.stringify(tags) 
+        : (typeof tags === 'string' ? tags : null);
+    }
+
     const { data: newKakaoChannel, error } = await supabase
       .from('channel_kakao')
-      .insert({
-        title,
-        content,
-        message_type: message_type || messageType || 'FRIENDTALK',
-        template_id: null,
-        button_text: finalButtonText,
-        button_link: finalButtonLink,
-        recipient_uuids: selectedRecipients || [],
-        status: status || 'draft',
-        calendar_id: hub_content_id || calendarId || null,
-        image_url: image_url || imageUrl || null,
-        emoji: emoji || null,
-        tags: Array.isArray(tags) ? tags : (tags ? tags.split(',').map((t: string) => t.trim()) : []),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
+      .insert(insertData)
       .select()
       .single();
 
     if (error) {
       console.error('❌ 카카오 채널 저장 오류:', error);
+      console.error('❌ 저장 시도한 데이터:', JSON.stringify(insertData, null, 2));
       return res.status(500).json({
         success: false,
         message: '카카오 채널 저장에 실패했습니다.',
-        error: error.message
+        error: error.message,
+        details: error
       });
     }
 
