@@ -603,22 +603,42 @@ const GalleryPicker: React.FC<Props> = ({
 
   // 단일 이미지 선택 처리
   const handleSingleSelect = (img: ImageItem) => {
-    // Solapi 이미지인 경우 imageId를 직접 전달 (업로드 불필요)
-    const solapiImageId = (img as any).imageId;
-    if (solapiImageId && solapiImageId.startsWith('ST01FZ')) {
-      // Solapi imageId를 직접 전달 (업로드 없이 즉시 사용)
-      onSelect(solapiImageId, { alt: altText || img.name });
-    } else {
-      // Supabase 이미지는 기존대로 URL 전달
-      // 이미지 선택 시 폴더 경로 추출 및 최근 폴더에 추가
-      const folderPath = extractFolderPathFromUrl(img.url);
-      if (folderPath) {
-        addRecentFolder(folderPath);
+    try {
+      // img.url 검증
+      if (!img || !img.url) {
+        console.error('❌ 이미지 데이터가 없거나 URL이 없습니다:', img);
+        alert('이미지를 선택할 수 없습니다. 이미지 정보가 올바르지 않습니다.');
+        return;
       }
-      onSelect(img.url, { alt: altText || img.name });
-    }
-    if (!keepOpenAfterSelect) {
-      onClose();
+
+      // Solapi 이미지인 경우 imageId를 직접 전달 (업로드 불필요)
+      const solapiImageId = (img as any).imageId;
+      if (solapiImageId && solapiImageId.startsWith('ST01FZ')) {
+        // Solapi imageId를 직접 전달 (업로드 없이 즉시 사용)
+        onSelect(solapiImageId, { alt: altText || img.name });
+      } else {
+        // Supabase 이미지는 기존대로 URL 전달
+        // ⚠️ 중요: 최근 폴더 추가는 실패해도 onSelect는 반드시 호출되어야 함
+        try {
+          const folderPath = extractFolderPathFromUrl(img.url);
+          if (folderPath) {
+            addRecentFolder(folderPath);
+          }
+        } catch (folderError) {
+          // 최근 폴더 추가 실패는 무시하고 계속 진행
+          console.warn('⚠️ 최근 폴더 추가 실패 (무시하고 계속):', folderError);
+        }
+        
+        // ⚠️ 핵심: onSelect는 반드시 호출되어야 함
+        onSelect(img.url, { alt: altText || img.name });
+      }
+      
+      if (!keepOpenAfterSelect) {
+        onClose();
+      }
+    } catch (error) {
+      console.error('❌ handleSingleSelect 오류:', error);
+      alert('이미지 선택 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 
@@ -826,14 +846,33 @@ const GalleryPicker: React.FC<Props> = ({
                     <button
                       type="button"
                       onClick={() => {
-                        // 이미지 선택 시 폴더 경로 추출 및 최근 폴더에 추가
-                        const folderPath = extractFolderPathFromUrl(img.url);
-                        if (folderPath) {
-                          addRecentFolder(folderPath);
-                        }
-                        onSelect(img.url, { alt: altText || img.name });
-                        if (!keepOpenAfterSelect) {
-                          onClose();
+                        try {
+                          // img.url 검증
+                          if (!img || !img.url) {
+                            console.error('❌ 이미지 데이터가 없거나 URL이 없습니다:', img);
+                            alert('이미지를 선택할 수 없습니다. 이미지 정보가 올바르지 않습니다.');
+                            return;
+                          }
+
+                          // ⚠️ 중요: 최근 폴더 추가는 실패해도 onSelect는 반드시 호출되어야 함
+                          try {
+                            const folderPath = extractFolderPathFromUrl(img.url);
+                            if (folderPath) {
+                              addRecentFolder(folderPath);
+                            }
+                          } catch (folderError) {
+                            // 최근 폴더 추가 실패는 무시하고 계속 진행
+                            console.warn('⚠️ 최근 폴더 추가 실패 (무시하고 계속):', folderError);
+                          }
+                          
+                          // ⚠️ 핵심: onSelect는 반드시 호출되어야 함
+                          onSelect(img.url, { alt: altText || img.name });
+                          if (!keepOpenAfterSelect) {
+                            onClose();
+                          }
+                        } catch (error) {
+                          console.error('❌ 이미지 선택 오류:', error);
+                          alert('이미지 선택 중 오류가 발생했습니다. 다시 시도해주세요.');
                         }
                       }}
                       className="absolute bottom-2 right-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-lg transition-colors"
