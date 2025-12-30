@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface KakaoRecipientSelectorProps {
   onRecipientsChange: (recipients: string[], stats: any) => void;
@@ -16,7 +16,7 @@ export const KakaoRecipientSelector: React.FC<KakaoRecipientSelectorProps> = ({
   const [recipients, setRecipients] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRecipients = async () => {
+  const fetchRecipients = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -28,27 +28,47 @@ export const KakaoRecipientSelector: React.FC<KakaoRecipientSelectorProps> = ({
       });
 
       const response = await fetch(`/api/kakao/recipients?${params.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
 
-      if (data.success) {
-        const phoneNumbers = data.data.recipients.map((r: any) => r.phone);
+      if (data.success && data.data) {
+        // API 응답 구조에 맞게 수정
+        const recipientList = data.data.recipients || [];
+        const phoneNumbers = recipientList.map((r: any) => {
+          // phone 필드가 있으면 사용, 없으면 전체 객체에서 phone 추출
+          return r.phone || (typeof r === 'string' ? r : null);
+        }).filter((phone: string | null) => phone !== null);
+        
         setRecipients(phoneNumbers);
-        setStats(data.data.stats);
-        onRecipientsChange(phoneNumbers, data.data.stats);
+        setStats(data.data.stats || null);
+        onRecipientsChange(phoneNumbers, data.data.stats || null);
       } else {
-        setError(data.message || '수신자 목록을 불러올 수 없습니다.');
+        const errorMessage = data.message || '수신자 목록을 불러올 수 없습니다.';
+        setError(errorMessage);
+        console.error('API 응답 오류:', data);
+        // 에러 발생 시에도 빈 배열로 설정
+        setRecipients([]);
+        setStats(null);
       }
     } catch (err: any) {
-      setError(err.message || '오류가 발생했습니다.');
+      const errorMessage = err.message || '오류가 발생했습니다.';
+      setError(errorMessage);
       console.error('수신자 조회 오류:', err);
+      // 에러 발생 시에도 로딩 상태 해제
+      setRecipients([]);
+      setStats(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, [excludeSmsRecipients, excludeSurveyParticipants, smsMessageIds, onRecipientsChange]);
 
   useEffect(() => {
     fetchRecipients();
-  }, [excludeSmsRecipients, excludeSurveyParticipants]);
+  }, [fetchRecipients]);
 
   const validateRecipients = async () => {
     if (recipients.length === 0) {
