@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import { getProductImageUrl } from '../../lib/product-image-url';
 
 type FormStep = 1 | 2 | 3;
 
@@ -11,25 +12,25 @@ const MODEL_OPTIONS = [
     id: 'beryl-47g',
     name: '풀티타늄 베릴 47g(240cpm) S 대응',
     description: '40g대 X 대응 기술력, 가벼우면서도 강한 샤프트',
-    image: '/main/products/pro3-muziik/massgoo_pro3_beryl_240.webp',
+    image: getProductImageUrl('originals/products/pro3-muziik/detail/massgoo_pro3_beryl_240.webp'),
   },
   {
     id: 'beryl-42g',
     name: '풀티타늄 베릴 42g(230cpm) SR 대응',
     description: '40g대 X 대응 기술력, 가벼우면서도 강한 샤프트',
-    image: '/main/products/pro3-muziik/massgoo_pro3_beryl_230.webp',
+    image: getProductImageUrl('originals/products/pro3-muziik/detail/massgoo_pro3_beryl_230.webp'),
   },
   {
     id: 'sapphire-53g',
     name: '원플렉스 사파이어 53g (215cpm: 오토 R~S 대응)',
     description: '30g대 R 대응 기술력, 가벼우면서도 강한 샤프트',
-    image: '/main/products/pro3-muziik/massgoo_pro3_sapphire_215.webp',
+    image: getProductImageUrl('originals/products/pro3-muziik/detail/massgoo_pro3_sapphire_215.webp'),
   },
   {
     id: 'sapphire-44g',
     name: '원플렉스 사파이어 44g (200cpm: 오토 R2~R 대응)',
     description: '30g대 R 대응 기술력, 가벼우면서도 강한 샤프트',
-    image: '/main/products/pro3-muziik/massgoo_pro3_sapphire_200.webp',
+    image: getProductImageUrl('originals/products/pro3-muziik/detail/massgoo_pro3_sapphire_200.webp'),
   },
 ];
 

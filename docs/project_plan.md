@@ -38,7 +38,26 @@
 
 # 🎯 프로젝트 진행 현황
 
-## ✅ 최근 작업: 카카오 콘텐츠 이미지 선택 기능 완전 수정 (2025-01-XX)
+## ✅ 최근 작업: 설문조사 페이지 샤프트 이미지 경로 수정 (2025-01-XX)
+
+### 완료된 작업
+- **설문조사 폼 샤프트 이미지 경로 수정** ✅:
+  - `pages/survey/form.tsx`: MODEL_OPTIONS 배열의 이미지 경로를 Supabase Storage 경로로 변경
+  - 기존 `/main/products/pro3-muziik/...` 경로를 `originals/products/pro3-muziik/detail/...` 형식으로 변경
+  - `getProductImageUrl` 함수 import 추가하여 Supabase Storage URL 자동 변환
+  - 4개 샤프트 이미지 모두 수정:
+    - `massgoo_pro3_beryl_240.webp` (풀티타늄 베릴 47g)
+    - `massgoo_pro3_beryl_230.webp` (풀티타늄 베릴 42g)
+    - `massgoo_pro3_sapphire_215.webp` (원플렉스 사파이어 53g)
+    - `massgoo_pro3_sapphire_200.webp` (원플렉스 사파이어 44g)
+  - 갤러리 이미지 최적화 과정에서 서버에서 Supabase Storage로 이동한 이미지 경로 반영
+
+### 변경된 파일
+- `pages/survey/form.tsx`: 이미지 경로 및 import 수정
+
+---
+
+## ✅ 이전 작업: 카카오 콘텐츠 이미지 선택 기능 완전 수정 (2025-01-XX)
 
 ### 완료된 작업
 - **캘린더 데이터 없을 때 이미지 선택 가능하도록 수정** ✅:
