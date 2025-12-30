@@ -16,6 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       content,
       messageType,
       message_type,
+      templateType,
       imageUrl,
       image_url,
       shortLink,
@@ -33,10 +34,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       selectedRecipients,
     } = req.body;
 
-    if (!title || !content) {
+    // 기본 텍스트형이 아닌 경우에만 제목 필수 체크
+    const isBasicTextType = templateType === 'BASIC_TEXT';
+
+    if (!content) {
       return res.status(400).json({
         success: false,
-        message: '제목과 내용은 필수입니다.'
+        message: '내용은 필수입니다.'
+      });
+    }
+
+    if (!isBasicTextType && !title) {
+      return res.status(400).json({
+        success: false,
+        message: '제목은 필수입니다.'
       });
     }
 
@@ -46,9 +57,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // channel_kakao 테이블에 저장 (기존 API 구조와 동일하게)
     const insertData: any = {
-      title,
+      title: isBasicTextType ? null : (title || null), // 기본 텍스트형이면 null
       content,
       message_type: message_type || messageType || 'FRIENDTALK',
+      template_type: templateType || 'BASIC_TEXT', // 템플릿 타입 저장
       template_id: null,
       button_text: finalButtonText || null,
       button_link: finalButtonLink || null,

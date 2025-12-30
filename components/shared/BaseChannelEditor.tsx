@@ -23,6 +23,7 @@ export default function BaseChannelEditor({
   calendarId,
   hubId,
   channelKey,
+  templateType = 'BASIC_TEXT',
   initialData,
   onSave,
   onSend,
@@ -78,6 +79,7 @@ export default function BaseChannelEditor({
       updateFormData({
         imageUrl: selectedImage || '',
         shortLink,
+        templateType: templateType || 'BASIC_TEXT',
         ...(buttonText && { buttonText }),
         ...(buttonLink && { buttonLink })
       });
@@ -102,6 +104,7 @@ export default function BaseChannelEditor({
       updateFormData({
         imageUrl: selectedImage || '',
         shortLink,
+        templateType: templateType || 'BASIC_TEXT',
         ...(buttonText && { buttonText }),
         ...(buttonLink && { buttonLink })
       });
@@ -146,56 +149,81 @@ export default function BaseChannelEditor({
         </div>
       )}
 
-      {/* 제목 */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          제목
-        </label>
-          <input
-            type="text"
-            value={formData.title || ''}
-            onChange={(e) => updateFormData({ title: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-md"
-            placeholder="제목을 입력하세요"
-          />
-        {titleScore > 0 && (
-          <p className="text-sm text-gray-600 mt-1">
-            제목 점수: {titleScore}/100
-          </p>
-        )}
-      </div>
+      {/* 제목 - 기본 텍스트형이 아닐 때만 표시 */}
+      {templateType !== 'BASIC_TEXT' && (
+        <>
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              제목
+            </label>
+            <input
+              type="text"
+              value={formData.title || ''}
+              onChange={(e) => updateFormData({ title: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-md"
+              placeholder="제목을 입력하세요"
+            />
+            {titleScore > 0 && (
+              <p className="text-sm text-gray-600 mt-1">
+                제목 점수: {titleScore}/100
+              </p>
+            )}
+          </div>
 
-      {/* 제목 최적화 점수 - 가로 배치 */}
-      {formData.title && (
-        <div className="mb-6">
-          <TitleScorer
-            title={formData.title || ''}
-            persona="unknown"
-            contentType="marketing"
-            targetProduct="service"
-            brandWeight="medium"
-            conversionGoal="homepage_visit"
-            onScoreChange={(score) => setTitleScore(score.total)}
-          />
-        </div>
-        )}
+          {/* 제목 최적화 점수 - 가로 배치 */}
+          {formData.title && (
+            <div className="mb-6">
+              <TitleScorer
+                title={formData.title || ''}
+                persona="unknown"
+                contentType="marketing"
+                targetProduct="service"
+                brandWeight="medium"
+                conversionGoal="homepage_visit"
+                onScoreChange={(score) => setTitleScore(score.total)}
+              />
+            </div>
+          )}
+        </>
+      )}
 
       {/* 메시지 내용 */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           메시지 내용
+          {channelType === 'kakao' && (
+            <span className="text-xs text-gray-500 ml-2">
+              (최대 300자{templateType === 'BASIC_TEXT' ? ', 제목 없음' : ''})
+            </span>
+          )}
         </label>
         <textarea
           value={formData.content || ''}
-          onChange={(e) => updateFormData({ content: e.target.value })}
+          onChange={(e) => {
+            const content = e.target.value;
+            // 카카오 채널인 경우 300자 제한
+            if (channelType === 'kakao' && content.length > 300) {
+              return; // 300자 초과 시 입력 차단
+            }
+            updateFormData({ content });
+          }}
           rows={6}
+          maxLength={channelType === 'kakao' ? 300 : undefined}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="메시지 내용을 입력하세요"
         />
         {formData.content && (
-          <p className="text-sm text-gray-600 mt-1">
-            글자 수: {formData.content.length}
-          </p>
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-sm text-gray-600">
+              글자 수: {formData.content.length}
+              {channelType === 'kakao' && ` / 300자`}
+            </p>
+            {channelType === 'kakao' && formData.content.length > 250 && (
+              <p className="text-xs text-yellow-600">
+                {300 - formData.content.length}자 남음
+              </p>
+            )}
+          </div>
         )}
       </div>
 

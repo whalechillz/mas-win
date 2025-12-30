@@ -123,6 +123,7 @@ export const useChannelEditor = (
           title: formData.title || '',
           content: formData.content || '',
           messageType: formData.messageType || 'FRIENDTALK',
+          templateType: (formData as any).templateType || 'BASIC_TEXT',
           imageUrl: formData.imageUrl || '',
           shortLink: formData.shortLink || '',
           buttonLink: formData.buttonLink || formData.shortLink || 'https://www.masgolf.co.kr/survey',

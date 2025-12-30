@@ -12,6 +12,7 @@ export default function KakaoChannelEditor() {
     title: '',
     messageText: '',
     messageType: 'ALIMTALK',
+    templateType: 'BASIC_TEXT', // 기본 텍스트형
     characterCount: 0,
     emoji: '',
     tags: [],
@@ -39,6 +40,7 @@ export default function KakaoChannelEditor() {
           title: message.title || '',
           messageText: message.content || '',
           messageType: message.message_type || 'FRIENDTALK',
+          templateType: message.template_type || 'BASIC_TEXT',
           characterCount: (message.content || '').length,
           emoji: message.emoji || '',
           tags: message.tags || [],
@@ -57,6 +59,28 @@ export default function KakaoChannelEditor() {
   // 카카오 채널 특화 컴포넌트
   const KakaoSpecificComponents = () => (
     <div className="space-y-6">
+      {/* 메시지 템플릿 타입 선택 */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          메시지 템플릿 타입
+        </label>
+        <select
+          value={formData.templateType}
+          onChange={(e) => setFormData(prev => ({ ...prev, templateType: e.target.value }))}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="BASIC_TEXT">기본 텍스트형 (제목 없음)</option>
+          <option value="WIDE_IMAGE">와이드 이미지형 (제목 있음)</option>
+          <option value="WIDE_LIST">와이드 리스트형 (제목 있음)</option>
+          <option value="CAROUSEL_FEED">캐러셀 피드형 (제목 있음)</option>
+        </select>
+        <p className="text-xs text-gray-500 mt-1">
+          {formData.templateType === 'BASIC_TEXT' 
+            ? '기본 텍스트형은 제목 없이 내용만 작성합니다.' 
+            : '제목과 내용을 모두 작성합니다.'}
+        </p>
+      </div>
+
       {/* 메시지 타입 선택 */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -158,6 +182,9 @@ export default function KakaoChannelEditor() {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           카카오톡 미리보기
+          {formData.templateType === 'BASIC_TEXT' && (
+            <span className="text-xs text-gray-500 ml-2">(기본 텍스트형)</span>
+          )}
         </label>
         <div className="bg-yellow-100 p-4 rounded-lg max-w-sm">
           <div className="bg-white p-3 rounded-lg shadow-sm">
@@ -169,9 +196,12 @@ export default function KakaoChannelEditor() {
             </div>
             <div className="text-sm">
               {formData.emoji && <span className="mr-1">{formData.emoji}</span>}
-              {formData.title && <span className="font-medium">{formData.title}</span>}
+              {/* 기본 텍스트형이 아닐 때만 제목 표시 */}
+              {formData.templateType !== 'BASIC_TEXT' && formData.title && (
+                <span className="font-medium">{formData.title}</span>
+              )}
               {formData.messageText && (
-                <div className="mt-1 text-gray-700">
+                <div className={`text-gray-700 ${formData.templateType === 'BASIC_TEXT' ? 'mt-0' : 'mt-1'}`}>
                   {formData.messageText}
                 </div>
               )}
@@ -232,6 +262,7 @@ export default function KakaoChannelEditor() {
           channelType="kakao"
           channelName="카카오 채널"
           calendarId={calendarId as string}
+          templateType={formData.templateType}
           initialData={{
             title: formData.title,
             content: formData.messageText,
