@@ -209,22 +209,31 @@ export default function KakaoContentPage() {
   // ✅ 생성 옵션 모달 삭제로 인해 localStorage 로드 코드 제거
   // generationOptions는 이제 상수 (imageCount: 1)이므로 로드할 필요 없음
 
-  // 캘린더 데이터 로드 함수
-  const loadCalendarData = async (targetDate?: string) => {
+  // 캘린더 데이터 로드 함수 (재시도 로직 포함)
+  const loadCalendarData = async (targetDate?: string, retryCount = 0) => {
     try {
       setLoading(true);
       // 선택된 날짜가 있으면 해당 날짜의 월 사용, 없으면 오늘 날짜 사용
       const dateToUse = targetDate || selectedDate || todayStr;
       const dateObj = dateToUse ? new Date(dateToUse) : new Date();
       const monthStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
-      const res = await fetch(`/api/kakao-content/calendar-load?month=${monthStr}`);
+      
+      // ✅ 재시도 시 skipImageCheck=true로 빠른 로딩 시도
+      const skipImageCheck = retryCount > 0 ? 'true' : 'false';
+      const res = await fetch(`/api/kakao-content/calendar-load?month=${monthStr}&skipImageCheck=${skipImageCheck}`);
       
       // ✅ 응답 상태 확인 (504 등 에러 응답 처리)
       if (!res.ok) {
         const errorText = await res.text();
         console.error(`캘린더 로드 HTTP 오류 (${res.status}):`, errorText.substring(0, 200));
         
-        // 504 타임아웃인 경우 사용자에게 알림
+        // 504 타임아웃인 경우 재시도 (최대 2회)
+        if (res.status === 504 && retryCount < 2) {
+          console.warn(`⚠️ 캘린더 로드 타임아웃, ${retryCount + 1}회 재시도 (이미지 확인 스킵)...`);
+          await new Promise(resolve => setTimeout(resolve, 2000)); // 2초 대기
+          return loadCalendarData(targetDate, retryCount + 1);
+        }
+        
         if (res.status === 504) {
           console.warn('⚠️ 캘린더 로드 타임아웃: 서버 응답이 지연되고 있습니다. 잠시 후 다시 시도해주세요.');
         }
@@ -253,10 +262,21 @@ export default function KakaoContentPage() {
         console.error('캘린더 로드 JSON 파싱 오류:', jsonError);
         const errorText = await res.text();
         console.error('응답 내용 (처음 500자):', errorText.substring(0, 500));
+        
+        // JSON 파싱 실패 시 재시도 (최대 1회)
+        if (retryCount < 1) {
+          console.warn(`⚠️ JSON 파싱 실패, ${retryCount + 1}회 재시도...`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          return loadCalendarData(targetDate, retryCount + 1);
+        }
         return;
       }
       
       if (data.success && data.calendarData) {
+        // ✅ 부분 결과인 경우 경고 표시
+        if (data.partial) {
+          console.warn(`⚠️ 부분 결과 로드됨 (${data.elapsed}ms): 일부 데이터만 로드되었습니다.`);
+        }
         setCalendarData(data.calendarData);
       } else {
         console.error('캘린더 로드 실패:', data.message);
@@ -275,6 +295,13 @@ export default function KakaoContentPage() {
       }
     } catch (error) {
       console.error('캘린더 로드 오류:', error);
+      
+      // 네트워크 오류 시 재시도 (최대 1회)
+      if (retryCount < 1 && error instanceof TypeError) {
+        console.warn(`⚠️ 네트워크 오류, ${retryCount + 1}회 재시도...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return loadCalendarData(targetDate, retryCount + 1);
+      }
     } finally {
       setLoading(false);
     }

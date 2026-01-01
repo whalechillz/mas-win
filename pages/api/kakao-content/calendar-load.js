@@ -12,7 +12,7 @@ async function checkImageExists(supabase, imageUrl) {
   try {
     // HTTP HEAD 요청으로 실제 파일 존재 여부 확인
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // ✅ 5초 타임아웃 (배포 환경 네트워크 지연 대응)
+    const timeoutId = setTimeout(() => controller.abort(), 2000); // ✅ 5초 → 2초로 단축 (성능 향상)
     
     const response = await fetch(imageUrl, { 
       method: 'HEAD',
@@ -59,8 +59,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
 
+  // ✅ 타임아웃 감지 및 부분 결과 반환을 위한 시작 시간
+  const startTime = Date.now();
+  const TIMEOUT_WARNING_MS = 80000; // 80초 경고
+  const TIMEOUT_PARTIAL_MS = 85000; // 85초 부분 결과 반환
+
   try {
-    const { month } = req.query; // YYYY-MM 형식
+    const { month, skipImageCheck = 'false' } = req.query; // YYYY-MM 형식, skipImageCheck 파라미터 추가
+    let shouldSkipImageCheck = skipImageCheck === 'true'; // ✅ 이미지 확인 스킵 옵션 (let으로 변경하여 타임아웃 시 재할당 가능)
 
     if (!month) {
       return res.status(400).json({ 
@@ -123,46 +129,94 @@ export default async function handler(req, res) {
       }
     };
 
-    // 프로필 데이터 변환 (이미지 존재 여부 확인 - 병렬 처리)
+    // 프로필 데이터 변환 (이미지 존재 여부 확인 - 선택적 수행)
     const profileByDate = {};
     
-    // 모든 이미지 URL 수집 및 병렬 확인
-    const profileImageChecks = [];
-    for (const item of profileData) {
-      if (!profileByDate[item.date]) {
-        profileByDate[item.date] = { account1: null, account2: null };
+    // ✅ 이미지 존재 확인 (skipImageCheck가 false일 때만)
+    let profileImageMap = new Map();
+    if (!shouldSkipImageCheck) {
+      // 모든 이미지 URL 수집 및 병렬 확인
+      const profileImageChecks = [];
+      for (const item of profileData) {
+        if (!profileByDate[item.date]) {
+          profileByDate[item.date] = { account1: null, account2: null };
+        }
+        
+        if (item.background_image_url) {
+          profileImageChecks.push({
+            key: `${item.date}_${item.account}_background`,
+            url: item.background_image_url
+          });
+        }
+        
+        if (item.profile_image_url) {
+          profileImageChecks.push({
+            key: `${item.date}_${item.account}_profile`,
+            url: item.profile_image_url
+          });
+        }
       }
       
-      if (item.background_image_url) {
-        profileImageChecks.push({
-          key: `${item.date}_${item.account}_background`,
-          url: item.background_image_url
-        });
-      }
-      
-      if (item.profile_image_url) {
-        profileImageChecks.push({
-          key: `${item.date}_${item.account}_profile`,
-          url: item.profile_image_url
-        });
+      // 타임아웃 체크
+      const elapsed = Date.now() - startTime;
+      if (elapsed > TIMEOUT_WARNING_MS) {
+        console.warn(`[TIMING] ⚠️ 타임아웃 경고: ${elapsed}ms 경과, 이미지 확인 스킵`);
+        shouldSkipImageCheck = true; // 이미지 확인 스킵으로 전환
+      } else {
+        // 모든 이미지 확인을 병렬로 실행
+        const profileImageResults = await Promise.all(
+          profileImageChecks.map(async ({ key, url }) => ({
+            key,
+            exists: await checkImageExists(supabase, url),
+            url
+          }))
+        );
+        
+        // 결과를 Map으로 변환하여 빠른 조회
+        profileImageMap = new Map(
+          profileImageResults.map(r => [r.key, r.exists ? r.url : undefined])
+        );
       }
     }
     
-    // 모든 이미지 확인을 병렬로 실행
-    const profileImageResults = await Promise.all(
-      profileImageChecks.map(async ({ key, url }) => ({
-        key,
-        exists: await checkImageExists(supabase, url),
-        url
-      }))
-    );
+    // profileByDate 초기화 (이미지 확인을 스킵한 경우)
+    if (shouldSkipImageCheck) {
+      for (const item of profileData) {
+        if (!profileByDate[item.date]) {
+          profileByDate[item.date] = { account1: null, account2: null };
+        }
+      }
+    }
     
-    // 결과를 Map으로 변환하여 빠른 조회
-    const profileImageMap = new Map(
-      profileImageResults.map(r => [r.key, r.exists ? r.url : undefined])
-    );
+    // ✅ 이미지 개수 조회를 배치 처리로 변경 (모든 날짜/계정/타입을 한 번에 조회)
+    const imageCountPromises = [];
+    const imageCountKeys = [];
+    for (const item of profileData) {
+      imageCountKeys.push(`${item.date}_${item.account}_background`);
+      imageCountPromises.push(getImageCount(supabase, item.date, item.account, 'background'));
+      imageCountKeys.push(`${item.date}_${item.account}_profile`);
+      imageCountPromises.push(getImageCount(supabase, item.date, item.account, 'profile'));
+    }
+    
+    // 타임아웃 체크
+    let imageCounts = [];
+    const elapsedBeforeCount = Date.now() - startTime;
+    if (elapsedBeforeCount < TIMEOUT_PARTIAL_MS) {
+      imageCounts = await Promise.all(imageCountPromises);
+    } else {
+      // 타임아웃 임박 시 기본값 사용
+      imageCounts = new Array(imageCountPromises.length).fill(0);
+      console.warn(`[TIMING] ⚠️ 타임아웃 임박: 이미지 개수 조회 스킵, 기본값(0) 사용`);
+    }
+    
+    // 이미지 개수 Map 생성
+    const imageCountMap = new Map();
+    for (let i = 0; i < imageCountKeys.length; i++) {
+      imageCountMap.set(imageCountKeys[i], imageCounts[i]);
+    }
     
     // 프로필 데이터 변환 (확인된 결과 사용 + 이미지 개수 조회)
+    let countIndex = 0;
     for (const item of profileData) {
       const backgroundKey = `${item.date}_${item.account}_background`;
       const profileKey = `${item.date}_${item.account}_profile`;
@@ -174,11 +228,9 @@ export default async function handler(req, res) {
       const checkedProfileUrl = profileImageMap.get(profileKey);
       const finalProfileUrl = checkedProfileUrl !== undefined ? checkedProfileUrl : item.profile_image_url || undefined;
       
-      // ✅ 이미지 개수 조회 (병렬 처리)
-      const [backgroundCount, profileCount] = await Promise.all([
-        getImageCount(supabase, item.date, item.account, 'background'),
-        getImageCount(supabase, item.date, item.account, 'profile')
-      ]);
+      // ✅ 이미지 개수 조회 (배치 처리 결과 사용)
+      const backgroundCount = imageCountMap.get(backgroundKey) || 0;
+      const profileCount = imageCountMap.get(profileKey) || 0;
       
       const scheduleItem = {
         date: item.date,
@@ -218,48 +270,94 @@ export default async function handler(req, res) {
       }
     });
 
-    // 피드 데이터 변환 (이미지 존재 여부 확인 - 병렬 처리)
+    // 피드 데이터 변환 (이미지 존재 여부 확인 - 선택적 수행)
     const feedByDate = {};
     
-    // 모든 피드 이미지 URL 수집 및 병렬 확인
-    const feedImageChecks = [];
-    for (const item of feedData) {
-      if (!feedByDate[item.date]) {
-        feedByDate[item.date] = { date: item.date, account1: null, account2: null };
+    // ✅ 이미지 존재 확인 (skipImageCheck가 false일 때만)
+    let feedImageMap = new Map();
+    if (!shouldSkipImageCheck) {
+      // 모든 피드 이미지 URL 수집 및 병렬 확인
+      const feedImageChecks = [];
+      for (const item of feedData) {
+        if (!feedByDate[item.date]) {
+          feedByDate[item.date] = { date: item.date, account1: null, account2: null };
+        }
+        
+        if (item.image_url) {
+          feedImageChecks.push({
+            key: `${item.date}_${item.account}`,
+            url: item.image_url
+          });
+        }
       }
       
-      if (item.image_url) {
-        feedImageChecks.push({
-          key: `${item.date}_${item.account}`,
-          url: item.image_url
-        });
+      // 타임아웃 체크
+      const elapsed = Date.now() - startTime;
+      if (elapsed > TIMEOUT_WARNING_MS) {
+        console.warn(`[TIMING] ⚠️ 타임아웃 경고: ${elapsed}ms 경과, 피드 이미지 확인 스킵`);
+        shouldSkipImageCheck = true; // 이미지 확인 스킵으로 전환
+      } else {
+        // 모든 피드 이미지 확인을 병렬로 실행
+        const feedImageResults = await Promise.all(
+          feedImageChecks.map(async ({ key, url }) => ({
+            key,
+            exists: await checkImageExists(supabase, url),
+            url
+          }))
+        );
+        
+        // 결과를 Map으로 변환하여 빠른 조회
+        feedImageMap = new Map(
+          feedImageResults.map(r => [r.key, r.exists ? r.url : undefined])
+        );
       }
     }
     
-    // 모든 피드 이미지 확인을 병렬로 실행
-    const feedImageResults = await Promise.all(
-      feedImageChecks.map(async ({ key, url }) => ({
-        key,
-        exists: await checkImageExists(supabase, url),
-        url
-      }))
-    );
+    // feedByDate 초기화 (이미지 확인을 스킵한 경우)
+    if (shouldSkipImageCheck) {
+      for (const item of feedData) {
+        if (!feedByDate[item.date]) {
+          feedByDate[item.date] = { date: item.date, account1: null, account2: null };
+        }
+      }
+    }
     
-    // 결과를 Map으로 변환하여 빠른 조회
-    const feedImageMap = new Map(
-      feedImageResults.map(r => [r.key, r.exists ? r.url : undefined])
-    );
+    // ✅ 피드 이미지 개수 조회를 배치 처리로 변경
+    const feedImageCountPromises = [];
+    const feedImageCountKeys = [];
+    for (const item of feedData) {
+      feedImageCountKeys.push(`${item.date}_${item.account}`);
+      feedImageCountPromises.push(getImageCount(supabase, item.date, item.account, 'feed'));
+    }
+    
+    // 타임아웃 체크
+    let feedImageCounts = [];
+    const elapsedBeforeFeedCount = Date.now() - startTime;
+    if (elapsedBeforeFeedCount < TIMEOUT_PARTIAL_MS) {
+      feedImageCounts = await Promise.all(feedImageCountPromises);
+    } else {
+      // 타임아웃 임박 시 기본값 사용
+      feedImageCounts = new Array(feedImageCountPromises.length).fill(0);
+      console.warn(`[TIMING] ⚠️ 타임아웃 임박: 피드 이미지 개수 조회 스킵, 기본값(0) 사용`);
+    }
+    
+    // 피드 이미지 개수 Map 생성
+    const feedImageCountMap = new Map();
+    for (let i = 0; i < feedImageCountKeys.length; i++) {
+      feedImageCountMap.set(feedImageCountKeys[i], feedImageCounts[i]);
+    }
     
     // 피드 데이터 변환 (확인된 결과 사용 + 이미지 개수 조회)
-    for (const item of feedData) {
+    for (let i = 0; i < feedData.length; i++) {
+      const item = feedData[i];
       const feedKey = `${item.date}_${item.account}`;
       
       // 이미지 확인 결과가 없으면 원본 URL 사용 (타임아웃/네트워크 오류 대응)
       const checkedImageUrl = feedImageMap.get(feedKey);
       const finalImageUrl = checkedImageUrl !== undefined ? checkedImageUrl : item.image_url || undefined;
       
-      // ✅ 이미지 개수 조회
-      const feedImageCount = await getImageCount(supabase, item.date, item.account, 'feed');
+      // ✅ 이미지 개수 조회 (배치 처리 결과 사용)
+      const feedImageCount = feedImageCountMap.get(feedKey) || 0;
       
       feedByDate[item.date][item.account] = {
         imageCategory: item.image_category || '',
@@ -277,17 +375,33 @@ export default async function handler(req, res) {
 
     calendarData.kakaoFeed.dailySchedule = Object.values(feedByDate);
 
+    // ✅ 타임아웃 체크 및 부분 결과 반환
+    const elapsed = Date.now() - startTime;
+    if (elapsed > TIMEOUT_PARTIAL_MS) {
+      console.warn(`[TIMING] ⚠️ 타임아웃 임박: ${elapsed}ms 경과, 부분 결과 반환`);
+      return res.status(200).json({
+        success: true,
+        partial: true, // ✅ 부분 결과 표시
+        calendarData,
+        message: '일부 데이터만 로드되었습니다. 나머지는 기본값으로 표시됩니다.',
+        elapsed: elapsed
+      });
+    }
+
     return res.status(200).json({
       success: true,
-      calendarData
+      calendarData,
+      elapsed: elapsed
     });
 
   } catch (error) {
     console.error('캘린더 데이터 로드 오류:', error);
+    const elapsed = Date.now() - startTime;
     return res.status(500).json({
       success: false,
       message: '데이터 로드 실패',
-      error: error.message
+      error: error.message,
+      elapsed: elapsed
     });
   }
 }
