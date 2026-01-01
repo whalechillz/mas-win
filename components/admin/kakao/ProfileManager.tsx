@@ -722,7 +722,7 @@ export default function ProfileManager({
       {/* 메시지 */}
       <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-gray-700" htmlFor={`profile-message-${accountKey || 'default'}`}>
             프로필 메시지
           </label>
           {accountKey && calendarData && (
@@ -737,6 +737,7 @@ export default function ProfileManager({
           )}
         </div>
         <textarea
+          id={`profile-message-${accountKey || 'default'}`}
           value={profileData.message}
           onChange={(e) => onUpdate({ ...profileData, message: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"

@@ -492,10 +492,11 @@ export default function FeedManager({
 
       {/* 캡션 */}
       <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor={`feed-caption-${accountKey || 'default'}`}>
           피드 캡션
         </label>
         <textarea
+          id={`feed-caption-${accountKey || 'default'}`}
           value={feedData.caption}
           onChange={(e) => onUpdate({ ...feedData, caption: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -534,7 +535,9 @@ export default function FeedManager({
           </div>
         )}
         <div className="mt-2">
+          <label className="sr-only" htmlFor={`feed-url-input-${accountKey || 'default'}`}>피드 URL 직접 입력</label>
           <input
+            id={`feed-url-input-${accountKey || 'default'}`}
             type="text"
             value={feedData.url || ''}
             onChange={(e) => onUpdate({ ...feedData, url: e.target.value })}

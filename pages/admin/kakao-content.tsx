@@ -773,10 +773,47 @@ export default function KakaoContentPage() {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
+          
+          // ✅ 504 타임아웃 에러 처리
+          if (response.status === 504) {
+            // 부분 결과가 있는지 확인
+            if (errorData.partialResults) {
+              console.warn(`⚠️ ${date} ${account}: 타임아웃 발생, 부분 결과 처리 중...`, errorData.partialResults);
+              // 부분 결과를 사용하여 진행
+              const partialData = {
+                success: false,
+                results: errorData.partialResults,
+                timeout: true
+              };
+              
+              // 부분 결과로 진행 상황 업데이트
+              if (partialData.results) {
+                const results = partialData.results;
+                const types: Array<'background' | 'profile' | 'feed'> = ['background', 'profile', 'feed'];
+                
+                for (const type of types) {
+                  if (results[type]?.success && results[type]?.imageUrl) {
+                    if (onProgress) {
+                      onProgress(type);
+                    }
+                  }
+                }
+              }
+              
+              throw new Error('서버 타임아웃 발생. 일부 콘텐츠는 생성되었을 수 있습니다. 갤러리에서 확인해주세요.');
+            }
+            throw new Error('서버 타임아웃 발생 (504). 일부 콘텐츠는 생성되었을 수 있습니다. 갤러리에서 확인해주세요.');
+          }
+          
           throw new Error(errorData.error || `HTTP ${response.status}`);
         }
 
         const data = await response.json();
+        
+        // ✅ 타임아웃 경고가 있는 경우 로깅
+        if (data.timeout) {
+          console.warn(`⚠️ ${date} ${account}: 타임아웃 경고 - 부분 결과 반환됨`, data.timing);
+        }
       
       // 실제 생성 결과 확인 및 타입별 진행 상황 추적
       if (data.success && data.results) {
@@ -826,7 +863,11 @@ export default function KakaoContentPage() {
       } catch (fetchError: any) {
         clearTimeout(timeoutId);
         if (fetchError.name === 'AbortError') {
-          throw new Error('요청 시간 초과 (5분 제한). 외부 API 응답이 지연되고 있습니다. 잠시 후 다시 시도해주세요.');
+          throw new Error('요청 시간 초과 (5분 제한). 일부 콘텐츠는 생성되었을 수 있습니다. 갤러리에서 확인해주세요.');
+        }
+        // ✅ 504 에러 메시지 개선
+        if (fetchError.message?.includes('504') || fetchError.message?.includes('Gateway Timeout')) {
+          throw new Error('서버 타임아웃 발생. 일부 콘텐츠는 생성되었을 수 있습니다. 갤러리에서 확인해주세요.');
         }
         throw fetchError;
       }

@@ -9,11 +9,59 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // ✅ 전체 작업 시작 시간
+  const totalStartTime = Date.now();
+  const timingLog = {
+    totalStart: totalStartTime,
+    steps: {}
+  };
+
+  // ✅ 타임아웃 경고 및 부분 결과 반환 설정
+  const TIMEOUT_WARNING_MS = 240000; // 4분 (경고)
+  const TIMEOUT_PARTIAL_MS = 280000; // 4분 40초 (부분 결과 반환)
+  const TIMEOUT_FULL_MS = 290000; // 4분 50초 (강제 종료)
+  
+  let timeoutWarningSent = false;
+  let partialResultReturned = false;
+  
+  const timeoutWarning = setTimeout(() => {
+    if (!timeoutWarningSent) {
+      timeoutWarningSent = true;
+      const elapsed = Date.now() - totalStartTime;
+      console.warn(`[TIMING] ⚠️ 타임아웃 경고: ${elapsed}ms 경과, 1분 남음`);
+    }
+  }, TIMEOUT_WARNING_MS);
+  
+  const timeoutPartial = setTimeout(() => {
+    if (!partialResultReturned && !res.headersSent) {
+      partialResultReturned = true;
+      const elapsed = Date.now() - totalStartTime;
+      console.warn(`[TIMING] ⚠️ 타임아웃 임박: ${elapsed}ms 경과, 부분 결과 반환`);
+      
+      // 부분 결과 반환
+      res.status(200).json({
+        success: false,
+        error: '타임아웃 경고: 일부 작업이 완료되지 않았을 수 있습니다.',
+        partialResults: results,
+        timeout: true,
+        timing: {
+          ...timingLog,
+          totalDuration: elapsed,
+          timeoutAt: elapsed
+        }
+      });
+    }
+  }, TIMEOUT_PARTIAL_MS);
+
   try {
     const { date, forceRegenerate = false, brandStrategy } = req.body;
     if (!date) {
+      clearTimeout(timeoutWarning);
+      clearTimeout(timeoutPartial);
       return res.status(400).json({ error: 'date is required' });
     }
+
+    console.log(`[TIMING] 🚀 전체 작업 시작: ${date} (account1)`);
 
     // brandStrategy 헬퍼 함수
     const getBrandStrategyConfig = (brandStrategy, accountType) => {
@@ -144,6 +192,9 @@ export default async function handler(req, res) {
       (!dateData.background_prompt && dateData.background_image_url);
     
     if (needsBackgroundRegeneration) {
+      const backgroundStartTime = Date.now();
+      timingLog.steps.backgroundStart = backgroundStartTime;
+      console.log(`[TIMING] 🎨 배경 이미지 생성 시작`);
       try {
         // basePrompt 자동 생성 (없는 경우)
         let bgPrompt = dateData.background_base_prompt;
@@ -178,6 +229,7 @@ export default async function handler(req, res) {
         bgPrompt = bgPrompt || dateData.background_prompt || dateData.background_image || '절경 골프장 배경';
         
         // 프롬프트 생성
+        const promptStartTime = Date.now();
         const promptResponse = await fetch(`${baseUrl}/api/kakao-content/generate-prompt`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -214,6 +266,10 @@ export default async function handler(req, res) {
 
         if (imageResponse.ok) {
           const imageData = await imageResponse.json();
+          const imageDuration = Date.now() - imageStartTime;
+          timingLog.steps.backgroundImage = imageDuration;
+          console.log(`[TIMING] 🖼️ 배경 이미지 생성: ${imageDuration}ms`);
+          
           if (imageData.imageUrls && imageData.imageUrls.length > 0) {
             results.background.success = true;
             // 첫 번째 이미지를 기본값으로 사용
@@ -261,6 +317,10 @@ export default async function handler(req, res) {
       } catch (error) {
         results.background.error = error.message;
         console.error('배경 이미지 생성 에러:', error);
+      } finally {
+        const backgroundDuration = Date.now() - backgroundStartTime;
+        timingLog.steps.backgroundTotal = backgroundDuration;
+        console.log(`[TIMING] ✅ 배경 이미지 전체 완료: ${backgroundDuration}ms`);
       }
     } else if (!forceRegenerate) {
       results.background.success = true;
@@ -274,6 +334,9 @@ export default async function handler(req, res) {
       (!dateData.profile_prompt && dateData.profile_image_url);
     
     if (needsProfileRegeneration) {
+      const profileStartTime = Date.now();
+      timingLog.steps.profileStart = profileStartTime;
+      console.log(`[TIMING] 👤 프로필 이미지 생성 시작`);
       try {
         // basePrompt 자동 생성 (없는 경우)
         let profilePrompt = dateData.profile_base_prompt;
@@ -308,6 +371,7 @@ export default async function handler(req, res) {
         profilePrompt = profilePrompt || dateData.profile_prompt || dateData.profile_image || '시니어 골퍼';
         
         // 프롬프트 생성
+        const promptStartTime = Date.now();
         const promptResponse = await fetch(`${baseUrl}/api/kakao-content/generate-prompt`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -322,11 +386,16 @@ export default async function handler(req, res) {
         });
 
         const promptData = await promptResponse.json();
+        const promptDuration = Date.now() - promptStartTime;
+        timingLog.steps.profilePrompt = promptDuration;
+        console.log(`[TIMING] 📝 프로필 프롬프트 생성: ${promptDuration}ms`);
+        
         if (!promptData.success) {
           throw new Error('프롬프트 생성 실패');
         }
 
         // 이미지 생성
+        const imageStartTime = Date.now();
         const imageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-images`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -344,6 +413,9 @@ export default async function handler(req, res) {
 
         if (imageResponse.ok) {
           const imageData = await imageResponse.json();
+          const imageDuration = Date.now() - imageStartTime;
+          timingLog.steps.profileImage = imageDuration;
+          console.log(`[TIMING] 🖼️ 프로필 이미지 생성: ${imageDuration}ms`);
           if (imageData.imageUrls && imageData.imageUrls.length > 0) {
             results.profile.success = true;
             // 첫 번째 이미지를 기본값으로 사용
@@ -391,6 +463,10 @@ export default async function handler(req, res) {
       } catch (error) {
         results.profile.error = error.message;
         console.error('프로필 이미지 생성 에러:', error);
+      } finally {
+        const profileDuration = Date.now() - profileStartTime;
+        timingLog.steps.profileTotal = profileDuration;
+        console.log(`[TIMING] ✅ 프로필 이미지 전체 완료: ${profileDuration}ms`);
       }
     } else if (!forceRegenerate) {
       results.profile.success = true;
@@ -398,6 +474,7 @@ export default async function handler(req, res) {
     }
 
     // 프로필 메시지 생성 (없는 경우)
+    const messageStartTime = Date.now();
     if (!dateData.message || dateData.message.trim() === '') {
       try {
         const messageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-prompt-message`, {
@@ -414,6 +491,10 @@ export default async function handler(req, res) {
 
         if (messageResponse.ok) {
           const messageData = await messageResponse.json();
+          const messageDuration = Date.now() - messageStartTime;
+          timingLog.steps.profileMessage = messageDuration;
+          console.log(`[TIMING] 💬 프로필 메시지 생성: ${messageDuration}ms`);
+          
           if (messageData.success && messageData.data?.message) {
             let cleanedMessage = messageData.data.message.trim();
             
@@ -463,6 +544,9 @@ export default async function handler(req, res) {
     );
     
     if (needsFeedRegeneration) {
+      const feedStartTime = Date.now();
+      timingLog.steps.feedStart = feedStartTime;
+      console.log(`[TIMING] 📰 피드 이미지 생성 시작`);
       try {
         // Phase 2.3: 이미지 카테고리 로테이션 (피드 이미지 카테고리가 없을 때)
         if (!feedData.image_category) {
@@ -649,6 +733,8 @@ export default async function handler(req, res) {
           })
         });
         const imageDuration = Date.now() - imageStartTime;
+        timingLog.steps.feedImage = imageDuration;
+        console.log(`[TIMING] 🖼️ 피드 이미지 생성: ${imageDuration}ms`);
         console.log(`[DEBUG] 📸 피드 이미지 생성 API 응답 (${imageDuration}ms): ${imageResponse.status}`);
 
         if (imageResponse.ok) {
@@ -742,6 +828,10 @@ export default async function handler(req, res) {
             console.warn('⚠️ 피드 캡션 부분 저장 실패:', saveError.message);
           }
         }
+      } finally {
+        const feedDuration = Date.now() - feedStartTime;
+        timingLog.steps.feedTotal = feedDuration;
+        console.log(`[TIMING] ✅ 피드 이미지 전체 완료: ${feedDuration}ms`);
       }
     } else if (feedData?.image_url && !forceRegenerate) {
       results.feed.success = true;
@@ -834,17 +924,69 @@ export default async function handler(req, res) {
       }
     }
 
+    // ✅ 타임아웃 타이머 정리
+    clearTimeout(timeoutWarning);
+    clearTimeout(timeoutPartial);
+    
+    // ✅ 전체 작업 시간 계산 및 로깅
+    const totalDuration = Date.now() - totalStartTime;
+    timingLog.totalDuration = totalDuration;
+    timingLog.totalEnd = Date.now();
+    
+    console.log(`[TIMING] ========================================`);
+    console.log(`[TIMING] 📊 전체 작업 시간 요약 (${date}, account1)`);
+    console.log(`[TIMING] 총 소요 시간: ${totalDuration}ms (${(totalDuration / 1000).toFixed(2)}초)`);
+    if (timingLog.steps.backgroundTotal) {
+      console.log(`[TIMING] - 배경 이미지: ${timingLog.steps.backgroundTotal}ms`);
+    }
+    if (timingLog.steps.profileTotal) {
+      console.log(`[TIMING] - 프로필 이미지: ${timingLog.steps.profileTotal}ms`);
+    }
+    if (timingLog.steps.profileMessage) {
+      console.log(`[TIMING] - 프로필 메시지: ${timingLog.steps.profileMessage}ms`);
+    }
+    if (timingLog.steps.feedTotal) {
+      console.log(`[TIMING] - 피드 이미지: ${timingLog.steps.feedTotal}ms`);
+    }
+    console.log(`[TIMING] ========================================`);
+
+    // ✅ 부분 결과가 이미 반환되었는지 확인
+    if (partialResultReturned) {
+      console.warn(`[TIMING] ⚠️ 부분 결과가 이미 반환되었습니다. 추가 응답을 보내지 않습니다.`);
+      return;
+    }
+
     res.status(200).json({
       success: true,
       date,
-      results
+      results,
+      timing: timingLog // ✅ 타이밍 정보 포함
     });
 
   } catch (error) {
+    // ✅ 타임아웃 타이머 정리
+    clearTimeout(timeoutWarning);
+    clearTimeout(timeoutPartial);
+    
+    const totalDuration = Date.now() - totalStartTime;
+    console.error(`[TIMING] ❌ 전체 작업 실패 (${totalDuration}ms):`, error);
     console.error('자동 생성 에러:', error);
+    
+    // ✅ 부분 결과가 이미 반환되었는지 확인
+    if (partialResultReturned && res.headersSent) {
+      console.warn(`[TIMING] ⚠️ 부분 결과가 이미 반환되었습니다. 에러 응답을 보내지 않습니다.`);
+      return;
+    }
+    
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
+      partialResults: results || {},
+      timing: {
+        ...timingLog,
+        totalDuration,
+        failedAt: Date.now() - totalStartTime
+      }
     });
   }
 }

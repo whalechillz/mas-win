@@ -9,11 +9,59 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // ✅ 전체 작업 시작 시간
+  const totalStartTime = Date.now();
+  const timingLog = {
+    totalStart: totalStartTime,
+    steps: {}
+  };
+
+  // ✅ 타임아웃 경고 및 부분 결과 반환 설정
+  const TIMEOUT_WARNING_MS = 240000; // 4분 (경고)
+  const TIMEOUT_PARTIAL_MS = 280000; // 4분 40초 (부분 결과 반환)
+  const TIMEOUT_FULL_MS = 290000; // 4분 50초 (강제 종료)
+  
+  let timeoutWarningSent = false;
+  let partialResultReturned = false;
+  
+  const timeoutWarning = setTimeout(() => {
+    if (!timeoutWarningSent) {
+      timeoutWarningSent = true;
+      const elapsed = Date.now() - totalStartTime;
+      console.warn(`[TIMING] ⚠️ 타임아웃 경고: ${elapsed}ms 경과, 1분 남음`);
+    }
+  }, TIMEOUT_WARNING_MS);
+  
+  const timeoutPartial = setTimeout(() => {
+    if (!partialResultReturned && !res.headersSent) {
+      partialResultReturned = true;
+      const elapsed = Date.now() - totalStartTime;
+      console.warn(`[TIMING] ⚠️ 타임아웃 임박: ${elapsed}ms 경과, 부분 결과 반환`);
+      
+      // 부분 결과 반환
+      res.status(200).json({
+        success: false,
+        error: '타임아웃 경고: 일부 작업이 완료되지 않았을 수 있습니다.',
+        partialResults: results,
+        timeout: true,
+        timing: {
+          ...timingLog,
+          totalDuration: elapsed,
+          timeoutAt: elapsed
+        }
+      });
+    }
+  }, TIMEOUT_PARTIAL_MS);
+
   try {
     const { date, forceRegenerate = false, brandStrategy } = req.body;
     if (!date) {
+      clearTimeout(timeoutWarning);
+      clearTimeout(timeoutPartial);
       return res.status(400).json({ error: 'date is required' });
     }
+
+    console.log(`[TIMING] 🚀 전체 작업 시작: ${date} (account2)`);
 
     // brandStrategy 헬퍼 함수
     const getBrandStrategyConfig = (brandStrategy, accountType) => {
@@ -835,17 +883,69 @@ export default async function handler(req, res) {
       }
     }
 
+    // ✅ 타임아웃 타이머 정리
+    clearTimeout(timeoutWarning);
+    clearTimeout(timeoutPartial);
+    
+    // ✅ 전체 작업 시간 계산 및 로깅
+    const totalDuration = Date.now() - totalStartTime;
+    timingLog.totalDuration = totalDuration;
+    timingLog.totalEnd = Date.now();
+    
+    console.log(`[TIMING] ========================================`);
+    console.log(`[TIMING] 📊 전체 작업 시간 요약 (${date}, account2)`);
+    console.log(`[TIMING] 총 소요 시간: ${totalDuration}ms (${(totalDuration / 1000).toFixed(2)}초)`);
+    if (timingLog.steps.backgroundTotal) {
+      console.log(`[TIMING] - 배경 이미지: ${timingLog.steps.backgroundTotal}ms`);
+    }
+    if (timingLog.steps.profileTotal) {
+      console.log(`[TIMING] - 프로필 이미지: ${timingLog.steps.profileTotal}ms`);
+    }
+    if (timingLog.steps.profileMessage) {
+      console.log(`[TIMING] - 프로필 메시지: ${timingLog.steps.profileMessage}ms`);
+    }
+    if (timingLog.steps.feedTotal) {
+      console.log(`[TIMING] - 피드 이미지: ${timingLog.steps.feedTotal}ms`);
+    }
+    console.log(`[TIMING] ========================================`);
+
+    // ✅ 부분 결과가 이미 반환되었는지 확인
+    if (partialResultReturned) {
+      console.warn(`[TIMING] ⚠️ 부분 결과가 이미 반환되었습니다. 추가 응답을 보내지 않습니다.`);
+      return;
+    }
+
     res.status(200).json({
       success: true,
       date,
-      results
+      results,
+      timing: timingLog // ✅ 타이밍 정보 포함
     });
 
   } catch (error) {
+    // ✅ 타임아웃 타이머 정리
+    clearTimeout(timeoutWarning);
+    clearTimeout(timeoutPartial);
+    
+    const totalDuration = Date.now() - totalStartTime;
+    console.error(`[TIMING] ❌ 전체 작업 실패 (${totalDuration}ms):`, error);
     console.error('자동 생성 에러:', error);
+    
+    // ✅ 부분 결과가 이미 반환되었는지 확인
+    if (partialResultReturned && res.headersSent) {
+      console.warn(`[TIMING] ⚠️ 부분 결과가 이미 반환되었습니다. 에러 응답을 보내지 않습니다.`);
+      return;
+    }
+    
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
+      partialResults: results || {},
+      timing: {
+        ...timingLog,
+        totalDuration,
+        failedAt: Date.now() - totalStartTime
+      }
     });
   }
 }
