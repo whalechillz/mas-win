@@ -1,8 +1,5 @@
 {
   "functions": {
-    "pages/api/**/*.js": {
-      "maxDuration": 50
-    },
     "pages/api/kakao-content/auto-create-account1.js": {
       "maxDuration": 300,
       "memory": 1024
@@ -26,6 +23,9 @@
     "pages/api/solapi/reupload-image.js": {
       "maxDuration": 50,
       "memory": 1024
+    },
+    "pages/api/**/*.js": {
+      "maxDuration": 50
     }
   },
   "build": {
