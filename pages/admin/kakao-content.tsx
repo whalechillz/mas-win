@@ -205,17 +205,8 @@ export default function KakaoContentPage() {
     }
   };
 
-  // 저장된 생성 옵션 로드
-  useEffect(() => {
-    const savedOptions = localStorage.getItem('kakaoGenerationOptions');
-    if (savedOptions) {
-      try {
-        setGenerationOptions(JSON.parse(savedOptions));
-      } catch (e) {
-        console.error('생성 옵션 로드 실패:', e);
-      }
-    }
-  }, []);
+  // ✅ 생성 옵션 모달 삭제로 인해 localStorage 로드 코드 제거
+  // generationOptions는 이제 상수 (imageCount: 1)이므로 로드할 필요 없음
 
   // 캘린더 데이터 로드 함수
   const loadCalendarData = async (targetDate?: string) => {
