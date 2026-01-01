@@ -38,7 +38,7 @@
 
 # 🎯 프로젝트 진행 현황
 
-## ✅ 최근 작업: 카카오 콘텐츠 생성 504 타임아웃 문제 해결 (2026-01-01)
+## ✅ 최근 작업: 카카오 콘텐츠 생성 504 타임아웃 문제 해결 (2026-01-01 ~ 2026-01-05)
 
 ### 완료된 작업
 - **카카오 콘텐츠 자동 생성 API 타임아웃 증가** ✅:
@@ -70,10 +70,18 @@
   - 원인: 이미지가 있으면 재생성을 스킵하여 프롬프트가 없는 상태로 유지됨
   - 해결: 프롬프트가 없으면 이미지가 있어도 재생성하도록 조건 개선
 
+- **프로필 메시지와 피드 캡션 즉시 저장 로직 추가** ✅ (2026-01-05):
+  - `auto-create-account1.js`: 프로필 메시지 생성 성공 시 즉시 Supabase에 저장
+  - `auto-create-account2.js`: 프로필 메시지 생성 성공 시 즉시 Supabase에 저장
+  - `auto-create-account1.js`: 피드 캡션 생성 성공 시 즉시 Supabase에 저장 (이미지 생성 전에)
+  - `auto-create-account2.js`: 피드 캡션 생성 성공 시 즉시 Supabase에 저장 (이미지 생성 전에)
+  - 원인: 배포 환경에서 타임아웃 발생 시 프로필 메시지와 피드 캡션이 생성되었지만 저장되지 않아 손실됨
+  - 해결: 텍스트 콘텐츠 생성 후 즉시 저장하여 타임아웃이 발생해도 데이터 손실 방지
+
 ### 변경된 파일
 - `vercel.json` (타임아웃 설정 추가)
-- `pages/api/kakao-content/auto-create-account1.js` (부분 성공 처리 개선, 즉시 저장 로직 추가, 재생성 로직 개선)
-- `pages/api/kakao-content/auto-create-account2.js` (부분 성공 처리 개선, 즉시 저장 로직 추가, 재생성 로직 개선)
+- `pages/api/kakao-content/auto-create-account1.js` (부분 성공 처리 개선, 즉시 저장 로직 추가, 재생성 로직 개선, 프로필 메시지/피드 캡션 즉시 저장)
+- `pages/api/kakao-content/auto-create-account2.js` (부분 성공 처리 개선, 즉시 저장 로직 추가, 재생성 로직 개선, 프로필 메시지/피드 캡션 즉시 저장)
 - `pages/admin/kakao-content.tsx` (클라이언트 측 타임아웃 설정 추가)
 
 ### 문제 원인 분석
