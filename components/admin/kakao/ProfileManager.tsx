@@ -150,7 +150,7 @@ export default function ProfileManager({
   // 이미지 에러 핸들러
   const handleImageError = async (type: 'background' | 'profile', event: React.SyntheticEvent<HTMLImageElement>) => {
     const img = event.currentTarget;
-    console.warn(`⚠️ ${type} 이미지 로드 실패:`, img.src);
+    console.info(`ℹ️ ${type} 이미지 로드 실패, 자동 복구 시도 중:`, img.src);
     
     // 이미지 URL을 즉시 undefined로 설정하여 표시 제거 (캐시된 이미지 방지)
     if (type === 'background') {

@@ -805,9 +805,9 @@ export default function KakaoContentPage() {
             feed: results.feed?.imageUrl && !results.feed?.error
           };
           
-          // 모든 이미지가 이미 존재하는 경우 경고 메시지
+          // 모든 이미지가 이미 존재하는 경우 정보 메시지 (경고가 아님)
           if (existingImages.background && existingImages.profile && existingImages.feed) {
-            console.log(`⚠️ ${date} ${account}: 모든 이미지가 이미 생성되어 있습니다. 재생성하려면 재생성 버튼을 사용하세요.`);
+            console.info(`ℹ️ ${date} ${account}: 모든 이미지가 이미 생성되어 있습니다. 재생성하려면 재생성 버튼을 사용하세요.`);
           }
         }
         
