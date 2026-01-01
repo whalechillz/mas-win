@@ -218,7 +218,43 @@ export default function KakaoContentPage() {
       const dateObj = dateToUse ? new Date(dateToUse) : new Date();
       const monthStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
       const res = await fetch(`/api/kakao-content/calendar-load?month=${monthStr}`);
-      const data = await res.json();
+      
+      // ✅ 응답 상태 확인 (504 등 에러 응답 처리)
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`캘린더 로드 HTTP 오류 (${res.status}):`, errorText.substring(0, 200));
+        
+        // 504 타임아웃인 경우 사용자에게 알림
+        if (res.status === 504) {
+          console.warn('⚠️ 캘린더 로드 타임아웃: 서버 응답이 지연되고 있습니다. 잠시 후 다시 시도해주세요.');
+        }
+        
+        // Supabase가 비어있을 경우 JSON 파일로 폴백 시도
+        try {
+          const fallbackRes = await fetch(`/api/content-calendar/load?month=${monthStr}`);
+          if (fallbackRes.ok) {
+            const fallbackData = await fallbackRes.json();
+            if (fallbackData.success && fallbackData.calendar) {
+              setCalendarData(fallbackData.calendar);
+              return;
+            }
+          }
+        } catch (fallbackError) {
+          console.error('폴백 로드 실패:', fallbackError);
+        }
+        return;
+      }
+      
+      // ✅ JSON 파싱 (에러 처리)
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonError) {
+        console.error('캘린더 로드 JSON 파싱 오류:', jsonError);
+        const errorText = await res.text();
+        console.error('응답 내용 (처음 500자):', errorText.substring(0, 500));
+        return;
+      }
       
       if (data.success && data.calendarData) {
         setCalendarData(data.calendarData);
@@ -227,9 +263,11 @@ export default function KakaoContentPage() {
         // Supabase가 비어있을 경우 JSON 파일로 폴백 시도
         try {
           const fallbackRes = await fetch(`/api/content-calendar/load?month=${monthStr}`);
-          const fallbackData = await fallbackRes.json();
-          if (fallbackData.success && fallbackData.calendar) {
-            setCalendarData(fallbackData.calendar);
+          if (fallbackRes.ok) {
+            const fallbackData = await fallbackRes.json();
+            if (fallbackData.success && fallbackData.calendar) {
+              setCalendarData(fallbackData.calendar);
+            }
           }
         } catch (fallbackError) {
           console.error('폴백 로드 실패:', fallbackError);

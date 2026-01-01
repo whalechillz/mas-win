@@ -12,6 +12,10 @@
       "maxDuration": 50,
       "memory": 1024
     },
+    "pages/api/kakao-content/calendar-load.js": {
+      "maxDuration": 90,
+      "memory": 1024
+    },
     "pages/api/admin/all-images.js": {
       "maxDuration": 60,
       "memory": 1024
