@@ -10,11 +10,13 @@ interface ProfileData {
     image: string;
     prompt: string;
     imageUrl?: string;
+    imageCount?: number; // ✅ 이미지 개수 추가
   };
   profile: {
     image: string;
     prompt: string;
     imageUrl?: string;
+    imageCount?: number; // ✅ 이미지 개수 추가
   };
   message: string;
 }
@@ -479,6 +481,11 @@ export default function ProfileManager({
                   </div>
                 </div>
               )}
+              {profileData.background.imageCount !== undefined && profileData.background.imageCount > 1 && (
+                <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                  이미지 {profileData.background.imageCount}개 중 1번째
+                </div>
+              )}
               <button
                 onClick={() => onUpdate({
                   ...profileData,
@@ -636,6 +643,11 @@ export default function ProfileManager({
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-1"></div>
                     <div className="text-xs text-blue-700">복구 중...</div>
                   </div>
+                </div>
+              )}
+              {profileData.profile.imageCount !== undefined && profileData.profile.imageCount > 1 && (
+                <div className="absolute top-0 left-0 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded">
+                  {profileData.profile.imageCount}개
                 </div>
               )}
               <button

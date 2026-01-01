@@ -28,6 +28,32 @@ async function checkImageExists(supabase, imageUrl) {
   }
 }
 
+// 폴더의 이미지 개수 조회 함수
+async function getImageCount(supabase, date, account, type) {
+  try {
+    const accountFolder = account === 'account1' ? 'account1' : 'account2';
+    const folderPath = `originals/daily-branding/kakao/${date}/${accountFolder}/${type}`;
+    
+    const { data: files } = await supabase.storage
+      .from('blog-images')
+      .list(folderPath, { limit: 100 });
+    
+    if (!files) return 0;
+    
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+    const imageFiles = files.filter(file => {
+      const ext = file.name.toLowerCase();
+      return imageExtensions.some(extName => ext.endsWith(extName)) && 
+             !file.name.toLowerCase().includes('.keep');
+    });
+    
+    return imageFiles.length;
+  } catch (error) {
+    // 에러 발생 시 0 반환 (치명적이지 않음)
+    return 0;
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ success: false, message: 'Method not allowed' });
@@ -136,7 +162,7 @@ export default async function handler(req, res) {
       profileImageResults.map(r => [r.key, r.exists ? r.url : undefined])
     );
     
-    // 프로필 데이터 변환 (확인된 결과 사용)
+    // 프로필 데이터 변환 (확인된 결과 사용 + 이미지 개수 조회)
     for (const item of profileData) {
       const backgroundKey = `${item.date}_${item.account}_background`;
       const profileKey = `${item.date}_${item.account}_profile`;
@@ -148,6 +174,12 @@ export default async function handler(req, res) {
       const checkedProfileUrl = profileImageMap.get(profileKey);
       const finalProfileUrl = checkedProfileUrl !== undefined ? checkedProfileUrl : item.profile_image_url || undefined;
       
+      // ✅ 이미지 개수 조회 (병렬 처리)
+      const [backgroundCount, profileCount] = await Promise.all([
+        getImageCount(supabase, item.date, item.account, 'background'),
+        getImageCount(supabase, item.date, item.account, 'profile')
+      ]);
+      
       const scheduleItem = {
         date: item.date,
         background: {
@@ -155,14 +187,16 @@ export default async function handler(req, res) {
           prompt: item.background_prompt || '',
           basePrompt: item.background_base_prompt || null,
           status: item.status || 'planned',
-          imageUrl: finalBackgroundUrl // ✅ 확인 실패 시에도 원본 URL 사용
+          imageUrl: finalBackgroundUrl, // ✅ 확인 실패 시에도 원본 URL 사용
+          imageCount: backgroundCount // ✅ 이미지 개수 추가
         },
         profile: {
           image: item.profile_image || '',
           prompt: item.profile_prompt || '',
           basePrompt: item.profile_base_prompt || null,
           status: item.status || 'planned',
-          imageUrl: finalProfileUrl // ✅ 확인 실패 시에도 원본 URL 사용
+          imageUrl: finalProfileUrl, // ✅ 확인 실패 시에도 원본 URL 사용
+          imageCount: profileCount // ✅ 이미지 개수 추가
         },
         message: item.message || '',
         status: item.status || 'planned',
@@ -216,13 +250,16 @@ export default async function handler(req, res) {
       feedImageResults.map(r => [r.key, r.exists ? r.url : undefined])
     );
     
-    // 피드 데이터 변환 (확인된 결과 사용)
+    // 피드 데이터 변환 (확인된 결과 사용 + 이미지 개수 조회)
     for (const item of feedData) {
       const feedKey = `${item.date}_${item.account}`;
       
       // 이미지 확인 결과가 없으면 원본 URL 사용 (타임아웃/네트워크 오류 대응)
       const checkedImageUrl = feedImageMap.get(feedKey);
       const finalImageUrl = checkedImageUrl !== undefined ? checkedImageUrl : item.image_url || undefined;
+      
+      // ✅ 이미지 개수 조회
+      const feedImageCount = await getImageCount(supabase, item.date, item.account, 'feed');
       
       feedByDate[item.date][item.account] = {
         imageCategory: item.image_category || '',
@@ -232,6 +269,7 @@ export default async function handler(req, res) {
         status: item.status || 'planned',
         created: item.created || false,
         imageUrl: finalImageUrl, // ✅ 확인 실패 시에도 원본 URL 사용
+        imageCount: feedImageCount, // ✅ 이미지 개수 추가
         url: item.url || undefined,
         createdAt: item.created_at || undefined
       };

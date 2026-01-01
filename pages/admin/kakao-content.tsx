@@ -24,8 +24,8 @@ interface CalendarData {
       tone: string;
       dailySchedule: Array<{
         date: string;
-        background: { image: string; prompt: string; status: string; imageUrl?: string; basePrompt?: string };
-        profile: { image: string; prompt: string; status: string; imageUrl?: string; basePrompt?: string };
+        background: { image: string; prompt: string; status: string; imageUrl?: string; basePrompt?: string; imageCount?: number };
+        profile: { image: string; prompt: string; status: string; imageUrl?: string; basePrompt?: string; imageCount?: number };
         message: string;
         status: string;
         created: boolean;
@@ -46,8 +46,8 @@ interface CalendarData {
       tone: string;
       dailySchedule: Array<{
         date: string;
-        background: { image: string; prompt: string; status: string; imageUrl?: string; basePrompt?: string };
-        profile: { image: string; prompt: string; status: string; imageUrl?: string; basePrompt?: string };
+        background: { image: string; prompt: string; status: string; imageUrl?: string; basePrompt?: string; imageCount?: number };
+        profile: { image: string; prompt: string; status: string; imageUrl?: string; basePrompt?: string; imageCount?: number };
         message: string;
         status: string;
         created: boolean;
@@ -73,6 +73,7 @@ interface CalendarData {
         status: string;
         created: boolean;
         imageUrl?: string;
+        imageCount?: number; // ✅ 이미지 개수 추가
         url?: string;
         createdAt?: string;
       };
@@ -84,6 +85,7 @@ interface CalendarData {
         status: string;
         created: boolean;
         imageUrl?: string;
+        imageCount?: number; // ✅ 이미지 개수 추가
         url?: string;
         createdAt?: string;
       };
@@ -129,7 +131,6 @@ export default function KakaoContentPage() {
   // 토글 상태
   const [isBrandStrategyExpanded, setIsBrandStrategyExpanded] = useState(false);
   const [isPromptConfigExpanded, setIsPromptConfigExpanded] = useState(false);
-  const [isDateSummaryExpanded, setIsDateSummaryExpanded] = useState(false); // 날짜 발행 요약 토글 (기본 접힘)
   const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(false); // 워크플로우 토글
   const [isVariationTestExpanded, setIsVariationTestExpanded] = useState(false); // 베리에이션 테스트 토글
   const [isVariationPreviewExpanded, setIsVariationPreviewExpanded] = useState(false); // 베리에이션 미리보기 토글
@@ -1119,17 +1120,19 @@ export default function KakaoContentPage() {
     background: {
       image: selectedDateData.account1Profile.background?.image || '',
       prompt: selectedDateData.account1Profile.background?.prompt || '',
-      imageUrl: (selectedDateData.account1Profile.background as any)?.imageUrl
+      imageUrl: (selectedDateData.account1Profile.background as any)?.imageUrl,
+      imageCount: (selectedDateData.account1Profile.background as any)?.imageCount // ✅ 이미지 개수 추가
     },
     profile: {
       image: selectedDateData.account1Profile.profile?.image || '',
       prompt: selectedDateData.account1Profile.profile?.prompt || '',
-      imageUrl: (selectedDateData.account1Profile.profile as any)?.imageUrl
+      imageUrl: (selectedDateData.account1Profile.profile as any)?.imageUrl,
+      imageCount: (selectedDateData.account1Profile.profile as any)?.imageCount // ✅ 이미지 개수 추가
     },
     message: selectedDateData.account1Profile.message || ''
   } : {
-    background: { image: '', prompt: '', imageUrl: undefined },
-    profile: { image: '', prompt: '', imageUrl: undefined },
+    background: { image: '', prompt: '', imageUrl: undefined, imageCount: undefined },
+    profile: { image: '', prompt: '', imageUrl: undefined, imageCount: undefined },
     message: ''
   };
 
@@ -1138,17 +1141,19 @@ export default function KakaoContentPage() {
     background: {
       image: selectedDateData.account2Profile.background?.image || '',
       prompt: selectedDateData.account2Profile.background?.prompt || '',
-      imageUrl: (selectedDateData.account2Profile.background as any)?.imageUrl
+      imageUrl: (selectedDateData.account2Profile.background as any)?.imageUrl,
+      imageCount: (selectedDateData.account2Profile.background as any)?.imageCount // ✅ 이미지 개수 추가
     },
     profile: {
       image: selectedDateData.account2Profile.profile?.image || '',
       prompt: selectedDateData.account2Profile.profile?.prompt || '',
-      imageUrl: (selectedDateData.account2Profile.profile as any)?.imageUrl
+      imageUrl: (selectedDateData.account2Profile.profile as any)?.imageUrl,
+      imageCount: (selectedDateData.account2Profile.profile as any)?.imageCount // ✅ 이미지 개수 추가
     },
     message: selectedDateData.account2Profile.message || ''
   } : {
-    background: { image: '', prompt: '', imageUrl: undefined },
-    profile: { image: '', prompt: '', imageUrl: undefined },
+    background: { image: '', prompt: '', imageUrl: undefined, imageCount: undefined },
+    profile: { image: '', prompt: '', imageUrl: undefined, imageCount: undefined },
     message: ''
   };
 
@@ -1165,6 +1170,7 @@ export default function KakaoContentPage() {
     basePrompt: (selectedDateData.feed.account1 as any)?.basePrompt || null, // ✅ basePrompt 추가
     caption: selectedDateData.feed.account1.caption || '',
     imageUrl: (selectedDateData.feed.account1 as any)?.imageUrl,
+    imageCount: (selectedDateData.feed.account1 as any)?.imageCount, // ✅ 이미지 개수 추가
     url: (selectedDateData.feed.account1 as any)?.url
   } : {
     imageCategory: '',
@@ -1172,6 +1178,7 @@ export default function KakaoContentPage() {
     basePrompt: null, // ✅ basePrompt 추가
     caption: '',
     imageUrl: undefined,
+    imageCount: undefined, // ✅ 이미지 개수 추가
     url: undefined
   };
 
@@ -1181,6 +1188,7 @@ export default function KakaoContentPage() {
     basePrompt: (selectedDateData.feed.account2 as any)?.basePrompt || null, // ✅ basePrompt 추가
     caption: selectedDateData.feed.account2.caption || '',
     imageUrl: (selectedDateData.feed.account2 as any)?.imageUrl,
+    imageCount: (selectedDateData.feed.account2 as any)?.imageCount, // ✅ 이미지 개수 추가
     url: (selectedDateData.feed.account2 as any)?.url
   } : {
     imageCategory: '',
@@ -1188,6 +1196,7 @@ export default function KakaoContentPage() {
     basePrompt: null, // ✅ basePrompt 추가
     caption: '',
     imageUrl: undefined,
+    imageCount: undefined, // ✅ 이미지 개수 추가
     url: undefined
   };
 
@@ -1563,127 +1572,6 @@ export default function KakaoContentPage() {
               </div>
             )}
             
-            {/* 날짜 발행 요약 (토글 가능) */}
-            {viewMode !== 'list' && (
-              <div className="mt-4 bg-white rounded-lg shadow-lg border border-gray-200">
-                <button
-                  onClick={() => setIsDateSummaryExpanded(!isDateSummaryExpanded)}
-                  className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    {isDateSummaryExpanded ? (
-                      <ChevronUp className="w-5 h-5 text-gray-600" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-600" />
-                    )}
-                    <Calendar className="w-5 h-5 text-gray-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">날짜 발행 요약</h3>
-                    {viewMode === 'today' && selectedDate && (
-                      <span className="text-sm text-gray-500">({selectedDate})</span>
-                    )}
-                    {viewMode !== 'today' && dateDataList.length > 0 && (
-                      <span className="text-sm text-gray-500">({dateDataList.length}개 날짜)</span>
-                    )}
-                  </div>
-                </button>
-                
-                {isDateSummaryExpanded && (
-                  <div className="p-4 border-t border-gray-200">
-                    {viewMode === 'today' ? (
-                      <div className="text-sm text-gray-600">
-                        <p>선택된 날짜: <strong>{selectedDate || todayStr}</strong></p>
-                        {selectedDateData && (
-                          <div className="mt-2 space-y-1">
-                            <div>Account1 상태: {getPublishStatus(selectedDateData).label}</div>
-                            <div>Account2 상태: {getPublishStatus(selectedDateData).label}</div>
-                          </div>
-                        )}
-                      </div>
-                    ) : dateDataList.length > 0 ? (
-                      <>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => {
-                                const allDates = dateDataList.map(({ date }) => date);
-                                setSelectedDates(allDates);
-                              }}
-                              className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                            >
-                              전체 선택
-                            </button>
-                            <button
-                              onClick={() => setSelectedDates([])}
-                              className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-                            >
-                              선택 해제
-                            </button>
-                            {selectedDates.length > 0 && (
-                              <span className="text-xs text-blue-600 font-medium">
-                                {selectedDates.length}개 선택됨
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-7 gap-2">
-                          {dateDataList.map(({ date, data }) => {
-                            const status = getPublishStatus(data);
-                            const isToday = date === todayStr;
-                            const isSelected = selectedDates.includes(date);
-                            return (
-                              <div key={date} className="relative">
-                                <input
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      setSelectedDates([...selectedDates, date]);
-                                    } else {
-                                      setSelectedDates(selectedDates.filter(d => d !== date));
-                                    }
-                                  }}
-                                  className="absolute top-1 left-1 z-10 w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                                <button
-                                  onClick={() => {
-                                    setSelectedDate(date);
-                                    setViewMode('today');
-                                  }}
-                                  className={`w-full p-2 rounded text-xs border-2 ${
-                                    isToday ? 'border-blue-500' : 'border-gray-200'
-                                  } ${
-                                    isSelected ? 'ring-2 ring-blue-400 ring-offset-1' : ''
-                                  } ${
-                                    status.color === 'green' ? 'bg-green-50' :
-                                    status.color === 'blue' ? 'bg-blue-50' :
-                                    status.color === 'yellow' ? 'bg-yellow-50' :
-                                    'bg-gray-50'
-                                  } hover:bg-gray-100`}
-                                  title={`${date}: ${status.label}`}
-                                >
-                                  <div className="font-medium">{new Date(date).getDate()}일</div>
-                                  <div className={`text-xs ${
-                                    status.color === 'green' ? 'text-green-600' :
-                                    status.color === 'blue' ? 'text-blue-600' :
-                                    status.color === 'yellow' ? 'text-yellow-600' :
-                                    'text-gray-500'
-                                  }`}>
-                                    {status.label}
-                                  </div>
-                                </button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </>
-                    ) : (
-                      <p className="text-sm text-gray-500">날짜 데이터가 없습니다.</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
 
           </div>
         </div>

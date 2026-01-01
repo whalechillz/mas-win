@@ -9,6 +9,7 @@ interface FeedData {
   imagePrompt: string;
   caption: string;
   imageUrl?: string;
+  imageCount?: number; // ✅ 이미지 개수 추가
   url?: string;
   basePrompt?: string;
   abTest?: {
@@ -415,6 +416,11 @@ export default function FeedManager({
                   </div>
                 </div>
               )}
+              {feedData.imageCount !== undefined && feedData.imageCount > 1 && (
+                <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                  이미지 {feedData.imageCount}개 중 1번째
+                </div>
+              )}
               <button
                 onClick={() => onUpdate({
                   ...feedData,
@@ -506,9 +512,9 @@ export default function FeedManager({
         <label className="block text-sm font-medium text-gray-700 mb-2">
           피드 URL (캡션 하단에 표시)
         </label>
-        <label className="sr-only" htmlFor="feed-url">피드 URL 선택</label>
+        <label className="sr-only" htmlFor={`feed-url-${accountKey || 'default'}`}>피드 URL 선택</label>
         <select
-          id="feed-url"
+          id={`feed-url-${accountKey || 'default'}`}
           value={feedData.url || ''}
           onChange={(e) => onUpdate({ ...feedData, url: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
