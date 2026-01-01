@@ -15,6 +15,7 @@ interface BaseChannelEditorProps {
   initialData?: any;
   onSave?: (data: any) => void;
   onSend?: (data: any) => void;
+  onFormDataChange?: (formData: any) => void; // formData 변경 시 콜백
   children?: React.ReactNode;
 }
 
@@ -28,6 +29,7 @@ export default function BaseChannelEditor({
   initialData,
   onSave,
   onSend,
+  onFormDataChange,
   children
 }: BaseChannelEditorProps) {
   const [showGallery, setShowGallery] = useState(false);
@@ -44,6 +46,13 @@ export default function BaseChannelEditor({
     sendMessage,
     loadFromBlog
   } = useChannelEditor(channelType, calendarId, initialData, hubId, channelKey);
+
+  // formData 변경 시 콜백 호출
+  useEffect(() => {
+    if (onFormDataChange) {
+      onFormDataChange(formData);
+    }
+  }, [formData, onFormDataChange]);
 
   // 블로그 소스에서 내용 가져오기
   const handleFetchBlogSource = async () => {
@@ -91,10 +100,24 @@ export default function BaseChannelEditor({
       // formData 업데이트 후 약간의 지연을 두고 저장
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      const result = await saveDraft();
+      // initialData에서 channelPostId 가져오기 (기존 메시지 수정 시)
+      const channelPostId = (initialData as any)?.channelPostId || (initialData as any)?.id;
       
-      if (result.success && onSave) {
-        onSave(result.data);
+      const result = await saveDraft(undefined, undefined, channelPostId);
+      
+      if (result && typeof result === 'object' && result.success) {
+        if (onSave) {
+          onSave(result.data);
+        } else {
+          alert('저장되었습니다.');
+        }
+      } else if (typeof result === 'number') {
+        // 이전 형식 호환성
+        if (onSave) {
+          onSave({ id: result });
+        } else {
+          alert('저장되었습니다.');
+        }
       }
     } catch (error) {
       console.error('Save failed:', error);
@@ -122,10 +145,26 @@ export default function BaseChannelEditor({
       // formData 업데이트 후 약간의 지연을 두고 발송
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      const result = await sendMessage();
+      // 먼저 저장 후 발송
+      const savedResult = await saveDraft();
+      let channelPostId: number | undefined;
       
-      if (result.success && onSend) {
-        onSend(result.data);
+      if (typeof savedResult === 'number') {
+        channelPostId = savedResult;
+      } else if (savedResult && typeof savedResult === 'object' && 'channelPostId' in savedResult) {
+        channelPostId = (savedResult as any).channelPostId;
+      }
+      
+      if (!channelPostId) {
+        throw new Error('메시지를 저장할 수 없습니다.');
+      }
+      
+      const result = await sendMessage(channelPostId);
+      
+      if (result && onSend) {
+        onSend(result);
+      } else if (result && result.success) {
+        alert('발송되었습니다.');
       }
     } catch (error) {
       console.error('Send failed:', error);
@@ -338,6 +377,7 @@ export default function BaseChannelEditor({
             setShowGallery(false);
           }}
           channelType={channelType}
+          autoFilterFolder={channelType === 'kakao' ? `originals/daily-branding/kakao-ch/${new Date().toISOString().split('T')[0]}` : undefined}
         />
       )}
     </div>

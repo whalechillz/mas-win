@@ -12,6 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const {
+      channelPostId, // 기존 메시지 ID (있으면 업데이트, 없으면 생성)
       title,
       content,
       messageType,
@@ -64,79 +65,141 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       finalRecipientUuids = selectedRecipients;
     }
 
-    // channel_kakao 테이블에 저장 (기존 API 구조와 동일하게)
-    const insertData: any = {
+    // channelPostId가 있으면 업데이트, 없으면 생성
+    const isUpdate = !!channelPostId;
+    
+    // 공통 데이터 객체
+    const dataToSave: any = {
       title: isBasicTextType ? null : (title || null), // 기본 텍스트형이면 null
-      content,
+      content, // content 컬럼 사용
+      message_text: content, // message_text 컬럼에도 저장 (NOT NULL 제약 대응)
       message_type: message_type || messageType || 'FRIENDTALK',
       template_type: templateType || 'BASIC_TEXT', // 항상 포함 (기본값)
-      template_id: null,
       button_text: finalButtonText || null,
       button_link: finalButtonLink || null,
       recipient_uuids: finalRecipientUuids, // JSON 문자열 또는 null
-      status: status || 'draft',
-      calendar_id: hub_content_id || calendarId || null,
-      created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
     // image_url, emoji, tags는 데이터베이스에 컬럼이 있는 경우에만 추가
     if (image_url || imageUrl) {
-      insertData.image_url = image_url || imageUrl;
+      dataToSave.image_url = image_url || imageUrl;
     }
     
-    if (emoji) {
-      insertData.emoji = emoji;
+    if (emoji !== undefined) {
+      dataToSave.emoji = emoji || null;
     }
     
-    if (tags) {
-      // tags가 배열이면 JSON 문자열로 변환, 문자열이면 그대로 사용
-      insertData.tags = Array.isArray(tags) 
-        ? JSON.stringify(tags) 
-        : (typeof tags === 'string' ? tags : null);
+    // tags 처리 개선: 빈 배열도 처리
+    if (tags !== undefined && tags !== null) {
+      if (Array.isArray(tags) && tags.length > 0) {
+        dataToSave.tags = JSON.stringify(tags);
+      } else if (typeof tags === 'string' && tags.trim()) {
+        dataToSave.tags = tags;
+      } else {
+        // 빈 배열이나 빈 문자열인 경우 null로 설정 (기존 값 제거)
+        dataToSave.tags = null;
+      }
+    }
+
+    // 생성 시에만 추가되는 필드
+    if (!isUpdate) {
+      // template_id는 선택적이므로 null이어도 됨
+      // dataToSave.template_id = null; // 명시적으로 null을 설정하지 않음 (컬럼이 없으면 추가 안 함)
+      dataToSave.status = status || 'draft';
+      dataToSave.calendar_id = hub_content_id || calendarId || null;
+      dataToSave.created_at = new Date().toISOString();
+    } else {
+      // 업데이트 시에는 status와 calendar_id도 업데이트 가능
+      if (status !== undefined) {
+        dataToSave.status = status;
+      }
+      if (hub_content_id !== undefined || calendarId !== undefined) {
+        dataToSave.calendar_id = hub_content_id || calendarId || null;
+      }
     }
 
     // 디버깅: 저장 시도 데이터 로깅
-    console.log('📝 카카오 채널 저장 시도:', {
-      title: insertData.title,
-      contentLength: insertData.content?.length,
-      message_type: insertData.message_type,
-      template_type: insertData.template_type,
-      hasButton: !!(insertData.button_text && insertData.button_link),
+    console.log(`📝 카카오 채널 ${isUpdate ? '업데이트' : '생성'} 시도:`, {
+      channelPostId: isUpdate ? channelPostId : 'new',
+      title: dataToSave.title,
+      contentLength: dataToSave.content?.length,
+      message_type: dataToSave.message_type,
+      template_type: dataToSave.template_type,
+      hasButton: !!(dataToSave.button_text && dataToSave.button_link),
       recipientCount: finalRecipientUuids ? JSON.parse(finalRecipientUuids).length : 0,
-      status: insertData.status
+      status: dataToSave.status
     });
 
-    const { data: newKakaoChannel, error } = await supabase
-      .from('channel_kakao')
-      .insert(insertData)
-      .select()
-      .single();
+    let result;
+    let error;
 
-    if (error) {
-      console.error('❌ 카카오 채널 저장 오류:', error);
-      console.error('❌ 오류 코드:', error.code);
-      console.error('❌ 오류 메시지:', error.message);
-      console.error('❌ 오류 상세:', error.details);
-      console.error('❌ 오류 힌트:', error.hint);
-      console.error('❌ 저장 시도한 데이터:', JSON.stringify(insertData, null, 2));
-      
-      return res.status(500).json({
-        success: false,
-        message: '카카오 채널 저장에 실패했습니다.',
-        error: error.message,
-        errorCode: error.code,
-        errorDetails: error.details,
-        errorHint: error.hint,
-        attemptedData: insertData
-      });
+    if (isUpdate) {
+      // 업데이트
+      const { data: updatedKakaoChannel, error: updateError } = await supabase
+        .from('channel_kakao')
+        .update(dataToSave)
+        .eq('id', channelPostId)
+        .select()
+        .single();
+
+      result = updatedKakaoChannel;
+      error = updateError;
+
+      if (error) {
+        console.error('❌ 카카오 채널 업데이트 오류:', error);
+        console.error('❌ 오류 코드:', error.code);
+        console.error('❌ 오류 메시지:', error.message);
+        console.error('❌ 오류 상세:', error.details);
+        console.error('❌ 오류 힌트:', error.hint);
+        console.error('❌ 업데이트 시도한 데이터:', JSON.stringify(dataToSave, null, 2));
+        
+        return res.status(500).json({
+          success: false,
+          message: '카카오 채널 업데이트에 실패했습니다.',
+          error: error.message,
+          errorCode: error.code,
+          errorDetails: error.details,
+          errorHint: error.hint,
+          attemptedData: dataToSave
+        });
+      }
+    } else {
+      // 생성
+      const { data: newKakaoChannel, error: insertError } = await supabase
+        .from('channel_kakao')
+        .insert(dataToSave)
+        .select()
+        .single();
+
+      result = newKakaoChannel;
+      error = insertError;
+
+      if (error) {
+        console.error('❌ 카카오 채널 저장 오류:', error);
+        console.error('❌ 오류 코드:', error.code);
+        console.error('❌ 오류 메시지:', error.message);
+        console.error('❌ 오류 상세:', error.details);
+        console.error('❌ 오류 힌트:', error.hint);
+        console.error('❌ 저장 시도한 데이터:', JSON.stringify(dataToSave, null, 2));
+        
+        return res.status(500).json({
+          success: false,
+          message: '카카오 채널 저장에 실패했습니다.',
+          error: error.message,
+          errorCode: error.code,
+          errorDetails: error.details,
+          errorHint: error.hint,
+          attemptedData: dataToSave
+        });
+      }
     }
 
     return res.status(200).json({
       success: true,
-      message: '카카오 채널이 저장되었습니다.',
-      channelPostId: newKakaoChannel.id,
-      data: newKakaoChannel
+      message: isUpdate ? '카카오 채널이 업데이트되었습니다.' : '카카오 채널이 저장되었습니다.',
+      channelPostId: result.id,
+      data: result
     });
 
   } catch (error: any) {

@@ -3746,11 +3746,11 @@ export default function GalleryAdmin() {
                 folders={availableFolders}
                 selectedFolder={folderFilter}
                 onFolderSelect={(folderPath) => {
-                  // 🔧 수정: daily-branding/kakao 또는 mms로 시작하는 경로에 originals/ 프리픽스 자동 추가
+                  // 🔧 수정: daily-branding/kakao, kakao-ch 또는 mms로 시작하는 경로에 originals/ 프리픽스 자동 추가
                   let adjustedPath = folderPath;
                   if (folderPath && folderPath !== 'all' && folderPath !== 'root') {
-                    // originals/ 프리픽스가 없고, daily-branding/kakao 또는 mms로 시작하는 경우만 추가
-                    if ((folderPath.startsWith('daily-branding/kakao') || folderPath.startsWith('mms')) && !folderPath.startsWith('originals/')) {
+                    // originals/ 프리픽스가 없고, daily-branding/kakao, kakao-ch 또는 mms로 시작하는 경우만 추가
+                    if ((folderPath.startsWith('daily-branding/kakao') || folderPath.startsWith('daily-branding/kakao-ch') || folderPath.startsWith('mms')) && !folderPath.startsWith('originals/')) {
                       adjustedPath = `originals/${folderPath}`;
                     }
                   }

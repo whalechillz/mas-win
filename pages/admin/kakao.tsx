@@ -19,6 +19,7 @@ export default function KakaoChannelEditor() {
     buttonText: '', // 빈 값으로 시작, 사용자가 입력
     buttonLink: '' // 빈 값으로 시작, 사용자가 입력
   });
+  const [baseEditorFormData, setBaseEditorFormData] = useState<any>(null); // BaseChannelEditor의 formData
   const [loading, setLoading] = useState(false);
 
   // 기존 메시지 로드
@@ -28,6 +29,8 @@ export default function KakaoChannelEditor() {
     }
   }, [id]);
 
+  const [channelPostId, setChannelPostId] = useState<number | null>(null);
+
   const loadExistingMessage = async (messageId: string) => {
     try {
       setLoading(true);
@@ -36,6 +39,7 @@ export default function KakaoChannelEditor() {
 
       if (data.success && data.data && data.data.length > 0) {
         const message = data.data[0];
+        setChannelPostId(message.id); // channelPostId 저장
         setFormData({
           title: message.title || '',
           messageText: message.content || '',
@@ -197,12 +201,13 @@ export default function KakaoChannelEditor() {
             <div className="text-sm">
               {formData.emoji && <span className="mr-1">{formData.emoji}</span>}
               {/* 기본 텍스트형이 아닐 때만 제목 표시 */}
-              {formData.templateType !== 'BASIC_TEXT' && formData.title && (
-                <span className="font-medium">{formData.title}</span>
+              {formData.templateType !== 'BASIC_TEXT' && (baseEditorFormData?.title || formData.title) && (
+                <span className="font-medium">{baseEditorFormData?.title || formData.title}</span>
               )}
-              {formData.messageText && (
+              {/* BaseChannelEditor의 content를 우선 사용, 없으면 formData.messageText 사용 */}
+              {(baseEditorFormData?.content || formData.messageText) && (
                 <div className={`text-gray-700 ${formData.templateType === 'BASIC_TEXT' ? 'mt-0' : 'mt-1'}`}>
-                  {formData.messageText}
+                  {baseEditorFormData?.content || formData.messageText}
                 </div>
               )}
               {formData.tags.length > 0 && (
@@ -264,6 +269,7 @@ export default function KakaoChannelEditor() {
           calendarId={calendarId as string}
           templateType={formData.templateType}
           initialData={{
+            channelPostId: channelPostId || undefined, // 기존 메시지 ID 전달
             title: formData.title,
             content: formData.messageText,
             messageType: formData.messageType,
@@ -274,6 +280,17 @@ export default function KakaoChannelEditor() {
             buttonText: formData.buttonText
           }}
           key={`${formData.title}-${formData.messageText}-${formData.buttonText}-${formData.buttonLink}`}
+          onFormDataChange={(newFormData) => {
+            // BaseChannelEditor의 formData 변경 시 동기화
+            setBaseEditorFormData(newFormData);
+            // formData도 업데이트 (버튼 설정 등)
+            if (newFormData.buttonText) {
+              setFormData(prev => ({ ...prev, buttonText: newFormData.buttonText }));
+            }
+            if (newFormData.buttonLink) {
+              setFormData(prev => ({ ...prev, buttonLink: newFormData.buttonLink }));
+            }
+          }}
           onSave={(data) => {
             console.log('Kakao channel saved:', data);
             alert('저장되었습니다.');

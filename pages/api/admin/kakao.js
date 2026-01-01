@@ -59,9 +59,15 @@ export default async function handler(req, res) {
         });
       }
 
+      // content 필드가 없으면 message_text 사용
+      const processedChannels = (kakaoChannels || []).map(channel => ({
+        ...channel,
+        content: channel.content || channel.message_text || ''
+      }));
+
       return res.status(200).json({
         success: true,
-        data: kakaoChannels || []
+        data: processedChannels
       });
 
     } catch (error) {

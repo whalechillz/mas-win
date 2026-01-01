@@ -29,6 +29,7 @@ export default function KakaoChannelList() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<'sent_at' | 'created_at'>('sent_at');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [bulkSyncLoading, setBulkSyncLoading] = useState(false);
 
   // 카카오 채널 목록 조회
   const fetchKakaoChannels = async () => {
@@ -60,6 +61,59 @@ export default function KakaoChannelList() {
   useEffect(() => {
     fetchKakaoChannels();
   }, [filter, sortBy, sortOrder]);
+
+  // 일괄 동기화 (CSV/JSON 파일 업로드)
+  const handleBulkSync = () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.csv,.json';
+    fileInput.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      setBulkSyncLoading(true);
+      try {
+        const text = await file.text();
+        let messages: any[] = [];
+
+        if (file.name.endsWith('.json')) {
+          messages = JSON.parse(text);
+        } else if (file.name.endsWith('.csv')) {
+          // CSV 파싱 (간단한 구현)
+          const lines = text.split('\n');
+          const headers = lines[0].split(',').map(h => h.trim());
+          messages = lines.slice(1).filter(line => line.trim()).map(line => {
+            const values = line.split(',').map(v => v.trim());
+            const obj: any = {};
+            headers.forEach((header, i) => {
+              obj[header] = values[i] || '';
+            });
+            return obj;
+          });
+        }
+
+        const response = await fetch('/api/kakao/bulk-sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert(`일괄 동기화 완료!\n성공: ${data.results.success}개\n실패: ${data.results.failed}개`);
+          fetchKakaoChannels();
+        } else {
+          alert(`동기화 실패: ${data.message}`);
+        }
+      } catch (error: any) {
+        alert(`오류 발생: ${error.message}`);
+      } finally {
+        setBulkSyncLoading(false);
+      }
+    };
+    fileInput.click();
+  };
 
   // 상태별 색상
   const getStatusColor = (status: string) => {
@@ -161,6 +215,13 @@ export default function KakaoChannelList() {
                 선택 삭제 ({selectedIds.length})
               </button>
             )}
+            <button
+              onClick={handleBulkSync}
+              disabled={bulkSyncLoading}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+            >
+              {bulkSyncLoading ? '동기화 중...' : '📥 일괄 동기화'}
+            </button>
             <a
               href="/admin/kakao"
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

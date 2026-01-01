@@ -486,7 +486,8 @@ export default async function handler(req, res) {
         let feedPrompt = feedData.base_prompt;
         if (!feedPrompt) {
           try {
-            console.log(`🔄 피드 basePrompt 자동 생성 중... (${date})`);
+            const stepStartTime = Date.now();
+            console.log(`[DEBUG] 🔄 피드 basePrompt 자동 생성 시작... (${date})`);
             const basePromptResponse = await fetch(`${baseUrl}/api/kakao-content/generate-base-prompt`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -503,11 +504,30 @@ export default async function handler(req, res) {
               if (basePromptData.success && basePromptData.basePrompt) {
                 feedPrompt = basePromptData.basePrompt;
                 feedData.base_prompt = feedPrompt;
-                console.log(`✅ 피드 basePrompt 자동 생성 완료: ${feedPrompt}`);
+                const stepDuration = Date.now() - stepStartTime;
+                console.log(`[DEBUG] ✅ 피드 basePrompt 자동 생성 완료 (${stepDuration}ms): ${feedPrompt}`);
+                
+                // ✅ 즉시 저장 (타임아웃 방지)
+                try {
+                  await supabase
+                    .from('kakao_feed_content')
+                    .upsert({
+                      date,
+                      account: 'account2',
+                      base_prompt: feedPrompt,
+                      image_category: feedData.image_category,
+                      updated_at: new Date().toISOString()
+                    }, {
+                      onConflict: 'date,account'
+                    });
+                  console.log(`[DEBUG] ✅ 피드 basePrompt 즉시 저장 완료: ${date}`);
+                } catch (saveError) {
+                  console.warn('[DEBUG] ⚠️ 피드 basePrompt 즉시 저장 실패:', saveError.message);
+                }
               }
             }
           } catch (basePromptError) {
-            console.warn('⚠️ basePrompt 자동 생성 실패, 기본값 사용:', basePromptError.message);
+            console.warn('[DEBUG] ⚠️ basePrompt 자동 생성 실패, 기본값 사용:', basePromptError.message);
           }
         }
         
@@ -515,6 +535,8 @@ export default async function handler(req, res) {
         feedPrompt = feedPrompt || feedData.image_prompt || feedData.image_category || '젊은 골퍼의 스윙';
         
         // 프롬프트 생성
+        const promptStartTime = Date.now();
+        console.log(`[DEBUG] 🔄 피드 프롬프트 생성 시작... (${date})`);
         const promptResponse = await fetch(`${baseUrl}/api/kakao-content/generate-prompt`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -531,6 +553,28 @@ export default async function handler(req, res) {
         const promptData = await promptResponse.json();
         if (!promptData.success) {
           throw new Error('프롬프트 생성 실패');
+        }
+        
+        const promptDuration = Date.now() - promptStartTime;
+        console.log(`[DEBUG] ✅ 피드 프롬프트 생성 완료 (${promptDuration}ms): ${promptData.prompt?.substring(0, 50)}...`);
+        
+        // ✅ 즉시 저장 (타임아웃 방지)
+        try {
+          await supabase
+            .from('kakao_feed_content')
+            .upsert({
+              date,
+              account: 'account2',
+              image_prompt: promptData.prompt,
+              base_prompt: feedData.base_prompt,
+              image_category: feedData.image_category,
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'date,account'
+            });
+          console.log(`[DEBUG] ✅ 피드 프롬프트 즉시 저장 완료: ${date}`);
+        } catch (saveError) {
+          console.warn('[DEBUG] ⚠️ 피드 프롬프트 즉시 저장 실패:', saveError.message);
         }
 
         // 피드 캡션 생성 (이미지 생성 전에 생성 - account1과 동일한 순서)
@@ -589,6 +633,8 @@ export default async function handler(req, res) {
         );
 
         // 이미지 생성
+        const imageStartTime = Date.now();
+        console.log(`[DEBUG] 🔄 피드 이미지 생성 시작... (${date})`);
         const imageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-images`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -603,6 +649,8 @@ export default async function handler(req, res) {
             }
           })
         });
+        const imageDuration = Date.now() - imageStartTime;
+        console.log(`[DEBUG] 📸 피드 이미지 생성 API 응답 (${imageDuration}ms): ${imageResponse.status}`);
 
         if (imageResponse.ok) {
           const imageData = await imageResponse.json();

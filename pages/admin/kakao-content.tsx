@@ -100,10 +100,10 @@ export default function KakaoContentPage() {
   const [selectedPromptConfig, setSelectedPromptConfig] = useState('');
   const [brandStrategy, setBrandStrategy] = useState<any>(null);
   const [isCreatingAll, setIsCreatingAll] = useState(false);
-  const [showGenerationOptions, setShowGenerationOptions] = useState(false);
-  const [generationOptions, setGenerationOptions] = useState({
-    imageCount: 2 // 생성할 이미지 개수 (선택용)
-  });
+  // ✅ 생성 옵션 모달 삭제 - 항상 1개만 생성
+  const generationOptions = {
+    imageCount: 1 // 항상 1개만 생성
+  };
   const [saveStatus, setSaveStatus] = useState<{ status: 'idle' | 'saving' | 'success' | 'error'; message?: string }>({ status: 'idle' });
   // 날짜 선택 상태 (다중 선택)
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
@@ -844,11 +844,6 @@ export default function KakaoContentPage() {
 
   // 선택된 날짜들에 대한 순차 생성
   const handleSelectedDatesAutoCreate = async (customDates?: string[]) => {
-    // ✅ "선택된 날짜 생성" 기능에서는 모달을 표시하지 않음 (옵션 A)
-    if (showGenerationOptions) {
-      setShowGenerationOptions(false);
-    }
-    
     // 커스텀 날짜가 제공되면 사용, 없으면 선택된 날짜 또는 현재 날짜 사용
     let datesToGenerate: string[];
     
@@ -1329,16 +1324,8 @@ export default function KakaoContentPage() {
                 )}
               </div>
 
-              {/* 생성 옵션 설정 및 자동 생성 버튼 */}
+              {/* 자동 생성 버튼 */}
               <div className="flex items-center gap-2 flex-wrap">
-                <button
-                  onClick={() => setShowGenerationOptions(true)}
-                  disabled={isCreatingAll}
-                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium disabled:opacity-50"
-                >
-                  <Settings className="w-4 h-4" />
-                  생성 옵션 설정
-                </button>
                 {viewMode === 'week' && (
                   <button
                     onClick={async () => {
@@ -2461,107 +2448,6 @@ export default function KakaoContentPage() {
           </>
         )}
 
-        {/* 생성 옵션 모달 */}
-        {showGenerationOptions && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
-            <div className="relative bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full mx-4">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">이미지 생성 옵션</h3>
-              
-              <div className="space-y-6">
-                {/* 안내 메시지 */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-800">
-                    <strong>생성 범위</strong>는 상단의 <strong>보기 모드</strong>에서 설정합니다.
-                    <br />
-                    (오늘 / 이번 주 / 이번 달)
-                  </p>
-                </div>
-
-                {/* 이미지 개수 (선택용) */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    이미지 생성 개수 (선택용)
-                  </label>
-                  <div className="space-y-2">
-                    <label className="flex items-center space-x-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="imageCount"
-                        value="1"
-                        checked={generationOptions.imageCount === 1}
-                        onChange={(e) => setGenerationOptions({ ...generationOptions, imageCount: parseInt(e.target.value) })}
-                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                      />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">1개 생성 (즉시 사용)</div>
-                        <div className="text-xs text-gray-500">1개만 생성하고 바로 사용합니다</div>
-                      </div>
-                    </label>
-                    <label className="flex items-center space-x-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="imageCount"
-                        value="2"
-                        checked={generationOptions.imageCount === 2}
-                        onChange={(e) => setGenerationOptions({ ...generationOptions, imageCount: parseInt(e.target.value) })}
-                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                      />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">2개 생성 (선택)</div>
-                        <div className="text-xs text-gray-500">2개 생성 후 선택할 수 있습니다</div>
-                      </div>
-                    </label>
-                    <label className="flex items-center space-x-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="imageCount"
-                        value="4"
-                        checked={generationOptions.imageCount === 4}
-                        onChange={(e) => setGenerationOptions({ ...generationOptions, imageCount: parseInt(e.target.value) })}
-                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                      />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">4개 생성 (다양한 선택)</div>
-                        <div className="text-xs text-gray-500">4개 생성 후 가장 적합한 것을 선택합니다</div>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-
-                {/* 저장 위치 안내 */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="text-sm font-semibold text-blue-900 mb-2">💾 저장 위치</h4>
-                  <ul className="text-xs text-blue-800 space-y-1">
-                    <li>• <strong>이미지:</strong> 갤러리 시스템에 저장됩니다</li>
-                    <li>• <strong>프롬프트:</strong> 캘린더 JSON 파일에 저장됩니다</li>
-                    <li>• <strong>메시지/캡션:</strong> 캘린더 JSON 파일에 저장됩니다</li>
-                    <li>• <strong>파일 위치:</strong> <code className="bg-blue-100 px-1 rounded">docs/content-calendar/YYYY-MM.json</code></li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* 모달 버튼 */}
-              <div className="flex justify-end space-x-3 mt-8">
-                <button
-                  onClick={() => setShowGenerationOptions(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-                >
-                  취소
-                </button>
-                <button
-                  onClick={() => {
-                    setShowGenerationOptions(false);
-                    // 옵션 저장 (로컬 스토리지 또는 상태로 관리)
-                    localStorage.setItem('kakaoGenerationOptions', JSON.stringify(generationOptions));
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  옵션 저장
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* 이미지 선택 모달 */}
         {imageSelectionModal && (

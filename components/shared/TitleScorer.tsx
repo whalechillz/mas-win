@@ -98,7 +98,7 @@ export const TitleScorer: React.FC<TitleScorerProps> = ({
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
       <div className="flex items-center gap-6 flex-wrap">
-        {/* 전체 점수 */}
+      {/* 전체 점수 */}
         <div className="flex items-center gap-3">
           <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${getScoreBgColor(score.total)}`}>
             {score.total}
@@ -110,7 +110,7 @@ export const TitleScorer: React.FC<TitleScorerProps> = ({
             </p>
           </div>
         </div>
-
+        
         {/* 세부 점수 - 가로 배치 */}
         <div className="flex gap-6 text-sm">
           <div className="flex flex-col">
@@ -120,19 +120,19 @@ export const TitleScorer: React.FC<TitleScorerProps> = ({
           <div className="flex flex-col">
             <span className="text-gray-600 text-xs">심리 효과</span>
             <span className={`font-semibold ${getScoreColor(score.psychEffect)}`}>{score.psychEffect}</span>
-          </div>
+        </div>
           <div className="flex flex-col">
             <span className="text-gray-600 text-xs">브랜드 적합성</span>
             <span className={`font-semibold ${getScoreColor(score.brandFit)}`}>{score.brandFit}</span>
-          </div>
+      </div>
           <div className="flex flex-col">
             <span className="text-gray-600 text-xs">전환 잠재력</span>
             <span className={`font-semibold ${getScoreColor(score.conversionPotential)}`}>{score.conversionPotential}</span>
-          </div>
         </div>
+      </div>
 
         {/* AI 추천 제목 버튼 */}
-        {showRecommendations && (
+      {showRecommendations && (
           <div className="ml-auto">
             <button
               onClick={generateRecommendations}
@@ -143,36 +143,36 @@ export const TitleScorer: React.FC<TitleScorerProps> = ({
             </button>
           </div>
         )}
-      </div>
-
+          </div>
+          
       {/* AI 추천 제목 목록 (있을 때만 표시) */}
-      {recommendations.length > 0 && (
+          {recommendations.length > 0 && (
         <div className="mt-4 pt-4 border-t border-gray-200 space-y-2">
-          {recommendations.map((recTitle, index) => {
-            const recScore = scoreTitle({
-              title: recTitle,
-              persona,
-              contentType,
-              targetProduct,
-              brandWeight,
-              conversionGoal
-            });
-            
-            return (
-              <div
-                key={index}
+              {recommendations.map((recTitle, index) => {
+                const recScore = scoreTitle({
+                  title: recTitle,
+                  persona,
+                  contentType,
+                  targetProduct,
+                  brandWeight,
+                  conversionGoal
+                });
+                
+                return (
+                  <div
+                    key={index}
                 className="p-2 border border-gray-200 rounded cursor-pointer hover:bg-gray-50"
-                onClick={() => onRecommendationSelect?.(recTitle)}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-800">{recTitle}</span>
-                  <span className={`text-xs px-2 py-1 rounded ${getScoreBgColor(recScore.total)} text-white`}>
+                    onClick={() => onRecommendationSelect?.(recTitle)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-800">{recTitle}</span>
+                        <span className={`text-xs px-2 py-1 rounded ${getScoreBgColor(recScore.total)} text-white`}>
                     {recScore.total}점
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+                        </span>
+                    </div>
+                  </div>
+                );
+              })}
         </div>
       )}
     </div>

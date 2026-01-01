@@ -61,15 +61,27 @@ export const AIImagePicker: React.FC<AIImagePickerProps> = ({
 
     setIsGenerating(true);
     try {
+      // 카카오 채널일 때 targetFolder 설정
+      const today = new Date().toISOString().split('T')[0];
+      const targetFolder = channelType === 'kakao' 
+        ? `originals/daily-branding/kakao-ch/${today}`
+        : undefined;
+
+      const requestBody: any = {
+        prompt: imagePrompt,
+        width: imageInfo.width,
+        height: imageInfo.height,
+        channel: channelType
+      };
+
+      if (targetFolder) {
+        requestBody.targetFolder = targetFolder;
+      }
+
       const response = await fetch('/api/generate-blog-image-simple', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: imagePrompt,
-          width: imageInfo.width,
-          height: imageInfo.height,
-          channel: channelType
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (response.ok) {

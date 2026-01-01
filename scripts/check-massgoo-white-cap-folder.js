@@ -48,39 +48,61 @@ async function checkFolderStructure() {
     console.log('📭 상위 폴더가 비어있습니다. 하위 폴더를 확인합니다...\n');
   }
   
-  // 2. 하위 폴더 확인 (composition, detail, gallery)
+  // 2. 하위 폴더 확인 (composition, detail, gallery) - 배치 조회로 모든 파일 확인
   const subFolders = ['composition', 'detail', 'gallery'];
   
   for (const subFolder of subFolders) {
     const subFolderPath = `${basePath}/${subFolder}`;
-    console.log(`\n=== ${subFolderPath} 폴더 내용 ===`);
+    console.log(`\n=== ${subFolderPath} 폴더 내용 (전체 조회) ===`);
     
-    const { data: subFiles, error: subError } = await supabase.storage
-      .from('blog-images')
-      .list(subFolderPath, { limit: 100, sortBy: { column: 'name', order: 'asc' } });
+    let allFilesInFolder = [];
+    let offset = 0;
+    const batchSize = 1000;
     
-    if (subError) {
-      console.log(`  ⚠️ 폴더가 없거나 접근 불가: ${subError.message}`);
-      continue;
+    while (true) {
+      const { data: subFiles, error: subError } = await supabase.storage
+        .from('blog-images')
+        .list(subFolderPath, { 
+          limit: batchSize,
+          offset: offset,
+          sortBy: { column: 'name', order: 'asc' } 
+        });
+      
+      if (subError) {
+        console.log(`  ⚠️ 폴더 조회 오류 (offset: ${offset}): ${subError.message}`);
+        break;
+      }
+      
+      if (!subFiles || subFiles.length === 0) {
+        break; // 더 이상 파일이 없음
+      }
+      
+      allFilesInFolder = allFilesInFolder.concat(subFiles);
+      offset += batchSize;
+      
+      // 마지막 배치면 종료
+      if (subFiles.length < batchSize) {
+        break;
+      }
     }
     
-    if (!subFiles || subFiles.length === 0) {
+    if (allFilesInFolder.length === 0) {
       console.log(`  📭 폴더가 비어있습니다.`);
       continue;
     }
     
-    const imageFiles = subFiles.filter(item => item.id && 
+    const imageFiles = allFilesInFolder.filter(item => item.id && 
       ['.jpg', '.jpeg', '.png', '.gif', '.webp'].some(ext => 
         item.name.toLowerCase().endsWith(ext)
       )
     );
     
-    console.log(`  📸 이미지 파일: ${imageFiles.length}개`);
-    imageFiles.slice(0, 5).forEach(file => {
-      console.log(`    - ${file.name}`);
+    console.log(`  📸 이미지 파일: ${imageFiles.length}개 (전체 항목: ${allFilesInFolder.length}개)`);
+    imageFiles.slice(0, 10).forEach(file => {
+      console.log(`    - ${file.name} (${(file.metadata?.size || 0) / 1024}KB)`);
     });
-    if (imageFiles.length > 5) {
-      console.log(`    ... 외 ${imageFiles.length - 5}개 이미지`);
+    if (imageFiles.length > 10) {
+      console.log(`    ... 외 ${imageFiles.length - 10}개 이미지`);
     }
   }
   

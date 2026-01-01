@@ -6,6 +6,7 @@ import { ShortLinkGenerator } from '../../components/shared/ShortLinkGenerator';
 import { AIImagePicker } from '../../components/shared/AIImagePicker';
 import { MessageOptimizer } from '../../components/shared/MessageOptimizer';
 import { CustomerSelector } from '../../components/admin/CustomerSelector';
+import { KakaoSendOption } from '../../components/admin/KakaoSendOption';
 import { useChannelEditor } from '../../lib/hooks/useChannelEditor';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
@@ -61,6 +62,13 @@ export default function SMSAdmin() {
   const [manualSplitSize, setManualSplitSize] = useState(100);
   // 호칭 선택 (개인화용)
   const [honorific, setHonorific] = useState<string>('고객님');
+  
+  // 카카오톡 대행 발송 옵션
+  const [kakaoSendEnabled, setKakaoSendEnabled] = useState(false);
+  const [kakaoMessageType, setKakaoMessageType] = useState<'FRIENDTALK' | 'ALIMTALK'>('FRIENDTALK');
+  const [kakaoFallbackToSms, setKakaoFallbackToSms] = useState(true);
+  const [kakaoRecipientGroupId, setKakaoRecipientGroupId] = useState<number | null>(null);
+  const [kakaoTemplateId, setKakaoTemplateId] = useState<string>('');
   
   // 메시지에 이름 변수가 있는지 확인
   const hasNameVariable = useMemo(() => {
@@ -1442,51 +1450,93 @@ export default function SMSAdmin() {
       }
 
       // ⭐ 호칭을 포함하여 발송
-      // sendMessage는 formData를 직접 참조하므로, API를 직접 호출하여 honorific을 확실히 전달
-      const sendResponse = await fetch('/api/channels/sms/send', {
+      // 카카오톡 대행 발송이 활성화되어 있으면 카카오톡 대행 API 사용
+      const sendEndpoint = kakaoSendEnabled 
+        ? '/api/channels/sms/send-with-kakao'
+        : '/api/channels/sms/send';
+      
+      const sendPayload: any = {
+        channelPostId,
+        messageType: formData.messageType || 'MMS',
+        messageText: formData.content,
+        content: formData.content,
+        imageUrl: formData.imageUrl || null,
+        shortLink: formData.shortLink || null,
+        recipientNumbers: formData.recipientNumbers || [],
+        honorific: honorific // ⭐ 호칭 전달
+      };
+
+      // 카카오톡 대행 발송 옵션 추가
+      if (kakaoSendEnabled) {
+        sendPayload.kakaoSendEnabled = true;
+        sendPayload.kakaoMessageType = kakaoMessageType;
+        sendPayload.kakaoFallbackToSms = kakaoFallbackToSms;
+        sendPayload.kakaoRecipientGroupId = kakaoRecipientGroupId;
+        if (kakaoMessageType === 'ALIMTALK' && kakaoTemplateId) {
+          sendPayload.kakaoTemplateId = kakaoTemplateId;
+        }
+      }
+
+      const sendResponse = await fetch(sendEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          channelPostId,
-          messageType: formData.messageType || 'MMS',
-          messageText: formData.content,
-          content: formData.content,
-          imageUrl: formData.imageUrl || null,
-          shortLink: formData.shortLink || null,
-          recipientNumbers: formData.recipientNumbers || [],
-          honorific: honorific // ⭐ 호칭 전달
-        })
+        body: JSON.stringify(sendPayload)
       });
 
       const sendResult = await sendResponse.json();
       
-      // sendMessage와 동일한 결과 형식으로 변환
-      const result = sendResult.result || {
-        groupIds: sendResult.result?.groupIds || [],
-        sentCount: sendResult.result?.sentCount || 0,
-        successCount: sendResult.result?.successCount || 0,
-        failCount: sendResult.result?.failCount || 0
-      };
-      
-      // 부분 성공 처리 (result가 없거나 successCount가 0인 경우만 에러)
-      if (result) {
-        const successCount = result.successCount || 0;
-        const failCount = result.failCount || 0;
-        const totalCount = result.sentCount || 0;
+      // 카카오톡 대행 발송 결과 처리
+      if (kakaoSendEnabled && sendResult.result?.kakao) {
+        const kakaoResult = sendResult.result.kakao;
+        const smsResult = sendResult.result.sms;
+        const totalSuccess = sendResult.result.totalSuccess || 0;
+        const totalFail = sendResult.result.totalFail || 0;
         
-        if (successCount > 0) {
-          // 성공이 있는 경우 (전체 성공 또는 부분 성공)
-          if (failCount > 0) {
-            // 부분 성공
-            const message = `부분 성공: ${successCount}건 발송 성공, ${failCount}건 실패\n\n총 ${totalCount}명 중 ${successCount}명에게 메시지가 전송되었습니다.`;
-            if (result.chunkErrors && result.chunkErrors.length > 0) {
-              alert(`${message}\n\n실패한 청크: ${result.chunkErrors.length}개`);
+        let message = '발송 완료:\n';
+        if (kakaoResult.total > 0) {
+          message += `카카오톡: ${kakaoResult.success}건 성공, ${kakaoResult.fail}건 실패\n`;
+        }
+        if (smsResult.total > 0) {
+          message += `SMS: ${smsResult.success}건 성공, ${smsResult.fail}건 실패\n`;
+        }
+        message += `\n총 ${totalSuccess}건 성공, ${totalFail}건 실패`;
+        
+        alert(message);
+      } else {
+        // 기존 SMS 발송 결과 처리
+        const result = sendResult.result || {
+          groupIds: sendResult.result?.groupIds || [],
+          sentCount: sendResult.result?.sentCount || 0,
+          successCount: sendResult.result?.successCount || 0,
+          failCount: sendResult.result?.failCount || 0
+        };
+        
+        // 부분 성공 처리 (result가 없거나 successCount가 0인 경우만 에러)
+        if (result) {
+          const successCount = result.successCount || 0;
+          const failCount = result.failCount || 0;
+          const totalCount = result.sentCount || 0;
+          
+          if (successCount > 0) {
+            // 성공이 있는 경우 (전체 성공 또는 부분 성공)
+            if (failCount > 0) {
+              // 부분 성공
+              const message = `부분 성공: ${successCount}건 발송 성공, ${failCount}건 실패\n\n총 ${totalCount}명 중 ${successCount}명에게 메시지가 전송되었습니다.`;
+              if (result.chunkErrors && result.chunkErrors.length > 0) {
+                alert(`${message}\n\n실패한 청크: ${result.chunkErrors.length}개`);
+              } else {
+                alert(message);
+              }
             } else {
-              alert(message);
+              // 전체 성공
+              alert(`SMS가 성공적으로 발송되었습니다.\n\n총 ${successCount}건 발송 완료`);
             }
+          } else if (failCount > 0) {
+            // 전체 실패 (successCount가 0이고 failCount > 0)
+            throw new Error(`발송 실패: 모든 메시지 발송에 실패했습니다.`);
           } else {
-            // 전체 성공
-            alert(`SMS가 성공적으로 발송되었습니다.\n\n총 ${successCount}건 발송 완료`);
+            // 카운트 정보가 없는 경우 (동기화 필요)
+            alert(`발송 요청이 완료되었습니다.\n\n발송 결과는 SMS 리스트에서 확인하거나 동기화 버튼을 눌러주세요.`);
           }
           
           // ⭐ 발송 성공 후 기존 메시지인 경우 데이터 다시 로드 (이미지 포함)
@@ -1524,16 +1574,10 @@ export default function SMSAdmin() {
               console.error('메시지 다시 로드 오류:', reloadError);
             }
           }
-        } else if (failCount > 0) {
-          // 전체 실패 (successCount가 0이고 failCount > 0)
-          throw new Error(`발송 실패: 모든 메시지 발송에 실패했습니다.`);
         } else {
-          // 카운트 정보가 없는 경우 (동기화 필요)
+          // result가 없는 경우 (동기화 필요)
           alert(`발송 요청이 완료되었습니다.\n\n발송 결과는 SMS 리스트에서 확인하거나 동기화 버튼을 눌러주세요.`);
         }
-      } else {
-        // result가 없는 경우 (동기화 필요)
-        alert(`발송 요청이 완료되었습니다.\n\n발송 결과는 SMS 리스트에서 확인하거나 동기화 버튼을 눌러주세요.`);
       }
       
       // SMS 발송 후 허브 상태를 "발행됨"으로 업데이트
@@ -1719,7 +1763,13 @@ export default function SMSAdmin() {
                   }
                   className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
                 >
-                  {isSending ? '발송 중...' : hasScheduledTime && isScheduled ? '예약 발송됨' : 'SMS 발송'}
+                  {isSending 
+                    ? '발송 중...' 
+                    : hasScheduledTime && isScheduled 
+                      ? '예약 발송됨' 
+                      : kakaoSendEnabled 
+                        ? '카카오톡/SMS 발송' 
+                        : 'SMS 발송'}
                 </button>
               </div>
             </div>
@@ -1819,6 +1869,19 @@ export default function SMSAdmin() {
                 </div>
               </div>
 
+              {/* 카카오톡 대행 발송 옵션 */}
+              <KakaoSendOption
+                enabled={kakaoSendEnabled}
+                onEnabledChange={setKakaoSendEnabled}
+                messageType={kakaoMessageType}
+                onMessageTypeChange={setKakaoMessageType}
+                fallbackToSms={kakaoFallbackToSms}
+                onFallbackToSmsChange={setKakaoFallbackToSms}
+                recipientGroupId={kakaoRecipientGroupId}
+                onRecipientGroupChange={setKakaoRecipientGroupId}
+                templateId={kakaoTemplateId}
+                onTemplateIdChange={setKakaoTemplateId}
+              />
 
               {/* 메시지 타입별 안내 */}
               {formData.messageType === 'SMS' && (

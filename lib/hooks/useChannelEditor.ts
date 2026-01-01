@@ -100,7 +100,7 @@ export const useChannelEditor = (
   }, [channelType]);
 
   // 초안 저장
-  const saveDraft = useCallback(async (calendarId?: number, blogPostId?: number) => {
+  const saveDraft = useCallback(async (calendarId?: number, blogPostId?: number, channelPostId?: number) => {
     setIsLoading(true);
     setError(null);
 
@@ -109,6 +109,7 @@ export const useChannelEditor = (
       let requestData;
       if (channelType === 'sms') {
         requestData = {
+          channelPostId, // SMS도 업데이트 지원 (필요시)
           calendarId,
           blogPostId,
           hub_content_id: hubId,
@@ -122,14 +123,15 @@ export const useChannelEditor = (
         };
       } else if (channelType === 'kakao') {
         requestData = {
+          channelPostId, // 기존 메시지 ID (있으면 업데이트, 없으면 생성)
           title: formData.title || '',
           content: formData.content || '',
           messageType: formData.messageType || 'FRIENDTALK',
           templateType: (formData as any).templateType || 'BASIC_TEXT',
           imageUrl: formData.imageUrl || '',
           shortLink: formData.shortLink || '',
-          buttonLink: formData.buttonLink || formData.shortLink || 'https://www.masgolf.co.kr/survey',
-          buttonText: formData.buttonText || '설문 참여하기',
+          buttonLink: formData.buttonLink || formData.shortLink || null, // 기본값 제거
+          buttonText: formData.buttonText || null, // 기본값 제거
           emoji: (formData as any).emoji || '',
           tags: (formData as any).tags || [],
           status: formData.status || 'draft',
@@ -141,6 +143,7 @@ export const useChannelEditor = (
         };
       } else {
         requestData = {
+          channelPostId, // 다른 채널도 업데이트 지원 (필요시)
           ...formData,
           calendarId,
           blogPostId,
@@ -158,12 +161,17 @@ export const useChannelEditor = (
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          return data.channelPostId;
+          return {
+            success: true,
+            channelPostId: data.channelPostId || data.data?.id,
+            data: data.data
+          };
         } else {
           throw new Error(data.message || '저장 실패');
         }
       } else {
-        throw new Error('저장 중 오류가 발생했습니다.');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || '저장 중 오류가 발생했습니다.');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
@@ -269,17 +277,41 @@ export const useChannelEditor = (
   }, [channelType]);
 
   // 실제 발송 (SMS/카카오)
-  const sendMessage = useCallback(async (channelPostId: number) => {
+  const sendMessage = useCallback(async (channelPostId?: number) => {
     setIsLoading(true);
     setError(null);
 
     try {
+      // channelPostId가 없으면 먼저 저장
+      let finalChannelPostId = channelPostId;
+      if (!finalChannelPostId) {
+        const saved = await saveDraft();
+        if (typeof saved === 'number') {
+          finalChannelPostId = saved;
+        } else if (saved && typeof saved === 'object' && 'channelPostId' in saved) {
+          finalChannelPostId = (saved as any).channelPostId;
+        } else {
+          throw new Error('메시지를 저장할 수 없습니다.');
+        }
+      }
+
+      if (!finalChannelPostId) {
+        throw new Error('channelPostId가 필요합니다.');
+      }
+
       const response = await fetch(`/api/channels/${channelType}/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          channelPostId,
-          ...formData
+          channelPostId: finalChannelPostId,
+          title: formData.title,
+          content: formData.content,
+          messageType: formData.messageType,
+          templateType: (formData as any).templateType,
+          buttonText: formData.buttonText,
+          buttonLink: formData.buttonLink,
+          imageUrl: formData.imageUrl,
+          selectedRecipients: (formData as any).selectedRecipients || []
         })
       });
 
@@ -294,7 +326,10 @@ export const useChannelEditor = (
         // 부분 성공 또는 전체 성공
         const status = failCount > 0 && successCount > 0 ? 'partial' : (successCount > 0 ? 'sent' : 'failed');
         updateFormData({ status: status as any });
-        return data.result;
+        return {
+          success: data.success || successCount > 0,
+          ...data.result
+        };
       } else if (response.ok && !data.success && successCount === 0) {
         // 전체 실패 (successCount가 0인 경우만)
         throw new Error(data.message || '발송 실패');

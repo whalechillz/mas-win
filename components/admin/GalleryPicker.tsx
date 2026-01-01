@@ -157,10 +157,11 @@ const GalleryPicker: React.FC<Props> = ({
         } else {
           // 기존 로직 (카카오 콘텐츠 등에서는 하위 폴더 포함)
           const isKakaoFolder = folderFilter.startsWith('originals/daily-branding/kakao');
+          const isKakaoChFolder = folderFilter.startsWith('originals/daily-branding/kakao-ch');
           const isMmsFolder = folderFilter.startsWith('originals/mms');
           const isBlogFolder = folderFilter.startsWith('originals/blog/');
           const isProductsFolder = folderFilter.startsWith('originals/products/');
-          const includeChildren = (isKakaoFolder || isMmsFolder || isBlogFolder || isProductsFolder) ? 'true' : 'false';
+          const includeChildren = (isKakaoFolder || isKakaoChFolder || isMmsFolder || isBlogFolder || isProductsFolder) ? 'true' : 'false';
           params.append('includeChildren', includeChildren);
         }
       }
