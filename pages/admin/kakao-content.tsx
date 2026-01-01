@@ -844,6 +844,11 @@ export default function KakaoContentPage() {
 
   // 선택된 날짜들에 대한 순차 생성
   const handleSelectedDatesAutoCreate = async (customDates?: string[]) => {
+    // ✅ "선택된 날짜 생성" 기능에서는 모달을 표시하지 않음 (옵션 A)
+    if (showGenerationOptions) {
+      setShowGenerationOptions(false);
+    }
+    
     // 커스텀 날짜가 제공되면 사용, 없으면 선택된 날짜 또는 현재 날짜 사용
     let datesToGenerate: string[];
     
