@@ -249,6 +249,7 @@ export default async function handler(req, res) {
         }
 
         // 이미지 생성
+        const imageStartTime = Date.now();
         const imageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-images`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

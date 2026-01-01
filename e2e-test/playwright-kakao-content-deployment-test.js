@@ -1,6 +1,6 @@
 /**
  * Playwright 배포 환경 카카오 콘텐츠 생성 테스트
- * 2026-01-05 날짜로 배포 환경에서 테스트
+ * 2026-01-16 날짜로 배포 환경에서 테스트
  */
 
 const { chromium } = require('playwright');
@@ -8,7 +8,7 @@ const { chromium } = require('playwright');
 const PRODUCTION_URL = 'https://www.masgolf.co.kr';
 const ADMIN_LOGIN = process.env.ADMIN_LOGIN || '010-6669-9000';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
-const TEST_DATE = '2026-01-05';
+const TEST_DATE = '2026-01-16';
 
 async function testKakaoContentGeneration() {
   console.log('🚀 배포 환경 카카오 콘텐츠 생성 테스트 시작...\n');
@@ -78,10 +78,10 @@ async function testKakaoContentGeneration() {
     }
   });
   
-  // 콘솔 로그 캡처
+  // 콘솔 로그 캡처 (TIMING 로그 포함)
   page.on('console', msg => {
     const text = msg.text();
-    if (text.includes('생성 실패') || text.includes('504') || text.includes('timeout')) {
+    if (text.includes('생성 실패') || text.includes('504') || text.includes('timeout') || text.includes('[TIMING]')) {
       console.log(`🔴 콘솔: ${msg.type()} - ${text}`);
     }
   });
@@ -110,24 +110,38 @@ async function testKakaoContentGeneration() {
     
     // 2. 카카오톡 콘텐츠 페이지로 이동
     console.log('\n2️⃣ 카카오톡 콘텐츠 페이지로 이동...');
-    await page.goto(`${PRODUCTION_URL}/admin/kakao-content`, { waitUntil: 'networkidle' });
-    await page.waitForTimeout(3000);
+    await page.goto(`${PRODUCTION_URL}/admin/kakao-content`, { 
+      waitUntil: 'domcontentloaded',
+      timeout: 60000 
+    });
+    await page.waitForTimeout(5000);
     
     // 페이지 로드 확인
     const pageTitle = await page.locator('h1, h2').first().textContent().catch(() => '');
     console.log(`   페이지 제목: ${pageTitle}`);
     
-    // 3. 날짜 선택 (2026-01-05)
+    // 3. 날짜 선택 (2026-01-16)
     console.log(`\n3️⃣ 날짜 선택: ${TEST_DATE}...`);
     
-    // 날짜 입력 필드 찾기 및 설정
-    const dateInput = page.locator('input[type="date"], input[name="date"]').first();
-    if (await dateInput.isVisible({ timeout: 5000 })) {
-      await dateInput.fill(TEST_DATE);
+    // "오늘" 보기 모드 선택 (날짜 입력 필드가 보이도록)
+    const todayButton = page.locator('button:has-text("오늘")').first();
+    if (await todayButton.isVisible({ timeout: 5000 })) {
+      await todayButton.click();
       await page.waitForTimeout(1000);
+      console.log('   ✅ "오늘" 보기 모드 선택');
+    }
+    
+    // 날짜 입력 필드 찾기 및 설정
+    const dateInput = page.locator('input[type="date"]').first();
+    if (await dateInput.isVisible({ timeout: 10000 })) {
+      await dateInput.fill(TEST_DATE);
+      await page.waitForTimeout(2000);
       console.log(`   ✅ 날짜 설정 완료: ${TEST_DATE}`);
     } else {
-      console.log('   ⚠️ 날짜 입력 필드를 찾을 수 없습니다.');
+      console.log('   ⚠️ 날짜 입력 필드를 찾을 수 없습니다. 페이지 구조 확인 필요.');
+      // 페이지 스크린샷 저장
+      await page.screenshot({ path: 'debug-date-input.png' });
+      console.log('   📸 디버그 스크린샷 저장: debug-date-input.png');
     }
     
     // 4. "선택된 날짜 생성" 버튼 클릭
@@ -142,7 +156,7 @@ async function testKakaoContentGeneration() {
     }
     
     // 버튼 찾기 (여러 가능한 텍스트 패턴)
-    const generateButton = page.locator('button:has-text("선택된 날짜 생성"), button:has-text("오늘 날짜 생성")').first();
+    const generateButton = page.locator('button:has-text("선택된 날짜 생성"), button:has-text("오늘 날짜 생성"), button:has-text("생성")').first();
     
     if (await generateButton.isVisible({ timeout: 5000 })) {
       console.log('   ✅ 생성 버튼 발견');
@@ -218,8 +232,8 @@ async function testKakaoContentGeneration() {
     await page.waitForTimeout(3000);
     
     // 페이지 새로고침하여 최신 데이터 로드
-    await page.reload({ waitUntil: 'networkidle' });
-    await page.waitForTimeout(2000);
+    await page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.waitForTimeout(3000);
     
     // account1과 account2의 데이터 확인
     const dataCheck = await page.evaluate((date) => {

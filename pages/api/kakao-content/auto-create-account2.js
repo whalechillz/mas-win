@@ -245,6 +245,7 @@ export default async function handler(req, res) {
         }
 
         // 이미지 생성
+        const imageStartTime = Date.now();
         const imageResponse = await fetch(`${baseUrl}/api/kakao-content/generate-images`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -262,6 +263,10 @@ export default async function handler(req, res) {
 
         if (imageResponse.ok) {
           const imageData = await imageResponse.json();
+          const imageDuration = Date.now() - imageStartTime;
+          timingLog.steps.backgroundImage = imageDuration;
+          console.log(`[TIMING] 🖼️ 배경 이미지 생성: ${imageDuration}ms`);
+          
           if (imageData.imageUrls && imageData.imageUrls.length > 0) {
             results.background.success = true;
             // 첫 번째 이미지를 기본값으로 사용
