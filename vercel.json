@@ -3,6 +3,14 @@
     "pages/api/**/*.js": {
       "maxDuration": 50
     },
+    "pages/api/kakao-content/auto-create-account1.js": {
+      "maxDuration": 300,
+      "memory": 1024
+    },
+    "pages/api/kakao-content/auto-create-account2.js": {
+      "maxDuration": 300,
+      "memory": 1024
+    },
     "pages/api/kakao-content/generate-images.js": {
       "maxDuration": 50,
       "memory": 1024

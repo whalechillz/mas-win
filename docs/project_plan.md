@@ -38,7 +38,65 @@
 
 # 🎯 프로젝트 진행 현황
 
-## ✅ 최근 작업: 설문조사 페이지 샤프트 이미지 경로 수정 (2025-01-XX)
+## ✅ 최근 작업: 카카오 콘텐츠 생성 504 타임아웃 문제 해결 (2026-01-01)
+
+### 완료된 작업
+- **카카오 콘텐츠 자동 생성 API 타임아웃 증가** ✅:
+  - `vercel.json`: `auto-create-account1.js`와 `auto-create-account2.js`의 `maxDuration`을 50초 → 300초(5분)로 증가
+  - 원인: 외부 API(OpenAI, FAL AI) 응답 시간이 가변적이어서 간헐적으로 50초를 초과하여 504 Gateway Timeout 발생
+  - 해결: 타임아웃을 300초로 늘려 외부 API 지연이 있어도 완료될 수 있도록 개선
+
+- **부분 성공 처리 개선** ✅:
+  - `auto-create-account1.js`: 프로필 메시지 생성 실패 시에도 기본값 설정
+  - `auto-create-account2.js`: 프로필 메시지 생성 실패 시에도 기본값 설정
+  - `auto-create-account1.js`: 피드 캡션 생성 실패 시에도 기본값 설정
+  - `auto-create-account2.js`: 피드 캡션 생성 실패 시에도 기본값 설정
+  - 이미지 생성은 성공했지만 텍스트 생성이 실패해도 이미지 데이터는 저장되도록 개선
+
+### 변경된 파일
+- `vercel.json` (타임아웃 설정 추가)
+- `pages/api/kakao-content/auto-create-account1.js` (부분 성공 처리 개선)
+- `pages/api/kakao-content/auto-create-account2.js` (부분 성공 처리 개선)
+
+### 문제 원인 분석
+- **간헐적 발생 이유**: 외부 API 응답 시간이 가변적
+  - 빠른 경우: 모든 API가 빠르게 응답 → 50초 이내 완료 → 성공
+  - 느린 경우: 외부 API 지연 → 50초 초과 → 504 Gateway Timeout
+- **재시도 로직**: 피드 캡션 생성 시 중복 체크로 인해 OpenAI API를 최대 2번 호출하여 시간이 더 걸림
+
+---
+
+## ✅ 이전 작업: 로컬 개발 서버 연결 타임아웃 문제 해결 (2025-01-XX)
+
+### 완료된 작업
+- **로컬 개발 서버 재시작 및 연결 문제 해결** ✅:
+  - 포트 3000 충돌 문제 해결: 기존 프로세스(PID 81966) 종료
+  - `.next` 빌드 캐시 삭제 후 서버 재시작
+  - 서버 정상 작동 확인: `http://localhost:3000` 정상 응답
+  - 원인: 기존 서버 프로세스가 포트를 점유하고 있어 새 서버가 시작되지 않음
+  - 해결: `killall -9 node`로 모든 Node.js 프로세스 종료 후 재시작
+
+### 변경된 파일
+- 없음 (서버 재시작만 수행)
+
+---
+
+## ✅ 이전 작업: 카카오 채널 이미지 저장 경로 수정 및 데이터베이스 스키마 업데이트 (2025-01-XX)
+
+### 완료된 작업
+- **카카오 채널 이미지 저장 경로 수정** ✅:
+  - 카카오 채널 메시지 이미지를 `originals/daily-branding/kakao-ch/YYYY-MM-DD/` 형식으로 저장하도록 수정
+  - `components/shared/BaseChannelEditor.tsx`: 카카오 채널일 때 `AIImagePicker`에 `autoFilterFolder` prop 전달
+  - `components/shared/AIImagePicker.tsx`: 카카오 채널일 때 AI 이미지 생성 시 `targetFolder` 설정
+  - `components/admin/GalleryPicker.tsx`: `kakao-ch` 경로 지원 추가
+  - `pages/admin/gallery.tsx`: `kakao-ch` 경로 자동 인식 로직 추가
+
+- **데이터베이스 스키마 업데이트** ✅:
+  - `channel_kakao` 테이블에 필요한 컬럼 추가 확인 및 쿼리 실행
+  - `template_type`, `recipient_uuids`, `image_url`, `emoji`, `tags`, `kakao_group_id` 컬럼 추가
+  - 인덱스 생성 완료
+
+## ✅ 이전 작업: 설문조사 페이지 샤프트 이미지 경로 수정 (2025-01-XX)
 
 ### 완료된 작업
 - **설문조사 폼 샤프트 이미지 경로 수정** ✅:
