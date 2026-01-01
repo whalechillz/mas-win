@@ -38,7 +38,45 @@
 
 # 🎯 프로젝트 진행 현황
 
-## ✅ 최근 작업: 배경 이미지 생성 imageStartTime 변수 선언 누락 수정 (2026-01-16)
+## ✅ 최근 작업: 이번 달 생성 기능 추가 및 날짜 선택 기능 개선 (2026-01-16)
+
+### 완료된 작업
+- **이번 달 생성 버튼 추가** ✅:
+  - `pages/admin/kakao-content.tsx`: `viewMode === 'month'`일 때 "이번 달 생성" 버튼 추가
+  - `handleSelectedDatesAutoCreate` 함수에서 이번 달 생성 시 최대 31일까지 생성 가능하도록 제한 증가
+  - 원인: 이번 주 생성 버튼은 있었지만 이번 달 생성 버튼이 없어서 사용자가 한 달치 콘텐츠를 한 번에 생성할 수 없었음
+  - 해결: 이번 달 생성 버튼 추가 및 제한을 31일로 증가
+
+- **날짜 선택 input을 모든 모드에서 표시** ✅:
+  - `pages/admin/kakao-content.tsx`: 날짜 선택 input을 `viewMode !== 'list'`일 때 모두 표시하도록 수정
+  - 원인: 날짜 선택 input이 `viewMode === 'today'`일 때만 표시되어 다른 모드에서는 날짜를 선택할 수 없었음
+  - 해결: 오늘, 이번 주, 이번 달 모드에서 모두 날짜 선택 가능하도록 개선
+
+### 변경된 파일
+- `pages/admin/kakao-content.tsx` (이번 달 생성 버튼 추가, 날짜 선택 input 표시 개선, 최대 생성 개수 제한 증가)
+
+---
+
+## ✅ 이전 작업: calendar-load API 타임아웃 및 JSON 파싱 에러 처리 개선 (2026-01-16)
+
+### 완료된 작업
+- **calendar-load API 타임아웃 증가** ✅:
+  - `vercel.json`: `pages/api/kakao-content/calendar-load.js`의 `maxDuration`을 50초 → 90초로 증가
+  - 원인: 한 달치 데이터 처리 시 많은 이미지 존재 확인(약 180개) 및 `getImageCount` 호출로 인해 50초 내에 완료되지 않아 504 Gateway Timeout 발생
+  - 해결: 타임아웃을 90초로 증가하여 충분한 처리 시간 확보
+
+- **클라이언트 측 JSON 파싱 에러 처리 개선** ✅:
+  - `pages/admin/kakao-content.tsx`: `loadCalendarData` 함수에서 `res.ok` 체크 추가 및 에러 응답 처리 개선
+  - 원인: 504 에러 시 Vercel이 HTML 에러 페이지를 반환하는데, 클라이언트 코드에서 `res.ok` 체크 없이 바로 `res.json()` 호출하여 `SyntaxError: Unexpected token 'A'` 발생
+  - 해결: `res.ok` 체크 후 에러 응답은 `text()`로 읽고, JSON 파싱은 try-catch로 감싸서 안전하게 처리
+
+### 변경된 파일
+- `vercel.json` (calendar-load.js의 maxDuration 90초 추가)
+- `pages/admin/kakao-content.tsx` (에러 처리 개선)
+
+---
+
+## ✅ 이전 작업: 배경 이미지 생성 imageStartTime 변수 선언 누락 수정 (2026-01-16)
 
 ### 완료된 작업
 - **배경 이미지 생성 시 imageStartTime 변수 선언 누락 수정** ✅:

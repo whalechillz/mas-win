@@ -931,13 +931,14 @@ export default function KakaoContentPage() {
       datesToGenerate = [selectedDate || todayStr];
     }
 
-    // 최대 생성 개수 제한 (7일)
-    if (datesToGenerate.length > 7) {
+    // 최대 생성 개수 제한 (일반 선택: 7일, 이번 달 생성: 31일)
+    const maxDates = viewMode === 'month' ? 31 : 7;
+    if (datesToGenerate.length > maxDates) {
       const confirm = window.confirm(
-        `선택된 날짜가 ${datesToGenerate.length}개입니다. 최대 7개까지만 생성 가능합니다.\n\n처음 7개만 생성하시겠습니까?`
+        `선택된 날짜가 ${datesToGenerate.length}개입니다. 최대 ${maxDates}개까지만 생성 가능합니다.\n\n처음 ${maxDates}개만 생성하시겠습니까?`
       );
       if (!confirm) return;
-      datesToGenerate.splice(7);
+      datesToGenerate.splice(maxDates);
     }
 
     if (datesToGenerate.length === 0) {
@@ -1392,8 +1393,9 @@ export default function KakaoContentPage() {
                   </div>
                 </div>
                 
-                {viewMode === 'today' && (
+                {viewMode !== 'list' && (
                   <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700">날짜 선택:</label>
                     <input
                       type="date"
                       value={selectedDate || todayStr}
@@ -1431,6 +1433,30 @@ export default function KakaoContentPage() {
                       <>
                         <Rocket className="w-4 h-4" />
                         이번 주 생성
+                      </>
+                    )}
+                  </button>
+                )}
+                {viewMode === 'month' && (
+                  <button
+                    onClick={async () => {
+                      const monthDates = getDateRange('month');
+                      setSelectedDates(monthDates);
+                      await handleSelectedDatesAutoCreate(monthDates);
+                    }}
+                    disabled={isCreatingAll}
+                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium disabled:opacity-50"
+                    title="이번 달 전체 생성 (최대 31일)"
+                  >
+                    {isCreatingAll ? (
+                      <>
+                        <Loader className="w-4 h-4 animate-spin" />
+                        생성 중...
+                      </>
+                    ) : (
+                      <>
+                        <Rocket className="w-4 h-4" />
+                        이번 달 생성
                       </>
                     )}
                   </button>
