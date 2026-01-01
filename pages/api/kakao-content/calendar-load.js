@@ -213,13 +213,18 @@ export default async function handler(req, res) {
     for (const item of feedData) {
       const feedKey = `${item.date}_${item.account}`;
       
+      // 이미지 확인 결과가 없으면 원본 URL 사용 (타임아웃/네트워크 오류 대응)
+      const checkedImageUrl = feedImageMap.get(feedKey);
+      const finalImageUrl = checkedImageUrl !== undefined ? checkedImageUrl : item.image_url || undefined;
+      
       feedByDate[item.date][item.account] = {
         imageCategory: item.image_category || '',
         imagePrompt: item.image_prompt || '',
+        basePrompt: item.base_prompt || null, // ✅ base_prompt 추가
         caption: item.caption || '',
         status: item.status || 'planned',
         created: item.created || false,
-        imageUrl: feedImageMap.get(feedKey),
+        imageUrl: finalImageUrl, // ✅ 확인 실패 시에도 원본 URL 사용
         url: item.url || undefined,
         createdAt: item.created_at || undefined
       };

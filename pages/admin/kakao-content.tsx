@@ -68,6 +68,7 @@ interface CalendarData {
       account1: {
         imageCategory: string;
         imagePrompt: string;
+        basePrompt?: string | null; // ✅ basePrompt 필드 추가
         caption: string;
         status: string;
         created: boolean;
@@ -78,6 +79,7 @@ interface CalendarData {
       account2: {
         imageCategory: string;
         imagePrompt: string;
+        basePrompt?: string | null; // ✅ basePrompt 필드 추가
         caption: string;
         status: string;
         created: boolean;
@@ -1169,12 +1171,14 @@ export default function KakaoContentPage() {
   const account1FeedData = selectedDateData?.feed?.account1 ? {
     imageCategory: selectedDateData.feed.account1.imageCategory || '',
     imagePrompt: selectedDateData.feed.account1.imagePrompt || '',
+    basePrompt: (selectedDateData.feed.account1 as any)?.basePrompt || null, // ✅ basePrompt 추가
     caption: selectedDateData.feed.account1.caption || '',
     imageUrl: (selectedDateData.feed.account1 as any)?.imageUrl,
     url: (selectedDateData.feed.account1 as any)?.url
   } : {
     imageCategory: '',
     imagePrompt: '',
+    basePrompt: null, // ✅ basePrompt 추가
     caption: '',
     imageUrl: undefined,
     url: undefined
@@ -1183,12 +1187,14 @@ export default function KakaoContentPage() {
   const account2FeedData = selectedDateData?.feed?.account2 ? {
     imageCategory: selectedDateData.feed.account2.imageCategory || '',
     imagePrompt: selectedDateData.feed.account2.imagePrompt || '',
+    basePrompt: (selectedDateData.feed.account2 as any)?.basePrompt || null, // ✅ basePrompt 추가
     caption: selectedDateData.feed.account2.caption || '',
     imageUrl: (selectedDateData.feed.account2 as any)?.imageUrl,
     url: (selectedDateData.feed.account2 as any)?.url
   } : {
     imageCategory: '',
     imagePrompt: '',
+    basePrompt: null, // ✅ basePrompt 추가
     caption: '',
     imageUrl: undefined,
     url: undefined
