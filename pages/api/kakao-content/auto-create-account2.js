@@ -674,6 +674,27 @@ export default async function handler(req, res) {
       } catch (error) {
         results.feed.error = error.message;
         console.error('피드 이미지 생성 에러:', error);
+        
+        // ✅ 타임아웃 발생 시에도 피드 캡션이 생성되었다면 저장
+        if (feedData && feedData.caption && feedData.caption.trim().length > 0) {
+          try {
+            await supabase
+              .from('kakao_feed_content')
+              .upsert({
+                date,
+                account: 'account2',
+                caption: feedData.caption,
+                image_category: feedData.image_category,
+                base_prompt: feedData.base_prompt,
+                updated_at: new Date().toISOString()
+              }, {
+                onConflict: 'date,account'
+              });
+            console.log(`✅ 피드 캡션 부분 저장 완료 (이미지 생성 실패): ${date}`);
+          } catch (saveError) {
+            console.warn('⚠️ 피드 캡션 부분 저장 실패:', saveError.message);
+          }
+        }
       }
     } else if (feedData?.image_url && !forceRegenerate) {
       results.feed.success = true;
