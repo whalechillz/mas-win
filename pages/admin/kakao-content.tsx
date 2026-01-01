@@ -763,18 +763,26 @@ export default function KakaoContentPage() {
         ? '/api/kakao-content/auto-create-account1'
         : '/api/kakao-content/auto-create-account2';
       
-      const response = await fetch(`${baseUrl}${apiEndpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, forceRegenerate, brandStrategy: brandStrategy })
-      });
+      // ✅ 타임아웃 설정 (5분 = 300초)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 300000); // 5분
+      
+      try {
+        const response = await fetch(`${baseUrl}${apiEndpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date, forceRegenerate, brandStrategy: brandStrategy }),
+          signal: controller.signal // ✅ 타임아웃 신호 전달
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}`);
-      }
+        clearTimeout(timeoutId);
 
-      const data = await response.json();
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
       
       // 실제 생성 결과 확인 및 타입별 진행 상황 추적
       if (data.success && data.results) {
@@ -821,6 +829,13 @@ export default function KakaoContentPage() {
       }
       
       return data.success === true;
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          throw new Error('요청 시간 초과 (5분 제한). 외부 API 응답이 지연되고 있습니다. 잠시 후 다시 시도해주세요.');
+        }
+        throw fetchError;
+      }
     } catch (error: any) {
       console.error(`${date} ${account} 생성 실패:`, error);
       throw error;

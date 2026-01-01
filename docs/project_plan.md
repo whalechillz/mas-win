@@ -53,10 +53,16 @@
   - `auto-create-account2.js`: 피드 캡션 생성 실패 시에도 기본값 설정
   - 이미지 생성은 성공했지만 텍스트 생성이 실패해도 이미지 데이터는 저장되도록 개선
 
+- **클라이언트 측 fetch 타임아웃 설정 추가** ✅:
+  - `pages/admin/kakao-content.tsx`: `generateForSingleDate` 함수에 `AbortController`를 사용한 5분 타임아웃 설정 추가
+  - 원인: 브라우저나 프록시 레벨에서 기본 타임아웃이 짧아서 504 오류 발생
+  - 해결: 클라이언트 측에서도 5분 타임아웃을 설정하여 서버와 동일한 타임아웃 보장
+
 ### 변경된 파일
 - `vercel.json` (타임아웃 설정 추가)
 - `pages/api/kakao-content/auto-create-account1.js` (부분 성공 처리 개선)
 - `pages/api/kakao-content/auto-create-account2.js` (부분 성공 처리 개선)
+- `pages/admin/kakao-content.tsx` (클라이언트 측 타임아웃 설정 추가)
 
 ### 문제 원인 분석
 - **간헐적 발생 이유**: 외부 API 응답 시간이 가변적
