@@ -58,10 +58,22 @@
   - 원인: 브라우저나 프록시 레벨에서 기본 타임아웃이 짧아서 504 오류 발생
   - 해결: 클라이언트 측에서도 5분 타임아웃을 설정하여 서버와 동일한 타임아웃 보장
 
+- **프롬프트 즉시 저장 로직 추가** ✅:
+  - `auto-create-account1.js`: 배경/프로필/피드 이미지 생성 성공 시 즉시 Supabase에 저장
+  - `auto-create-account2.js`: 배경/프로필/피드 이미지 생성 성공 시 즉시 Supabase에 저장
+  - 원인: 타임아웃으로 인해 마지막 저장 단계에 도달하기 전에 중단되어 이미지는 생성되지만 프롬프트가 저장되지 않음
+  - 해결: 이미지 생성 성공 시 즉시 저장하여 타임아웃이 발생해도 프롬프트가 저장되도록 개선
+
+- **재생성 로직 개선** ✅:
+  - `auto-create-account1.js`: 프롬프트가 없으면 이미지가 있어도 재생성하도록 조건 추가
+  - `auto-create-account2.js`: 프롬프트가 없으면 이미지가 있어도 재생성하도록 조건 추가
+  - 원인: 이미지가 있으면 재생성을 스킵하여 프롬프트가 없는 상태로 유지됨
+  - 해결: 프롬프트가 없으면 이미지가 있어도 재생성하도록 조건 개선
+
 ### 변경된 파일
 - `vercel.json` (타임아웃 설정 추가)
-- `pages/api/kakao-content/auto-create-account1.js` (부분 성공 처리 개선)
-- `pages/api/kakao-content/auto-create-account2.js` (부분 성공 처리 개선)
+- `pages/api/kakao-content/auto-create-account1.js` (부분 성공 처리 개선, 즉시 저장 로직 추가, 재생성 로직 개선)
+- `pages/api/kakao-content/auto-create-account2.js` (부분 성공 처리 개선, 즉시 저장 로직 추가, 재생성 로직 개선)
 - `pages/admin/kakao-content.tsx` (클라이언트 측 타임아웃 설정 추가)
 
 ### 문제 원인 분석

@@ -138,7 +138,12 @@ export default async function handler(req, res) {
     }
 
     // 배경 이미지 생성
-    if (!dateData.background_image_url || forceRegenerate) {
+    // ✅ 개선: 프롬프트가 없으면 이미지가 있어도 재생성
+    const needsBackgroundRegeneration = !dateData.background_image_url || 
+      forceRegenerate || 
+      (!dateData.background_prompt && dateData.background_image_url);
+    
+    if (needsBackgroundRegeneration) {
       try {
         // basePrompt 자동 생성 (없는 경우)
         let bgPrompt = dateData.background_base_prompt;
@@ -216,6 +221,25 @@ export default async function handler(req, res) {
             dateData.background_image_url = imageData.imageUrls[0];
             dateData.background_prompt = imageData.generatedPrompts?.[0] || promptData.prompt;
             
+            // ✅ 즉시 저장 (타임아웃 방지)
+            try {
+              await supabase
+                .from('kakao_profile_content')
+                .upsert({
+                  date,
+                  account: 'account2',
+                  background_image_url: dateData.background_image_url,
+                  background_prompt: dateData.background_prompt,
+                  background_base_prompt: dateData.background_base_prompt,
+                  updated_at: new Date().toISOString()
+                }, {
+                  onConflict: 'date,account'
+                });
+              console.log(`✅ 배경 이미지 및 프롬프트 즉시 저장 완료: ${date}`);
+            } catch (saveError) {
+              console.warn('⚠️ 배경 이미지 즉시 저장 실패:', saveError.message);
+            }
+            
             // 생성된 모든 이미지 URL 로깅 (나중에 image_metadata에서 조회 가능)
             if (imageData.imageUrls.length > 1) {
               console.log(`📸 배경 이미지 ${imageData.imageUrls.length}개 생성됨:`);
@@ -244,7 +268,12 @@ export default async function handler(req, res) {
     }
 
     // 프로필 이미지 생성
-    if (!dateData.profile_image_url || forceRegenerate) {
+    // ✅ 개선: 프롬프트가 없으면 이미지가 있어도 재생성
+    const needsProfileRegeneration = !dateData.profile_image_url || 
+      forceRegenerate || 
+      (!dateData.profile_prompt && dateData.profile_image_url);
+    
+    if (needsProfileRegeneration) {
       try {
         // basePrompt 자동 생성 (없는 경우)
         let profilePrompt = dateData.profile_base_prompt;
@@ -322,6 +351,25 @@ export default async function handler(req, res) {
             dateData.profile_image_url = imageData.imageUrls[0];
             dateData.profile_prompt = imageData.generatedPrompts?.[0] || promptData.prompt;
             
+            // ✅ 즉시 저장 (타임아웃 방지)
+            try {
+              await supabase
+                .from('kakao_profile_content')
+                .upsert({
+                  date,
+                  account: 'account2',
+                  profile_image_url: dateData.profile_image_url,
+                  profile_prompt: dateData.profile_prompt,
+                  profile_base_prompt: dateData.profile_base_prompt,
+                  updated_at: new Date().toISOString()
+                }, {
+                  onConflict: 'date,account'
+                });
+              console.log(`✅ 프로필 이미지 및 프롬프트 즉시 저장 완료: ${date}`);
+            } catch (saveError) {
+              console.warn('⚠️ 프로필 이미지 즉시 저장 실패:', saveError.message);
+            }
+            
             // 생성된 모든 이미지 URL 로깅 (나중에 image_metadata에서 조회 가능)
             if (imageData.imageUrls.length > 1) {
               console.log(`📸 프로필 이미지 ${imageData.imageUrls.length}개 생성됨:`);
@@ -390,7 +438,14 @@ export default async function handler(req, res) {
     }
 
     // 피드 이미지 생성
-    if (feedData && (!feedData.image_url || forceRegenerate)) {
+    // ✅ 개선: 프롬프트가 없으면 이미지가 있어도 재생성
+    const needsFeedRegeneration = feedData && (
+      !feedData.image_url || 
+      forceRegenerate || 
+      (!feedData.image_prompt && feedData.image_url)
+    );
+    
+    if (needsFeedRegeneration) {
       try {
         // Phase 2.3: 이미지 카테고리 로테이션 (피드 이미지 카테고리가 없을 때)
         if (!feedData.image_category) {
@@ -527,6 +582,29 @@ export default async function handler(req, res) {
             feedData.caption = feedCaption || feedData.caption || '';
             feedData.url = selectedUrl;
             feedData.created = true;
+            
+            // ✅ 즉시 저장 (타임아웃 방지)
+            try {
+              await supabase
+                .from('kakao_feed_content')
+                .upsert({
+                  date,
+                  account: 'account2',
+                  image_url: feedData.image_url,
+                  image_prompt: feedData.image_prompt,
+                  base_prompt: feedData.base_prompt,
+                  caption: feedData.caption,
+                  url: feedData.url,
+                  image_category: feedData.image_category,
+                  created: feedData.created,
+                  updated_at: new Date().toISOString()
+                }, {
+                  onConflict: 'date,account'
+                });
+              console.log(`✅ 피드 이미지 및 프롬프트 즉시 저장 완료: ${date}`);
+            } catch (saveError) {
+              console.warn('⚠️ 피드 이미지 즉시 저장 실패:', saveError.message);
+            }
             
             // 생성된 모든 이미지 URL 로깅 (나중에 image_metadata에서 조회 가능)
             if (imageData.imageUrls.length > 1) {
