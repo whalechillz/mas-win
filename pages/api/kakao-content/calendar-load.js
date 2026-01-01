@@ -12,7 +12,7 @@ async function checkImageExists(supabase, imageUrl) {
   try {
     // HTTP HEAD 요청으로 실제 파일 존재 여부 확인
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000); // 2초 타임아웃 (5초 → 2초로 단축)
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // ✅ 5초 타임아웃 (배포 환경 네트워크 지연 대응)
     
     const response = await fetch(imageUrl, { 
       method: 'HEAD',
@@ -141,6 +141,13 @@ export default async function handler(req, res) {
       const backgroundKey = `${item.date}_${item.account}_background`;
       const profileKey = `${item.date}_${item.account}_profile`;
       
+      // ✅ 이미지 확인 실패 시 원본 URL 사용 (피드와 동일한 로직)
+      const checkedBackgroundUrl = profileImageMap.get(backgroundKey);
+      const finalBackgroundUrl = checkedBackgroundUrl !== undefined ? checkedBackgroundUrl : item.background_image_url || undefined;
+      
+      const checkedProfileUrl = profileImageMap.get(profileKey);
+      const finalProfileUrl = checkedProfileUrl !== undefined ? checkedProfileUrl : item.profile_image_url || undefined;
+      
       const scheduleItem = {
         date: item.date,
         background: {
@@ -148,14 +155,14 @@ export default async function handler(req, res) {
           prompt: item.background_prompt || '',
           basePrompt: item.background_base_prompt || null,
           status: item.status || 'planned',
-          imageUrl: profileImageMap.get(backgroundKey)
+          imageUrl: finalBackgroundUrl // ✅ 확인 실패 시에도 원본 URL 사용
         },
         profile: {
           image: item.profile_image || '',
           prompt: item.profile_prompt || '',
           basePrompt: item.profile_base_prompt || null,
           status: item.status || 'planned',
-          imageUrl: profileImageMap.get(profileKey)
+          imageUrl: finalProfileUrl // ✅ 확인 실패 시에도 원본 URL 사용
         },
         message: item.message || '',
         status: item.status || 'planned',
