@@ -426,6 +426,23 @@ export default async function handler(req, res) {
             
             dateData.message = cleanedMessage;
             console.log(`✅ 프로필 메시지 생성 완료: ${dateData.message}`);
+            
+            // ✅ 즉시 저장 (타임아웃 방지)
+            try {
+              await supabase
+                .from('kakao_profile_content')
+                .upsert({
+                  date,
+                  account: 'account1',
+                  message: dateData.message,
+                  updated_at: new Date().toISOString()
+                }, {
+                  onConflict: 'date,account'
+                });
+              console.log(`✅ 프로필 메시지 즉시 저장 완료: ${date}`);
+            } catch (saveError) {
+              console.warn('⚠️ 프로필 메시지 즉시 저장 실패:', saveError.message);
+            }
           }
         }
       } catch (messageError) {
@@ -536,6 +553,24 @@ export default async function handler(req, res) {
             if (captionData.success && captionData.caption) {
               feedCaption = captionData.caption;
               console.log(`✅ 피드 캡션 생성 완료: ${feedCaption}`);
+              
+              // ✅ 즉시 저장 (타임아웃 방지 - 이미지 생성 전에)
+              try {
+                await supabase
+                  .from('kakao_feed_content')
+                  .upsert({
+                    date,
+                    account: 'account1',
+                    caption: feedCaption,
+                    image_category: feedData.image_category,
+                    updated_at: new Date().toISOString()
+                  }, {
+                    onConflict: 'date,account'
+                  });
+                console.log(`✅ 피드 캡션 즉시 저장 완료: ${date}`);
+              } catch (saveError) {
+                console.warn('⚠️ 피드 캡션 즉시 저장 실패:', saveError.message);
+              }
             }
           } catch (captionError) {
             console.warn('⚠️ 피드 캡션 생성 실패, 기본값 사용:', captionError.message);
