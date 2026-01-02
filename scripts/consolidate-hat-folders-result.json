@@ -1,0 +1,54 @@
+{
+  "hatBlackBucket": {
+    "moved": [
+      {
+        "fileName": "composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1767061550580.png",
+        "from": "originals/goods/hat-black-bucket/gallery/composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1767061550580.png",
+        "to": "originals/goods/bucket-hat-muziik/gallery/composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1767061550580.png"
+      },
+      {
+        "fileName": "composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1767338691526.png",
+        "from": "originals/goods/hat-black-bucket/gallery/composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1767338691526.png",
+        "to": "originals/goods/bucket-hat-muziik/gallery/composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1767338691526.png"
+      }
+    ],
+    "errors": []
+  },
+  "hatWhiteBucket": {
+    "moved": [
+      {
+        "fileName": "composed-1-d1d615b7-9b7a-4ec8-b8fb-4296aa3ae964-1767061647996.png",
+        "from": "originals/goods/hat-white-bucket/gallery/composed-1-d1d615b7-9b7a-4ec8-b8fb-4296aa3ae964-1767061647996.png",
+        "to": "originals/goods/bucket-hat-muziik/gallery/composed-1-d1d615b7-9b7a-4ec8-b8fb-4296aa3ae964-1767061647996.png"
+      }
+    ],
+    "errors": []
+  },
+  "hatWhiteGolf": {
+    "deleted": [],
+    "errors": []
+  },
+  "dbUpdated": {
+    "updated": [
+      {
+        "id": "d1d615b7-9b7a-4ec8-b8fb-4296aa3ae964",
+        "name": "MASSGOO 버킷햇 (화이트)",
+        "slug": "hat-white-bucket",
+        "action": "deactivated"
+      },
+      {
+        "id": "a10ed3c2-fd40-4dae-8063-7b245ab7b2f2",
+        "name": "MASSGOO 버킷햇 (블랙)",
+        "slug": "hat-black-bucket",
+        "action": "deactivated"
+      },
+      {
+        "id": "e4981d92-30fb-4a5d-8a02-48b0897756ca",
+        "name": "MASSGOO 골프모자 (화이트)",
+        "slug": "hat-white-golf",
+        "action": "deactivated"
+      }
+    ],
+    "errors": []
+  }
+}
