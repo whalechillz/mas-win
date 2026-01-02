@@ -33,7 +33,7 @@ async function updateSurveyProductsGalleryImages() {
     const { data: bucketFiles, error: bucketError } = await supabase.storage
       .from('blog-images')
       .list('originals/goods/bucket-hat-muziik/gallery', {
-        limit: 100,
+        limit: 1000,
         sortBy: { column: 'name', order: 'asc' }
       });
 
@@ -41,9 +41,9 @@ async function updateSurveyProductsGalleryImages() {
       console.error('   ❌ 버킷햇 이미지 목록 조회 실패:', bucketError.message);
       results.bucketHat.errors.push({ step: 'list_files', error: bucketError.message });
     } else {
-      // .webp 파일만 필터링하고 정렬
+      // .webp와 .png 파일 모두 필터링하고 정렬
       const bucketImages = bucketFiles
-        .filter(file => file.name.endsWith('.webp'))
+        .filter(file => file.name.endsWith('.webp') || file.name.endsWith('.png'))
         .map(file => `originals/goods/bucket-hat-muziik/gallery/${file.name}`)
         .sort();
 
@@ -116,7 +116,7 @@ async function updateSurveyProductsGalleryImages() {
     const { data: golfFiles, error: golfError } = await supabase.storage
       .from('blog-images')
       .list('originals/goods/golf-hat-muziik/gallery', {
-        limit: 100,
+        limit: 1000,
         sortBy: { column: 'name', order: 'asc' }
       });
 
@@ -124,9 +124,9 @@ async function updateSurveyProductsGalleryImages() {
       console.error('   ❌ 골프모자 이미지 목록 조회 실패:', golfError.message);
       results.golfHat.errors.push({ step: 'list_files', error: golfError.message });
     } else {
-      // .webp 파일만 필터링하고 정렬
+      // .webp와 .png 파일 모두 필터링하고 정렬
       const golfImages = golfFiles
-        .filter(file => file.name.endsWith('.webp'))
+        .filter(file => file.name.endsWith('.webp') || file.name.endsWith('.png'))
         .map(file => `originals/goods/golf-hat-muziik/gallery/${file.name}`)
         .sort();
 
