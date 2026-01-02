@@ -370,8 +370,21 @@ export default function ProductCompositionManagement() {
     if (formData.category === 'goods' || formData.category === 'hat' || formData.category === 'accessory') {
       return `originals/goods/${formData.slug}/composition`;
     } else {
-      // 드라이버 제품: originals/products/{slug}/composition
-      return `originals/products/${formData.slug}/composition`;
+      // ✅ 드라이버 제품: slug → 실제 폴더명 매핑 추가
+      // 데이터베이스의 slug와 실제 Storage 폴더명이 다른 경우 처리
+      const driverSlugToFolder: Record<string, string> = {
+        'secret-weapon-black': 'black-weapon',
+        'black-beryl': 'black-beryl',
+        'secret-weapon-4-1': 'gold-weapon4',
+        'secret-force-gold-2': 'gold2',
+        'gold2-sapphire': 'gold2-sapphire',
+        'secret-force-pro-3': 'pro3',
+        'pro3-muziik': 'pro3-muziik',
+        'secret-force-v3': 'v3',
+      };
+      
+      const folderName = driverSlugToFolder[formData.slug] || formData.slug;
+      return `originals/products/${folderName}/composition`;
     }
   };
 
