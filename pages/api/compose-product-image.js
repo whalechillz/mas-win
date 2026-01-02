@@ -129,29 +129,48 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', bas
  * FAL AI는 공개적으로 접근 가능한 URL만 사용할 수 있으므로 로컬호스트는 사용 불가
  */
 function getAbsoluteProductImageUrl(productImageUrl) {
-  if (!productImageUrl) return null;
+  // null, undefined, 빈 문자열 체크
+  if (!productImageUrl || typeof productImageUrl !== 'string') return null;
   
-  // 이미 절대 URL인 경우 그대로 반환
-  if (productImageUrl.startsWith('http://') || productImageUrl.startsWith('https://')) {
-    // 로컬호스트 URL은 FAL AI에서 접근 불가하므로 에러 발생
-    if (productImageUrl.includes('localhost') || productImageUrl.includes('127.0.0.1')) {
-      throw new Error(`로컬호스트 URL은 FAL AI에서 사용할 수 없습니다: ${productImageUrl}. 프로덕션 도메인을 사용하거나 Supabase 공개 URL을 사용해주세요.`);
-    }
-    // 이미 Supabase URL이면 그대로 반환
-    if (productImageUrl.includes('supabase.co')) {
-      return productImageUrl;
-    }
-    // 다른 절대 URL도 그대로 반환 (예: 외부 이미지)
-    return productImageUrl;
+  // 공백 제거 및 유효성 검사
+  const trimmed = productImageUrl.trim();
+  if (!trimmed || trimmed === '-' || trimmed.length < 3) {
+    console.warn('⚠️ 잘못된 제품 이미지 URL:', productImageUrl);
+    return null;
   }
   
-  // 상대 경로인 경우 Supabase Storage 공개 URL로 변환
-  // 제품 이미지는 항상 Supabase Storage에 저장되어 있음
+  // 이미 절대 URL인 경우 그대로 반환
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    // 로컬호스트 URL은 FAL AI에서 접근 불가하므로 에러 발생
+    if (trimmed.includes('localhost') || trimmed.includes('127.0.0.1')) {
+      throw new Error(`로컬호스트 URL은 FAL AI에서 사용할 수 없습니다: ${trimmed}. 프로덕션 도메인을 사용하거나 Supabase 공개 URL을 사용해주세요.`);
+    }
+    // 이미 Supabase URL이면 그대로 반환
+    if (trimmed.includes('supabase.co')) {
+      return trimmed;
+    }
+    // 다른 절대 URL도 그대로 반환 (예: 외부 이미지)
+    return trimmed;
+  }
+  
+  // ✅ 구 형식 경로 변환: /main/products/... → originals/products/... 또는 originals/goods/...
+  let cleanPath = trimmed;
+  if (cleanPath.startsWith('/main/products/')) {
+    // /main/products/... → originals/products/...
+    cleanPath = cleanPath.replace('/main/products/', 'originals/products/');
+    // goods 카테고리인 경우 추가 변환
+    if (cleanPath.includes('/goods/')) {
+      cleanPath = cleanPath.replace('originals/products/goods/', 'originals/goods/');
+    }
+    console.log(`🔄 구 형식 경로 변환: ${trimmed} → ${cleanPath}`);
+  } else if (cleanPath.startsWith('/')) {
+    // 다른 상대 경로는 앞의 / 제거
+    cleanPath = cleanPath.slice(1);
+  }
+  
+  // Supabase Storage 공개 URL로 변환
   const SUPABASE_BASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
   const STORAGE_BUCKET = 'blog-images';
-  
-  // 경로 정규화
-  const cleanPath = productImageUrl.startsWith('/') ? productImageUrl.slice(1) : productImageUrl;
   
   // Supabase Storage 공개 URL 생성
   const supabaseUrl = `${SUPABASE_BASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${cleanPath}`;

@@ -1,6 +1,63 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
-## ✅ 최근 작업: 생성 완료 후 캘린더 데이터 리로드 로직 수정 (2026-01-16)
+## ✅ 최근 작업: 제품 합성 이미지 경로 문제 수정 (2026-01-16)
+
+### 완료된 작업
+- **제품 합성 이미지 경로 변환 로직 개선** ✅:
+  - `pages/api/compose-product-image.js`: `getAbsoluteProductImageUrl` 함수 개선
+    - `/main/products/...` 구 형식 경로를 `originals/products/...` 또는 `originals/goods/...`로 자동 변환
+    - 빈 문자열, '-', 너무 짧은 경로 검증 추가
+    - 유효하지 않은 URL에 대한 경고 로그 추가
+  - `database/fix-product-composition-main-paths.sql`: 데이터베이스 마이그레이션 SQL 생성
+    - `product_composition` 테이블의 `image_url`, `reference_images`, `color_variants` 필드 업데이트
+    - `/main/products/...` 경로를 새 형식으로 변환
+    - 드라이버 제품과 굿즈/햇/액세서리 제품 구분하여 처리
+  - 원인: 데이터베이스에 `/main/products/...` 구 형식 경로가 남아있어 FAL AI에서 "Failed to download the file" 오류 발생
+  - 해결: API 레벨에서 구 형식 경로를 자동 변환하고, 데이터베이스 마이그레이션으로 일괄 수정
+
+### 변경된 파일
+- `pages/api/compose-product-image.js` (경로 변환 로직 개선)
+- `database/fix-product-composition-main-paths.sql` (마이그레이션 SQL 생성)
+
+### 다음 단계
+- Supabase SQL Editor에서 `database/fix-product-composition-main-paths.sql` 실행하여 데이터베이스 일괄 업데이트
+
+---
+
+## ✅ 이전 작업: 배포 완료 상태에서 이미지 잠금 기능 구현 (2026-01-16)
+
+### 완료된 작업
+- **배포 완료 상태에서 이미지 잠금 기능 구현** ✅:
+  - `components/admin/kakao/ProfileManager.tsx`: `publishStatus` prop 추가 및 배포 완료 상태에서 이미지 변경 차단
+    - 자동 복구 로직 차단 (`handleAutoRecoverImage`, `handleImageError`)
+    - 갤러리 선택 버튼 비활성화 및 차단 로직 추가
+    - 이미지 재생성 버튼 비활성화 및 차단 로직 추가
+    - 이미지 삭제 버튼 비활성화 및 차단 로직 추가
+  - `components/admin/kakao/FeedManager.tsx`: `publishStatus` prop 추가 및 배포 완료 상태에서 이미지 변경 차단
+    - 자동 복구 로직 차단 (`handleAutoRecoverImage`, `handleImageError`)
+    - 갤러리 선택 버튼 비활성화 및 차단 로직 추가
+    - 이미지 재생성 버튼 비활성화 및 차단 로직 추가
+    - 프롬프트 재생성 및 로고 옵션 재생성 차단
+  - `components/admin/kakao/KakaoAccountEditor.tsx`: 
+    - ProfileManager와 FeedManager에 `publishStatus` 전달
+    - `handleRegenerate` 함수에 배포 완료 상태 차단 로직 추가
+    - `handlePartialGenerate` 함수에 이미지 생성 타입 차단 로직 추가
+    - `handlePartialRegenerate` 함수에 이미지 재생성 타입 차단 로직 추가
+  - `pages/api/kakao-content/calendar-load.js`: 배포 완료 상태일 때 저장된 URL만 사용하도록 수정
+    - 프로필 데이터: `status === 'published'`일 때 `checkImageExists` 결과 무시하고 저장된 URL만 사용
+    - 피드 데이터: `status === 'published'`일 때 `checkImageExists` 결과 무시하고 저장된 URL만 사용
+  - 원인: 배포 완료 상태에서도 이미지가 자동으로 변경되거나 갤러리에서 선택한 이미지가 덮어씌워지는 문제
+  - 해결: 배포 완료 상태에서는 모든 이미지 변경 경로를 차단하고, 저장된 URL만 사용하여 이미지 고정
+
+### 변경된 파일
+- `components/admin/kakao/ProfileManager.tsx` (배포 상태 잠금 기능 추가)
+- `components/admin/kakao/FeedManager.tsx` (배포 상태 잠금 기능 추가)
+- `components/admin/kakao/KakaoAccountEditor.tsx` (배포 상태 전달 및 재생성 차단)
+- `pages/api/kakao-content/calendar-load.js` (배포 완료 상태일 때 저장된 URL만 사용)
+
+---
+
+## ✅ 이전 작업: 생성 완료 후 캘린더 데이터 리로드 로직 수정 (2026-01-16)
 
 ### 완료된 작업
 - **생성 완료 후 캘린더 데이터 리로드 로직 수정** ✅:
@@ -201,6 +258,40 @@
 ### 변경된 파일
 - `pages/api/kakao-content/calendar-load.js` (이미지 확인 선택적 수행, 배치 처리, 타임아웃 단축, 부분 결과 반환)
 - `pages/admin/kakao-content.tsx` (재시도 로직 추가)
+
+---
+
+## ✅ 카카오 콘텐츠 이미지 재생성 시 제품 합성 기능 통합 (2026-01-XX)
+
+### 작업 내용
+- **ProfileManager에 제품 합성 기능 추가**
+  - 배경 이미지 및 프로필 이미지 재생성 시 MASSGOO 드라이버 제품 합성 옵션 추가
+  - 제품 합성 활성화 체크박스 및 제품 선택 드롭다운 UI 추가
+  - 이미지 재생성 시 제품 합성 API (`/api/compose-product-image`) 자동 호출
+  - 제품 합성 진행 상태 표시 ("제품 합성 중...")
+  - 배포 완료 상태에서는 제품 합성 옵션 비활성화
+
+- **FeedManager에 제품 합성 기능 추가**
+  - 피드 이미지 재생성 시 MASSGOO 드라이버 제품 합성 옵션 추가
+  - 제품 합성 활성화 체크박스 및 제품 선택 드롭다운 UI 추가
+  - 이미지 재생성 시 제품 합성 API 자동 호출
+  - 제품 합성 진행 상태 표시
+
+- **제품 목록 API 연동**
+  - `/api/admin/product-composition?category=driver&active=true` API를 통해 드라이버 제품 목록 로드
+  - 제품 선택 드롭다운에 제품명 및 배지 표시
+
+### 수정된 파일
+- `components/admin/kakao/ProfileManager.tsx`: 제품 합성 상태 관리 및 UI 추가, 이미지 재생성 로직에 제품 합성 통합
+- `components/admin/kakao/FeedManager.tsx`: 제품 합성 상태 관리 및 UI 추가, 이미지 재생성 로직에 제품 합성 통합
+
+### 기술 세부사항
+- 제품 합성은 Nano Banana Pro AI를 사용하여 모델 이미지에 MASSGOO 드라이버 제품을 자연스럽게 합성
+- 합성 실패 시 원본 이미지를 사용하도록 fallback 처리
+- 제품 합성 진행 중에는 버튼 비활성화 및 상태 표시
+
+### 향후 계획
+- 워크플로우 시각화에 제품 합성 노드 추가 (옵션)
 
 ---
 
