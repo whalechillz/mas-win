@@ -77,6 +77,7 @@ export default function ProductsAdminPage() {
   const [inventoryTxQty, setInventoryTxQty] = useState<number>(1);
   const [inventoryTxNote, setInventoryTxNote] = useState<string>('');
   const [inventorySupplierId, setInventorySupplierId] = useState<number | ''>('');
+  const [inventoryTxDate, setInventoryTxDate] = useState<string>('');
   const [inventorySuppliers, setInventorySuppliers] = useState<{ id: number; name: string }[]>([]);
   const [editingTransaction, setEditingTransaction] = useState<any | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -159,6 +160,9 @@ export default function ProductsAdminPage() {
   const openInventoryModal = async (product: Product) => {
     setInventoryProduct(product);
     setInventoryModalOpen(true);
+    // 모달 열 때 폼 초기화
+    setInventoryTxDate('');
+    setEditingTransaction(null);
     setInventoryLoading(true);
     setInventoryQuantity(0);
     setInventoryHistory([]);
@@ -207,6 +211,7 @@ export default function ProductsAdminPage() {
           product_id: inventoryProduct.id,
           tx_type: inventoryTxType,
           quantity: qty,
+          tx_date: inventoryTxDate || null,
           note: inventoryTxNote || null,
           supplier_id: inventorySupplierId || null,
         }),
@@ -221,6 +226,7 @@ export default function ProductsAdminPage() {
       setInventoryTxQty(1);
       setInventoryTxNote('');
       setInventorySupplierId('');
+      setInventoryTxDate('');
     } catch (error: any) {
       console.error('재고 이력 추가 오류:', error);
       alert(error.message || '재고 이력 추가 중 오류가 발생했습니다.');
@@ -233,6 +239,8 @@ export default function ProductsAdminPage() {
     setInventoryTxQty(Math.abs(tx.quantity));
     setInventoryTxNote(tx.note || '');
     setInventorySupplierId(tx.supplier_id || '');
+    // 날짜 추가 (YYYY-MM-DD 형식으로 변환)
+    setInventoryTxDate(tx.tx_date ? new Date(tx.tx_date).toISOString().split('T')[0] : '');
   };
 
   const handleUpdateTransaction = async () => {
@@ -253,6 +261,7 @@ export default function ProductsAdminPage() {
           id: editingTransaction.id,
           tx_type: inventoryTxType,
           quantity: qty,
+          tx_date: inventoryTxDate || null,
           note: inventoryTxNote || null,
           supplier_id: inventorySupplierId || null,
         }),
@@ -267,6 +276,7 @@ export default function ProductsAdminPage() {
       setInventoryTxQty(1);
       setInventoryTxNote('');
       setInventorySupplierId('');
+      setInventoryTxDate('');
       await openInventoryModal(inventoryProduct);
     } catch (error: any) {
       console.error('재고 이력 수정 오류:', error);
@@ -1215,7 +1225,18 @@ export default function ProductsAdminPage() {
               <h3 className="text-sm font-semibold text-gray-900 mb-2">
                 {editingTransaction ? '재고 이력 수정' : '재고 이력 추가'}
               </h3>
-              <div className="grid grid-cols-4 gap-3 items-end text-sm">
+              <div className="grid grid-cols-5 gap-3 items-end text-sm">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    일시
+                  </label>
+                  <input
+                    type="date"
+                    value={inventoryTxDate}
+                    onChange={(e) => setInventoryTxDate(e.target.value)}
+                    className="w-full px-2 py-1.5 border rounded-md"
+                  />
+                </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     유형
@@ -1294,6 +1315,7 @@ export default function ProductsAdminPage() {
                       setInventoryTxQty(1);
                       setInventoryTxNote('');
                       setInventorySupplierId('');
+                      setInventoryTxDate('');
                     }}
                     className="px-3 py-1.5 border rounded-md text-xs hover:bg-gray-50"
                   >

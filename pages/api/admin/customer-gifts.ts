@@ -32,17 +32,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   try {
     const customerIdParam = req.query.customerId;
+    const surveyIdParam = req.query.surveyId;
+    
     const customerId =
       typeof customerIdParam === 'string' ? Number(customerIdParam) : customerIdParam;
+    const surveyId = typeof surveyIdParam === 'string' ? surveyIdParam : surveyIdParam;
 
-    if (!customerId) {
+    if (!customerId && !surveyId) {
       return res.status(400).json({
         success: false,
-        message: 'customerId 쿼리 파라미터가 필요합니다.',
+        message: 'customerId 또는 surveyId 쿼리 파라미터가 필요합니다.',
       });
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('customer_gifts')
       .select(
         `
@@ -68,8 +71,17 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
           size
         )
       `,
-      )
-      .eq('customer_id', customerId)
+      );
+
+    if (customerId) {
+      query = query.eq('customer_id', customerId);
+    }
+
+    if (surveyId) {
+      query = query.eq('survey_id', surveyId);
+    }
+
+    const { data, error } = await query
       .order('delivery_date', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false });
 
@@ -210,6 +222,22 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
         success: false,
         message: '변경할 값이 없습니다.',
       });
+    }
+
+    // delivery_date가 변경되는 경우, 관련된 inventory_transactions의 tx_date도 업데이트
+    if (delivery_date !== undefined) {
+      const { data: relatedTransactions } = await supabase
+        .from('inventory_transactions')
+        .select('id')
+        .eq('related_gift_id', id)
+        .eq('tx_type', 'outbound');
+
+      if (relatedTransactions && relatedTransactions.length > 0) {
+        await supabase
+          .from('inventory_transactions')
+          .update({ tx_date: delivery_date || null })
+          .in('id', relatedTransactions.map((t) => t.id));
+      }
     }
 
     const { data, error } = await supabase

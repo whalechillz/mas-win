@@ -17,6 +17,7 @@ type Survey = {
   created_at: string;
   event_candidate?: boolean;
   event_winner?: boolean;
+  gift_delivered?: boolean;
 };
 
 export default function SurveysPage() {
@@ -43,6 +44,8 @@ export default function SurveysPage() {
   const [editingGiftProductId, setEditingGiftProductId] = useState<number | null>(null);
   const [editingGiftText, setEditingGiftText] = useState<string>('');
   const [savingGiftRecord, setSavingGiftRecord] = useState(false);
+  const [autoSaveGift, setAutoSaveGift] = useState(false);
+  const [updatingEventCandidates, setUpdatingEventCandidates] = useState(false);
   const [messageModal, setMessageModal] = useState<{
     open: boolean;
     survey: Survey | null;
@@ -210,8 +213,25 @@ export default function SurveysPage() {
   };
 
   // 수정 모달 열기
-  const handleEdit = (survey: Survey) => {
+  const handleEdit = async (survey: Survey) => {
     setEditingSurvey(survey);
+    
+    // 해당 설문에 연결된 선물 기록 확인 (지급 완료된 것만)
+    let hasDeliveredGift = false;
+    try {
+      const giftRes = await fetch(`/api/admin/customer-gifts?surveyId=${survey.id}`);
+      const giftJson = await giftRes.json();
+      if (giftJson.success && giftJson.gifts && giftJson.gifts.length > 0) {
+        // 지급 완료된 선물이 있는지 확인
+        const deliveredGifts = giftJson.gifts.filter(
+          (g: any) => g.delivery_status === 'sent'
+        );
+        hasDeliveredGift = deliveredGifts.length > 0;
+      }
+    } catch (error) {
+      console.error('선물 기록 조회 오류:', error);
+    }
+    
     setEditFormData({
       name: survey.name,
       phone: survey.phone,
@@ -223,8 +243,11 @@ export default function SurveysPage() {
       address: survey.address,
       gift_text: survey.gift_text ?? '',
       gift_product_id: survey.gift_product_id ?? null,
+      // 이벤트 응모 대상은 자동 체크하지 않음 (수동 체크만)
       event_candidate: survey.event_candidate ?? false,
       event_winner: survey.event_winner ?? false,
+      // 선물 지급 완료는 실제 지급 기록이 있으면 체크
+      gift_delivered: hasDeliveredGift || survey.gift_delivered || false,
     });
     setEditingGiftProductId(survey.gift_product_id ?? null);
     setEditingGiftText(survey.gift_text ?? '');
@@ -238,12 +261,19 @@ export default function SurveysPage() {
     setEditFormData({});
     setEditingGiftProductId(null);
     setEditingGiftText('');
+    setAutoSaveGift(false);
     setIsEditing(false);
   };
 
   // 수정 저장
   const handleSaveEdit = async () => {
     if (!editingSurvey) return;
+
+    // 선물 지급 완료가 체크되었는데 사은품 정보가 없으면 경고
+    if (editFormData.gift_delivered && !editingGiftProductId && !editingGiftText) {
+      alert('선물 지급 완료를 체크하려면 사은품을 선택하거나 메모를 입력해주세요.');
+      return;
+    }
 
     setIsEditing(true);
     try {
@@ -261,6 +291,12 @@ export default function SurveysPage() {
       const result = await response.json();
 
       if (result.success) {
+        // 자동 저장 체크박스가 체크되어 있고 사은품 정보가 있으면 선물 기록도 저장
+        // (단, 선물 지급 완료가 체크되지 않은 경우만 - 체크되어 있으면 이미 API에서 처리됨)
+        if (autoSaveGift && (editingGiftProductId || editingGiftText) && !editFormData.gift_delivered) {
+          await handleSaveGiftToCustomer(true); // 자동 저장 플래그 전달
+        }
+        
         alert('수정되었습니다.');
         handleCloseEdit();
         fetchSurveys();
@@ -277,12 +313,14 @@ export default function SurveysPage() {
   };
 
   // 설문 -> 고객 선물 기록 저장
-  const handleSaveGiftToCustomer = async () => {
+  const handleSaveGiftToCustomer = async (isAutoSave = false) => {
     if (!editingSurvey) {
       return;
     }
     if (!editingGiftProductId && !editingGiftText) {
-      alert('사은품을 선택하거나 메모를 입력한 후 저장할 수 있습니다.');
+      if (!isAutoSave) {
+        alert('사은품을 선택하거나 메모를 입력한 후 저장할 수 있습니다.');
+      }
       return;
     }
 
@@ -301,16 +339,19 @@ export default function SurveysPage() {
       return;
     }
 
-    if (
-      !confirm(
-        `이 설문 정보를 기반으로 고객 선물 기록을 저장합니다.\n\n이름: ${name}\n전화: ${normalizedPhone}\n사은품: ${
-          editingGiftProductId
-            ? giftProducts.find((p) => p.id === editingGiftProductId)?.name || '선택된 상품'
-            : '직접 입력'
-        }\n메모: ${editingGiftText || '-'}\n\n계속하시겠습니까?`,
-      )
-    ) {
-      return;
+    // 자동 저장이 아닐 때만 확인 메시지 표시
+    if (!isAutoSave) {
+      if (
+        !confirm(
+          `이 설문 정보를 기반으로 고객 선물 기록을 저장합니다.\n\n이름: ${name}\n전화: ${normalizedPhone}\n사은품: ${
+            editingGiftProductId
+              ? giftProducts.find((p) => p.id === editingGiftProductId)?.name || '선택된 상품'
+              : '직접 입력'
+          }\n메모: ${editingGiftText || '-'}\n\n계속하시겠습니까?`,
+        )
+      ) {
+        return;
+      }
     }
 
     setSavingGiftRecord(true);
@@ -378,12 +419,46 @@ export default function SurveysPage() {
         return;
       }
 
-      alert('고객 선물 기록에 저장되었습니다.\n고객 관리 > 🎁 선물 버튼에서 확인할 수 있습니다.');
+      if (!isAutoSave) {
+        alert('고객 선물 기록에 저장되었습니다.\n고객 관리 > 🎁 선물 버튼에서 확인할 수 있습니다.');
+      }
+      // 자동 저장 후 체크박스 해제
+      if (isAutoSave) {
+        setAutoSaveGift(false);
+      }
     } catch (error: any) {
       console.error('고객 선물 기록 저장 오류:', error);
       alert(error.message || '고객 선물 기록 저장 중 오류가 발생했습니다.');
     } finally {
       setSavingGiftRecord(false);
+    }
+  };
+
+  // 선물 지급 완료된 설문을 일괄 업데이트
+  const handleBulkUpdateEventCandidates = async () => {
+    if (!confirm('선물을 지급 완료한 모든 고객의 설문을 "선물 지급 완료"로 일괄 업데이트하시겠습니까?')) {
+      return;
+    }
+
+    setUpdatingEventCandidates(true);
+    try {
+      const res = await fetch('/api/admin/surveys/bulk-update-event-candidates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        alert(`총 ${json.updatedCount}개의 설문이 "선물 지급 완료"로 업데이트되었습니다.`);
+        fetchSurveys(); // 목록 새로고침
+      } else {
+        alert(json.message || '일괄 업데이트에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('일괄 업데이트 오류:', error);
+      alert(error.message || '일괄 업데이트 중 오류가 발생했습니다.');
+    } finally {
+      setUpdatingEventCandidates(false);
     }
   };
 
@@ -627,29 +702,44 @@ export default function SurveysPage() {
             </div>
             
             {/* 일괄 작업 버튼 */}
-            {selectedIds.length > 0 && (
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                <span className="text-sm text-gray-700">
-                  {selectedIds.length}개 항목 선택됨
-                </span>
-                <div className="flex gap-2">
+            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+              {selectedIds.length > 0 ? (
+                <>
+                  <span className="text-sm text-gray-700">
+                    {selectedIds.length}개 항목 선택됨
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleBulkAnalyze}
+                      disabled={analysisModal.loading}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    >
+                      {analysisModal.loading ? '분석 중...' : `선택한 ${selectedIds.length}개 분석`}
+                    </button>
+                    <button
+                      onClick={handleBulkDelete}
+                      disabled={isDeleting}
+                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    >
+                      {isDeleting ? '삭제 중...' : `선택한 ${selectedIds.length}개 삭제`}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span className="text-sm text-gray-700">
+                    일괄 작업
+                  </span>
                   <button
-                    onClick={handleBulkAnalyze}
-                    disabled={analysisModal.loading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    onClick={handleBulkUpdateEventCandidates}
+                    disabled={updatingEventCandidates}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   >
-                    {analysisModal.loading ? '분석 중...' : `선택한 ${selectedIds.length}개 분석`}
+                    {updatingEventCandidates ? '업데이트 중...' : '🎁 선물 지급 완료된 설문 일괄 업데이트'}
                   </button>
-                  <button
-                    onClick={handleBulkDelete}
-                    disabled={isDeleting}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                  >
-                    {isDeleting ? '삭제 중...' : `선택한 ${selectedIds.length}개 삭제`}
-                </button>
-                </div>
-              </div>
-            )}
+                </>
+              )}
+            </div>
           </div>
 
           {/* 테이블 */}
@@ -748,20 +838,23 @@ export default function SurveysPage() {
                             >
                               {survey.name}
                             </button>
-                            {(survey.event_candidate || survey.event_winner) && (
-                              <div className="mt-1 flex gap-1">
-                                {survey.event_candidate && (
-                                  <span className="inline-flex px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-[10px]">
-                                    응모
-                                  </span>
-                                )}
-                                {survey.event_winner && (
-                                  <span className="inline-flex px-1.5 py-0.5 rounded-full bg-red-100 text-red-800 text-[10px]">
-                                    당첨
-                                  </span>
-                                )}
-                              </div>
-                            )}
+                            <div className="mt-1 flex gap-1">
+                              {survey.event_candidate && (
+                                <span className="inline-flex px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-[10px]">
+                                  응모
+                                </span>
+                              )}
+                              {survey.event_winner && (
+                                <span className="inline-flex px-1.5 py-0.5 rounded-full bg-red-100 text-red-800 text-[10px]">
+                                  당첨
+                                </span>
+                              )}
+                              {survey.gift_delivered ? (
+                                <span className="inline-flex px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px]">
+                                  🎁 선물
+                                </span>
+                              ) : null}
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {survey.phone}
@@ -1000,35 +1093,66 @@ export default function SurveysPage() {
                 <div className="border-t pt-4 mt-4">
                   <h3 className="text-sm font-medium text-gray-900 mb-2">사은품 / 굿즈 정보</h3>
 
-                  <div className="mb-3 flex gap-4 text-xs">
-                    <label className="flex items-center gap-1">
-                      <input
-                        type="checkbox"
-                        checked={!!editFormData.event_candidate}
-                        onChange={(e) =>
-                          setEditFormData((prev) => ({
-                            ...prev,
-                            event_candidate: e.target.checked,
-                          }))
-                        }
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="text-gray-700">이벤트 응모 대상</span>
-                    </label>
-                    <label className="flex items-center gap-1">
-                      <input
-                        type="checkbox"
-                        checked={!!editFormData.event_winner}
-                        onChange={(e) =>
-                          setEditFormData((prev) => ({
-                            ...prev,
-                            event_winner: e.target.checked,
-                          }))
-                        }
-                        className="rounded border-gray-300 text-red-600 focus:ring-red-500"
-                      />
-                      <span className="text-gray-700">당첨</span>
-                    </label>
+                  <div className="mb-3 space-y-2">
+                    <div className="flex gap-4 text-xs">
+                      <label className="flex items-center gap-1">
+                        <input
+                          type="checkbox"
+                          checked={!!editFormData.event_candidate}
+                          onChange={(e) =>
+                            setEditFormData((prev) => ({
+                              ...prev,
+                              event_candidate: e.target.checked,
+                            }))
+                          }
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-gray-700">이벤트 응모 대상</span>
+                        <span className="text-gray-400 text-[10px]">(특이사항 체크용, 재고 차감 없음)</span>
+                      </label>
+                    </div>
+                    <div className="flex gap-4 text-xs">
+                      <label className="flex items-center gap-1">
+                        <input
+                          type="checkbox"
+                          checked={!!editFormData.event_winner}
+                          onChange={(e) =>
+                            setEditFormData((prev) => ({
+                              ...prev,
+                              event_winner: e.target.checked,
+                            }))
+                          }
+                          className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                        />
+                        <span className="text-gray-700">당첨</span>
+                        <span className="text-gray-400 text-[10px]">(재고 차감 필요)</span>
+                      </label>
+                    </div>
+                    <div className="flex gap-4 text-xs">
+                      <label className="flex items-center gap-1">
+                        <input
+                          type="checkbox"
+                          checked={!!editFormData.gift_delivered}
+                          onChange={(e) =>
+                            setEditFormData((prev) => ({
+                              ...prev,
+                              gift_delivered: e.target.checked,
+                            }))
+                          }
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                          disabled={!editingGiftProductId && !editingGiftText}
+                        />
+                        <span className={`text-gray-700 ${!editingGiftProductId && !editingGiftText ? 'text-gray-400' : ''}`}>
+                          🎁 선물 지급 완료
+                        </span>
+                        <span className="text-gray-400 text-[10px]">(당첨이 아닌 일반 선물, 재고 차감 필요)</span>
+                      </label>
+                    </div>
+                    {!editingGiftProductId && !editingGiftText && (
+                      <p className="text-[10px] text-gray-500 ml-6">
+                        선물 지급 완료를 체크하려면 먼저 사은품을 선택하거나 메모를 입력해주세요.
+                      </p>
+                    )}
                   </div>
 
                   <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -1071,6 +1195,27 @@ export default function SurveysPage() {
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
                   />
+                  
+                  {/* 자동 저장 체크박스 */}
+                  <div className="mt-3">
+                    <label className="flex items-center gap-2 text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        checked={autoSaveGift}
+                        onChange={(e) => setAutoSaveGift(e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>
+                        설문 저장 시 자동으로 고객 선물 기록에 저장
+                        {autoSaveGift && (editingGiftProductId || editingGiftText) && (
+                          <span className="ml-2 text-xs text-blue-600">✓ 활성화됨</span>
+                        )}
+                      </span>
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1 ml-6">
+                      체크하면 설문 저장 시 사은품 정보가 자동으로 고객 선물 기록에 저장됩니다.
+                    </p>
+                  </div>
                 </div>
               </div>
 
