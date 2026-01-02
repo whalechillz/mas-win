@@ -293,3 +293,4 @@ curl "https://your-domain.vercel.app/api/kakao/friends?sync=true"
 - Solapi 대시보드에서 템플릿 상태 확인
 - `SOLAPI_API_KEY`, `SOLAPI_API_SECRET` 확인
 
+

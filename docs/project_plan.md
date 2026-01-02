@@ -1,6 +1,114 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
-## ✅ 최근 작업: 제품 합성 이미지 경로 문제 수정 (2026-01-16)
+## ✅ 최근 작업: 설문 관리 - 체크박스 3개 구조 및 선물 지급 시 재고 차감 (2026-01-16)
+
+### 완료된 작업
+- **데이터베이스 수정** ✅:
+  - `inventory_transactions` 테이블에 `related_gift_id` 필드 추가 (선물과 재고 차감 연결)
+  - `surveys` 테이블에 `gift_delivered` 필드 추가 (선물 지급 완료 여부)
+- **설문 편집 모달에 체크박스 3개 추가** ✅:
+  - `pages/admin/surveys/index.tsx`: 체크박스 3개 구현
+    - ☐ 이벤트 응모 대상 (특이사항 체크용, 재고 차감 없음)
+    - ☐ 당첨 (재고 차감 필요)
+    - ☐ 🎁 선물 지급 완료 (당첨이 아닌 일반 선물, 재고 차감 필요)
+- **선물 지급 완료 시 재고 차감 로직** ✅:
+  - `pages/api/survey/update.ts`: 선물 지급 완료 체크 시
+    - `customer_gifts` 레코드 생성/업데이트 (`delivery_status = 'sent'`)
+    - `inventory_transactions`에 출고 기록 추가 (재고 차감)
+    - `related_gift_id`로 선물과 재고 차감 연결
+  - 선물 지급 완료 해제 시 재고 복구 로직 추가
+- **설문 목록 표시 수정** ✅:
+  - "🎁 선물" 배지는 `gift_delivered = true`인 경우만 표시
+  - 이벤트 응모 대상 자동 체크 제거 (수동 체크만)
+- **일괄 업데이트 기능 수정** ✅:
+  - `pages/api/admin/surveys/bulk-update-event-candidates.ts`: 
+    - 선물 지급 완료된 설문(`delivery_status = 'sent'`)을 `gift_delivered = true`로 일괄 업데이트
+
+### 변경된 파일
+- `database/add-gift-delivered-to-surveys.sql` (신규 생성)
+- `pages/api/survey/update.ts` (선물 지급 및 재고 차감 로직 추가)
+- `pages/admin/surveys/index.tsx` (체크박스 3개 추가)
+- `pages/api/admin/surveys/bulk-update-event-candidates.ts` (일괄 업데이트 로직 수정)
+
+### 데이터 흐름
+1. 설문 편집 모달에서 "🎁 선물 지급 완료" 체크
+2. 설문 저장 시:
+   - `surveys.gift_delivered = true` 업데이트
+   - `customer_gifts` 레코드 생성/업데이트 (`delivery_status = 'sent'`)
+   - `inventory_transactions`에 출고 기록 추가 (재고 차감)
+3. 설문 목록에서 `gift_delivered = true`인 경우 "🎁 선물" 배지 표시
+
+### 재고 차감 규칙
+- **이벤트 응모 대상**: 재고 차감 없음 (특이사항 체크용)
+- **당첨**: 재고 차감 필요 (별도 처리 필요)
+- **선물 지급 완료**: 재고 차감 자동 처리 (`delivery_status = 'sent'`일 때)
+
+---
+
+## ✅ 이전 작업: 설문 관리 - 선물 받은 고객 자동 이벤트 응모 대상 체크 (2026-01-16)
+
+### 완료된 작업
+- **설문 편집 시 선물 기록 확인하여 자동 체크** ✅:
+  - `pages/admin/surveys/index.tsx`: 설문 편집 모달 열 때 해당 설문에 연결된 선물 기록 확인
+    - 선물 기록이 있으면 `event_candidate` 자동 체크
+    - `pages/api/admin/customer-gifts.ts`: `surveyId` 파라미터로 선물 기록 조회 지원 추가
+  - `pages/admin/surveys/index.tsx`: 설문 목록에서 선물 받은 고객 표시
+    - 선물 받은 고객에게 "🎁 선물" 배지 표시
+    - "이벤트 응모 대상" 배지와 함께 표시
+  - `pages/api/admin/surveys/bulk-update-event-candidates.ts`: 일괄 업데이트 API 추가
+    - 선물을 받은 모든 고객의 설문을 `event_candidate = true`로 일괄 업데이트
+    - 취소되지 않은 선물만 대상으로 처리
+  - 설문 관리 페이지에 일괄 업데이트 버튼 추가
+    - "🎁 선물 받은 고객 설문을 이벤트 응모 대상으로 일괄 업데이트" 버튼
+
+### 변경된 파일
+- `pages/admin/surveys/index.tsx` (자동 체크 및 표시 기능 추가)
+- `pages/api/admin/customer-gifts.ts` (surveyId 조회 지원)
+- `pages/api/admin/surveys/bulk-update-event-candidates.ts` (신규 생성)
+
+### 사용 방법
+1. **자동 체크**: 설문 편집 모달을 열면 선물 기록이 있는 경우 자동으로 "이벤트 응모 대상" 체크
+2. **일괄 업데이트**: 설문 관리 페이지 하단의 일괄 업데이트 버튼으로 모든 선물 받은 고객의 설문을 한 번에 업데이트
+3. **목록 표시**: 설문 목록에서 선물 받은 고객은 "🎁 선물" 배지로 표시
+
+---
+
+## ✅ 이전 작업: 재고 대시보드 확장 - 선물/판매 통계 추가 (2026-01-16)
+
+### 완료된 작업
+- **재고 대시보드에 선물/판매 통계 추가** ✅:
+  - `pages/api/admin/inventory/dashboard.ts`: 선물 통계 및 이력 조회 로직 추가
+    - `inventory_dashboard_view` 뷰에서 선물 통계 조회
+    - 최근 선물 지급 이력 조회 (고객명, 상품명, 카테고리 포함)
+    - 재고 출고 이력에서 선물/판매 구분 (note 필드 및 날짜 매칭)
+    - 카테고리별 선물 통계 집계
+  - `pages/admin/inventory/dashboard.tsx`: UI에 선물 통계 섹션 추가
+    - 선물 받은 고객 수, 총 선물 지급 건수, 총 선물 수량, 판매 출고 건수 카드
+    - 카테고리별 선물 통계 테이블
+    - 최근 선물 지급 이력 테이블 (고객명, 상품명, 전달방식, 상태)
+    - 재고 출고 이력 테이블 (선물/판매 구분, 고객명 표시)
+  - `pages/admin/surveys/index.tsx`: 설문 관리에 선물 자동 저장 체크박스 추가
+    - 사은품 정보 섹션에 "설문 저장 시 자동으로 고객 선물 기록에 저장" 체크박스
+    - 체크 시 설문 저장과 함께 선물 기록 자동 저장
+    - 저장 완료 후 체크박스 자동 해제
+
+### 변경된 파일
+- `pages/api/admin/inventory/dashboard.ts` (선물/판매 통계 추가)
+- `pages/admin/inventory/dashboard.tsx` (UI 확장)
+- `pages/admin/surveys/index.tsx` (자동 저장 기능 추가)
+
+### 데이터베이스
+- `inventory_dashboard_view` 뷰 활용 (총 선물 고객 수, 선물 건수, 판매 건수 등)
+- `customer_gifts` 테이블과 `inventory_transactions` 테이블 조인하여 출고 원인 구분
+
+### 다음 단계
+- 재고 대시보드에서 선물/판매 통계 확인 가능
+- 설문 관리에서 선물 자동 저장 기능 사용 가능
+- 고객별 입금 내역은 추후 필요 시 별도 테이블 추가 고려
+
+---
+
+## ✅ 이전 작업: 제품 합성 이미지 경로 문제 수정 (2026-01-16)
 
 ### 완료된 작업
 - **제품 합성 이미지 경로 변환 로직 개선** ✅:

@@ -221,12 +221,19 @@ export default async function handler(req, res) {
       const backgroundKey = `${item.date}_${item.account}_background`;
       const profileKey = `${item.date}_${item.account}_profile`;
       
+      // ✅ 배포 완료 상태면 저장된 URL만 사용 (checkImageExists 결과 무시)
+      const isPublished = item.status === 'published';
+      
       // ✅ 이미지 확인 실패 시 원본 URL 사용 (피드와 동일한 로직)
       const checkedBackgroundUrl = profileImageMap.get(backgroundKey);
-      const finalBackgroundUrl = checkedBackgroundUrl !== undefined ? checkedBackgroundUrl : item.background_image_url || undefined;
+      const finalBackgroundUrl = isPublished
+        ? (item.background_image_url || undefined) // 배포 완료: 저장된 URL만 사용
+        : (checkedBackgroundUrl !== undefined ? checkedBackgroundUrl : item.background_image_url || undefined); // 배포 대기: 확인된 URL 사용
       
       const checkedProfileUrl = profileImageMap.get(profileKey);
-      const finalProfileUrl = checkedProfileUrl !== undefined ? checkedProfileUrl : item.profile_image_url || undefined;
+      const finalProfileUrl = isPublished
+        ? (item.profile_image_url || undefined) // 배포 완료: 저장된 URL만 사용
+        : (checkedProfileUrl !== undefined ? checkedProfileUrl : item.profile_image_url || undefined); // 배포 대기: 확인된 URL 사용
       
       // ✅ 이미지 개수 조회 (배치 처리 결과 사용)
       const backgroundCount = imageCountMap.get(backgroundKey) || 0;
@@ -352,9 +359,14 @@ export default async function handler(req, res) {
       const item = feedData[i];
       const feedKey = `${item.date}_${item.account}`;
       
+      // ✅ 배포 완료 상태면 저장된 URL만 사용 (checkImageExists 결과 무시)
+      const isPublished = item.status === 'published';
+      
       // 이미지 확인 결과가 없으면 원본 URL 사용 (타임아웃/네트워크 오류 대응)
       const checkedImageUrl = feedImageMap.get(feedKey);
-      const finalImageUrl = checkedImageUrl !== undefined ? checkedImageUrl : item.image_url || undefined;
+      const finalImageUrl = isPublished
+        ? (item.image_url || undefined) // 배포 완료: 저장된 URL만 사용
+        : (checkedImageUrl !== undefined ? checkedImageUrl : item.image_url || undefined); // 배포 대기: 확인된 URL 사용
       
       // ✅ 이미지 개수 조회 (배치 처리 결과 사용)
       const feedImageCount = feedImageCountMap.get(feedKey) || 0;

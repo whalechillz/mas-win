@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, Upload, Sparkles, X, RotateCcw, List, ChevronDown, ChevronUp } from 'lucide-react';
 import GalleryPicker from '../GalleryPicker';
 import ProfileMessageList from './ProfileMessageList';
@@ -36,6 +36,7 @@ interface ProfileManagerProps {
   calendarData?: any;
   selectedDate?: string;
   onBasePromptUpdate?: (type: 'background' | 'profile', basePrompt: string) => void;
+  publishStatus?: 'created' | 'published'; // ✅ 배포 상태 추가
 }
 
 export default function ProfileManager({
@@ -47,7 +48,8 @@ export default function ProfileManager({
   accountKey,
   calendarData,
   selectedDate,
-  onBasePromptUpdate
+  onBasePromptUpdate,
+  publishStatus = 'created' // ✅ 배포 상태 기본값
 }: ProfileManagerProps) {
   const [showBackgroundGallery, setShowBackgroundGallery] = useState(false);
   const [showProfileGallery, setShowProfileGallery] = useState(false);
@@ -62,17 +64,121 @@ export default function ProfileManager({
   const [isBackgroundPromptExpanded, setIsBackgroundPromptExpanded] = useState(false);
   const [isProfilePromptExpanded, setIsProfilePromptExpanded] = useState(false);
   const [isRegeneratingWithTextOption, setIsRegeneratingWithTextOption] = useState<{ background: string | null; profile: string | null }>({ background: null, profile: null });
+  // ✅ 제품 합성 관련 상태
+  const [enableProductComposition, setEnableProductComposition] = useState<{ background: boolean; profile: boolean }>({ background: false, profile: false });
+  const [selectedProductId, setSelectedProductId] = useState<{ background: string | undefined; profile: string | undefined }>({ background: undefined, profile: undefined });
+  const [products, setProducts] = useState<any[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [isComposingProduct, setIsComposingProduct] = useState<{ background: boolean; profile: boolean }>({ background: false, profile: false });
+  const [selectedProductCategory, setSelectedProductCategory] = useState<{ background: string | undefined; profile: string | undefined }>({ background: undefined, profile: undefined });
+
+  // ✅ 제품 목록 로드 (드라이버, 모자, 액세서리)
+  useEffect(() => {
+    const loadProducts = async () => {
+      setIsLoadingProducts(true);
+      try {
+        // 드라이버, 모자, 액세서리 모두 로드
+        const [driverRes, hatRes, accessoryRes] = await Promise.all([
+          fetch('/api/admin/product-composition?category=driver&active=true'),
+          fetch('/api/admin/product-composition?category=hat&active=true'),
+          fetch('/api/admin/product-composition?category=accessory&active=true')
+        ]);
+        
+        const [driverData, hatData, accessoryData] = await Promise.all([
+          driverRes.json(),
+          hatRes.json(),
+          accessoryRes.json()
+        ]);
+        
+        const allProducts: any[] = [];
+        if (driverData.success && driverData.products) {
+          allProducts.push(...driverData.products.map((p: any) => ({ ...p, category: 'driver' })));
+        }
+        if (hatData.success && hatData.products) {
+          allProducts.push(...hatData.products.map((p: any) => ({ ...p, category: 'hat' })));
+        }
+        if (accessoryData.success && accessoryData.products) {
+          allProducts.push(...accessoryData.products.map((p: any) => ({ ...p, category: 'accessory' })));
+        }
+        
+        setProducts(allProducts);
+      } catch (error) {
+        console.error('제품 목록 로드 실패:', error);
+      } finally {
+        setIsLoadingProducts(false);
+      }
+    };
+    loadProducts();
+  }, []);
+
+  // ✅ 선택한 제품의 compositionTarget 가져오기
+  const getCompositionTarget = (productId: string | undefined, type: 'background' | 'profile'): 'hands' | 'head' | 'body' | 'accessory' => {
+    if (!productId) return 'hands';
+    const product = products.find(p => p.id === productId);
+    if (!product) return 'hands';
+    
+    // 제품의 compositionTarget이 있으면 사용, 없으면 카테고리에 따라 기본값 설정
+    if (product.composition_target) {
+      return product.composition_target;
+    }
+    
+    // 카테고리에 따라 기본값 설정
+    if (product.category === 'driver') return 'hands';
+    if (product.category === 'hat') return 'head';
+    if (product.category === 'accessory') return 'accessory';
+    return 'hands';
+  };
 
   const handleGenerateBackground = async () => {
+    // ✅ 배포 완료 상태면 차단
+    if (publishStatus === 'published') {
+      alert('배포 완료 상태에서는 이미지를 재생성할 수 없습니다. 배포 대기로 변경해주세요.');
+      return;
+    }
+
     try {
       setIsGeneratingBackground(true);
       const result = await onGenerateImage('background', profileData.background.prompt);
       if (result.imageUrls.length > 0) {
+        let finalImageUrl = result.imageUrls[0];
+        
+        // ✅ 제품 합성 활성화 시 제품 합성 수행
+        if (enableProductComposition.background && selectedProductId.background) {
+          setIsComposingProduct(prev => ({ ...prev, background: true }));
+          try {
+            const compositionTarget = getCompositionTarget(selectedProductId.background, 'background');
+            const composeResponse = await fetch('/api/compose-product-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                modelImageUrl: finalImageUrl,
+                productId: selectedProductId.background,
+                compositionTarget: compositionTarget, // 선택한 제품의 compositionTarget 사용
+                compositionMethod: 'nano-banana-pro',
+                baseImageUrl: finalImageUrl // 저장 위치 결정용
+              })
+            });
+            
+            if (composeResponse.ok) {
+              const composeResult = await composeResponse.json();
+              if (composeResult.success && composeResult.composedImageUrl) {
+                finalImageUrl = composeResult.composedImageUrl;
+                console.log('✅ 배경 이미지 제품 합성 완료:', composeResult.product?.name);
+              }
+            }
+          } catch (composeError: any) {
+            console.error('제품 합성 실패, 원본 이미지 사용:', composeError);
+            // 합성 실패해도 원본 이미지는 사용
+          } finally {
+            setIsComposingProduct(prev => ({ ...prev, background: false }));
+          }
+        }
+        
         onUpdate({
           ...profileData,
           background: {
             ...profileData.background,
-            imageUrl: result.imageUrls[0],
+            imageUrl: finalImageUrl,
             prompt: result.generatedPrompt || profileData.background.prompt // 생성된 프롬프트 저장
           }
         });
@@ -85,15 +191,55 @@ export default function ProfileManager({
   };
 
   const handleGenerateProfile = async () => {
+    // ✅ 배포 완료 상태면 차단
+    if (publishStatus === 'published') {
+      alert('배포 완료 상태에서는 이미지를 재생성할 수 없습니다. 배포 대기로 변경해주세요.');
+      return;
+    }
+
     try {
       setIsGeneratingProfile(true);
       const result = await onGenerateImage('profile', profileData.profile.prompt);
       if (result.imageUrls.length > 0) {
+        let finalImageUrl = result.imageUrls[0];
+        
+        // ✅ 제품 합성 활성화 시 제품 합성 수행
+        if (enableProductComposition.profile && selectedProductId.profile) {
+          setIsComposingProduct(prev => ({ ...prev, profile: true }));
+          try {
+            const compositionTarget = getCompositionTarget(selectedProductId.profile, 'profile');
+            const composeResponse = await fetch('/api/compose-product-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                modelImageUrl: finalImageUrl,
+                productId: selectedProductId.profile,
+                compositionTarget: compositionTarget, // 선택한 제품의 compositionTarget 사용
+                compositionMethod: 'nano-banana-pro',
+                baseImageUrl: finalImageUrl // 저장 위치 결정용
+              })
+            });
+            
+            if (composeResponse.ok) {
+              const composeResult = await composeResponse.json();
+              if (composeResult.success && composeResult.composedImageUrl) {
+                finalImageUrl = composeResult.composedImageUrl;
+                console.log('✅ 프로필 이미지 제품 합성 완료:', composeResult.product?.name);
+              }
+            }
+          } catch (composeError: any) {
+            console.error('제품 합성 실패, 원본 이미지 사용:', composeError);
+            // 합성 실패해도 원본 이미지는 사용
+          } finally {
+            setIsComposingProduct(prev => ({ ...prev, profile: false }));
+          }
+        }
+        
         onUpdate({
           ...profileData,
           profile: {
             ...profileData.profile,
-            imageUrl: result.imageUrls[0],
+            imageUrl: finalImageUrl,
             prompt: result.generatedPrompt || profileData.profile.prompt // 생성된 프롬프트 저장
           }
         });
@@ -107,6 +253,12 @@ export default function ProfileManager({
 
   // 이미지 자동 복구 함수 (갤러리에서 해당 날짜 이미지 찾기)
   const handleAutoRecoverImage = async (type: 'background' | 'profile') => {
+    // ✅ 배포 완료 상태면 자동 복구 차단
+    if (publishStatus === 'published') {
+      console.info(`ℹ️ ${type} 이미지 자동 복구 차단: 배포 완료 상태에서는 이미지가 고정됩니다.`);
+      return;
+    }
+
     if (!selectedDate || !accountKey) {
       console.warn('날짜 또는 계정 정보가 없어 자동 복구를 수행할 수 없습니다.');
       return;
@@ -154,6 +306,12 @@ export default function ProfileManager({
 
   // 이미지 에러 핸들러
   const handleImageError = async (type: 'background' | 'profile', event: React.SyntheticEvent<HTMLImageElement>) => {
+    // ✅ 배포 완료 상태면 자동 복구 차단
+    if (publishStatus === 'published') {
+      console.info(`ℹ️ ${type} 이미지 로드 실패: 배포 완료 상태에서는 자동 복구하지 않습니다.`);
+      return;
+    }
+
     const img = event.currentTarget;
     console.info(`ℹ️ ${type} 이미지 로드 실패, 자동 복구 시도 중:`, img.src);
     
@@ -268,7 +426,7 @@ export default function ProfileManager({
       modifiedPrompt = `${modifiedPrompt}. ${ageSpec}. ${brandSpec}`;
       
       // 프롬프트 재생성 없이 직접 이미지 생성 API 호출
-      const account = accountKey || (account.tone === 'gold' ? 'account1' : 'account2');
+      const accountTypeForApi = accountKey || (account.tone === 'gold' ? 'account1' : 'account2');
       
       const response = await fetch('/api/kakao-content/generate-images', {
         method: 'POST',
@@ -501,25 +659,100 @@ export default function ProfileManager({
                 </div>
               )}
               <button
-                onClick={() => onUpdate({
-                  ...profileData,
-                  background: {
-                    ...profileData.background,
-                    imageUrl: undefined
+                onClick={() => {
+                  // ✅ 배포 완료 상태면 차단
+                  if (publishStatus === 'published') {
+                    alert('배포 완료 상태에서는 이미지를 삭제할 수 없습니다. 배포 대기로 변경해주세요.');
+                    return;
                   }
-                })}
-                className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
-                title="이미지 삭제"
+                  onUpdate({
+                    ...profileData,
+                    background: {
+                      ...profileData.background,
+                      imageUrl: undefined
+                    }
+                  });
+                }}
+                disabled={publishStatus === 'published'}
+                className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                title={publishStatus === 'published' ? '배포 완료 상태에서는 이미지를 삭제할 수 없습니다.' : '이미지 삭제'}
               >
                 <X className="w-3 h-3" />
               </button>
             </div>
           )}
           
+          {/* ✅ 제품 합성 옵션 */}
+          <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+            <div className="flex items-center gap-2 mb-2">
+              <input
+                type="checkbox"
+                id="enable-product-composition-background"
+                checked={enableProductComposition.background}
+                onChange={(e) => {
+                  setEnableProductComposition(prev => ({ ...prev, background: e.target.checked }));
+                  if (!e.target.checked) {
+                    setSelectedProductId(prev => ({ ...prev, background: undefined }));
+                    setSelectedProductCategory(prev => ({ ...prev, background: undefined }));
+                  }
+                }}
+                disabled={publishStatus === 'published'}
+                className="w-4 h-4"
+              />
+              <label htmlFor="enable-product-composition-background" className="text-gray-700 font-medium">
+                제품 합성 활성화
+              </label>
+            </div>
+            {enableProductComposition.background && (
+              <div className="space-y-2">
+                <select
+                  value={selectedProductCategory.background || ''}
+                  onChange={(e) => {
+                    setSelectedProductCategory(prev => ({ ...prev, background: e.target.value || undefined }));
+                    setSelectedProductId(prev => ({ ...prev, background: undefined })); // 카테고리 변경 시 제품 선택 초기화
+                  }}
+                  disabled={publishStatus === 'published' || isLoadingProducts}
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                >
+                  <option value="">카테고리 선택...</option>
+                  <option value="driver">드라이버</option>
+                  <option value="hat">모자</option>
+                  <option value="accessory">액세서리</option>
+                </select>
+                {selectedProductCategory.background && (
+                  <select
+                    value={selectedProductId.background || ''}
+                    onChange={(e) => setSelectedProductId(prev => ({ ...prev, background: e.target.value || undefined }))}
+                    disabled={publishStatus === 'published' || isLoadingProducts}
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                  >
+                    <option value="">제품 선택...</option>
+                    {products
+                      .filter((product) => product.category === selectedProductCategory.background)
+                      .map((product) => (
+                        <option key={product.id} value={product.id}>
+                          {product.name} {product.badge ? `(${product.badge})` : ''}
+                        </option>
+                      ))}
+                  </select>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-2 flex-wrap items-center">
             <button
-              onClick={() => setShowBackgroundGallery(true)}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm"
+              onClick={() => {
+                // ✅ 배포 완료 상태면 차단
+                if (publishStatus === 'published') {
+                  alert('배포 완료 상태에서는 이미지를 변경할 수 없습니다. 배포 대기로 변경해주세요.');
+                  return;
+                }
+                setShowBackgroundGallery(true);
+              }}
+              disabled={publishStatus === 'published'}
+              className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              title={publishStatus === 'published' ? '배포 완료 상태에서는 이미지를 변경할 수 없습니다. 배포 대기로 변경해주세요.' : '갤러리에서 선택'}
             >
               <Image className="w-4 h-4" />
               갤러리에서 선택
@@ -527,13 +760,14 @@ export default function ProfileManager({
             <div className="flex items-center gap-1">
               <button
                 onClick={handleGenerateBackground}
-                disabled={isGeneratingBackground || isGenerating}
+                disabled={isGeneratingBackground || isGenerating || publishStatus === 'published' || isComposingProduct.background}
                 className="flex items-center gap-2 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm disabled:opacity-50"
+                title={publishStatus === 'published' ? '배포 완료 상태에서는 이미지를 재생성할 수 없습니다.' : (profileData.background.imageUrl ? '이미지 재생성' : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성'))}
               >
-                {isGeneratingBackground ? (
+                {isGeneratingBackground || isComposingProduct.background ? (
                   <>
                     <Sparkles className="w-4 h-4 animate-spin" />
-                    생성 중...
+                    {isComposingProduct.background ? '제품 합성 중...' : '생성 중...'}
                   </>
                 ) : (
                   <>
@@ -676,25 +910,100 @@ export default function ProfileManager({
                 </div>
               )}
               <button
-                onClick={() => onUpdate({
-                  ...profileData,
-                  profile: {
-                    ...profileData.profile,
-                    imageUrl: undefined
+                onClick={() => {
+                  // ✅ 배포 완료 상태면 차단
+                  if (publishStatus === 'published') {
+                    alert('배포 완료 상태에서는 이미지를 삭제할 수 없습니다. 배포 대기로 변경해주세요.');
+                    return;
                   }
-                })}
-                className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
-                title="이미지 삭제"
+                  onUpdate({
+                    ...profileData,
+                    profile: {
+                      ...profileData.profile,
+                      imageUrl: undefined
+                    }
+                  });
+                }}
+                disabled={publishStatus === 'published'}
+                className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                title={publishStatus === 'published' ? '배포 완료 상태에서는 이미지를 삭제할 수 없습니다.' : '이미지 삭제'}
               >
                 <X className="w-3 h-3" />
               </button>
             </div>
           )}
           
+          {/* ✅ 제품 합성 옵션 */}
+          <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+            <div className="flex items-center gap-2 mb-2">
+              <input
+                type="checkbox"
+                id="enable-product-composition-profile"
+                checked={enableProductComposition.profile}
+                onChange={(e) => {
+                  setEnableProductComposition(prev => ({ ...prev, profile: e.target.checked }));
+                  if (!e.target.checked) {
+                    setSelectedProductId(prev => ({ ...prev, profile: undefined }));
+                    setSelectedProductCategory(prev => ({ ...prev, profile: undefined }));
+                  }
+                }}
+                disabled={publishStatus === 'published'}
+                className="w-4 h-4"
+              />
+              <label htmlFor="enable-product-composition-profile" className="text-gray-700 font-medium">
+                제품 합성 활성화
+              </label>
+            </div>
+            {enableProductComposition.profile && (
+              <div className="space-y-2">
+                <select
+                  value={selectedProductCategory.profile || ''}
+                  onChange={(e) => {
+                    setSelectedProductCategory(prev => ({ ...prev, profile: e.target.value || undefined }));
+                    setSelectedProductId(prev => ({ ...prev, profile: undefined })); // 카테고리 변경 시 제품 선택 초기화
+                  }}
+                  disabled={publishStatus === 'published' || isLoadingProducts}
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                >
+                  <option value="">카테고리 선택...</option>
+                  <option value="driver">드라이버</option>
+                  <option value="hat">모자</option>
+                  <option value="accessory">액세서리</option>
+                </select>
+                {selectedProductCategory.profile && (
+                  <select
+                    value={selectedProductId.profile || ''}
+                    onChange={(e) => setSelectedProductId(prev => ({ ...prev, profile: e.target.value || undefined }))}
+                    disabled={publishStatus === 'published' || isLoadingProducts}
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                  >
+                    <option value="">제품 선택...</option>
+                    {products
+                      .filter((product) => product.category === selectedProductCategory.profile)
+                      .map((product) => (
+                        <option key={product.id} value={product.id}>
+                          {product.name} {product.badge ? `(${product.badge})` : ''}
+                        </option>
+                      ))}
+                  </select>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-2 flex-wrap items-center">
             <button
-              onClick={() => setShowProfileGallery(true)}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm"
+              onClick={() => {
+                // ✅ 배포 완료 상태면 차단
+                if (publishStatus === 'published') {
+                  alert('배포 완료 상태에서는 이미지를 변경할 수 없습니다. 배포 대기로 변경해주세요.');
+                  return;
+                }
+                setShowProfileGallery(true);
+              }}
+              disabled={publishStatus === 'published'}
+              className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              title={publishStatus === 'published' ? '배포 완료 상태에서는 이미지를 변경할 수 없습니다. 배포 대기로 변경해주세요.' : '갤러리에서 선택'}
             >
               <Image className="w-4 h-4" />
               갤러리에서 선택
@@ -702,13 +1011,14 @@ export default function ProfileManager({
             <div className="flex items-center gap-1">
               <button
                 onClick={handleGenerateProfile}
-                disabled={isGeneratingProfile || isGenerating}
+                disabled={isGeneratingProfile || isGenerating || publishStatus === 'published' || isComposingProduct.profile}
                 className="flex items-center gap-2 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm disabled:opacity-50"
+                title={publishStatus === 'published' ? '배포 완료 상태에서는 이미지를 재생성할 수 없습니다.' : (profileData.profile.imageUrl ? '이미지 재생성' : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성'))}
               >
-                {isGeneratingProfile ? (
+                {isGeneratingProfile || isComposingProduct.profile ? (
                   <>
                     <Sparkles className="w-4 h-4 animate-spin" />
-                    생성 중...
+                    {isComposingProduct.profile ? '제품 합성 중...' : '생성 중...'}
                   </>
                 ) : (
                   <>
@@ -778,6 +1088,13 @@ export default function ProfileManager({
       <GalleryPicker
         isOpen={showBackgroundGallery}
         onSelect={(imageUrl) => {
+          // ✅ 배포 완료 상태면 차단
+          if (publishStatus === 'published') {
+            alert('배포 완료 상태에서는 이미지를 변경할 수 없습니다. 배포 대기로 변경해주세요.');
+            setShowBackgroundGallery(false);
+            return;
+          }
+
           // 프롬프트가 없으면 기본값 설정
           const currentPrompt = profileData.background.prompt || profileData.background.image || '';
           
@@ -812,6 +1129,13 @@ export default function ProfileManager({
       <GalleryPicker
         isOpen={showProfileGallery}
         onSelect={(imageUrl) => {
+          // ✅ 배포 완료 상태면 차단
+          if (publishStatus === 'published') {
+            alert('배포 완료 상태에서는 이미지를 변경할 수 없습니다. 배포 대기로 변경해주세요.');
+            setShowProfileGallery(false);
+            return;
+          }
+
           // 프롬프트가 없으면 기본값 설정
           const currentPrompt = profileData.profile.prompt || profileData.profile.image || '';
           

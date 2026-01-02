@@ -28,4 +28,3 @@ COMMENT ON COLUMN kakao_friend_mappings.phone IS '전화번호 (정규화된 형
 COMMENT ON COLUMN kakao_friend_mappings.nickname IS '카카오 친구 닉네임';
 COMMENT ON COLUMN kakao_friend_mappings.thumbnail_image IS '프로필 썸네일 이미지 URL';
 COMMENT ON COLUMN kakao_friend_mappings.synced_at IS '마지막 동기화 시간';
-

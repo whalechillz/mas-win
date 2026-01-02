@@ -46,6 +46,7 @@ export default function SurveysPage() {
   const [savingGiftRecord, setSavingGiftRecord] = useState(false);
   const [autoSaveGift, setAutoSaveGift] = useState(false);
   const [updatingEventCandidates, setUpdatingEventCandidates] = useState(false);
+  const [recommendingPrizes, setRecommendingPrizes] = useState(false);
   const [messageModal, setMessageModal] = useState<{
     open: boolean;
     survey: Survey | null;
@@ -434,6 +435,35 @@ export default function SurveysPage() {
     }
   };
 
+  // 경품 추천 고객 조회 및 다운로드
+  const handleRecommendPrizes = async () => {
+    setRecommendingPrizes(true);
+    try {
+      // MD 파일 다운로드
+      const res = await fetch('/api/admin/surveys/recommend-prizes?format=md');
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `prize-recommendation-${new Date().toISOString().split('T')[0]}.md`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        alert('경품 추천 목록이 다운로드되었습니다.');
+      } else {
+        const json = await res.json();
+        alert(json.message || '경품 추천 조회에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('경품 추천 오류:', error);
+      alert(error.message || '경품 추천 중 오류가 발생했습니다.');
+    } finally {
+      setRecommendingPrizes(false);
+    }
+  };
+
   // 선물 지급 완료된 설문을 일괄 업데이트 (설문 연결 + 체크박스 업데이트)
   const handleBulkUpdateEventCandidates = async () => {
     if (!confirm('선물 지급 완료된 고객의 설문을 자동으로 연결하고 "선물 지급 완료"로 일괄 업데이트하시겠습니까?\n\n- 설문에 연결되지 않은 선물을 전화번호/이름으로 자동 매칭\n- 연결된 설문의 gift_delivered 체크박스 자동 업데이트')) {
@@ -736,13 +766,22 @@ export default function SurveysPage() {
                   <span className="text-sm text-gray-700">
                     일괄 작업
                   </span>
-                  <button
-                    onClick={handleBulkUpdateEventCandidates}
-                    disabled={updatingEventCandidates}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                  >
-                    {updatingEventCandidates ? '업데이트 중...' : '🎁 선물 지급 설문 자동 연결 및 업데이트'}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleRecommendPrizes}
+                      disabled={recommendingPrizes}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    >
+                      {recommendingPrizes ? '생성 중...' : '🎁 경품 추천 목록 다운로드'}
+                    </button>
+                    <button
+                      onClick={handleBulkUpdateEventCandidates}
+                      disabled={updatingEventCandidates}
+                      className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    >
+                      {updatingEventCandidates ? '업데이트 중...' : '🎁 선물 지급 설문 자동 연결 및 업데이트'}
+                    </button>
+                  </div>
                 </>
               )}
             </div>

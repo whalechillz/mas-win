@@ -135,6 +135,12 @@ export default function KakaoAccountEditor({
   };
 
   const handleRegenerate = async () => {
+    // ✅ 배포 완료 상태면 차단
+    if (publishStatus === 'published') {
+      alert('배포 완료 상태에서는 이미지를 재생성할 수 없습니다. 배포 대기로 변경해주세요.');
+      return;
+    }
+
     if (!confirm('기존 이미지를 모두 삭제하고 재생성하시겠습니까?\n\n⚠️ 기존 이미지가 모두 삭제되고 새로운 이미지가 생성됩니다.')) {
       return;
     }
@@ -173,6 +179,12 @@ export default function KakaoAccountEditor({
   // 부분 생성 핸들러
   const handlePartialGenerate = async (type: 'background' | 'profile' | 'feed' | 'message' | 'caption') => {
     setShowPartialGenerateMenu(false);
+    
+    // ✅ 이미지 생성 타입이면 배포 상태 확인
+    if (publishStatus === 'published' && ['background', 'profile', 'feed'].includes(type)) {
+      alert('배포 완료 상태에서는 이미지를 생성할 수 없습니다. 배포 대기로 변경해주세요.');
+      return;
+    }
     
     try {
       setIsGenerating(true);
@@ -276,6 +288,12 @@ export default function KakaoAccountEditor({
   // 부분 재생성 핸들러
   const handlePartialRegenerate = async (type: 'background' | 'profile' | 'feed' | 'message' | 'caption' | 'all') => {
     setShowPartialRegenerateMenu(false);
+    
+    // ✅ 이미지 생성 타입이면 배포 상태 확인
+    if (publishStatus === 'published' && ['background', 'profile', 'feed', 'all'].includes(type)) {
+      alert('배포 완료 상태에서는 이미지를 재생성할 수 없습니다. 배포 대기로 변경해주세요.');
+      return;
+    }
     
     if (type === 'all') {
       await handleRegenerate();
@@ -774,6 +792,7 @@ export default function KakaoAccountEditor({
           calendarData={calendarData}
           selectedDate={selectedDate}
           onBasePromptUpdate={onBasePromptUpdate}
+          publishStatus={publishStatus} // ✅ 배포 상태 전달
         />
       </div>
 
@@ -792,6 +811,7 @@ export default function KakaoAccountEditor({
           accountKey={accountKey}
           calendarData={calendarData}
           selectedDate={selectedDate}
+          publishStatus={publishStatus} // ✅ 배포 상태 전달
           onBasePromptUpdate={async (basePrompt: string) => {
             // 피드용 basePrompt 업데이트 핸들러
             if (calendarData && accountKey && selectedDate && setCalendarData && saveCalendarData) {

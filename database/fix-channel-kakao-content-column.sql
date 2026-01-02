@@ -24,3 +24,4 @@ WHERE content IS NULL AND message_text IS NOT NULL;
 -- ALTER TABLE channel_kakao RENAME COLUMN message_text TO content;
 
 
+

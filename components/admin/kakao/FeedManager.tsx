@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, Sparkles, X, RotateCcw, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import GalleryPicker from '../GalleryPicker';
 
@@ -55,6 +55,7 @@ interface FeedManagerProps {
   calendarData?: any;
   selectedDate?: string;
   onBasePromptUpdate?: (basePrompt: string) => void;
+  publishStatus?: 'created' | 'published'; // ✅ 배포 상태 추가
 }
 
 export default function FeedManager({
@@ -66,7 +67,8 @@ export default function FeedManager({
   accountKey,
   calendarData,
   selectedDate,
-  onBasePromptUpdate
+  onBasePromptUpdate,
+  publishStatus = 'created' // ✅ 배포 상태 기본값
 }: FeedManagerProps) {
   const [showGallery, setShowGallery] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
@@ -76,9 +78,81 @@ export default function FeedManager({
   const [isRegeneratingWithTextOption, setIsRegeneratingWithTextOption] = useState<string | null>(null);
   // 프롬프트 토글 상태
   const [isPromptExpanded, setIsPromptExpanded] = useState(false);
+  // ✅ 제품 합성 관련 상태
+  const [enableProductComposition, setEnableProductComposition] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<string | undefined>();
+  const [products, setProducts] = useState<any[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [isComposingProduct, setIsComposingProduct] = useState(false);
+
+  // ✅ 제품 합성 관련 상태 추가
+  const [selectedProductCategory, setSelectedProductCategory] = useState<string | undefined>();
+
+  // ✅ 제품 목록 로드 (드라이버, 모자, 액세서리)
+  useEffect(() => {
+    const loadProducts = async () => {
+      setIsLoadingProducts(true);
+      try {
+        // 드라이버, 모자, 액세서리 모두 로드
+        const [driverRes, hatRes, accessoryRes] = await Promise.all([
+          fetch('/api/admin/product-composition?category=driver&active=true'),
+          fetch('/api/admin/product-composition?category=hat&active=true'),
+          fetch('/api/admin/product-composition?category=accessory&active=true')
+        ]);
+        
+        const [driverData, hatData, accessoryData] = await Promise.all([
+          driverRes.json(),
+          hatRes.json(),
+          accessoryRes.json()
+        ]);
+        
+        const allProducts: any[] = [];
+        if (driverData.success && driverData.products) {
+          allProducts.push(...driverData.products.map((p: any) => ({ ...p, category: 'driver' })));
+        }
+        if (hatData.success && hatData.products) {
+          allProducts.push(...hatData.products.map((p: any) => ({ ...p, category: 'hat' })));
+        }
+        if (accessoryData.success && accessoryData.products) {
+          allProducts.push(...accessoryData.products.map((p: any) => ({ ...p, category: 'accessory' })));
+        }
+        
+        setProducts(allProducts);
+      } catch (error) {
+        console.error('제품 목록 로드 실패:', error);
+      } finally {
+        setIsLoadingProducts(false);
+      }
+    };
+    loadProducts();
+  }, []);
+
+  // ✅ 선택한 제품의 compositionTarget 가져오기
+  const getCompositionTarget = (productId: string | undefined): 'hands' | 'head' | 'body' | 'accessory' => {
+    if (!productId) return 'hands';
+    const product = products.find(p => p.id === productId);
+    if (!product) return 'hands';
+    
+    // 제품의 compositionTarget이 있으면 사용, 없으면 카테고리에 따라 기본값 설정
+    if (product.composition_target) {
+      return product.composition_target;
+    }
+    
+    // 카테고리에 따라 기본값 설정
+    if (product.category === 'driver') return 'hands';
+    if (product.category === 'hat') return 'head';
+    if (product.category === 'accessory') return 'accessory';
+    return 'hands';
+  };
 
   // 이미지 자동 복구 함수 (갤러리에서 해당 날짜 이미지 찾기)
   const handleAutoRecoverImage = async () => {
+    // ✅ 배포 완료 상태면 자동 복구 차단
+    if (publishStatus === 'published') {
+      console.info('ℹ️ 피드 이미지 자동 복구 차단: 배포 완료 상태에서는 이미지가 고정됩니다.');
+      return;
+    }
+
     if (!selectedDate || !accountKey) {
       console.warn('날짜 또는 계정 정보가 없어 자동 복구를 수행할 수 없습니다.');
       return;
@@ -123,6 +197,12 @@ export default function FeedManager({
 
   // 이미지 에러 핸들러
   const handleImageError = async (event: React.SyntheticEvent<HTMLImageElement>) => {
+    // ✅ 배포 완료 상태면 자동 복구 차단
+    if (publishStatus === 'published') {
+      console.info('ℹ️ 피드 이미지 로드 실패: 배포 완료 상태에서는 자동 복구하지 않습니다.');
+      return;
+    }
+
     const img = event.currentTarget;
     console.warn('⚠️ 피드 이미지 로드 실패:', img.src);
     
@@ -197,6 +277,12 @@ export default function FeedManager({
 
   // 프롬프트 재생성 (basePrompt 기반)
   const handleRegeneratePrompt = async () => {
+    // ✅ 배포 완료 상태면 차단
+    if (publishStatus === 'published') {
+      alert('배포 완료 상태에서는 이미지를 재생성할 수 없습니다. 배포 대기로 변경해주세요.');
+      return;
+    }
+
     try {
       setIsRegeneratingPrompt(true);
       
@@ -252,13 +338,53 @@ export default function FeedManager({
   };
 
   const handleGenerateImage = async () => {
+    // ✅ 배포 완료 상태면 차단
+    if (publishStatus === 'published') {
+      alert('배포 완료 상태에서는 이미지를 재생성할 수 없습니다. 배포 대기로 변경해주세요.');
+      return;
+    }
+
     try {
       setIsGeneratingImage(true);
       const result = await onGenerateImage(feedData.imagePrompt);
       if (result.imageUrls.length > 0) {
+        let finalImageUrl = result.imageUrls[0];
+        
+        // ✅ 제품 합성 활성화 시 제품 합성 수행
+        if (enableProductComposition && selectedProductId) {
+          setIsComposingProduct(true);
+          try {
+            const compositionTarget = getCompositionTarget(selectedProductId);
+            const composeResponse = await fetch('/api/compose-product-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                modelImageUrl: finalImageUrl,
+                productId: selectedProductId,
+                compositionTarget: compositionTarget, // 선택한 제품의 compositionTarget 사용
+                compositionMethod: 'nano-banana-pro',
+                baseImageUrl: finalImageUrl // 저장 위치 결정용
+              })
+            });
+            
+            if (composeResponse.ok) {
+              const composeResult = await composeResponse.json();
+              if (composeResult.success && composeResult.composedImageUrl) {
+                finalImageUrl = composeResult.composedImageUrl;
+                console.log('✅ 피드 이미지 제품 합성 완료:', composeResult.product?.name);
+              }
+            }
+          } catch (composeError: any) {
+            console.error('제품 합성 실패, 원본 이미지 사용:', composeError);
+            // 합성 실패해도 원본 이미지는 사용
+          } finally {
+            setIsComposingProduct(false);
+          }
+        }
+        
         const updateData: FeedData = {
           ...feedData,
-          imageUrl: result.imageUrls[0],
+          imageUrl: finalImageUrl,
           imagePrompt: result.generatedPrompt || feedData.imagePrompt
         };
         
@@ -273,6 +399,12 @@ export default function FeedManager({
 
   // 로고 옵션으로 이미지 재생성 함수
   const handleRegenerateWithLogoOption = async (logoOption: 'logo' | 'full-brand' | 'none') => {
+    // ✅ 배포 완료 상태면 차단
+    if (publishStatus === 'published') {
+      alert('배포 완료 상태에서는 이미지를 재생성할 수 없습니다. 배포 대기로 변경해주세요.');
+      return;
+    }
+
     try {
       setIsRegeneratingWithTextOption(logoOption);
       
@@ -453,10 +585,77 @@ export default function FeedManager({
             </div>
           )}
           
+          {/* ✅ 제품 합성 옵션 */}
+          <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+            <div className="flex items-center gap-2 mb-2">
+              <input
+                type="checkbox"
+                id="enable-product-composition-feed"
+                checked={enableProductComposition}
+                onChange={(e) => {
+                  setEnableProductComposition(e.target.checked);
+                  if (!e.target.checked) {
+                    setSelectedProductId(undefined);
+                    setSelectedProductCategory(undefined);
+                  }
+                }}
+                disabled={publishStatus === 'published'}
+                className="w-4 h-4"
+              />
+              <label htmlFor="enable-product-composition-feed" className="text-gray-700 font-medium">
+                제품 합성 활성화
+              </label>
+            </div>
+            {enableProductComposition && (
+              <div className="space-y-2">
+                <select
+                  value={selectedProductCategory || ''}
+                  onChange={(e) => {
+                    setSelectedProductCategory(e.target.value || undefined);
+                    setSelectedProductId(undefined); // 카테고리 변경 시 제품 선택 초기화
+                  }}
+                  disabled={publishStatus === 'published' || isLoadingProducts}
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                >
+                  <option value="">카테고리 선택...</option>
+                  <option value="driver">드라이버</option>
+                  <option value="hat">모자</option>
+                  <option value="accessory">액세서리</option>
+                </select>
+                {selectedProductCategory && (
+                  <select
+                    value={selectedProductId || ''}
+                    onChange={(e) => setSelectedProductId(e.target.value || undefined)}
+                    disabled={publishStatus === 'published' || isLoadingProducts}
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                  >
+                    <option value="">제품 선택...</option>
+                    {products
+                      .filter((product) => product.category === selectedProductCategory)
+                      .map((product) => (
+                        <option key={product.id} value={product.id}>
+                          {product.name} {product.badge ? `(${product.badge})` : ''}
+                        </option>
+                      ))}
+                  </select>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-2 flex-wrap items-center">
             <button
-              onClick={() => setShowGallery(true)}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm"
+              onClick={() => {
+                // ✅ 배포 완료 상태면 차단
+                if (publishStatus === 'published') {
+                  alert('배포 완료 상태에서는 이미지를 변경할 수 없습니다. 배포 대기로 변경해주세요.');
+                  return;
+                }
+                setShowGallery(true);
+              }}
+              disabled={publishStatus === 'published'}
+              className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              title={publishStatus === 'published' ? '배포 완료 상태에서는 이미지를 변경할 수 없습니다. 배포 대기로 변경해주세요.' : '갤러리에서 선택'}
             >
               <Image className="w-4 h-4" />
               갤러리에서 선택
@@ -464,13 +663,14 @@ export default function FeedManager({
             <div className="flex items-center gap-1">
               <button
                 onClick={handleGenerateImage}
-                disabled={isGeneratingImage || isGenerating}
+                disabled={isGeneratingImage || isGenerating || publishStatus === 'published' || isComposingProduct}
                 className="flex items-center gap-2 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm disabled:opacity-50"
+                title={publishStatus === 'published' ? '배포 완료 상태에서는 이미지를 재생성할 수 없습니다.' : '이미지 재생성'}
               >
-                {isGeneratingImage ? (
+                {isGeneratingImage || isComposingProduct ? (
                   <>
                     <Sparkles className="w-4 h-4 animate-spin" />
-                    생성 중...
+                    {isComposingProduct ? '제품 합성 중...' : '생성 중...'}
                   </>
                 ) : (
                   <>
@@ -567,6 +767,13 @@ export default function FeedManager({
       <GalleryPicker
         isOpen={showGallery}
         onSelect={(imageUrl) => {
+          // ✅ 배포 완료 상태면 차단
+          if (publishStatus === 'published') {
+            alert('배포 완료 상태에서는 이미지를 변경할 수 없습니다. 배포 대기로 변경해주세요.');
+            setShowGallery(false);
+            return;
+          }
+
           // 프롬프트가 없으면 기본값 설정
           const currentPrompt = feedData.imagePrompt || '';
           

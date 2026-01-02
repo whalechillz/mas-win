@@ -174,3 +174,4 @@ CREATE TABLE kakao_recipient_groups (
 - 전화번호 형식 확인 (숫자만)
 - `kakao_friend_mappings` 테이블에 데이터 존재 확인
 
+
