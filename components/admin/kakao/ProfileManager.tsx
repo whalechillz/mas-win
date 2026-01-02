@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Image, Upload, Sparkles, X, RotateCcw, List } from 'lucide-react';
+import { Image, Upload, Sparkles, X, RotateCcw, List, ChevronDown, ChevronUp } from 'lucide-react';
 import GalleryPicker from '../GalleryPicker';
 import ProfileMessageList from './ProfileMessageList';
 
@@ -58,6 +58,9 @@ export default function ProfileManager({
   const [isRecoveringImage, setIsRecoveringImage] = useState<{ background: boolean; profile: boolean }>({ background: false, profile: false });
   const [isGeneratingBasePrompt, setIsGeneratingBasePrompt] = useState<{ background: boolean; profile: boolean }>({ background: false, profile: false });
   const [editingBasePrompt, setEditingBasePrompt] = useState<{ type: 'background' | 'profile' | null; value: string }>({ type: null, value: '' });
+  // 프롬프트 토글 상태
+  const [isBackgroundPromptExpanded, setIsBackgroundPromptExpanded] = useState(false);
+  const [isProfilePromptExpanded, setIsProfilePromptExpanded] = useState(false);
   const [isRegeneratingWithTextOption, setIsRegeneratingWithTextOption] = useState<{ background: string | null; profile: string | null }>({ background: null, profile: null });
 
   const handleGenerateBackground = async () => {
@@ -447,12 +450,23 @@ export default function ProfileManager({
             )}
           </div>
           
-          <div className="text-sm text-gray-600">
-            <strong>설명:</strong> {profileData.background.image}
-          </div>
+          {/* 프롬프트 토글 */}
           <div className="text-xs text-gray-500 flex items-start justify-between gap-2">
-            <div className="flex-1 break-words">
-              <strong>프롬프트:</strong> {profileData.background.prompt}
+            <div className="flex-1">
+              <button
+                onClick={() => setIsBackgroundPromptExpanded(!isBackgroundPromptExpanded)}
+                className="flex items-center gap-1 font-medium hover:text-gray-700"
+              >
+                {isBackgroundPromptExpanded ? (
+                  <ChevronUp className="w-3 h-3" />
+                ) : (
+                  <ChevronDown className="w-3 h-3" />
+                )}
+                <strong>프롬프트:</strong>
+              </button>
+              {isBackgroundPromptExpanded && (
+                <div className="mt-1 pl-5 break-words">{profileData.background.prompt}</div>
+              )}
             </div>
             <button
               onClick={() => handleRegeneratePrompt('background')}
@@ -612,12 +626,23 @@ export default function ProfileManager({
             )}
           </div>
           
-          <div className="text-sm text-gray-600">
-            <strong>설명:</strong> {profileData.profile.image}
-          </div>
+          {/* 프롬프트 토글 */}
           <div className="text-xs text-gray-500 flex items-start justify-between gap-2">
-            <div className="flex-1 break-words">
-              <strong>프롬프트:</strong> {profileData.profile.prompt}
+            <div className="flex-1">
+              <button
+                onClick={() => setIsProfilePromptExpanded(!isProfilePromptExpanded)}
+                className="flex items-center gap-1 font-medium hover:text-gray-700"
+              >
+                {isProfilePromptExpanded ? (
+                  <ChevronUp className="w-3 h-3" />
+                ) : (
+                  <ChevronDown className="w-3 h-3" />
+                )}
+                <strong>프롬프트:</strong>
+              </button>
+              {isProfilePromptExpanded && (
+                <div className="mt-1 pl-5 break-words">{profileData.profile.prompt}</div>
+              )}
             </div>
             <button
               onClick={() => handleRegeneratePrompt('profile')}

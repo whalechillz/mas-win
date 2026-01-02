@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Image, Sparkles, X, RotateCcw, RefreshCw } from 'lucide-react';
+import { Image, Sparkles, X, RotateCcw, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import GalleryPicker from '../GalleryPicker';
 
 interface FeedData {
@@ -74,6 +74,8 @@ export default function FeedManager({
   const [isRegeneratingPrompt, setIsRegeneratingPrompt] = useState(false);
   const [isRecoveringImage, setIsRecoveringImage] = useState(false);
   const [isRegeneratingWithTextOption, setIsRegeneratingWithTextOption] = useState<string | null>(null);
+  // 프롬프트 토글 상태
+  const [isPromptExpanded, setIsPromptExpanded] = useState(false);
 
   // 이미지 자동 복구 함수 (갤러리에서 해당 날짜 이미지 찾기)
   const handleAutoRecoverImage = async () => {
@@ -383,9 +385,23 @@ export default function FeedManager({
             </div>
           </div>
           
-          <div className="text-xs text-gray-500 max-h-20 overflow-y-auto flex items-start justify-between gap-2 mt-2">
-            <div className="flex-1 break-words">
-              <strong>프롬프트:</strong> {feedData.imagePrompt}
+          {/* 프롬프트 토글 */}
+          <div className="text-xs text-gray-500 flex items-start justify-between gap-2 mt-2">
+            <div className="flex-1">
+              <button
+                onClick={() => setIsPromptExpanded(!isPromptExpanded)}
+                className="flex items-center gap-1 font-medium hover:text-gray-700"
+              >
+                {isPromptExpanded ? (
+                  <ChevronUp className="w-3 h-3" />
+                ) : (
+                  <ChevronDown className="w-3 h-3" />
+                )}
+                <strong>프롬프트:</strong>
+              </button>
+              {isPromptExpanded && (
+                <div className="mt-1 pl-5 break-words max-h-40 overflow-y-auto">{feedData.imagePrompt}</div>
+              )}
             </div>
             <button
               onClick={handleRegeneratePrompt}

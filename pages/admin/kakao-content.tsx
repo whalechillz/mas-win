@@ -134,6 +134,13 @@ export default function KakaoContentPage() {
   const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(false); // 워크플로우 토글
   const [isVariationTestExpanded, setIsVariationTestExpanded] = useState(false); // 베리에이션 테스트 토글
   const [isVariationPreviewExpanded, setIsVariationPreviewExpanded] = useState(false); // 베리에이션 미리보기 토글
+  // 선택한 달 상태 (viewMode === 'month'일 때 사용)
+  const [selectedMonth, setSelectedMonth] = useState<{ year: number; month: number }>(() => {
+    const today = new Date();
+    return { year: today.getFullYear(), month: today.getMonth() + 1 };
+  });
+  // 달력 선택 모드 상태
+  const [isCalendarSelectionMode, setIsCalendarSelectionMode] = useState(false);
 
   // 오늘 날짜 계산
   useEffect(() => {
@@ -166,7 +173,7 @@ export default function KakaoContentPage() {
   }, [router.isReady, router.query]);
 
   // 날짜 범위 계산 함수
-  const getDateRange = (mode: 'today' | 'week' | 'month' | 'list') => {
+  const getDateRange = (mode: 'today' | 'week' | 'month' | 'list', targetMonth?: { year: number; month: number }) => {
     const today = new Date();
     const year = today.getFullYear();
     const month = today.getMonth();
@@ -194,13 +201,15 @@ export default function KakaoContentPage() {
       }
       return dates;
     } else {
-      // 이번 달
+      // 이번 달 또는 선택한 달
+      const targetYear = targetMonth?.year || year;
+      const targetMonthNum = targetMonth?.month || (month + 1);
       const dates = [];
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const daysInMonth = new Date(targetYear, targetMonthNum, 0).getDate();
       for (let i = 1; i <= daysInMonth; i++) {
-        const m = String(month + 1).padStart(2, '0');
+        const m = String(targetMonthNum).padStart(2, '0');
         const d = String(i).padStart(2, '0');
-        dates.push(`${year}-${m}-${d}`);
+        dates.push(`${targetYear}-${m}-${d}`);
       }
       return dates;
     }
@@ -208,6 +217,182 @@ export default function KakaoContentPage() {
 
   // ✅ 생성 옵션 모달 삭제로 인해 localStorage 로드 코드 제거
   // generationOptions는 이제 상수 (imageCount: 1)이므로 로드할 필요 없음
+
+  // 달력 뷰 렌더링 함수 (viewMode === 'month'일 때 사용)
+  const renderMonthCalendar = () => {
+    const { year, month } = selectedMonth;
+    const firstDay = new Date(year, month - 1, 1);
+    const lastDay = new Date(year, month, 0);
+    const daysInMonth = lastDay.getDate();
+    const startDayOfWeek = firstDay.getDay();
+    
+    const days = [];
+    // 빈 칸 추가 (첫 날 전까지)
+    for (let i = 0; i < startDayOfWeek; i++) {
+      days.push(null);
+    }
+    // 날짜 추가
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(i);
+    }
+    
+    const account1Schedule = calendarData?.profileContent?.account1?.dailySchedule || [];
+    const account2Schedule = calendarData?.profileContent?.account2?.dailySchedule || [];
+    const account1Map = new Map(account1Schedule.map((d: any) => [d.date, d]));
+    const account2Map = new Map(account2Schedule.map((d: any) => [d.date, d]));
+    
+    // 날짜 클릭 핸들러
+    const handleDateClick = (dateStr: string) => {
+      if (isCalendarSelectionMode) {
+        // 선택 모드: 체크박스 토글
+        if (selectedDates.includes(dateStr)) {
+          setSelectedDates(selectedDates.filter(d => d !== dateStr));
+        } else {
+          setSelectedDates([...selectedDates, dateStr]);
+        }
+      } else {
+        // 보기 모드: 해당 날짜로 이동
+        setSelectedDate(dateStr);
+        setSelectedDates([dateStr]);
+      }
+    };
+    
+    return (
+      <div className="mt-4 bg-white rounded-lg border border-gray-200 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (month === 1) {
+                  setSelectedMonth({ year: year - 1, month: 12 });
+                } else {
+                  setSelectedMonth({ year, month: month - 1 });
+                }
+              }}
+              className="p-2 hover:bg-gray-100 rounded"
+              title="이전 달"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <span className="text-lg font-semibold">
+              {year}년 {month}월
+            </span>
+            <button
+              onClick={() => {
+                if (month === 12) {
+                  setSelectedMonth({ year: year + 1, month: 1 });
+                } else {
+                  setSelectedMonth({ year, month: month + 1 });
+                }
+              }}
+              className="p-2 hover:bg-gray-100 rounded"
+              title="다음 달"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            {/* 선택 모드 토글 버튼 */}
+            <button
+              onClick={() => {
+                setIsCalendarSelectionMode(!isCalendarSelectionMode);
+                if (!isCalendarSelectionMode) {
+                  // 선택 모드로 전환 시 선택 초기화
+                  setSelectedDates([]);
+                }
+              }}
+              className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-colors ${
+                isCalendarSelectionMode
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              title={isCalendarSelectionMode ? '보기 모드로 전환' : '선택 모드로 전환'}
+            >
+              {isCalendarSelectionMode ? '보기 모드' : '선택 모드'}
+            </button>
+            {/* ✅ 전체 생성 버튼은 메인 UI 영역에만 표시하도록 제거 */}
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-7 gap-1">
+          {/* 요일 헤더 */}
+          {['일', '월', '화', '수', '목', '금', '토'].map(day => (
+            <div key={day} className="p-1.5 text-center text-xs font-medium text-gray-700 bg-gray-50 rounded">
+              {day}
+            </div>
+          ))}
+          
+          {/* 날짜 셀 */}
+          {days.map((day, index) => {
+            if (day === null) {
+              return <div key={index} className="h-16" />;
+            }
+            
+            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const account1Data = account1Map.get(dateStr);
+            const account2Data = account2Map.get(dateStr);
+            
+            // 계정별 상태 확인
+            const account1Status = account1Data?.status || 'empty';
+            const account2Status = account2Data?.status || 'empty';
+            const account1HasData = account1Data && (account1Data.background?.imageUrl || account1Data.profile?.imageUrl);
+            const account2HasData = account2Data && (account2Data.background?.imageUrl || account2Data.profile?.imageUrl);
+            
+            const isSelected = selectedDates.includes(dateStr);
+            const isToday = dateStr === todayStr;
+            
+            // 상태 색상 결정
+            const getStatusColor = (status: string, hasData: boolean) => {
+              if (status === 'published') return 'bg-green-500';
+              if (hasData) return 'bg-blue-500';
+              return 'bg-gray-300';
+            };
+            
+            return (
+              <button
+                key={index}
+                onClick={() => handleDateClick(dateStr)}
+                className={`
+                  h-16 rounded-lg transition-all text-sm relative
+                  ${isSelected 
+                    ? 'bg-blue-600 text-white font-bold ring-2 ring-blue-400' 
+                    : account1HasData || account2HasData
+                    ? 'bg-green-50 text-green-700 border border-green-300'
+                    : isToday
+                    ? 'bg-blue-50 text-blue-600 border-2 border-blue-300'
+                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                  }
+                `}
+              >
+                {/* 계정별 상태 표시 (좌측 상단) */}
+                <div className="absolute top-1 left-1 flex gap-0.5">
+                  <span 
+                    className={`w-1.5 h-1.5 rounded-full ${getStatusColor(account1Status, !!account1HasData)}`}
+                    title={`Account1: ${account1Status === 'published' ? '배포 완료' : account1HasData ? '생성 완료' : '미생성'}`}
+                  />
+                  <span 
+                    className={`w-1.5 h-1.5 rounded-full ${getStatusColor(account2Status, !!account2HasData)}`}
+                    title={`Account2: ${account2Status === 'published' ? '배포 완료' : account2HasData ? '생성 완료' : '미생성'}`}
+                  />
+                </div>
+                
+                {/* 날짜 및 체크 표시 */}
+                <div className="flex flex-col items-center justify-center h-full pt-2">
+                  <span className="text-sm font-medium">{day}</span>
+                  {isCalendarSelectionMode && isSelected && (
+                    <span className="text-xs mt-0.5">✓</span>
+                  )}
+                  {!isCalendarSelectionMode && (account1HasData || account2HasData) && (
+                    <span className="text-xs mt-0.5">✓</span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   // 캘린더 데이터 로드 함수 (재시도 로직 포함)
   const loadCalendarData = async (targetDate?: string, retryCount = 0) => {
@@ -314,17 +499,32 @@ export default function KakaoContentPage() {
 
   // 선택된 날짜가 변경될 때 해당 월의 데이터 로드
   useEffect(() => {
-    if (selectedDate) {
+    if (selectedDate && viewMode !== 'month') {
       const selectedDateObj = new Date(selectedDate);
-      const selectedMonth = `${selectedDateObj.getFullYear()}-${String(selectedDateObj.getMonth() + 1).padStart(2, '0')}`;
+      const selectedMonthStr = `${selectedDateObj.getFullYear()}-${String(selectedDateObj.getMonth() + 1).padStart(2, '0')}`;
       
       // 현재 로드된 월과 선택된 날짜의 월이 다르면 다시 로드
-      if (!calendarData || calendarData.month !== selectedMonth) {
+      if (!calendarData || calendarData.month !== selectedMonthStr) {
         loadCalendarData(selectedDate);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  }, [selectedDate, viewMode]);
+
+  // viewMode === 'month'일 때 선택한 달의 데이터 로드
+  useEffect(() => {
+    if (viewMode === 'month') {
+      const { year, month } = selectedMonth;
+      const firstDayOfMonth = `${year}-${String(month).padStart(2, '0')}-01`;
+      const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+      
+      // 캘린더 데이터가 없거나 다른 월이면 로드
+      if (!calendarData || calendarData.month !== monthStr) {
+        loadCalendarData(firstDayOfMonth);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode, selectedMonth]);
 
   // 공통 저장 함수 (Supabase에 저장)
   const saveCalendarData = async (updatedData: CalendarData): Promise<void> => {
@@ -1131,13 +1331,18 @@ export default function KakaoContentPage() {
         }
       }
 
-      // 캘린더 데이터 다시 로드
-      const today = new Date();
-      const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-      const res = await fetch(`/api/kakao-content/calendar-load?month=${monthStr}`);
-      const data = await res.json();
-      if (data.success && data.calendarData) {
-        setCalendarData(data.calendarData);
+      // ✅ 캘린더 데이터 다시 로드 (생성한 날짜의 월 기준)
+      if (datesToGenerate.length > 0) {
+        if (viewMode === 'month') {
+          // viewMode === 'month'일 때는 selectedMonth 사용
+          const { year, month } = selectedMonth;
+          const firstDayOfMonth = `${year}-${String(month).padStart(2, '0')}-01`;
+          await loadCalendarData(firstDayOfMonth);
+        } else {
+          // 생성한 날짜 중 첫 번째 날짜의 월 로드
+          const firstDate = datesToGenerate[0];
+          await loadCalendarData(firstDate);
+        }
       }
 
       // 결과 알림
@@ -1388,17 +1593,12 @@ export default function KakaoContentPage() {
                       오늘
                     </button>
                     <button
-                      onClick={() => setViewMode('week')}
-                      className={`px-3 py-1 rounded text-sm ${
-                        viewMode === 'week' 
-                          ? 'bg-blue-500 text-white' 
-                          : 'bg-gray-100 hover:bg-gray-200'
-                      }`}
-                    >
-                      이번 주
-                    </button>
-                    <button
-                      onClick={() => setViewMode('month')}
+                      onClick={() => {
+                        setViewMode('month');
+                        // 현재 달로 초기화
+                        const today = new Date();
+                        setSelectedMonth({ year: today.getFullYear(), month: today.getMonth() + 1 });
+                      }}
                       className={`px-3 py-1 rounded text-sm ${
                         viewMode === 'month' 
                           ? 'bg-blue-500 text-white' 
@@ -1440,40 +1640,62 @@ export default function KakaoContentPage() {
 
               {/* 자동 생성 버튼 */}
               <div className="flex items-center gap-2 flex-wrap">
-                {viewMode === 'week' && (
-                  <button
-                    onClick={async () => {
-                      const weekDates = getDateRange('week');
-                      setSelectedDates(weekDates);
-                      await handleSelectedDatesAutoCreate(weekDates);
-                    }}
-                    disabled={isCreatingAll}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium disabled:opacity-50"
-                    title="이번 주 전체 생성 (최대 7일)"
-                  >
-                    {isCreatingAll ? (
-                      <>
-                        <Loader className="w-4 h-4 animate-spin" />
-                        생성 중...
-                      </>
-                    ) : (
-                      <>
-                        <Rocket className="w-4 h-4" />
-                        이번 주 생성
-                      </>
-                    )}
-                  </button>
-                )}
                 {viewMode === 'month' && (
+                  <>
+                    {/* 날짜 선택 시: 선택된 날짜 생성 버튼 */}
+                    {selectedDates.length > 0 && selectedDates.length < getDateRange('month', selectedMonth).length && (
+                      <button
+                        onClick={() => handleSelectedDatesAutoCreate()}
+                        disabled={isCreatingAll}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50"
+                        title={`선택된 날짜 ${selectedDates.length}개 생성`}
+                      >
+                        {isCreatingAll ? (
+                          <>
+                            <Loader className="w-4 h-4 animate-spin" />
+                            생성 중...
+                          </>
+                        ) : (
+                          <>
+                            <Rocket className="w-4 h-4" />
+                            선택된 날짜 생성 ({selectedDates.length}개)
+                          </>
+                        )}
+                      </button>
+                    )}
+                    {/* 항상 표시: 전체 생성 버튼 */}
+                    <button
+                      onClick={async () => {
+                        const monthDates = getDateRange('month', selectedMonth);
+                        setSelectedDates(monthDates);
+                        await handleSelectedDatesAutoCreate(monthDates);
+                      }}
+                      disabled={isCreatingAll}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium disabled:opacity-50"
+                      title={`${selectedMonth.year}년 ${selectedMonth.month}월 전체 생성 (최대 31일)`}
+                    >
+                      {isCreatingAll ? (
+                        <>
+                          <Loader className="w-4 h-4 animate-spin" />
+                          생성 중...
+                        </>
+                      ) : (
+                        <>
+                          <Rocket className="w-4 h-4" />
+                          {selectedMonth.year}년 {selectedMonth.month}월 전체 생성
+                        </>
+                      )}
+                    </button>
+                  </>
+                )}
+                {viewMode !== 'month' && (
                   <button
-                    onClick={async () => {
-                      const monthDates = getDateRange('month');
-                      setSelectedDates(monthDates);
-                      await handleSelectedDatesAutoCreate(monthDates);
-                    }}
+                    onClick={() => handleSelectedDatesAutoCreate()}
                     disabled={isCreatingAll}
-                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium disabled:opacity-50"
-                    title="이번 달 전체 생성 (최대 31일)"
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50"
+                    title={selectedDates.length > 0 
+                      ? `${selectedDates.length}개 날짜 생성 (최대 7개)` 
+                      : '현재 날짜 생성'}
                   >
                     {isCreatingAll ? (
                       <>
@@ -1483,35 +1705,18 @@ export default function KakaoContentPage() {
                     ) : (
                       <>
                         <Rocket className="w-4 h-4" />
-                        이번 달 생성
+                        {selectedDates.length > 0 
+                          ? `선택된 날짜 생성 (${selectedDates.length}개)`
+                          : '오늘 날짜 생성'}
                       </>
                     )}
                   </button>
                 )}
-                <button
-                  onClick={() => handleSelectedDatesAutoCreate()}
-                  disabled={isCreatingAll}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50"
-                  title={selectedDates.length > 0 
-                    ? `${selectedDates.length}개 날짜 생성 (최대 7개)` 
-                    : '현재 날짜 생성'}
-                >
-                  {isCreatingAll ? (
-                    <>
-                      <Loader className="w-4 h-4 animate-spin" />
-                      생성 중...
-                    </>
-                  ) : (
-                    <>
-                      <Rocket className="w-4 h-4" />
-                      {selectedDates.length > 0 
-                        ? `선택된 날짜 생성 (${selectedDates.length}개)`
-                        : '오늘 날짜 생성'}
-                    </>
-                  )}
-                </button>
               </div>
             </div>
+
+            {/* 달력 뷰 (viewMode === 'month'일 때 표시) */}
+            {viewMode === 'month' && renderMonthCalendar()}
 
             {/* 생성 진행 상황 표시 */}
             {generationProgress && generationProgress.isRunning && (
