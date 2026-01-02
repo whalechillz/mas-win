@@ -38,7 +38,55 @@
 
 # 🎯 프로젝트 진행 현황
 
-## ✅ 최근 작업: 이번 달 생성 기능 추가 및 날짜 선택 기능 개선 (2026-01-16)
+## ✅ 최근 작업: Next.js 보안 취약점 업데이트 (2026-01-02)
+
+### 완료된 작업
+- **Next.js 보안 취약점 업데이트** ✅:
+  - `package.json`: Next.js 14.0.3 → 14.2.35로 업데이트
+  - `eslint-config-next`: 14.0.3 → 14.2.35로 업데이트
+  - Linux 전용 sharp 패키지를 `optionalDependencies`로 이동하여 macOS 개발 환경 호환성 개선
+  - 원인: Vercel에서 CVE-2025-55184 및 React2Shell Next.js +2 취약점 감지
+  - 해결: Next.js 14.x 최신 버전(14.2.35)으로 업데이트하여 보안 취약점 해결
+
+- **빌드 및 호환성 검증** ✅:
+  - 빌드 테스트 성공: `npm run build` 정상 완료
+  - Lint 검사: 기존 경고만 존재, 새로운 오류 없음
+  - 코드 호환성: middleware, next-auth, i18n 등 주요 기능 정상 작동 확인
+  - Pages Router, getServerSideProps, Image 컴포넌트 등 모든 기능 호환 확인
+
+### 변경된 파일
+- `package.json` (Next.js 14.2.35, eslint-config-next 14.2.35, optionalDependencies 추가)
+
+### 참고사항
+- 보안 취약점: axios, glob, js-yaml, jws, next-auth 등 기존 취약점 존재 (Next.js 업데이트와 무관)
+- Node.js 버전: 현재 v24.2.0 사용 중이나 package.json에는 20.x 명시 (경고만 발생, 빌드 정상)
+
+---
+
+## ✅ 이전 작업: 캘린더 로딩 최적화 및 504 에러 처리 개선 (2026-01-16)
+
+### 완료된 작업
+- **캘린더 로딩 최적화** ✅:
+  - `pages/api/kakao-content/calendar-load.js`: `skipImageCheck` 파라미터 추가하여 이미지 존재 확인을 선택적으로 수행
+  - 이미지 개수 조회를 배치 처리로 변경 (순차 처리 → Promise.all로 병렬 처리)
+  - 이미지 확인 타임아웃 5초 → 2초로 단축
+  - 타임아웃 감지 로직 추가: 80초 경과 시 이미지 확인 스킵, 85초 경과 시 부분 결과 반환
+  - 원인: 한 달치 데이터 처리 시 최대 180개 이미지 확인 및 180회 Storage API 호출로 인해 90초 타임아웃 초과
+  - 해결: 이미지 확인을 선택적으로 수행하고, 이미지 개수 조회를 배치 처리하여 처리 시간 단축
+
+- **504 에러 처리 개선** ✅:
+  - `pages/api/kakao-content/calendar-load.js`: 부분 결과 반환 로직 추가 (85초 경과 시)
+  - `pages/admin/kakao-content.tsx`: 클라이언트에서 재시도 로직 추가 (504 에러 시 최대 2회 재시도, 재시도 시 `skipImageCheck=true` 사용)
+  - 원인: 504 에러 발생 시 사용자가 수동으로 재시도해야 하고, 전체 데이터를 다시 로드해야 함
+  - 해결: 자동 재시도 및 부분 결과 반환으로 사용자 경험 개선
+
+### 변경된 파일
+- `pages/api/kakao-content/calendar-load.js` (이미지 확인 선택적 수행, 배치 처리, 타임아웃 단축, 부분 결과 반환)
+- `pages/admin/kakao-content.tsx` (재시도 로직 추가)
+
+---
+
+## ✅ 이전 작업: 이번 달 생성 기능 추가 및 날짜 선택 기능 개선 (2026-01-16)
 
 ### 완료된 작업
 - **이번 달 생성 버튼 추가** ✅:
