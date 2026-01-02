@@ -36,6 +36,13 @@
   - 원인: 데이터베이스 경로에 `composition/` 폴더가 누락되어 이미지가 표시되지 않음
   - 해결: 경로 자동 보정으로 실제 Storage 경로와 일치하도록 수정
 
+- **갤러리 선택 시 slug → 실제 폴더명 매핑 추가** ✅:
+  - `pages/admin/product-composition.tsx`: `getCompositionFolderPath` 함수 개선
+    - 드라이버 제품 slug → 실제 Storage 폴더명 매핑 추가
+    - `secret-force-pro-3` → `pro3`, `secret-force-v3` → `v3`, `secret-weapon-black` → `black-weapon`, `secret-weapon-4-1` → `gold-weapon4` 등
+  - 원인: 데이터베이스의 slug와 실제 Storage 폴더명이 달라 갤러리에서 이미지를 찾을 수 없음
+  - 해결: slug를 실제 폴더명으로 변환하여 올바른 경로 사용
+
 ---
 
 ## ✅ 이전 작업: 배포 완료 상태에서 이미지 잠금 기능 구현 (2026-01-16)
