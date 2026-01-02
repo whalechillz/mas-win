@@ -376,6 +376,7 @@ export default function ProductCompositionManagement() {
         'secret-weapon-black': 'black-weapon',
         'black-beryl': 'black-beryl',
         'secret-weapon-4-1': 'gold-weapon4',
+        'secret-weapon-gold-4-1': 'gold-weapon4', // ✅ 추가: 데이터베이스에 저장된 실제 slug
         'secret-force-gold-2': 'gold2',
         'gold2-sapphire': 'gold2-sapphire',
         'secret-force-pro-3': 'pro3',
