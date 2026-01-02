@@ -434,22 +434,28 @@ export default function SurveysPage() {
     }
   };
 
-  // 선물 지급 완료된 설문을 일괄 업데이트
+  // 선물 지급 완료된 설문을 일괄 업데이트 (설문 연결 + 체크박스 업데이트)
   const handleBulkUpdateEventCandidates = async () => {
-    if (!confirm('선물을 지급 완료한 모든 고객의 설문을 "선물 지급 완료"로 일괄 업데이트하시겠습니까?')) {
+    if (!confirm('선물 지급 완료된 고객의 설문을 자동으로 연결하고 "선물 지급 완료"로 일괄 업데이트하시겠습니까?\n\n- 설문에 연결되지 않은 선물을 전화번호/이름으로 자동 매칭\n- 연결된 설문의 gift_delivered 체크박스 자동 업데이트')) {
       return;
     }
 
     setUpdatingEventCandidates(true);
     try {
-      const res = await fetch('/api/admin/surveys/bulk-update-event-candidates', {
+      const res = await fetch('/api/admin/surveys/check-and-update-gifts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
 
       const json = await res.json();
       if (res.ok && json.success) {
-        alert(`총 ${json.updatedCount}개의 설문이 "선물 지급 완료"로 업데이트되었습니다.`);
+        const summary = json.summary || {};
+        alert(
+          `일괄 업데이트 완료!\n\n` +
+          `- 총 선물 지급: ${summary.totalGifts}건\n` +
+          `- 설문 연결: ${summary.giftsWithSurvey}건 (${summary.linkedCount}건 새로 연결)\n` +
+          `- 설문 체크 완료: ${summary.surveysChecked}건 (${summary.updatedCount}건 새로 체크)`
+        );
         fetchSurveys(); // 목록 새로고침
       } else {
         alert(json.message || '일괄 업데이트에 실패했습니다.');
@@ -735,7 +741,7 @@ export default function SurveysPage() {
                     disabled={updatingEventCandidates}
                     className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   >
-                    {updatingEventCandidates ? '업데이트 중...' : '🎁 선물 지급 완료된 설문 일괄 업데이트'}
+                    {updatingEventCandidates ? '업데이트 중...' : '🎁 선물 지급 설문 자동 연결 및 업데이트'}
                   </button>
                 </>
               )}

@@ -106,6 +106,70 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
+// 전화번호 정규화 함수 (하이픈 제거)
+function normalizePhone(phone: string | null | undefined): string | null {
+  if (!phone) return null;
+  return phone.replace(/[-\s]/g, '');
+}
+
+// 설문 자동 연결 함수
+async function autoLinkSurvey(customerId: number): Promise<string | null> {
+  try {
+    // 고객 정보 조회
+    const { data: customer, error: customerError } = await supabase
+      .from('customers')
+      .select('id, name, phone')
+      .eq('id', customerId)
+      .single();
+
+    if (customerError || !customer) {
+      return null;
+    }
+
+    const normalizedCustomerPhone = normalizePhone(customer.phone);
+    const customerName = customer.name?.trim();
+
+    // 1차: 전화번호로 설문 찾기
+    if (normalizedCustomerPhone) {
+      const { data: surveys } = await supabase
+        .from('surveys')
+        .select('id, phone, name')
+        .limit(100);
+
+      const matchingSurvey = surveys?.find((s) => {
+        const normalizedSurveyPhone = normalizePhone(s.phone);
+        return normalizedSurveyPhone === normalizedCustomerPhone;
+      });
+
+      if (matchingSurvey) {
+        return matchingSurvey.id;
+      }
+    }
+
+    // 2차: 이름으로 설문 찾기
+    if (customerName) {
+      const { data: surveysByName } = await supabase
+        .from('surveys')
+        .select('id, name, phone')
+        .ilike('name', customerName)
+        .limit(10);
+
+      const exactNameMatch = surveysByName?.find(
+        (s) => s.name?.trim() === customerName,
+      );
+
+      if (exactNameMatch) {
+        return exactNameMatch.id;
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error('[admin/customer-gifts] 설문 자동 연결 오류:', error);
+    return null;
+  }
+}
+
 async function handlePost(req: NextApiRequest, res: NextApiResponse) {
   try {
     const {
@@ -128,9 +192,15 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       });
     }
 
+    // survey_id가 없으면 자동으로 설문 찾기
+    let finalSurveyId = survey_id || null;
+    if (!finalSurveyId) {
+      finalSurveyId = await autoLinkSurvey(customer_id);
+    }
+
     const payload: any = {
       customer_id,
-      survey_id: survey_id || null,
+      survey_id: finalSurveyId,
       product_id: product_id || null,
       gift_text: gift_text || null,
       quantity: quantity || 1,
@@ -171,10 +241,19 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       });
     }
 
+    // 설문이 자동으로 연결되었고 delivery_status가 'sent'인 경우, 설문의 gift_delivered도 업데이트
+    if (finalSurveyId && delivery_status === 'sent' && !survey_id) {
+      await supabase
+        .from('surveys')
+        .update({ gift_delivered: true })
+        .eq('id', finalSurveyId);
+    }
+
     return res.status(201).json({
       success: true,
       message: '선물 기록이 추가되었습니다.',
       gift: data,
+      autoLinkedSurvey: !survey_id && !!finalSurveyId,
     });
   } catch (error: any) {
     console.error('[admin/customer-gifts][POST] ERROR', error);
@@ -206,6 +285,20 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
       });
     }
 
+    // 기존 선물 기록 조회 (customer_id 확인용)
+    const { data: existingGift } = await supabase
+      .from('customer_gifts')
+      .select('customer_id, survey_id')
+      .eq('id', id)
+      .single();
+
+    if (!existingGift) {
+      return res.status(404).json({
+        success: false,
+        message: '선물 기록을 찾을 수 없습니다.',
+      });
+    }
+
     const update: any = {};
 
     if (product_id !== undefined) update.product_id = product_id || null;
@@ -216,6 +309,14 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     if (delivery_date !== undefined) update.delivery_date = delivery_date || null;
     if (note !== undefined) update.note = note || null;
     if (gift_type !== undefined) update.gift_type = gift_type || 'normal';
+
+    // survey_id가 없으면 자동으로 설문 찾기
+    if (!existingGift.survey_id && existingGift.customer_id) {
+      const autoLinkedSurveyId = await autoLinkSurvey(existingGift.customer_id);
+      if (autoLinkedSurveyId) {
+        update.survey_id = autoLinkedSurveyId;
+      }
+    }
 
     if (Object.keys(update).length === 0) {
       return res.status(400).json({
@@ -271,10 +372,31 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
       });
     }
 
+    // 설문이 자동으로 연결되었고 delivery_status가 'sent'인 경우, 설문의 gift_delivered도 업데이트
+    if (update.survey_id && update.delivery_status === 'sent' && !existingGift.survey_id) {
+      await supabase
+        .from('surveys')
+        .update({ gift_delivered: true })
+        .eq('id', update.survey_id);
+    } else if (data?.survey_id && update.delivery_status === 'sent') {
+      // 기존에 설문이 연결되어 있고 delivery_status가 'sent'로 변경된 경우
+      await supabase
+        .from('surveys')
+        .update({ gift_delivered: true })
+        .eq('id', data.survey_id);
+    } else if (data?.survey_id && update.delivery_status === 'canceled') {
+      // delivery_status가 'canceled'로 변경된 경우
+      await supabase
+        .from('surveys')
+        .update({ gift_delivered: false })
+        .eq('id', data.survey_id);
+    }
+
     return res.status(200).json({
       success: true,
       message: '선물 기록이 수정되었습니다.',
       gift: data,
+      autoLinkedSurvey: !existingGift.survey_id && !!update.survey_id,
     });
   } catch (error: any) {
     console.error('[admin/customer-gifts][PUT] ERROR', error);

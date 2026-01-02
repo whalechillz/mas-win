@@ -56,19 +56,19 @@ async function syncCustomerToSurvey(surveyData: {
   address: string;
 }): Promise<number | null> {
   const normalizedPhone = normalizePhoneNumber(surveyData.phone);
-  const formattedPhone = formatPhoneNumber(normalizedPhone);
   
-  // 기존 고객 조회
-  const { data: existingCustomer, error: findError } = await supabase
+  // 기존 고객 조회 (정규화된 전화번호로 비교)
+  // 마이그레이션 후에는 직접 조회 가능하지만, 마이그레이션 전 데이터도 고려하여 정규화 비교
+  const { data: allCustomers } = await supabase
     .from('customers')
-    .select('id')
-    .eq('phone', formattedPhone)
-    .single();
+    .select('id, phone')
+    .limit(1000);
   
-  if (findError && findError.code !== 'PGRST116') { // PGRST116 = not found
-    console.error('고객 조회 오류:', findError);
-    return null;
-  }
+  const existingCustomer = allCustomers?.find((c) => {
+    if (!c.phone) return false;
+    const customerPhoneNormalized = normalizePhoneNumber(c.phone);
+    return customerPhoneNormalized === normalizedPhone;
+  });
   
   const now = new Date().toISOString();
   
@@ -78,6 +78,7 @@ async function syncCustomerToSurvey(surveyData: {
       .from('customers')
       .update({
         name: surveyData.name,
+        phone: normalizedPhone, // 정규화된 형식으로 저장
         age: surveyData.age,
         age_group: surveyData.age_group,
         address: surveyData.address || null,
@@ -98,7 +99,7 @@ async function syncCustomerToSurvey(surveyData: {
       .from('customers')
       .insert({
         name: surveyData.name,
-        phone: formattedPhone,
+        phone: normalizedPhone, // 정규화된 형식으로 저장
         age: surveyData.age,
         age_group: surveyData.age_group,
         address: surveyData.address || null,
@@ -171,7 +172,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .from('surveys')
       .insert({
         name,
-        phone: formatPhoneNumber(normalizedPhone),
+        phone: normalizedPhone, // 정규화된 형식으로 저장 (포맷팅하지 않음)
         age: ageNum,
         age_group: ageGroup,
         address,
