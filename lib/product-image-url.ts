@@ -152,7 +152,37 @@ export function getProductImageUrl(imagePath: string): string {
     }
   }
   
-  // originals/products/... 경로는 그대로 사용 (이미 새 형식)
+  // ✅ originals/products/... 또는 originals/goods/... 경로에서 composition/detail/gallery 폴더 누락 시 자동 추가
+  if (storagePath.startsWith('originals/products/') || storagePath.startsWith('originals/goods/')) {
+    const pathParts = storagePath.split('/');
+    
+    // originals/products/{slug}/filename.webp 또는 originals/goods/{slug}/filename.webp 형식인지 확인
+    // (즉, composition/detail/gallery 폴더가 없는 경우)
+    if (pathParts.length === 3 && pathParts[2].includes('.')) {
+      const slug = pathParts[1];
+      const fileName = pathParts[2];
+      const isGoods = storagePath.startsWith('originals/goods/');
+      
+      // 파일명으로 타입 추정
+      const imageType = fileName.includes('-sole-') || fileName.includes('-500')
+        ? 'composition'
+        : fileName.includes('gallery-')
+        ? 'gallery'
+        : isGoods
+        ? 'gallery' // goods는 기본적으로 gallery
+        : 'composition'; // 드라이버 제품 합성 이미지는 기본적으로 composition
+      
+      // composition/detail/gallery 폴더 추가
+      if (isGoods) {
+        storagePath = `originals/goods/${slug}/${imageType}/${fileName}`;
+      } else {
+        storagePath = `originals/products/${slug}/${imageType}/${fileName}`;
+      }
+      
+      console.log(`🔄 경로 자동 보정: ${cleanPath} → ${storagePath}`);
+    }
+  }
+  
   // Supabase Storage 공개 URL 직접 생성 (클라이언트 사이드에서도 안정적으로 작동)
   // 항상 하드코딩된 URL 사용 (확실하게 작동)
   const SUPABASE_BASE_URL = 'https://yyytjudftvpmcnppaymw.supabase.co';
