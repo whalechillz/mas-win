@@ -27,6 +27,15 @@
   - `color_variants`: 8개 업데이트
 - 검증 쿼리 실행: `database/verify-product-composition-paths.sql`로 남아있는 문제 확인 가능
 
+### 추가 수정 (2026-01-16)
+- **제품 이미지 경로 자동 보정 로직 추가** ✅:
+  - `lib/product-image-url.ts`: `getProductImageUrl` 함수 개선
+    - `originals/products/{slug}/filename.webp` 형식에서 `composition/`, `detail/`, `gallery/` 폴더 누락 시 자동 추가
+    - 파일명으로 타입 추정 (`-sole-`, `-500` → `composition`, `gallery-` → `gallery`)
+    - 드라이버 제품은 기본적으로 `composition`, goods는 `gallery` 사용
+  - 원인: 데이터베이스 경로에 `composition/` 폴더가 누락되어 이미지가 표시되지 않음
+  - 해결: 경로 자동 보정으로 실제 Storage 경로와 일치하도록 수정
+
 ---
 
 ## ✅ 이전 작업: 배포 완료 상태에서 이미지 잠금 기능 구현 (2026-01-16)
