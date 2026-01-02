@@ -251,27 +251,6 @@ export default async function handler(req, res) {
           return url.endsWith('.png') ? url.replace(/\.png$/, '.webp') : url;
         };
         
-        // 색상 변경이 요청된 경우 color_variants에서 해당 색상 이미지 사용
-        let productImageUrl = convertPngToWebp(supabaseProduct.image_url);
-        if (changeProductColor && productColor && supabaseProduct.color_variants) {
-          const colorVariants = supabaseProduct.color_variants;
-          const colorVariantImage = colorVariants[productColor] || colorVariants[productColor.toLowerCase()];
-          if (colorVariantImage) {
-            productImageUrl = convertPngToWebp(colorVariantImage);
-            console.log(`🎨 색상 변형 이미지 사용: ${productColor} → ${productImageUrl}`);
-          } else {
-            console.warn(`⚠️ 색상 변형 이미지 없음: ${productColor}, 기본 이미지 사용`);
-          }
-        }
-        
-        // color_variants 객체의 모든 값 변환
-        const convertedColorVariants = {};
-        if (supabaseProduct.color_variants) {
-          for (const [key, value] of Object.entries(supabaseProduct.color_variants)) {
-            convertedColorVariants[key] = convertPngToWebp(value);
-          }
-        }
-        
         // reference_images 배열 변환
         const convertedReferenceImages = (supabaseProduct.reference_images || []).map(img => convertPngToWebp(img));
         
@@ -279,19 +258,15 @@ export default async function handler(req, res) {
         product = {
           id: supabaseProduct.id,
           name: supabaseProduct.name,
-          displayName: supabaseProduct.display_name || supabaseProduct.name,
           category: supabaseProduct.category,
           compositionTarget: supabaseProduct.composition_target,
-          imageUrl: productImageUrl, // 색상 변형 이미지 또는 기본 이미지 (.png → .webp 변환됨)
+          imageUrl: convertPngToWebp(supabaseProduct.image_url), // 기본 이미지 (.png → .webp 변환됨)
           referenceImages: convertedReferenceImages, // .png → .webp 변환됨
           driverParts: supabaseProduct.driver_parts || undefined,
           hatType: supabaseProduct.hat_type,
           slug: supabaseProduct.slug,
-          badge: supabaseProduct.badge,
           description: supabaseProduct.description,
-          price: supabaseProduct.price,
           features: supabaseProduct.features || [],
-          colorVariants: convertedColorVariants, // .png → .webp 변환됨
         };
         console.log('✅ Supabase에서 제품 조회 성공:', product.id, product.name, 'imageUrl:', product.imageUrl);
       } else if (supabaseError) {
@@ -340,22 +315,15 @@ export default async function handler(req, res) {
       compositionPrompt = prompt || `Product-only shot, no people. ${backgroundPrompt}. High detail, sharp focus, 4k.`;
     }
     
-    // 색상 변경 처리: color_variants가 있으면 이미지 사용, 없으면 프롬프트 사용
+    // 색상 변경 처리: 프롬프트로 색상 변경
     if (changeProductColor && productColor) {
-      // color_variants에서 색상별 이미지가 있는 경우 프롬프트 없이 이미지만 사용
-      if (product.colorVariants && product.colorVariants[productColor]) {
-        console.log(`🎨 색상 변형 이미지 사용 (프롬프트 불필요): ${productColor}`);
-        // 이미 product.imageUrl이 색상 변형 이미지로 설정되어 있음
-      } else {
-        // color_variants가 없으면 프롬프트로 색상 변경 시도
-        const colorChangePrompt = generateColorChangePrompt(
-          product,
-          productColor,
-          targetCompositionTarget
-        );
-        compositionPrompt = `${compositionPrompt}. ${colorChangePrompt}`;
-        console.log('🎨 색상 변경 프롬프트 추가 (color_variants 없음):', productColor);
-      }
+      const colorChangePrompt = generateColorChangePrompt(
+        product,
+        productColor,
+        targetCompositionTarget
+      );
+      compositionPrompt = `${compositionPrompt}. ${colorChangePrompt}`;
+      console.log('🎨 색상 변경 프롬프트 추가:', productColor);
     }
     
     // 로고 교체 프롬프트 추가

@@ -9,13 +9,12 @@ import FolderImagePicker from '../../components/admin/FolderImagePicker';
 
 interface ProductComposition {
   id: string;
+  product_id?: number; // ✅ 추가: products 테이블 참조
   name: string;
-  display_name?: string;
   category: 'driver' | 'hat' | 'apparel' | 'accessory';
   composition_target: 'hands' | 'head' | 'body' | 'accessory';
   image_url: string;
   reference_images?: string[];
-  color_variants?: Record<string, string>;
   driver_parts?: {
     crown?: string[];
     sole?: string[];
@@ -23,9 +22,7 @@ interface ProductComposition {
   };
   hat_type?: 'bucket' | 'baseball' | 'visor';
   slug: string;
-  badge?: string;
   description?: string;
-  price?: string;
   features?: string[];
   is_active: boolean;
   display_order: number;
@@ -42,16 +39,12 @@ export default function ProductCompositionManagement() {
   const [editingProduct, setEditingProduct] = useState<ProductComposition | null>(null);
   const [formData, setFormData] = useState<Partial<ProductComposition>>({
     name: '',
-    display_name: '',
     category: 'hat',
     composition_target: 'head',
     image_url: '',
     reference_images: [],
-    color_variants: {},
     slug: '',
-    badge: '',
     description: '',
-    price: '',
     features: [],
     is_active: true,
     display_order: 0,
@@ -64,8 +57,6 @@ export default function ProductCompositionManagement() {
   }>({});
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingRefImage, setUploadingRefImage] = useState(false);
-  const [selectedColor, setSelectedColor] = useState<string>('default');
-  const [uploadingColorImage, setUploadingColorImage] = useState<string | null>(null);
   const [showGalleryPicker, setShowGalleryPicker] = useState(false);
   const [galleryPickerMode, setGalleryPickerMode] = useState<'image' | 'reference' | null>(null);
 
@@ -185,18 +176,15 @@ export default function ProductCompositionManagement() {
     setEditingProduct(product);
     setFormData({
       name: product.name,
-      display_name: product.display_name || product.name,
+      product_id: product.product_id,
       category: product.category,
       composition_target: product.composition_target,
       image_url: product.image_url,
       reference_images: product.reference_images || [],
-      color_variants: product.color_variants || {},
       driver_parts: product.driver_parts,
       hat_type: product.hat_type,
       slug: product.slug,
-      badge: product.badge,
       description: product.description,
-      price: product.price,
       features: product.features || [],
       is_active: product.is_active,
       display_order: product.display_order,
@@ -208,16 +196,12 @@ export default function ProductCompositionManagement() {
   const resetForm = () => {
     setFormData({
       name: '',
-      display_name: '',
       category: 'hat',
       composition_target: 'head',
       image_url: '',
       reference_images: [],
-      color_variants: {},
       slug: '',
-      badge: '',
       description: '',
-      price: '',
       features: [],
       is_active: true,
       display_order: 0,
@@ -414,54 +398,6 @@ export default function ProductCompositionManagement() {
     setGalleryPickerMode(null);
   };
 
-  // 색상별 이미지 업로드
-  const handleColorImageUpload = async (color: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!formData.slug || !formData.category) {
-      alert('제품 정보(Slug, 카테고리)를 먼저 입력해주세요.');
-      e.target.value = '';
-      return;
-    }
-
-    setUploadingColorImage(color);
-    try {
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', file);
-      uploadFormData.append('productSlug', formData.slug);
-      uploadFormData.append('category', formData.category);
-      uploadFormData.append('imageType', 'composition');
-
-      const response = await fetch('/api/admin/upload-product-image', {
-        method: 'POST',
-        body: uploadFormData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const currentVariants = formData.color_variants || {};
-        setFormData({
-          ...formData,
-          color_variants: {
-            ...currentVariants,
-            [color]: data.url
-          }
-        });
-        alert(`${color} 색상 이미지가 추가되었습니다.`);
-      } else {
-        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
-        alert(`오류: ${errorData.error || errorData.details || '이미지 업로드에 실패했습니다.'}`);
-      }
-    } catch (error) {
-      console.error('색상별 이미지 업로드 오류:', error);
-      alert('이미지 업로드 중 오류가 발생했습니다.');
-    } finally {
-      setUploadingColorImage(null);
-      e.target.value = '';
-    }
-  };
-
   // Slug 자동 생성
   const generateSlug = (name: string) => {
     return name
@@ -605,13 +541,8 @@ export default function ProductCompositionManagement() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm font-medium text-gray-900">
-                          {product.display_name || product.name}
+                          {product.name}
                         </div>
-                        {product.badge && (
-                          <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded">
-                            {product.badge}
-                          </span>
-                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {product.category}
@@ -715,17 +646,6 @@ export default function ProductCompositionManagement() {
                         required
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        표시명
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.display_name}
-                        onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                      />
-                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -767,35 +687,6 @@ export default function ProductCompositionManagement() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       이미지 URL *
                     </label>
-                    {/* 색상 선택 드롭다운 (color_variants가 있을 때만 표시) */}
-                    {formData.color_variants && Object.keys(formData.color_variants).length > 0 && (
-                      <div className="mb-2">
-                        <label className="block text-xs text-gray-600 mb-1">
-                          색상 선택
-                        </label>
-                        <select
-                          value={selectedColor}
-                          onChange={(e) => {
-                            setSelectedColor(e.target.value);
-                            if (e.target.value === 'default') {
-                              // 기본 이미지 URL 유지
-                            } else {
-                              // color_variants에서 선택한 색상 이미지 사용
-                              const colorImage = formData.color_variants?.[e.target.value];
-                              if (colorImage) {
-                                setFormData({ ...formData, image_url: colorImage });
-                              }
-                            }
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                        >
-                          <option value="default">기본 이미지</option>
-                          {Object.keys(formData.color_variants).map(color => (
-                            <option key={color} value={color}>{color}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
                     <div className="flex gap-2">
                     <input
                       type="text"
@@ -838,41 +729,6 @@ export default function ProductCompositionManagement() {
                         />
                       </div>
                     )}
-                    {/* 색상별 이미지 관리 섹션 */}
-                    {formData.color_variants && Object.keys(formData.color_variants).length > 0 && (
-                      <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                        <label className="block text-xs font-medium text-gray-700 mb-2">
-                          색상별 이미지 관리
-                        </label>
-                        <div className="space-y-2">
-                          {Object.entries(formData.color_variants).map(([color, imageUrl]) => (
-                            <div key={color} className="flex items-center gap-2">
-                              <span className="text-xs text-gray-600 w-16">{color}:</span>
-                              <input
-                                type="text"
-                                value={imageUrl}
-                                onChange={(e) => {
-                                  const newVariants = { ...formData.color_variants };
-                                  newVariants[color] = e.target.value;
-                                  setFormData({ ...formData, color_variants: newVariants });
-                                }}
-                                className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded"
-                              />
-                              <label className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 cursor-pointer">
-                                {uploadingColorImage === color ? '업로드 중...' : '📷'}
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => handleColorImageUpload(color, e)}
-                                  className="hidden"
-                                  disabled={uploadingColorImage === color}
-                                />
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   <div>
@@ -904,49 +760,6 @@ export default function ProductCompositionManagement() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        배지
-                      </label>
-                      <div className="flex gap-4">
-                        {['BEST', 'LIMITED', 'NEW'].map((badge) => (
-                          <label key={badge} className="flex items-center">
-                            <input
-                              type="radio"
-                              name="badge"
-                              checked={formData.badge === badge}
-                              onChange={() => setFormData({ ...formData, badge: formData.badge === badge ? '' : badge })}
-                              className="w-4 h-4 text-blue-600 border-gray-300"
-                            />
-                            <span className="ml-2 text-sm text-gray-700">{badge}</span>
-                          </label>
-                        ))}
-                        <label className="flex items-center">
-                      <input
-                            type="radio"
-                            name="badge"
-                            checked={!formData.badge || !['BEST', 'LIMITED', 'NEW'].includes(formData.badge)}
-                            onChange={() => setFormData({ ...formData, badge: '' })}
-                            className="w-4 h-4 text-blue-600 border-gray-300"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">없음</span>
-                        </label>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        가격
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.price}
-                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                        placeholder="1,700,000원"
-                      />
-                    </div>
-                  </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">

@@ -11,10 +11,9 @@ export type DriverPart = 'crown' | 'sole' | 'face' | 'full';
 export interface ProductForComposition {
   id: string;
   name: string;
-  displayName: string;
   category: ProductCategory; // 'driver' | 'hat' | 'apparel' | 'accessory'
   compositionTarget: CompositionTarget; // 'hands' | 'head' | 'body' | 'accessory'
-  imagㄴㄴeUrl: string; // 제품 단독 이미지 URL (합성에 사용)
+  imageUrl: string; // 제품 단독 이미지 URL (합성에 사용)
   referenceImages?: string[]; // 다양한 각도의 참조 이미지 배열 (뱃지/문구 없는 순수 헤드)
   driverParts?: {
     crown?: string[];
@@ -23,11 +22,8 @@ export interface ProductForComposition {
   };
   hatType?: HatType; // 'bucket' | 'baseball' | 'visor'
   slug: string;
-  badge?: string;
   description?: string;
-  price?: string;
   features?: string[];
-  colorVariants?: Record<string, string>; // 색상별 이미지 URL: { "black": "/path/to/black.png", "white": "/path/to/white.png", ... }
 }
 
 /**
@@ -38,7 +34,6 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
   {
     id: 'gold2-sapphire',
     name: '시크리트포스 골드 2 MUZIIK',
-    displayName: '시크리트포스 골드 2 MUZIIK',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
     imageUrl: '/main/products/gold2-sapphire/secret-force-gold-2-sole-500.webp',
@@ -50,15 +45,12 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
       '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_15.webp',
     ],
     slug: 'gold2-sapphire',
-    badge: 'BEST',
     description: '오토플렉스 티타늄 샤프트, ONE-FLEX A200·A215',
-    price: '2,200,000원',
     features: ['오토플렉스 티타늄 샤프트', 'ONE-FLEX A200·A215', '무제한 2년 헤드 보증'],
   },
   {
     id: 'black-beryl',
     name: '시크리트웨폰 블랙 MUZIIK',
-    displayName: '시크리트웨폰 블랙 MUZIIK',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
     imageUrl: '/main/products/black-beryl/secret-weapon-black-sole-500.webp',
@@ -71,15 +63,12 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
       '/main/products/black-beryl/massgoo_sw_black_muz_18.webp',
     ],
     slug: 'black-beryl',
-    badge: 'LIMITED',
     description: '풀 티타늄 4X 샤프트, 40g대, 최대 X 플렉스',
-    price: '2,200,000원',
     features: ['풀 티타늄 4X 샤프트', '40g대, 최대 X 플렉스', '2년 헤드 보증(최대 3회)'],
   },
   {
     id: 'gold2',
     name: '시크리트포스 골드 2',
-    displayName: '시크리트포스 골드 2',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
     imageUrl: '/main/products/gold2/secret-force-gold-2-sole-500.webp',
@@ -93,15 +82,12 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
       '/main/products/gold2/gold2_07.jpg',
     ],
     slug: 'gold2',
-    badge: 'BEST',
     description: 'DAT55G+ Grade 5 티타늄, 2.2mm 초박형 페이스, COR 0.87',
-    price: '1,700,000원',
     features: ['DAT55G+ Grade 5 티타늄', '2.2mm 초박형 페이스', 'COR 0.87'],
   },
   {
     id: 'pro3',
     name: '시크리트포스 PRO 3',
-    displayName: '시크리트포스 PRO 3',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
     imageUrl: '/main/products/pro3/secret-force-pro-3-sole-500.webp',
@@ -116,13 +102,11 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     ],
     slug: 'secret-force-pro-3',
     description: 'DAT55G 티타늄, 2.3mm 페이스, COR 0.86',
-    price: '1,150,000원',
     features: ['DAT55G 티타늄', '2.3mm 페이스', 'COR 0.86'],
   },
   {
     id: 'v3',
     name: '시크리트포스 V3',
-    displayName: '시크리트포스 V3',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
     imageUrl: '/main/products/v3/secret-force-v3-sole-350-bg.webp',
@@ -136,13 +120,11 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     ],
     slug: 'secret-force-v3',
     description: 'DAT55G 티타늄, 2.4mm 페이스, COR 0.85',
-    price: '950,000원',
     features: ['DAT55G 티타늄', '2.4mm 페이스', 'COR 0.85'],
   },
   {
     id: 'weapon-black',
     name: '시크리트웨폰 블랙',
-    displayName: '시크리트웨폰 블랙',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
     imageUrl: '/main/products/black-weapon/secret-weapon-black-sole-500.webp',
@@ -156,15 +138,12 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
       '/main/products/black-weapon/secret-weapon-black-gallery-07.webp',
     ],
     slug: 'secret-weapon-black',
-    badge: 'LIMITED',
     description: 'SP700 Grade 5 티타늄, 2.2mm 초박형 페이스, COR 0.87',
-    price: '1,700,000원',
     features: ['SP700 Grade 5 티타늄', '2.2mm 초박형 페이스', 'COR 0.87'],
   },
   {
     id: 'weapon-gold-4-1',
     name: '시크리트웨폰 골드 4.1',
-    displayName: '시크리트웨폰 골드 4.1',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
     imageUrl: '/main/products/gold-weapon4/secret-weapon-gold-4-1-sole-500.webp',
@@ -179,7 +158,6 @@ export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
     ],
     slug: 'secret-weapon-gold-4-1',
     description: 'SP700 Grade 5 티타늄, 2.2mm 초박형 페이스, COR 0.87',
-    price: '1,700,000원',
     features: ['SP700 Grade 5 티타늄', '2.2mm 초박형 페이스', 'COR 0.87'],
   },
 ];
@@ -469,7 +447,6 @@ export async function getProductsFromSupabase(
       return data.products.map((p: any) => ({
         id: p.id,
         name: p.name,
-        displayName: p.display_name || p.name,
         category: p.category as ProductCategory,
         compositionTarget: p.composition_target as CompositionTarget,
         imageUrl: getAbsoluteImageUrl(convertPngToWebp(p.image_url)), // 경로 변환 추가
@@ -481,16 +458,8 @@ export async function getProductsFromSupabase(
         } : undefined,
         hatType: p.hat_type as HatType | undefined,
         slug: p.slug,
-        badge: p.badge,
         description: p.description,
-        price: p.price,
         features: p.features || [],
-        colorVariants: Object.fromEntries(
-          Object.entries(convertPngToWebpInObject(p.color_variants || {})).map(([key, value]) => [
-            key,
-            getAbsoluteImageUrl(value as string)
-          ])
-        ), // color_variants 내부도 변환
       }));
     }
 
