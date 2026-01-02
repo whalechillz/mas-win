@@ -20,7 +20,12 @@
 - `database/fix-product-composition-main-paths.sql` (마이그레이션 SQL 생성)
 
 ### 다음 단계
-- Supabase SQL Editor에서 `database/fix-product-composition-main-paths.sql` 실행하여 데이터베이스 일괄 업데이트
+- ✅ Supabase SQL Editor에서 `database/fix-product-composition-main-paths.sql` 실행 완료
+- 업데이트 결과:
+  - `image_url`: 19개 업데이트
+  - `reference_images`: 2개 업데이트
+  - `color_variants`: 8개 업데이트
+- 검증 쿼리 실행: `database/verify-product-composition-paths.sql`로 남아있는 문제 확인 가능
 
 ---
 
