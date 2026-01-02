@@ -9,12 +9,21 @@ export default async function handler(req, res) {
 
     switch (req.method) {
       case 'GET':
-        // 제품 목록 조회
+        // 제품 목록 조회 (products 테이블과 조인)
         const { category, target, active } = req.query;
         
         let query = supabase
           .from('product_composition')
-          .select('*')
+          .select(`
+            *,
+            products:product_id (
+              id,
+              name,
+              slug,
+              category,
+              is_active
+            )
+          `)
           .order('display_order', { ascending: true });
 
         // 필터 적용

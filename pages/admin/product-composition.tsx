@@ -179,8 +179,8 @@ export default function ProductCompositionManagement() {
       product_id: product.product_id,
       category: product.category,
       composition_target: product.composition_target,
-      image_url: product.image_url,
-      reference_images: product.reference_images || [],
+      image_url: getCorrectedImageUrl(product.image_url),
+      reference_images: (product.reference_images || []).map((img: string) => getCorrectedImageUrl(img)),
       driver_parts: product.driver_parts,
       hat_type: product.hat_type,
       slug: product.slug,
@@ -342,6 +342,16 @@ export default function ProductCompositionManagement() {
     });
   };
 
+  // 이미지 경로 자동 수정 (hat-white-bucket → bucket-hat-muziik)
+  const getCorrectedImageUrl = (url: string): string => {
+    if (!url) return url;
+    // hat-white-bucket → bucket-hat-muziik 경로 수정
+    return url.replace(
+      'originals/goods/hat-white-bucket/',
+      'originals/goods/bucket-hat-muziik/'
+    );
+  };
+
   // 갤러리에서 이미지 선택
   const getCompositionFolderPath = (): string | undefined => {
     if (!formData.slug || !formData.category) return undefined;
@@ -352,7 +362,9 @@ export default function ProductCompositionManagement() {
     
     // 굿즈/액세서리: originals/goods/{slug}/composition
     if (formData.category === 'goods' || formData.category === 'hat' || formData.category === 'accessory') {
-      return `originals/goods/${formData.slug}/composition`;
+      // hat-white-bucket slug는 bucket-hat-muziik 폴더로 매핑
+      const folderSlug = formData.slug === 'hat-white-bucket' ? 'bucket-hat-muziik' : formData.slug;
+      return `originals/goods/${folderSlug}/composition`;
     } else {
       // ✅ 드라이버 제품: slug → 실제 폴더명 매핑 추가
       // 데이터베이스의 slug와 실제 Storage 폴더명이 다른 경우 처리
@@ -527,7 +539,7 @@ export default function ProductCompositionManagement() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="relative w-16 h-16 bg-gray-100 rounded overflow-hidden">
                           <Image
-                            src={getAbsoluteImageUrl(product.image_url)}
+                            src={getAbsoluteImageUrl(getCorrectedImageUrl(product.image_url))}
                             alt={product.name}
                             fill
                             className="object-contain"
@@ -551,8 +563,8 @@ export default function ProductCompositionManagement() {
                         {product.composition_target}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
-                        <div className="max-w-xs truncate" title={product.image_url}>
-                          {product.image_url}
+                        <div className="max-w-xs truncate" title={getCorrectedImageUrl(product.image_url)}>
+                          {getCorrectedImageUrl(product.image_url)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -717,7 +729,7 @@ export default function ProductCompositionManagement() {
                     {formData.image_url && (
                       <div className="mt-2 relative w-32 h-32 bg-gray-100 rounded overflow-hidden">
                         <Image
-                          src={getAbsoluteImageUrl(formData.image_url)}
+                          src={getAbsoluteImageUrl(getCorrectedImageUrl(formData.image_url))}
                           alt="미리보기"
                           fill
                           className="object-contain"
@@ -791,7 +803,7 @@ export default function ProductCompositionManagement() {
                             <div key={index} className="relative group">
                               <div className="relative w-full h-24 bg-gray-100 rounded overflow-hidden">
                                 <Image
-                                  src={getAbsoluteImageUrl(refImg)}
+                                  src={getAbsoluteImageUrl(getCorrectedImageUrl(refImg))}
                                   alt={`참조 이미지 ${index + 1}`}
                                   fill
                                   className="object-contain"
