@@ -233,7 +233,8 @@ export function generateCompositionPrompt(
     } else if (backgroundType === 'product-page') {
       prompt += ` The background should be a professional product photography studio setting with clean, minimalist background (white or light gray). High-end e-commerce product page style with professional lighting, soft shadows, and no distracting elements. The person should be positioned as if modeling the product for a product catalog or e-commerce website.`;
     } else {
-      prompt += ` Keep the original background exactly as it is.`;
+      // natural: 배경 완전히 유지
+      prompt += ` Keep the original background, lighting, shadows, and entire scene exactly as it is. Do not modify, regenerate, or change any part of the image except placing the hat on the person's head. The background must remain completely unchanged.`;
     }
     
     if (useReferenceImages && product.referenceImages && product.referenceImages.length > 0) {

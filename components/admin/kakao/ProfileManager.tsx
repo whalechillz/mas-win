@@ -155,6 +155,7 @@ export default function ProfileManager({
                 productId: selectedProductId.background,
                 compositionTarget: compositionTarget, // 선택한 제품의 compositionTarget 사용
                 compositionMethod: 'nano-banana-pro',
+                compositionBackground: 'natural', // 배경 유지 명시
                 baseImageUrl: finalImageUrl // 저장 위치 결정용
               })
             });
@@ -216,6 +217,7 @@ export default function ProfileManager({
                 productId: selectedProductId.profile,
                 compositionTarget: compositionTarget, // 선택한 제품의 compositionTarget 사용
                 compositionMethod: 'nano-banana-pro',
+                compositionBackground: 'natural', // 배경 유지 명시
                 baseImageUrl: finalImageUrl // 저장 위치 결정용
               })
             });

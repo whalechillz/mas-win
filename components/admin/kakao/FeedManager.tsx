@@ -363,6 +363,7 @@ export default function FeedManager({
                 productId: selectedProductId,
                 compositionTarget: compositionTarget, // 선택한 제품의 compositionTarget 사용
                 compositionMethod: 'nano-banana-pro',
+                compositionBackground: 'natural', // 배경 유지 명시
                 baseImageUrl: finalImageUrl // 저장 위치 결정용
               })
             });
