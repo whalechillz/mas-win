@@ -4262,9 +4262,17 @@ export default function GalleryAdmin() {
                       {/* 이미지 */}
                       <div className="aspect-square bg-gray-100">
                         <LazyImage
-                          src={image.url}
+                          src={`${image.url}?width=200&height=200&quality=80&resize=cover`}
+                          data-full-src={image.url}
                           alt={image.alt_text || image.name}
                           className={`w-full h-full object-cover ${(image as any).is_linked ? 'opacity-60' : ''}`}
+                          onError={(e) => {
+                            // 썸네일 실패 시 원본으로 폴백
+                            const target = e.target as HTMLImageElement;
+                            if (target.dataset.fullSrc && target.src !== target.dataset.fullSrc) {
+                              target.src = target.dataset.fullSrc;
+                            }
+                          }}
                         />
                       </div>
                       
