@@ -296,6 +296,12 @@ function determineOutputFormat(baseImageUrl, requestedFormat = null) {
           return 'jpeg';
         }
         
+        // AI 이미지 생성: JPG 85%
+        if (fullPath.startsWith('originals/ai-generated/')) {
+          console.log('📦 포맷 자동 결정: AI 이미지 생성 → JPG 85%');
+          return 'jpeg';
+        }
+        
         // SMS/MMS: JPG 85% (Solapi는 JPG만 지원)
         if (fullPath.includes('mms/') || fullPath.includes('sms/') || 
             fullPath.includes('solapi/') || baseImageUrl.includes('solapi')) {
@@ -307,6 +313,12 @@ function determineOutputFormat(baseImageUrl, requestedFormat = null) {
       // URL에서 직접 판단 (Solapi 관련)
       if (baseImageUrl.includes('solapi') || baseImageUrl.includes('sms') || baseImageUrl.includes('mms')) {
         console.log('📦 포맷 자동 결정: SMS/MMS (URL 기반) → JPG 85%');
+        return 'jpeg';
+      }
+      
+      // URL에서 직접 판단 (AI 이미지 생성 관련)
+      if (baseImageUrl.includes('ai-generated')) {
+        console.log('📦 포맷 자동 결정: AI 이미지 생성 (URL 기반) → JPG 85%');
         return 'jpeg';
       }
     } catch (err) {

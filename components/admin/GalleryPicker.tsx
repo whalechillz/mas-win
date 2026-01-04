@@ -832,7 +832,7 @@ const GalleryPicker: React.FC<Props> = ({
             <div className={`grid gap-2 sm:gap-6 ${compareImages.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'}`}>
               {compareImages.map((img, idx) => (
                 <div
-                  key={img.name}
+                  key={img.url || `${img.name}-${idx}`}
                   className="bg-white rounded-lg shadow-md overflow-hidden border-2 border-transparent hover:border-blue-400 transition-all"
                 >
                   <div className="relative aspect-square bg-gray-100">
@@ -1405,12 +1405,12 @@ const GalleryPicker: React.FC<Props> = ({
                   ? 'grid-cols-1 sm:grid-cols-2' // 2-3개일 때 모바일 1열, 데스크톱 2열
                   : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' // 4개 이상일 때 모바일 1열, 데스크톱 반응형
               }`}>
-              {filtered.map((img) => {
+              {filtered.map((img, idx) => {
                 const isCompareSelected = selectedForCompare.has(img.name);
                 const shouldHighlightCompare = showCompareMode && filtered.length >= 2 && filtered.length <= 3;
                 return (
                   <div
-                    key={img.name}
+                    key={img.url || `${img.name}-${img.folder_path || 'no-folder'}-${idx}`}
                     data-featured={isFeatured(img) ? 'true' : 'false'}
                     className={`bg-white border-2 rounded-xl overflow-hidden text-left group relative transition-all hover:shadow-lg ${
                       isFeatured(img)
