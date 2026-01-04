@@ -12,15 +12,19 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// 전체 개수 캐싱 (10분간 유효)
+// 전체 개수 캐싱 (15분간 유효)
 let totalCountCache = null;
 let cacheTimestamp = 0;
-const CACHE_DURATION = 10 * 60 * 1000; // 10분
+const CACHE_DURATION = 15 * 60 * 1000; // 15분
 
-// 이미지 목록 캐싱 (5분간 유효)
+// 이미지 목록 캐싱 (10분간 유효) - 폴더별 캐싱
 let imagesCache = new Map();
 let imagesCacheTimestamp = 0;
-const IMAGES_CACHE_DURATION = 5 * 60 * 1000; // 5분
+const IMAGES_CACHE_DURATION = 10 * 60 * 1000; // 10분
+
+// 폴더별 캐싱 추가
+const folderCache = new Map(); // 폴더별 캐시
+const folderCacheTimestamps = new Map(); // 폴더별 캐시 타임스탬프
 
 // 캐시 무효화 함수 (외부에서 호출 가능)
 export function invalidateCache() {
@@ -28,7 +32,10 @@ export function invalidateCache() {
   cacheTimestamp = 0;
   imagesCache.clear();
   imagesCacheTimestamp = 0;
-  console.log('🗑️ 이미지 목록 캐시 무효화 완료');
+  // 🔧 폴더별 캐시도 무효화
+  folderCache.clear();
+  folderCacheTimestamps.clear();
+  console.log('🗑️ 이미지 목록 캐시 무효화 완료 (폴더별 캐시 포함)');
 }
 
 // ✅ 메타데이터 품질 검증 함수
@@ -881,14 +888,21 @@ export default async function handler(req, res) {
       // allFilesForPagination은 아직 조회되지 않았을 수 있으므로, 일단 totalCount 사용 (나중에 실제 조회 후 업데이트)
       const totalPages = Math.ceil(totalCount / pageSize);
       
-      // 캐시된 이미지 목록 확인
-      const cacheKey = `${prefix || 'root'}_${includeChildren}`;
+      // 🔧 캐시 키 생성 (폴더 + 필터 조합)
+      const getCacheKey = (prefix, includeChildren, searchQuery, includeUsageInfo) => {
+        return `${prefix || 'all'}_${includeChildren}_${searchQuery || ''}_${includeUsageInfo || 'false'}`;
+      };
+      
+      const cacheKey = getCacheKey(prefix, includeChildren, searchTerm, includeUsageInfo);
       const currentTime = Date.now();
       let allFilesForPagination = [];
       
-      if (imagesCache.has(cacheKey) && (currentTime - imagesCacheTimestamp) < IMAGES_CACHE_DURATION) {
-        console.log('📊 캐시된 이미지 목록 사용:', cacheKey);
-        allFilesForPagination = imagesCache.get(cacheKey);
+      // 🔧 폴더별 캐시 확인
+      if (folderCache.has(cacheKey) && 
+          folderCacheTimestamps.has(cacheKey) &&
+          (currentTime - folderCacheTimestamps.get(cacheKey)) < IMAGES_CACHE_DURATION) {
+        console.log('📊 폴더별 캐시 사용:', cacheKey);
+        allFilesForPagination = folderCache.get(cacheKey);
       } else {
         console.log('📊 이미지 목록 새로 조회:', cacheKey);
         
@@ -1076,9 +1090,13 @@ export default async function handler(req, res) {
         allFilesForPagination.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         
         // 캐시에 저장
+        // 🔧 폴더별 캐시 저장
+        folderCache.set(cacheKey, allFilesForPagination);
+        folderCacheTimestamps.set(cacheKey, currentTime);
+        // 기존 캐시도 유지 (하위 호환성)
         imagesCache.set(cacheKey, allFilesForPagination);
         imagesCacheTimestamp = currentTime;
-        console.log('✅ 이미지 목록 캐시 저장:', allFilesForPagination.length, '개');
+        console.log('✅ 이미지 목록 캐시 저장:', allFilesForPagination.length, '개 (캐시 키:', cacheKey, ')');
       }
       
       // 페이지네이션 적용

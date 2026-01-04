@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, memo, useCallback } from 'react';
 import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import Link from 'next/link';
@@ -116,6 +116,9 @@ export default function GalleryAdmin() {
   
   // 초기 로드 추적을 위한 ref
   const initialLoadRef = useRef(true);
+  
+  // 프리로드 캐시
+  const prefetchCache = useRef<Map<number, ImageMetadata[]>>(new Map());
   
   // SEO 최적화된 파일명 생성 함수 (한글 자동 영문 변환)
   const generateSEOFileName = (title, keywords, index = 1) => {
@@ -608,20 +611,22 @@ export default function GalleryAdmin() {
     }
   };
 
-  // 이미지 비교 선택 토글
-  const toggleImageForCompare = (imageId: string) => {
-    const newSelected = new Set(selectedForCompare);
-    if (newSelected.has(imageId)) {
-      newSelected.delete(imageId);
-    } else {
-      if (newSelected.size >= 3) {
-        alert('최대 3개까지만 선택할 수 있습니다.');
-        return;
+  // 이미지 비교 선택 토글 (useCallback으로 최적화)
+  const toggleImageForCompare = useCallback((imageId: string) => {
+    setSelectedForCompare(prev => {
+      const newSelected = new Set(prev);
+      if (newSelected.has(imageId)) {
+        newSelected.delete(imageId);
+      } else {
+        if (newSelected.size >= 3) {
+          alert('최대 3개까지만 선택할 수 있습니다.');
+          return prev;
+        }
+        newSelected.add(imageId);
       }
-      newSelected.add(imageId);
-    }
-    setSelectedForCompare(newSelected);
-  };
+      return newSelected;
+    });
+  }, []);
 
   // 중복 제거 실행 핸들러
   const handleRemoveDuplicates = async () => {
@@ -1305,10 +1310,10 @@ export default function GalleryAdmin() {
   const [isNavigating, setIsNavigating] = useState(false);
   const thumbnailStripRef = useRef<HTMLDivElement>(null);
 
-  // 이미지의 고유 식별자 생성 (id가 있으면 사용, 없으면 name만 사용)
-  const getImageUniqueId = (image: ImageMetadata) => {
+  // 이미지의 고유 식별자 생성 (id가 있으면 사용, 없으면 name만 사용) - useCallback으로 최적화
+  const getImageUniqueId = useCallback((image: ImageMetadata) => {
     return image.id || image.name;
-  };
+  }, []);
 
   // 메뉴 외부 클릭 시 닫기
   useEffect(() => {
@@ -1606,6 +1611,31 @@ export default function GalleryAdmin() {
       const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${effectiveIncludeChildren}&includeUsageInfo=false${searchParam}${refreshParam}`);
       const data = await response.json();
       
+      // 🔧 프리로드 캐시 확인 (응답 후)
+      if (prefetchCache.current.has(page) && !reset && !forceRefresh && response.ok) {
+        const cachedImages = prefetchCache.current.get(page);
+        prefetchCache.current.delete(page); // 사용 후 삭제
+        
+        console.log(`✅ 프리로드 캐시 사용: ${page}페이지 (${cachedImages?.length || 0}개)`);
+        
+        // 프리로드된 데이터로 상태 업데이트
+        if (reset || page === 1) {
+          setImages(cachedImages || []);
+          setCurrentPage(1);
+        } else {
+          setImages(prev => {
+            const existingKeys = new Set(prev.map(img => getImageUniqueId(img)));
+            const newImages = (cachedImages || []).filter(img => !existingKeys.has(getImageUniqueId(img)));
+            return [...prev, ...newImages];
+          });
+          setCurrentPage(page);
+        }
+        setTotalCount(data.total || totalCount);
+        setIsLoading(false);
+        setIsLoadingMore(false);
+        return;
+      }
+      
       if (response.ok) {
         const list = data.images || [];
         
@@ -1759,6 +1789,66 @@ export default function GalleryAdmin() {
     }
   }, [selectedImageForZoom]);
 
+  // 🔧 다음 페이지 프리로드 (백그라운드)
+  useEffect(() => {
+    if (currentPage > 0 && hasMoreImages && !isLoading && !isLoadingMore) {
+      const nextPage = currentPage + 1;
+      
+      // 이미 프리로드된 경우 스킵
+      if (prefetchCache.current.has(nextPage)) {
+        return;
+      }
+      
+      // 백그라운드에서 다음 페이지 프리로드
+      const prefetchNextPage = async () => {
+        try {
+          const offset = nextPage * imagesPerPage;
+          const prefix = folderFilter === 'all' ? '' : (folderFilter === 'root' ? '' : encodeURIComponent(folderFilter));
+          const searchParam = searchQuery.trim() ? `&searchQuery=${encodeURIComponent(searchQuery.trim())}` : '';
+          
+          const response = await fetch(
+            `/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${includeChildren}&includeUsageInfo=false${searchParam}`,
+            { 
+              // 낮은 우선순위로 프리로드 (브라우저가 지원하는 경우)
+              signal: AbortSignal.timeout ? AbortSignal.timeout(30000) : undefined
+            } as RequestInit
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.images && data.images.length > 0) {
+              // 메타데이터 보강
+              const imagesWithMetadata = data.images.map((img: any) => ({
+                ...img,
+                id: img.id || `temp-${Date.now()}-${Math.random()}`,
+                alt_text: img.alt_text || '',
+                keywords: img.keywords || [],
+                title: img.title || '',
+                description: img.description || '',
+                category: img.category || '',
+                folder_path: img.folder_path || '',
+                is_featured: img.is_featured || false,
+                usage_count: img.usage_count || 0,
+                used_in_posts: img.used_in_posts || [],
+                has_metadata: img.has_metadata !== false
+              }));
+              
+              prefetchCache.current.set(nextPage, imagesWithMetadata);
+              console.log(`✅ 다음 페이지 프리로드 완료: ${nextPage}페이지 (${imagesWithMetadata.length}개)`);
+            }
+          }
+        } catch (error) {
+          // 프리로드 실패는 무시 (에러 로그만)
+          console.warn('⚠️ 프리로드 실패:', error);
+        }
+      };
+      
+      // 약간의 지연 후 프리로드 (현재 페이지 로딩 완료 후)
+      const timer = setTimeout(prefetchNextPage, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentPage, hasMoreImages, folderFilter, includeChildren, searchQuery, imagesPerPage, isLoading, isLoadingMore]);
+
   // 무한 스크롤 로드 (성능 최적화)
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -1836,36 +1926,40 @@ export default function GalleryAdmin() {
   // useEffect에서는 제거 (중복 호출 방지)
   // 필요 시 프로그래밍 방식으로 변경할 때만 여기서 처리
 
-  // 이미지 선택/해제
-  const toggleImageSelection = (image: ImageMetadata) => {
+  // 이미지 선택/해제 (useCallback으로 최적화)
+  const toggleImageSelection = useCallback((image: ImageMetadata) => {
     // 일반 선택 토글
     const imageId = getImageUniqueId(image);
-    const newSelected = new Set(selectedImages);
-    
-    if (newSelected.has(imageId)) {
-      newSelected.delete(imageId);
-    } else {
-      newSelected.add(imageId);
-    }
-    setSelectedImages(newSelected);
-    
-    // 비교 선택도 함께 업데이트 (최대 3개까지)
-    if (image.id) {
-      const newCompareSelected = new Set(selectedForCompare);
+    setSelectedImages(prev => {
+      const newSelected = new Set(prev);
       if (newSelected.has(imageId)) {
-        if (newCompareSelected.size < 3) {
-          newCompareSelected.add(image.id);
-        } else {
-          // 3개 초과 시 알림
-          alert('비교는 최대 3개까지만 선택할 수 있습니다.');
-          return;
-        }
+        newSelected.delete(imageId);
       } else {
-        newCompareSelected.delete(image.id);
+        newSelected.add(imageId);
       }
-      setSelectedForCompare(newCompareSelected);
-    }
-  };
+      
+      // 비교 선택도 함께 업데이트 (최대 3개까지)
+      if (image.id) {
+        setSelectedForCompare(prevCompare => {
+          const newCompareSelected = new Set(prevCompare);
+          if (newSelected.has(imageId)) {
+            if (newCompareSelected.size < 3) {
+              newCompareSelected.add(image.id);
+            } else {
+              // 3개 초과 시 알림
+              alert('비교는 최대 3개까지만 선택할 수 있습니다.');
+              return prevCompare;
+            }
+          } else {
+            newCompareSelected.delete(image.id);
+          }
+          return newCompareSelected;
+        });
+      }
+      
+      return newSelected;
+    });
+  }, [getImageUniqueId]);
 
   // 전체 선택/해제
   const toggleSelectAll = () => {
