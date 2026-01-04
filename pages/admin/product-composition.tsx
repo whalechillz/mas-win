@@ -11,7 +11,7 @@ interface ProductComposition {
   id: string;
   product_id?: number; // ✅ 추가: products 테이블 참조
   name: string;
-  category: 'driver' | 'hat' | 'apparel' | 'accessory';
+  category: 'driver' | 'cap' | 'apparel' | 'accessory';
   composition_target: 'hands' | 'head' | 'body' | 'accessory';
   image_url: string;
   reference_images?: string[];
@@ -39,7 +39,7 @@ export default function ProductCompositionManagement() {
   const [editingProduct, setEditingProduct] = useState<ProductComposition | null>(null);
   const [formData, setFormData] = useState<Partial<ProductComposition>>({
     name: '',
-    category: 'hat',
+    category: 'cap',
     composition_target: 'head',
     image_url: '',
     reference_images: [],
@@ -149,7 +149,7 @@ export default function ProductCompositionManagement() {
     }
   };
 
-  // 제품 삭제
+  // 제품 비활성화
   const handleDelete = async (id: string) => {
     if (!confirm('정말로 이 제품을 비활성화하시겠습니까?')) return;
     
@@ -163,10 +163,35 @@ export default function ProductCompositionManagement() {
         alert('제품이 비활성화되었습니다.');
       } else {
         const error = await response.json();
+        alert(`오류: ${error.error || '제품 비활성화에 실패했습니다.'}`);
+      }
+    } catch (error) {
+      console.error('제품 비활성화 오류:', error);
+      alert('제품 비활성화 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 제품 완전 삭제
+  const handleHardDelete = async (id: string, name: string) => {
+    if (!confirm(`정말 "${name}" 제품을 완전히 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다.\n제품 합성 데이터가 영구적으로 삭제됩니다.`)) return;
+    
+    try {
+      const response = await fetch(`/api/admin/product-composition?id=${id}`, {
+        method: 'DELETE',
+        headers: {
+          'X-Hard-Delete': 'true'
+        },
+      });
+
+      if (response.ok) {
+        await loadProducts();
+        alert('제품이 완전히 삭제되었습니다.');
+      } else {
+        const error = await response.json();
         alert(`오류: ${error.error || '제품 삭제에 실패했습니다.'}`);
       }
     } catch (error) {
-      console.error('제품 삭제 오류:', error);
+      console.error('제품 완전 삭제 오류:', error);
       alert('제품 삭제 중 오류가 발생했습니다.');
     }
   };
@@ -174,17 +199,62 @@ export default function ProductCompositionManagement() {
   // 수정 모드 시작
   const handleEdit = (product: ProductComposition) => {
     setEditingProduct(product);
+    
+    // 🔍 디버깅: 제품 데이터 확인
+    console.log('🔍 제품 수정 - 원본 데이터:', {
+      id: product.id,
+      name: product.name,
+      image_url: product.image_url,
+      reference_images: product.reference_images,
+      reference_images_type: typeof product.reference_images,
+      reference_images_isArray: Array.isArray(product.reference_images),
+      reference_images_length: Array.isArray(product.reference_images) ? product.reference_images.length : 'N/A',
+    });
+    
+    // 이미지 URL 정리
+    const mainImageUrl = product.image_url ? getCorrectedImageUrl(product.image_url) : '';
+    
+    // reference_images가 배열인지 확인하고 처리
+    let refImages: string[] = [];
+    if (product.reference_images) {
+      if (Array.isArray(product.reference_images)) {
+        refImages = product.reference_images
+          .map((img: string) => getCorrectedImageUrl(img))
+          .filter((img: string) => img && img.trim() !== '');
+      } else if (typeof product.reference_images === 'string') {
+        // 문자열인 경우 JSON 파싱 시도
+        try {
+          const parsed = JSON.parse(product.reference_images);
+          if (Array.isArray(parsed)) {
+            refImages = parsed
+              .map((img: string) => getCorrectedImageUrl(img))
+              .filter((img: string) => img && img.trim() !== '');
+          }
+        } catch (e) {
+          console.warn('⚠️ reference_images 파싱 실패:', e);
+        }
+      }
+    }
+    
+    // 🔍 디버깅: 처리된 이미지 확인
+    console.log('🔍 제품 수정 - 처리된 이미지:', {
+      mainImageUrl,
+      refImages,
+      refImagesCount: refImages.length,
+      totalImages: [mainImageUrl, ...refImages].filter(img => img).length,
+    });
+    
     setFormData({
       name: product.name,
       product_id: product.product_id,
       category: product.category,
       composition_target: product.composition_target,
-      image_url: getCorrectedImageUrl(product.image_url),
-      reference_images: (product.reference_images || []).map((img: string) => getCorrectedImageUrl(img)),
+      image_url: mainImageUrl,
+      reference_images: refImages,
       driver_parts: product.driver_parts,
       hat_type: product.hat_type,
       slug: product.slug,
-      description: product.description,
+      description: product.description || '', // null 체크
       features: product.features || [],
       is_active: product.is_active,
       display_order: product.display_order,
@@ -196,7 +266,7 @@ export default function ProductCompositionManagement() {
   const resetForm = () => {
     setFormData({
       name: '',
-      category: 'hat',
+      category: 'cap',
       composition_target: 'head',
       image_url: '',
       reference_images: [],
@@ -268,8 +338,18 @@ export default function ProductCompositionManagement() {
 
       if (response.ok) {
         const data = await response.json();
-        setFormData({ ...formData, image_url: data.url });
-        alert('이미지가 업로드되었습니다.');
+        const allImages = getAllImages();
+        
+        // 첫 번째 이미지면 대표로, 아니면 참조로 추가
+        if (allImages.length === 0) {
+          setFormData({ ...formData, image_url: data.url });
+        } else {
+          setFormData({ 
+            ...formData, 
+            reference_images: [...(formData.reference_images || []), data.url] 
+          });
+        }
+        alert('이미지가 추가되었습니다.');
       } else {
         const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
         console.error('업로드 오류 상세:', errorData);
@@ -284,56 +364,13 @@ export default function ProductCompositionManagement() {
     }
   };
 
-  // 참조 이미지 업로드 (합성용)
+  // 참조 이미지 업로드 (합성용) - 통합 이미지 관리 방식으로 동작
   const handleReferenceImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // ✅ slug와 category 검증 추가
-    if (!formData.slug || !formData.category) {
-      alert('제품 정보(Slug, 카테고리)를 먼저 입력해주세요.');
-      e.target.value = ''; // 파일 입력 초기화
-      return;
-    }
-
-    setUploadingRefImage(true);
-    try {
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', file);
-      // ✅ 필수 필드이므로 항상 전달
-        uploadFormData.append('productSlug', formData.slug);
-        uploadFormData.append('category', formData.category);
-      // ✅ 합성용 이미지로 지정
-      uploadFormData.append('imageType', 'composition');
-
-      const response = await fetch('/api/admin/upload-product-image', {
-        method: 'POST',
-        body: uploadFormData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const currentRefs = formData.reference_images || [];
-        setFormData({ 
-          ...formData, 
-          reference_images: [...currentRefs, data.url] 
-        });
-        alert('참조 이미지가 추가되었습니다.');
-      } else {
-        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
-        console.error('업로드 오류 상세:', errorData);
-        alert(`오류: ${errorData.error || errorData.details || '이미지 업로드에 실패했습니다.'}`);
-      }
-    } catch (error) {
-      console.error('참조 이미지 업로드 오류:', error);
-      alert('이미지 업로드 중 오류가 발생했습니다.');
-    } finally {
-      setUploadingRefImage(false);
-      e.target.value = ''; // 파일 입력 초기화
-    }
+    // handleImageUpload와 동일한 로직 사용
+    await handleImageUpload(e);
   };
 
-  // 참조 이미지 삭제
+  // 참조 이미지 삭제 (기존 함수 - 호환성 유지)
   const handleRemoveReferenceImage = (index: number) => {
     const currentRefs = formData.reference_images || [];
     setFormData({
@@ -342,14 +379,122 @@ export default function ProductCompositionManagement() {
     });
   };
 
+  // 모든 이미지를 하나의 배열로 관리하는 함수
+  const getAllImages = (): string[] => {
+    const images: string[] = [];
+    if (formData.image_url && formData.image_url.trim() !== '') {
+      images.push(formData.image_url);
+    }
+    if (formData.reference_images && formData.reference_images.length > 0) {
+      images.push(...formData.reference_images.filter(img => img && img.trim() !== ''));
+    }
+    
+    // 🔍 디버깅: 이미지 배열 상태 확인
+    if (images.length === 0) {
+      console.log('⚠️ getAllImages - 이미지가 없습니다:', {
+        image_url: formData.image_url,
+        reference_images: formData.reference_images,
+        reference_images_length: formData.reference_images?.length || 0,
+      });
+    }
+    
+    return images;
+  };
+
+  // 대표 이미지 설정 함수
+  const handleSetMainImage = (imageUrl: string) => {
+    const allImages = getAllImages();
+    const otherImages = allImages.filter(img => img !== imageUrl);
+    
+    setFormData({
+      ...formData,
+      image_url: imageUrl,
+      reference_images: otherImages,
+    });
+  };
+
+  // 이미지 삭제 함수 (Storage에서도 삭제)
+  const handleDeleteImage = async (imageUrl: string) => {
+    if (!confirm('정말로 이 이미지를 삭제하시겠습니까?\n\n⚠️ Supabase Storage에서도 영구적으로 삭제됩니다.')) {
+      return;
+    }
+
+    try {
+      // Storage에서 삭제
+      const response = await fetch('/api/admin/delete-product-image', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ imageUrl }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || '이미지 삭제에 실패했습니다.');
+      }
+
+      // 폼 데이터에서 제거
+      const allImages = getAllImages();
+      const remainingImages = allImages.filter(img => img !== imageUrl);
+      
+      if (remainingImages.length > 0) {
+        // 첫 번째 이미지를 대표 이미지로 설정
+        setFormData({
+          ...formData,
+          image_url: remainingImages[0],
+          reference_images: remainingImages.slice(1),
+        });
+      } else {
+        // 모든 이미지가 삭제된 경우
+        setFormData({
+          ...formData,
+          image_url: '',
+          reference_images: [],
+        });
+      }
+
+      alert('이미지가 삭제되었습니다.');
+    } catch (error: any) {
+      console.error('이미지 삭제 오류:', error);
+      alert(`이미지 삭제 중 오류가 발생했습니다: ${error.message}`);
+    }
+  };
+
   // 이미지 경로 자동 수정 (hat-white-bucket → bucket-hat-muziik)
   const getCorrectedImageUrl = (url: string): string => {
-    if (!url) return url;
+    if (!url || typeof url !== 'string' || url.trim() === '') return '';
     // hat-white-bucket → bucket-hat-muziik 경로 수정
     return url.replace(
       'originals/goods/hat-white-bucket/',
       'originals/goods/bucket-hat-muziik/'
     );
+  };
+
+  // URL에서 파일명 추출 함수
+  const getFileNameFromUrl = (url: string): string => {
+    if (!url) return '';
+    
+    try {
+      // 절대 URL인 경우
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        // URL에서 경로 부분 추출
+        const urlObj = new URL(url);
+        const pathParts = urlObj.pathname.split('/');
+        const fileName = pathParts[pathParts.length - 1];
+        // 쿼리 파라미터 제거
+        return fileName.split('?')[0] || fileName;
+      }
+      
+      // 상대 경로인 경우
+      const pathParts = url.split('/');
+      const fileName = pathParts[pathParts.length - 1];
+      return fileName.split('?')[0] || fileName;
+    } catch (error) {
+      // URL 파싱 실패 시 마지막 경로 부분 반환
+      const parts = url.split('/');
+      return parts[parts.length - 1] || url;
+    }
   };
 
   // 갤러리에서 이미지 선택
@@ -360,28 +505,29 @@ export default function ProductCompositionManagement() {
     // 기본적으로 composition 폴더를 반환 (이미지가 여기에 있음)
     // 사용자는 브레드크럼으로 detail, gallery 폴더로 이동 가능
     
-    // 굿즈/액세서리: originals/goods/{slug}/composition
-    if (formData.category === 'goods' || formData.category === 'hat' || formData.category === 'accessory') {
-      // hat-white-bucket slug는 bucket-hat-muziik 폴더로 매핑
-      const folderSlug = formData.slug === 'hat-white-bucket' ? 'bucket-hat-muziik' : formData.slug;
-      return `originals/goods/${folderSlug}/composition`;
-    } else {
-      // ✅ 드라이버 제품: slug → 실제 폴더명 매핑 추가
-      // 데이터베이스의 slug와 실제 Storage 폴더명이 다른 경우 처리
-      const driverSlugToFolder: Record<string, string> = {
-        'secret-weapon-black': 'black-weapon',
-        'black-beryl': 'black-beryl',
-        'secret-weapon-4-1': 'gold-weapon4',
-        'secret-weapon-gold-4-1': 'gold-weapon4', // ✅ 추가: 데이터베이스에 저장된 실제 slug
-        'secret-force-gold-2': 'gold2',
-        'gold2-sapphire': 'gold2-sapphire',
-        'secret-force-pro-3': 'pro3',
-        'pro3-muziik': 'pro3-muziik',
-        'secret-force-v3': 'v3',
+    // 굿즈/액세서리: originals/goods/{slug}/composition (cap = 모자)
+    if (formData.category === 'goods' || formData.category === 'cap' || formData.category === 'accessory') {
+      // ✅ 구식 slug를 새 색상별 slug로 매핑
+      const goodsSlugToFolder: Record<string, string> = {
+        // 구식 버킷햇 slug → 새 색상별 slug
+        'hat-white-bucket': 'bucket-hat-muziik-white',
+        'hat-black-bucket': 'bucket-hat-muziik-black',
+        // 구식 골프모자 slug → 새 색상별 slug
+        'hat-white-golf': 'golf-hat-muziik-white',
+        // 새로운 색상별 slug는 그대로 사용
+        'bucket-hat-muziik-black': 'bucket-hat-muziik-black',
+        'bucket-hat-muziik-white': 'bucket-hat-muziik-white',
+        'golf-hat-muziik-black': 'golf-hat-muziik-black',
+        'golf-hat-muziik-white': 'golf-hat-muziik-white',
+        'golf-hat-muziik-navy': 'golf-hat-muziik-navy',
+        'golf-hat-muziik-beige': 'golf-hat-muziik-beige',
       };
       
-      const folderName = driverSlugToFolder[formData.slug] || formData.slug;
-      return `originals/products/${folderName}/composition`;
+      const folderSlug = goodsSlugToFolder[formData.slug] || formData.slug;
+      return `originals/goods/${folderSlug}/composition`;
+    } else {
+      // 드라이버 제품: slug를 그대로 사용 (실제 폴더명과 일치)
+      return `originals/products/${formData.slug}/composition`;
     }
   };
 
@@ -390,22 +536,30 @@ export default function ProductCompositionManagement() {
       alert('제품 정보(Slug, 카테고리)를 먼저 입력해주세요.');
       return;
     }
-    setGalleryPickerMode(mode);
+    // 통합 이미지 관리이므로 mode는 무시하고 항상 'image'로 설정
+    setGalleryPickerMode('image');
     setShowGalleryPicker(true);
   };
 
   const handleGalleryImageSelect = (imageUrl: string) => {
-    if (galleryPickerMode === 'image') {
-      setFormData({ ...formData, image_url: imageUrl });
-    } else if (galleryPickerMode === 'reference') {
-      const currentRefs = formData.reference_images || [];
-      if (!currentRefs.includes(imageUrl)) {
-        setFormData({ 
-          ...formData, 
-          reference_images: [...currentRefs, imageUrl] 
-        });
-      }
+    const allImages = getAllImages();
+    
+    // 이미 존재하는 이미지는 추가하지 않음
+    if (allImages.includes(imageUrl)) {
+      alert('이미 추가된 이미지입니다.');
+      return;
     }
+
+    // 첫 번째 이미지면 대표로, 아니면 참조로 추가
+    if (allImages.length === 0) {
+      setFormData({ ...formData, image_url: imageUrl });
+    } else {
+      setFormData({ 
+        ...formData, 
+        reference_images: [...(formData.reference_images || []), imageUrl] 
+      });
+    }
+    
     setShowGalleryPicker(false);
     setGalleryPickerMode(null);
   };
@@ -606,7 +760,15 @@ export default function ProductCompositionManagement() {
                         </button>
                         <button
                           onClick={() => handleDelete(product.id)}
+                          className="text-orange-600 hover:text-orange-900 mr-2"
+                          title="비활성화"
+                        >
+                          비활성화
+                        </button>
+                        <button
+                          onClick={() => handleHardDelete(product.id, product.name)}
                           className="text-red-600 hover:text-red-900"
+                          title="완전 삭제"
                         >
                           삭제
                         </button>
@@ -697,19 +859,18 @@ export default function ProductCompositionManagement() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      이미지 URL *
+                      제품 이미지 관리 *
+                      {getAllImages().length > 0 && (
+                        <span className="ml-2 text-xs text-gray-500 font-normal">
+                          (총 {getAllImages().length}개)
+                        </span>
+                      )}
                     </label>
-                    <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={formData.image_url}
-                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
-                        placeholder="/originals/goods/white-bucket-hat.webp"
-                      required
-                    />
+                    
+                    {/* 이미지 추가 버튼 */}
+                    <div className="flex gap-2 mb-4">
                       <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">
-                        {uploadingImage ? '업로드 중...' : '📷 업로드'}
+                        {uploadingImage ? '업로드 중...' : '📷 이미지 업로드'}
                         <input
                           type="file"
                           accept="image/*"
@@ -726,19 +887,81 @@ export default function ProductCompositionManagement() {
                         🖼️ 갤러리에서 선택
                       </button>
                     </div>
-                    {formData.image_url && (
-                      <div className="mt-2 relative w-32 h-32 bg-gray-100 rounded overflow-hidden">
-                        <Image
-                          src={getAbsoluteImageUrl(getCorrectedImageUrl(formData.image_url))}
-                          alt="미리보기"
-                          fill
-                          className="object-contain"
-                          unoptimized
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                        />
+
+                    {/* 통합 이미지 그리드 */}
+                    {getAllImages().length > 0 ? (
+                      <div className="grid grid-cols-4 gap-4">
+                        {getAllImages().map((img, index) => {
+                          const isMain = formData.image_url === img;
+                          const fileName = getFileNameFromUrl(img);
+                          return (
+                            <div key={index} className="relative group">
+                              <div className={`relative w-full h-32 bg-gray-100 rounded overflow-hidden border-2 ${
+                                isMain ? 'border-blue-500' : 'border-gray-300'
+                              }`}>
+                                <Image
+                                  src={getAbsoluteImageUrl(getCorrectedImageUrl(img))}
+                                  alt={isMain ? '대표 이미지' : `이미지 ${index + 1}`}
+                                  fill
+                                  className="object-contain"
+                                  unoptimized
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    console.error('❌ 이미지 로드 실패:', img);
+                                  }}
+                                />
+                                {/* 대표 이미지 배지 */}
+                                {isMain && (
+                                  <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                                    대표
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* 파일명 표시 */}
+                              <div className="mt-1 text-xs text-gray-600 truncate" title={fileName || img}>
+                                {fileName || '파일명 없음'}
+                              </div>
+                              
+                              {/* 버튼 그룹 */}
+                              <div className="mt-2 flex gap-1">
+                                {!isMain && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSetMainImage(img)}
+                                    className="flex-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                    title="대표 이미지로 설정"
+                                  >
+                                    대표로
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteImage(img)}
+                                  className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                                  title="이미지 삭제"
+                                >
+                                  삭제
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded">
+                        <p className="mb-2 font-medium">이미지가 없습니다.</p>
+                        <p className="text-xs text-gray-400">
+                          위 버튼을 사용하여 이미지를 추가하세요.
+                        </p>
+                        {editingProduct && (
+                          <p className="text-xs text-red-500 mt-2">
+                            ⚠️ 참조 이미지가 데이터베이스에 있을 수 있지만 로드되지 않았습니다.
+                            <br />
+                            브라우저 콘솔을 확인하세요.
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
@@ -773,60 +996,6 @@ export default function ProductCompositionManagement() {
                   </div>
 
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      참조 이미지 (다양한 각도)
-                    </label>
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <label className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer">
-                          {uploadingRefImage ? '업로드 중...' : '+ 참조 이미지 추가'}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleReferenceImageUpload}
-                            className="hidden"
-                            disabled={uploadingRefImage}
-                          />
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => handleOpenGallery('reference')}
-                          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                        >
-                          🖼️ 갤러리에서 선택
-                        </button>
-                      </div>
-                      {formData.reference_images && formData.reference_images.length > 0 && (
-                        <div className="grid grid-cols-3 gap-2 mt-2">
-                          {formData.reference_images.map((refImg, index) => (
-                            <div key={index} className="relative group">
-                              <div className="relative w-full h-24 bg-gray-100 rounded overflow-hidden">
-                                <Image
-                                  src={getAbsoluteImageUrl(getCorrectedImageUrl(refImg))}
-                                  alt={`참조 이미지 ${index + 1}`}
-                                  fill
-                                  className="object-contain"
-                                  unoptimized
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                  }}
-                                />
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveReferenceImage(index)}
-                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                ×
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">

@@ -79,7 +79,8 @@ async function getFoldersFromStorage(maxDepth = 5, startTime = Date.now(), maxTi
 
 export default async function handler(req, res) {
   const startTime = Date.now();
-  console.log('🔍 폴더 목록 조회 API 요청:', req.method, req.url);
+  const { parent } = req.query; // 특정 폴더의 하위 폴더만 조회
+  console.log('🔍 폴더 목록 조회 API 요청:', req.method, req.url, parent ? `(parent: ${parent})` : '');
   
   // ✅ 타임아웃 방지: Vercel Pro 60초 제한 고려하여 50초로 설정 (안전 마진)
   const timeoutPromise = new Promise((_, reject) => {
@@ -91,14 +92,82 @@ export default async function handler(req, res) {
     await Promise.race([
       (async () => {
         if (req.method === 'GET') {
-      // 🔧 캐시 확인
+      // 🔧 특정 폴더의 하위 폴더만 조회하는 경우
+      if (parent) {
+        console.log(`📂 특정 폴더 하위 폴더 조회: ${parent}`);
+        
+        // Storage에서 직접 해당 폴더의 하위 폴더만 조회
+        const { data: files, error } = await supabase.storage
+          .from('blog-images')
+          .list(parent, {
+            limit: 1000,
+            sortBy: { column: 'name', order: 'asc' }
+          });
+
+        if (error) {
+          console.error(`❌ 하위 폴더 조회 에러 (${parent}):`, error);
+          return res.status(500).json({ 
+            error: '하위 폴더 조회 실패',
+            details: error.message 
+          });
+        }
+
+        // 폴더만 필터링 (파일 제외)
+        const subfolders = (files || [])
+          .filter(file => !file.id) // 폴더는 id가 없음
+          .map(file => {
+            const folderPath = parent ? `${parent}/${file.name}` : file.name;
+            return folderPath;
+          })
+          .sort();
+
+        console.log(`✅ 하위 폴더 조회 완료: ${subfolders.length}개 (${parent})`);
+        return res.status(200).json({ 
+          folders: subfolders,
+          count: subfolders.length,
+          cached: false,
+          parent: parent
+        });
+      }
+      
+      // 🔧 캐시 확인 (캐시도 필터링 적용)
       const now = Date.now();
       if (foldersCache && (now - foldersCacheTimestamp) < FOLDERS_CACHE_DURATION) {
+        // 캐시된 폴더 목록도 필터링 적용
+        const filteredCache = foldersCache.filter(folder => {
+          // golf-hat-muziik 색상별 폴더가 있는지 확인
+          const hasColorSpecificFolders = foldersCache.some(f => 
+            f.startsWith('originals/goods/golf-hat-muziik-') && 
+            (f.includes('/black/') || f.includes('/white/') || f.includes('/navy/') || f.includes('/beige/'))
+          );
+          
+          // 색상별 폴더가 있고, 일반 golf-hat-muziik 폴더면 제외
+          if (hasColorSpecificFolders && 
+              folder.startsWith('originals/goods/golf-hat-muziik/') && 
+              !folder.startsWith('originals/goods/golf-hat-muziik-')) {
+            return false;
+          }
+          
+          // bucket-hat-muziik도 동일하게 처리
+          const hasBucketColorFolders = foldersCache.some(f => 
+            f.startsWith('originals/goods/bucket-hat-muziik-') && 
+            (f.includes('/black/') || f.includes('/white/'))
+          );
+          
+          if (hasBucketColorFolders && 
+              folder.startsWith('originals/goods/bucket-hat-muziik/') && 
+              !folder.startsWith('originals/goods/bucket-hat-muziik-')) {
+            return false;
+          }
+          
+          return true;
+        });
+        
         const cacheTime = ((now - foldersCacheTimestamp) / 1000).toFixed(1);
-        console.log(`✅ 폴더 목록 캐시 사용: ${foldersCache.length}개 (${cacheTime}초 전 캐시)`);
+        console.log(`✅ 폴더 목록 캐시 사용: ${filteredCache.length}개 (${cacheTime}초 전 캐시, 필터링: ${foldersCache.length - filteredCache.length}개 제외)`);
         return res.status(200).json({ 
-          folders: foldersCache,
-          count: foldersCache.length,
+          folders: filteredCache,
+          count: filteredCache.length,
           cached: true
         });
       }
@@ -116,16 +185,46 @@ export default async function handler(req, res) {
         console.log('🔄 Storage에서 직접 조회로 전환...');
         const folderList = await getFoldersFromStorage(5, startTime, 45000);
         
+        // 🔧 golf-hat-muziik 폴더 필터링: 색상별 폴더가 있으면 일반 폴더 제외
+        const filteredFolderList = folderList.filter(folder => {
+          // golf-hat-muziik 색상별 폴더가 있는지 확인
+          const hasColorSpecificFolders = folderList.some(f => 
+            f.startsWith('originals/goods/golf-hat-muziik-') && 
+            (f.includes('/black/') || f.includes('/white/') || f.includes('/navy/') || f.includes('/beige/'))
+          );
+          
+          // 색상별 폴더가 있고, 일반 golf-hat-muziik 폴더면 제외
+          if (hasColorSpecificFolders && 
+              folder.startsWith('originals/goods/golf-hat-muziik/') && 
+              !folder.startsWith('originals/goods/golf-hat-muziik-')) {
+            return false;
+          }
+          
+          // bucket-hat-muziik도 동일하게 처리
+          const hasBucketColorFolders = folderList.some(f => 
+            f.startsWith('originals/goods/bucket-hat-muziik-') && 
+            (f.includes('/black/') || f.includes('/white/'))
+          );
+          
+          if (hasBucketColorFolders && 
+              folder.startsWith('originals/goods/bucket-hat-muziik/') && 
+              !folder.startsWith('originals/goods/bucket-hat-muziik-')) {
+            return false;
+          }
+          
+          return true;
+        });
+        
         // 캐시 저장
-        foldersCache = folderList;
+        foldersCache = filteredFolderList;
         foldersCacheTimestamp = now;
         
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-        console.log(`✅ 폴더 목록 조회 완료 (Storage): ${folderList.length}개 (${elapsed}초)`);
+        console.log(`✅ 폴더 목록 조회 완료 (Storage): ${filteredFolderList.length}개 (${elapsed}초, 필터링: ${folderList.length - filteredFolderList.length}개 제외)`);
         
         return res.status(200).json({ 
-          folders: folderList,
-          count: folderList.length,
+          folders: filteredFolderList,
+          count: filteredFolderList.length,
           cached: false
         });
       }
@@ -159,16 +258,46 @@ export default async function handler(req, res) {
       storageFolders.forEach(folder => folders.add(folder));
       const mergedFolderList = Array.from(folders).sort();
       
+      // 🔧 golf-hat-muziik 폴더 필터링: 색상별 폴더가 있으면 일반 폴더 제외
+      const filteredFolderList = mergedFolderList.filter(folder => {
+        // golf-hat-muziik 색상별 폴더가 있는지 확인
+        const hasColorSpecificFolders = mergedFolderList.some(f => 
+          f.startsWith('originals/goods/golf-hat-muziik-') && 
+          (f.includes('/black/') || f.includes('/white/') || f.includes('/navy/') || f.includes('/beige/'))
+        );
+        
+        // 색상별 폴더가 있고, 일반 golf-hat-muziik 폴더면 제외
+        if (hasColorSpecificFolders && 
+            folder.startsWith('originals/goods/golf-hat-muziik/') && 
+            !folder.startsWith('originals/goods/golf-hat-muziik-')) {
+          return false;
+        }
+        
+        // bucket-hat-muziik도 동일하게 처리
+        const hasBucketColorFolders = mergedFolderList.some(f => 
+          f.startsWith('originals/goods/bucket-hat-muziik-') && 
+          (f.includes('/black/') || f.includes('/white/'))
+        );
+        
+        if (hasBucketColorFolders && 
+            folder.startsWith('originals/goods/bucket-hat-muziik/') && 
+            !folder.startsWith('originals/goods/bucket-hat-muziik-')) {
+          return false;
+        }
+        
+        return true;
+      });
+      
       // 🔧 캐시 저장
-      foldersCache = mergedFolderList;
+      foldersCache = filteredFolderList;
       foldersCacheTimestamp = now;
       
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-      console.log(`✅ 폴더 목록 조회 완료 (메타데이터 + Storage 병합): ${mergedFolderList.length}개 (${elapsed}초)`);
+      console.log(`✅ 폴더 목록 조회 완료 (메타데이터 + Storage 병합): ${filteredFolderList.length}개 (${elapsed}초, 필터링: ${mergedFolderList.length - filteredFolderList.length}개 제외)`);
 
       return res.status(200).json({ 
-        folders: mergedFolderList,
-        count: mergedFolderList.length,
+        folders: filteredFolderList,
+        count: filteredFolderList.length,
         cached: false
       });
     } else {

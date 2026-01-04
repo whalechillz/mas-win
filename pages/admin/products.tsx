@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import AdminNav from '../../components/admin/AdminNav';
 import { getProductImageUrl } from '../../lib/product-image-url';
+import FolderImagePicker from '../../components/admin/FolderImagePicker';
 
 type Product = {
   id: number;
@@ -37,6 +38,12 @@ type Product = {
   detail_images?: string[] | null;
   composition_images?: string[] | null;
   gallery_images?: string[] | null;
+  // 제품 합성 관리 데이터
+  product_composition?: {
+    id: string;
+    name: string;
+    slug: string;
+  }[] | null;
 };
 
 export default function ProductsAdminPage() {
@@ -50,6 +57,7 @@ export default function ProductsAdminPage() {
   const [showGiftOnly, setShowGiftOnly] = useState(false);
   const [includeInactive, setIncludeInactive] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [isSellableFilter, setIsSellableFilter] = useState<'all' | 'sellable' | 'not_sellable'>(
     'all',
   );
@@ -82,6 +90,38 @@ export default function ProductsAdminPage() {
   const [editingTransaction, setEditingTransaction] = useState<any | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [detailImages, setDetailImages] = useState<string[]>([]);
+  const [showGalleryPicker, setShowGalleryPicker] = useState(false);
+  const [galleryPickerMode, setGalleryPickerMode] = useState<'detail' | null>(null);
+  const [mainImageUrl, setMainImageUrl] = useState<string>(''); // 대표 이미지
+  
+  // 합성 관리가 불필요한 카테고리
+  const COMPOSITION_EXCLUDED_CATEGORIES = ['component', 'weight_pack'];
+  
+  // 합성 관리 필요 여부 확인
+  const needsComposition = (product: Product): boolean => {
+    if (product.category && COMPOSITION_EXCLUDED_CATEGORIES.includes(product.category)) {
+      return false;
+    }
+    return true;
+  };
+  
+  // 합성 관리 버튼 클릭 핸들러
+  const handleOpenComposition = (product: Product) => {
+    const params = new URLSearchParams();
+    
+    if (product.slug) {
+      params.set('slug', product.slug);
+    } else if (product.id) {
+      params.set('productId', product.id.toString());
+    }
+    
+    if (product.category) {
+      params.set('category', product.category);
+    }
+    
+    router.push(`/admin/product-composition?${params.toString()}`);
+  };
+  const [createComposition, setCreateComposition] = useState(true);
   const [formState, setFormState] = useState<Partial<Product>>({
     name: '',
     sku: '',
@@ -94,6 +134,11 @@ export default function ProductsAdminPage() {
     is_active: true,
     normal_price: undefined,
     sale_price: undefined,
+    subtitle: '',
+    badge_left: null,
+    badge_right: null,
+    badge_left_color: null,
+    badge_right_color: null,
   });
 
   useEffect(() => {
@@ -121,7 +166,32 @@ export default function ProductsAdminPage() {
     conditionFilter,
     sortBy,
     sortOrder,
+    router.query.showCompositionOnly, // 합성 제품 필터 추가
   ]);
+
+  // 초기 로드 시 카테고리 목록 가져오기
+  useEffect(() => {
+    if (status === 'authenticated' || status === 'unauthenticated') {
+      loadAvailableCategories();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status  ]);
+
+  const loadAvailableCategories = async () => {
+    try {
+      const res = await fetch('/api/admin/products?distinctCategories=true');
+      const json = await res.json();
+      if (json.success && json.categories) {
+        // null 제외하고 정렬
+        const categories = json.categories
+          .filter((cat: string | null) => cat && cat.trim() !== '')
+          .sort();
+        setAvailableCategories(categories);
+      }
+    } catch (error) {
+      console.error('카테고리 목록 조회 오류:', error);
+    }
+  };
 
   const loadProducts = async () => {
     setLoading(true);
@@ -144,7 +214,21 @@ export default function ProductsAdminPage() {
       const res = await fetch(`/api/admin/products?${params.toString()}`);
       const json = await res.json();
       if (json.success) {
-        setProducts(json.products || []);
+        let filteredProducts = json.products || [];
+        
+        // 제품 합성 관리 데이터가 실제로 있는 제품만 필터링
+        // URL 파라미터에 showCompositionOnly=true가 있으면 필터링
+        if (router.query.showCompositionOnly === 'true') {
+          filteredProducts = filteredProducts.filter((p: Product) => {
+            // product_composition 테이블에 실제 데이터가 있는 경우만
+            return p.product_composition && 
+              (Array.isArray(p.product_composition) 
+                ? p.product_composition.length > 0 
+                : p.product_composition);
+          });
+        }
+        
+        setProducts(filteredProducts);
         setSelectedIds([]);
       } else {
         alert(json.message || '상품 목록 조회에 실패했습니다.');
@@ -305,7 +389,9 @@ export default function ProductsAdminPage() {
     }
   };
 
-  const handleOpenCreate = () => {
+  // 모달 닫기 함수 (formState 초기화 포함)
+  const handleCloseModal = () => {
+    setShowModal(false);
     setEditingProduct(null);
     setFormState({
       name: '',
@@ -320,16 +406,128 @@ export default function ProductsAdminPage() {
       normal_price: undefined,
       sale_price: undefined,
     });
+    setMainImageUrl('');
     setDetailImages([]);
+    setCreateComposition(true);
+  };
+
+  const handleOpenCreate = () => {
+    setEditingProduct(null);
+    setFormState({
+      name: '',
+      sku: '', // ✅ SKU는 빈 문자열로 초기화
+      category: '',
+      color: '',
+      size: '',
+      legacy_name: '',
+      is_gift: true,
+      is_sellable: false,
+      is_active: true,
+      normal_price: undefined,
+      sale_price: undefined,
+    });
+    setMainImageUrl(''); // ✅ 메인 이미지도 초기화
+    setDetailImages([]);
+    setCreateComposition(true); // ✅ 합성 데이터 생성 옵션 초기화
     setShowModal(true);
+  };
+
+  // Slug를 SKU로 변환하는 함수
+  const slugToSku = (slug: string): string => {
+    if (!slug) return '';
+    return slug.toUpperCase().replace(/-/g, '_');
+  };
+
+  // 이미지 경로에서 slug 추출
+  const extractSlugFromImagePath = (imagePath: string): string | null => {
+    if (!imagePath) return null;
+    
+    // originals/goods/{slug}/detail 또는 originals/products/{slug}/detail 패턴
+    // originals/goods/{slug}/gallery 또는 originals/products/{slug}/gallery 패턴
+    // originals/goods/{slug}/composition 또는 originals/products/{slug}/composition 패턴
+    const match = imagePath.match(/originals\/(?:goods|products)\/([^\/]+)\//);
+    if (match) {
+      return match[1];
+    }
+    return null;
   };
 
   const handleOpenEdit = (product: Product) => {
     setEditingProduct(product);
+    // 합성 데이터가 없으면 생성 옵션 활성화
+    const hasComposition = product.product_composition && 
+      (Array.isArray(product.product_composition) 
+        ? product.product_composition.length > 0 
+        : product.product_composition);
+    setCreateComposition(!hasComposition); // 합성 데이터가 없으면 true
+    
+    // 이미지에서 slug 추출하여 SKU 자동 설정
+    let autoSku = product.sku || '';
+    if (!autoSku) {
+      // detail_images에서 추출 시도
+      const images = Array.isArray(product.detail_images) ? product.detail_images : [];
+      for (const img of images) {
+        const slug = extractSlugFromImagePath(img);
+        if (slug) {
+          autoSku = slugToSku(slug);
+          break;
+        }
+      }
+      
+      // gallery_images에서 추출 시도 (detail_images에서 못 찾은 경우)
+      if (!autoSku) {
+        const galleryImages = Array.isArray(product.gallery_images) ? product.gallery_images : [];
+        for (const img of galleryImages) {
+          const slug = extractSlugFromImagePath(img);
+          if (slug) {
+            autoSku = slugToSku(slug);
+            break;
+          }
+        }
+      }
+      
+      // composition_images에서 추출 시도 (위에서 못 찾은 경우)
+      if (!autoSku) {
+        const compositionImages = Array.isArray(product.composition_images) ? product.composition_images : [];
+        for (const img of compositionImages) {
+          const slug = extractSlugFromImagePath(img);
+          if (slug) {
+            autoSku = slugToSku(slug);
+            break;
+          }
+        }
+      }
+      
+      // slug에서 추출 시도 (이미지가 없는 경우)
+      if (!autoSku && product.slug) {
+        autoSku = slugToSku(product.slug);
+      }
+    }
+    
+    // 카테고리 통일: 모자 관련 카테고리를 'cap'으로 통일
+    let unifiedCategory = product.category || '';
+    if (product.product_type === 'driver') {
+      unifiedCategory = 'driver';
+    } else if (['bucket_hat', 'hat', 'cap', 'bucket-hat', 'bucket hat'].includes(unifiedCategory)) {
+      unifiedCategory = 'cap';
+    }
+    
     setFormState({
       ...product,
+      sku: autoSku, // 자동 추출된 SKU 사용
+      category: unifiedCategory, // 통일된 카테고리 사용
     });
-    setDetailImages(Array.isArray(product.detail_images) ? product.detail_images : []);
+    
+    // 이미지 초기화: detail_images를 배열로 변환
+    const images = Array.isArray(product.detail_images) ? product.detail_images : [];
+    // 첫 번째 이미지를 대표 이미지로 설정
+    if (images.length > 0) {
+      setMainImageUrl(images[0]);
+      setDetailImages(images.slice(1));
+    } else {
+      setMainImageUrl('');
+      setDetailImages([]);
+    }
     setShowModal(true);
   };
 
@@ -347,37 +545,60 @@ export default function ProductsAdminPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formState.name) {
-      alert('상품명을 입력해주세요.');
+      if (!formState.name) {
+      alert('제품명을 입력해주세요.');
       return;
     }
 
     try {
       const isEdit = !!editingProduct;
       const url = '/api/admin/products';
+      
+      // 이미지 배열 구성: 대표 이미지 + 나머지 이미지
+      const allImages = getAllImages();
+      const finalDetailImages = allImages.length > 0 ? allImages : [];
       const method = isEdit ? 'PUT' : 'POST';
 
       const body: any = {
         ...(isEdit ? { id: editingProduct!.id } : {}),
         name: formState.name,
-        sku: formState.sku ?? '',
-        category: formState.category ?? '',
-        color: formState.color ?? '',
-        size: formState.size ?? '',
-        legacy_name: formState.legacy_name ?? '',
+        sku: formState.sku || null,
+        slug: formState.slug || null,
+        category: formState.category || null,
+        color: formState.color || null,
+        size: formState.size || null,
+        legacy_name: formState.legacy_name || null,
         is_gift: !!formState.is_gift,
         is_sellable: !!formState.is_sellable,
         is_active: formState.is_active !== false,
         normal_price:
           formState.normal_price === undefined || formState.normal_price === null
-            ? ''
+            ? null
             : formState.normal_price,
         sale_price:
           formState.sale_price === undefined || formState.sale_price === null
-            ? ''
+            ? null
             : formState.sale_price,
-        detail_images: detailImages,
+        detail_images: finalDetailImages,
+        // 합성 데이터 생성 옵션 (신규 제품 또는 합성 데이터가 없는 제품)
+        ...(isEdit 
+          ? (createComposition && !editingProduct?.product_composition ? { createComposition: true } : {})
+          : { createComposition }),
       };
+
+      // product_type 추가
+      if (formState.product_type) {
+        body.product_type = formState.product_type;
+      }
+
+      // 드라이버 제품 전용 필드 추가
+      if (formState.product_type === 'driver') {
+        body.subtitle = formState.subtitle || null;
+        body.badge_left = formState.badge_left || null;
+        body.badge_right = formState.badge_right || null;
+        body.badge_left_color = formState.badge_left_color || null;
+        body.badge_right_color = formState.badge_right_color || null;
+      }
 
       const res = await fetch(url, {
         method,
@@ -389,9 +610,17 @@ export default function ProductsAdminPage() {
         alert(json.message || '저장에 실패했습니다.');
         return;
       }
-      alert(isEdit ? '상품이 수정되었습니다.' : '상품이 추가되었습니다.');
-      setShowModal(false);
-      setEditingProduct(null);
+      
+      // 합성 데이터 생성 실패 시 경고 표시
+      if (json.compositionError) {
+        alert('제품이 생성되었습니다.\n\n단, 제품 합성 관리 데이터 생성에 실패했습니다:\n' + json.compositionError);
+      } else if (json.message && json.message.includes('slug가 없어')) {
+        alert(json.message);
+      } else {
+        alert(isEdit ? '제품이 수정되었습니다.' : '제품이 추가되었습니다.');
+      }
+      
+      handleCloseModal();
       await loadProducts();
     } catch (error: any) {
       console.error('상품 저장 오류:', error);
@@ -410,7 +639,7 @@ export default function ProductsAdminPage() {
         alert(json.message || '비활성화에 실패했습니다.');
         return;
       }
-      alert('상품이 비활성화되었습니다.');
+      alert('제품이 비활성화되었습니다.');
       await loadProducts();
     } catch (error: any) {
       console.error('상품 비활성화 오류:', error);
@@ -432,7 +661,7 @@ export default function ProductsAdminPage() {
         alert(json.message || '삭제에 실패했습니다.');
         return;
       }
-      alert('상품이 완전히 삭제되었습니다.');
+      alert('제품이 완전히 삭제되었습니다.');
       await loadProducts();
     } catch (error: any) {
       console.error('상품 삭제 오류:', error);
@@ -441,22 +670,135 @@ export default function ProductsAdminPage() {
   };
 
   // 상세페이지 이미지 업로드
+  // 통합 이미지 관리: 모든 이미지를 하나의 배열로 관리
+  const getAllImages = (): string[] => {
+    const images: string[] = [];
+    if (mainImageUrl && mainImageUrl.trim() !== '') {
+      images.push(mainImageUrl);
+    }
+    // detailImages에서 mainImageUrl 제외
+    const otherImages = detailImages.filter(img => img && img.trim() !== '' && img !== mainImageUrl);
+    images.push(...otherImages);
+    return images;
+  };
+
+  // 대표 이미지 설정
+  const handleSetMainImage = (imageUrl: string) => {
+    setMainImageUrl(imageUrl);
+  };
+
+  // 이미지 삭제 (Storage에서도 삭제)
+  const handleDeleteImage = async (imageUrl: string) => {
+    if (!confirm('정말로 이 이미지를 삭제하시겠습니까?\n\n⚠️ Supabase Storage에서도 영구적으로 삭제됩니다.')) {
+      return;
+    }
+
+    try {
+      // Storage에서 삭제
+      const response = await fetch('/api/admin/delete-product-image', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ imageUrl }),
+      });
+
+      const result = await response.json();
+      
+      // 이미 삭제된 파일인 경우도 성공으로 처리
+      if (!response.ok && !result.alreadyDeleted && !result.skipped) {
+        throw new Error(result.error || '이미지 삭제에 실패했습니다.');
+      }
+
+      // 폼 데이터에서 제거 (이미 삭제된 파일이어도 UI에서 제거)
+      const allImages = getAllImages();
+      const remainingImages = allImages.filter(img => img !== imageUrl);
+      
+      if (remainingImages.length > 0) {
+        // 첫 번째 이미지를 대표 이미지로 설정
+        setMainImageUrl(remainingImages[0]);
+        setDetailImages(remainingImages.slice(1));
+      } else {
+        // 모든 이미지가 삭제된 경우
+        setMainImageUrl('');
+        setDetailImages([]);
+      }
+
+      // 메시지 표시
+      if (result.alreadyDeleted || result.skipped) {
+        alert('이미지가 이미 삭제되었거나 경로를 찾을 수 없습니다. 목록에서 제거했습니다.');
+      } else {
+        alert('이미지가 삭제되었습니다.');
+      }
+    } catch (error: any) {
+      console.error('이미지 삭제 오류:', error);
+      alert(`이미지 삭제 중 오류가 발생했습니다: ${error.message}`);
+    }
+  };
+
+  // URL에서 파일명 추출
+  const getFileNameFromUrl = (url: string): string => {
+    if (!url) return '';
+    
+    try {
+      // 절대 URL인 경우
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        const urlObj = new URL(url);
+        const pathParts = urlObj.pathname.split('/');
+        const fileName = pathParts[pathParts.length - 1];
+        return fileName.split('?')[0] || fileName;
+      }
+      
+      // 상대 경로인 경우
+      const pathParts = url.split('/');
+      const fileName = pathParts[pathParts.length - 1];
+      return fileName.split('?')[0] || fileName;
+    } catch (error) {
+      const parts = url.split('/');
+      return parts[parts.length - 1] || url;
+    }
+  };
+
   const handleDetailImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!formState.slug && !formState.sku && !formState.category) {
-      alert('제품 slug, SKU 또는 카테고리를 먼저 입력해주세요.');
+    // ✅ slug 또는 SKU가 없으면 경고
+    if (!formState.slug && !formState.sku) {
+      alert('제품 Slug 또는 SKU를 먼저 입력해주세요.');
       return;
     }
 
     setUploadingImage(true);
     try {
+      // slug 정규화: SKU를 slug 형식으로 변환 (대문자 폴더명 방지)
+      let productSlugForUpload = formState.slug;
+      if (!productSlugForUpload && formState.sku) {
+        productSlugForUpload = formState.sku.toLowerCase().replace(/_+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+      }
+      
+      // ✅ productSlugForUpload가 여전히 없으면 에러
+      if (!productSlugForUpload || productSlugForUpload.trim() === '') {
+        alert('제품 Slug를 생성할 수 없습니다. SKU를 확인해주세요.');
+        setUploadingImage(false);
+        return;
+      }
+      
+      const categoryForUpload = formState.category === 'hat' || formState.category === 'bucket_hat'
+        ? 'cap' // hat, bucket_hat을 cap으로 통일
+        : (formState.category || (formState.product_type === 'driver' ? 'driver' : 'cap'));
+
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
-      uploadFormData.append('productSlug', formState.slug || formState.sku || '');
-      uploadFormData.append('category', formState.category || (formState.product_type === 'driver' ? 'driver' : 'hat'));
+      uploadFormData.append('productSlug', productSlugForUpload); // ✅ 빈 문자열 체크 후 전달
+      uploadFormData.append('category', categoryForUpload);
       uploadFormData.append('imageType', 'detail');
+
+      console.log('📤 이미지 업로드 요청:', {
+        productSlug: productSlugForUpload,
+        category: categoryForUpload,
+        fileName: file.name,
+      });
 
       const response = await fetch('/api/admin/upload-product-image', {
         method: 'POST',
@@ -466,37 +808,95 @@ export default function ProductsAdminPage() {
       if (response.ok) {
         const data = await response.json();
         const imageUrl = data.url || data.storageUrl;
-        setDetailImages([...detailImages, imageUrl]);
-        alert('이미지가 업로드되었습니다.');
+        const allImages = getAllImages();
+        
+        // 첫 번째 이미지면 대표로, 아니면 참조로 추가
+        if (allImages.length === 0) {
+          setMainImageUrl(imageUrl);
+        } else {
+          setDetailImages([...detailImages, imageUrl]);
+        }
+        alert('이미지가 추가되었습니다.');
       } else {
-        const error = await response.json();
-        alert(`오류: ${error.error || '이미지 업로드에 실패했습니다.'}`);
+        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
+        console.error('❌ 이미지 업로드 오류:', errorData);
+        alert(`오류: ${errorData.error || errorData.details || '이미지 업로드에 실패했습니다.'}`);
       }
-    } catch (error) {
-      console.error('이미지 업로드 오류:', error);
-      alert('이미지 업로드 중 오류가 발생했습니다.');
+    } catch (error: any) {
+      console.error('❌ 이미지 업로드 예외:', error);
+      alert(`오류: ${error.message || '이미지 업로드 중 오류가 발생했습니다.'}`);
     } finally {
       setUploadingImage(false);
       e.target.value = '';
     }
   };
 
-  // 상세페이지 이미지 삭제
-  const handleDeleteDetailImage = (index: number) => {
-    if (confirm('이 이미지를 삭제하시겠습니까?')) {
-      setDetailImages(detailImages.filter((_, i) => i !== index));
+  // 갤러리에서 이미지 선택
+  const getDetailFolderPath = (): string | undefined => {
+    if (!formState.slug && !formState.sku) return undefined;
+    
+    // slug 정규화: SKU를 slug 형식으로 변환
+    let slug = formState.slug;
+    if (!slug && formState.sku) {
+      slug = formState.sku.toLowerCase().replace(/_+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
     }
+    if (!slug) return undefined;
+    
+    const category = formState.category === 'hat' || formState.category === 'bucket_hat'
+      ? 'cap'
+      : (formState.category || (formState.product_type === 'driver' ? 'driver' : 'cap'));
+    
+    if (formState.product_type === 'driver' || category === 'driver') {
+      return `originals/products/${slug}/detail`;
+    }
+    
+    return `originals/goods/${slug}/detail`;
   };
 
-  // 상세페이지 이미지 순서 변경
+  const handleOpenGallery = () => {
+    if (!formState.slug && !formState.sku) {
+      alert('제품 정보(Slug, SKU)를 먼저 입력해주세요.');
+      return;
+    }
+    setGalleryPickerMode('detail');
+    setShowGalleryPicker(true);
+  };
+
+  const handleGalleryImageSelect = (imageUrl: string) => {
+    const allImages = getAllImages();
+    
+    // 이미 존재하는 이미지는 추가하지 않음
+    if (allImages.includes(imageUrl)) {
+      alert('이미 추가된 이미지입니다.');
+      return;
+    }
+
+    // 첫 번째 이미지면 대표로, 아니면 참조로 추가
+    if (allImages.length === 0) {
+      setMainImageUrl(imageUrl);
+    } else {
+      setDetailImages([...detailImages, imageUrl]);
+    }
+    
+    setShowGalleryPicker(false);
+    setGalleryPickerMode(null);
+  };
+
+  // 상세페이지 이미지 삭제
+  // 상세페이지 이미지 순서 변경 (기존 함수 유지 - 호환성)
   const handleMoveDetailImage = (index: number, direction: 'up' | 'down') => {
-    const newImages = [...detailImages];
+    const allImages = getAllImages();
+    const newImages = [...allImages];
     if (direction === 'up' && index > 0) {
       [newImages[index - 1], newImages[index]] = [newImages[index], newImages[index - 1]];
     } else if (direction === 'down' && index < newImages.length - 1) {
       [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
     }
-    setDetailImages(newImages);
+    // 첫 번째 이미지를 대표로 설정
+    if (newImages.length > 0) {
+      setMainImageUrl(newImages[0]);
+      setDetailImages(newImages.slice(1));
+    }
   };
 
   const toggleSort = (column: 'name' | 'sku' | 'category' | 'normal_price' | 'sale_price') => {
@@ -631,6 +1031,31 @@ export default function ProductsAdminPage() {
               placeholder="상품명 / SKU / 기존명 검색"
               className="px-3 py-2 border rounded-md text-sm min-w-[200px]"
             />
+            <button
+              onClick={() => {
+                const newQuery = { ...router.query };
+                if (router.query.showCompositionOnly === 'true') {
+                  delete newQuery.showCompositionOnly;
+                } else {
+                  newQuery.showCompositionOnly = 'true';
+                }
+                router.push({
+                  pathname: router.pathname,
+                  query: newQuery
+                }, undefined, { shallow: true });
+                setTimeout(() => loadProducts(), 100);
+              }}
+              className={`px-3 py-2 border rounded-md text-sm ${
+                router.query.showCompositionOnly === 'true'
+                  ? 'bg-blue-500 text-white border-blue-500'
+                  : 'bg-white text-gray-700 border-gray-300'
+              }`}
+            >
+              합성 제품만 ({products.filter((p: Product) => 
+                p.product_composition && 
+                (Array.isArray(p.product_composition) ? p.product_composition.length > 0 : p.product_composition)
+              ).length}개)
+            </button>
             <label className="flex items-center gap-1 text-sm text-gray-700">
               <input
                 type="checkbox"
@@ -654,12 +1079,11 @@ export default function ProductsAdminPage() {
               className="px-3 py-2 border rounded-md text-sm"
             >
               <option value="">전체 카테고리</option>
-              <option value="cap">cap</option>
-              <option value="bucket_hat">bucket_hat</option>
-              <option value="tshirt">tshirt</option>
-              <option value="clutch">clutch</option>
-              <option value="ball">ball</option>
-              <option value="accessory">accessory</option>
+              {availableCategories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
             </select>
             <select
               value={productTypeFilter}
@@ -806,12 +1230,40 @@ export default function ProductsAdminPage() {
                         />
                       </td>
                       <td className="p-2">
-                        <div className="font-medium text-gray-900">{p.name}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="font-medium text-gray-900">{p.name}</div>
+                          {/* 합성 상태 배지 */}
+                          {p.product_composition && 
+                           (Array.isArray(p.product_composition) 
+                             ? p.product_composition.length > 0 
+                             : p.product_composition) ? (
+                            <span className="px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded font-medium">
+                              합성
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-500 rounded font-medium">
+                              미합성
+                            </span>
+                          )}
+                        </div>
+                        {/* 제품 합성 관리 제품명 표시 - 드라이버 제품만 표시 */}
+                        {p.product_type === 'driver' && p.product_composition && 
+                          (Array.isArray(p.product_composition) 
+                            ? p.product_composition.length > 0 
+                            : p.product_composition) && (
+                            (Array.isArray(p.product_composition) 
+                              ? p.product_composition 
+                              : [p.product_composition])
+                              .filter((comp: any) => comp && comp.name !== p.name)
+                              .map((comp: any) => (
+                                <div key={comp.id} className="text-xs text-gray-500 mt-0.5">
+                                  합성: {comp.name}
+                                </div>
+                              ))
+                          )
+                        }
                         {p.product_type === 'driver' && p.subtitle && (
                           <div className="text-xs text-gray-500">{p.subtitle}</div>
-                        )}
-                        {p.legacy_name && (
-                          <div className="text-xs text-gray-500">{p.legacy_name}</div>
                         )}
                         {p.product_type === 'driver' && (p.badge_left || p.badge_right) && (
                           <div className="flex gap-1 mt-1">
@@ -838,7 +1290,40 @@ export default function ProductsAdminPage() {
                         )}
                       </td>
                       <td className="p-2">
-                        {p.product_type === 'driver' ? (p.slug || '-') : (p.sku || '-')}
+                        <div className="text-sm">
+                          <div className="font-medium">
+                            {p.sku || (p.slug ? p.slug.toUpperCase().replace(/-/g, '_') : '-')}
+                          </div>
+                          {/* slug 표시: SKU가 없거나 SKU와 slug가 다를 때만 표시 */}
+                          {(() => {
+                            if (!p.slug) return null;
+                            // SKU가 없으면 slug 표시
+                            if (!p.sku) {
+                              return (
+                                <div className="text-xs text-gray-400 mt-0.5">
+                                  slug: {p.slug}
+                                </div>
+                              );
+                            }
+                            // SKU를 slug 형식으로 변환 (이중 언더스코어/하이픈 정규화)
+                            const skuAsSlug = p.sku
+                              .toLowerCase()
+                              .replace(/_+/g, '-') // 연속된 언더스코어를 단일 하이픈으로
+                              .replace(/-+/g, '-') // 연속된 하이픈을 단일 하이픈으로
+                              .replace(/^-|-$/g, ''); // 앞뒤 하이픈 제거
+                            const normalizedSlug = p.slug
+                              .replace(/-+/g, '-') // 연속된 하이픈을 단일 하이픈으로
+                              .replace(/^-|-$/g, ''); // 앞뒤 하이픈 제거
+                            // SKU와 slug가 같으면 표시하지 않음
+                            if (normalizedSlug === skuAsSlug) return null;
+                            // 다를 때만 표시
+                            return (
+                              <div className="text-xs text-gray-400 mt-0.5">
+                                slug: {p.slug}
+                              </div>
+                            );
+                          })()}
+                        </div>
                       </td>
                       <td className="p-2">
                         {p.product_type === 'driver' ? 'driver' : (p.category || '-')}
@@ -907,6 +1392,23 @@ export default function ProductsAdminPage() {
                           >
                             복제
                           </button>
+                          {needsComposition(p) ? (
+                            <button
+                              onClick={() => handleOpenComposition(p)}
+                              className="px-2 py-1 text-xs bg-purple-500 text-white rounded hover:bg-purple-600"
+                              title="제품 합성 관리로 이동"
+                            >
+                              합성관리
+                            </button>
+                          ) : (
+                            <button
+                              disabled
+                              className="px-2 py-1 text-xs bg-gray-300 text-gray-500 rounded cursor-not-allowed"
+                              title="이 카테고리는 합성 관리가 필요하지 않습니다"
+                            >
+                              합성관리
+                            </button>
+                          )}
                           <select
                             onChange={(e) => {
                               if (e.target.value === 'deactivate') {
@@ -939,57 +1441,60 @@ export default function ProductsAdminPage() {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">
-                {editingProduct ? '상품 수정' : '상품 추가'}
+                {editingProduct ? '제품 수정' : '제품 추가'}
               </h2>
               <button
-                onClick={() => {
-                  setShowModal(false);
-                  setEditingProduct(null);
-                }}
+                onClick={handleCloseModal}
                 className="text-gray-400 hover:text-gray-600"
               >
                 ✕
               </button>
             </div>
             <form onSubmit={handleSave} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    상품명 *
-                  </label>
-                  <input
-                    type="text"
-                    value={formState.name || ''}
-                    onChange={(e) => setFormState({ ...formState, name: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md text-sm"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    기존명 (메모)
-                  </label>
-                  <input
-                    type="text"
-                    value={formState.legacy_name || ''}
-                    onChange={(e) =>
-                      setFormState({ ...formState, legacy_name: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-md text-sm"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  제품명 *
+                </label>
+                <input
+                  type="text"
+                  value={formState.name || ''}
+                  onChange={(e) => setFormState({ ...formState, name: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-md text-sm"
+                  required
+                />
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    SKU
+                    SKU {editingProduct && (
+                      <span className="text-xs text-gray-500 font-normal">(변경 가능)</span>
+                    )}
                   </label>
                   <input
                     type="text"
                     value={formState.sku || ''}
-                    onChange={(e) => setFormState({ ...formState, sku: e.target.value })}
+                    onChange={(e) => {
+                      const newSku = e.target.value.toUpperCase().replace(/\s+/g, '_');
+                      setFormState({ ...formState, sku: newSku });
+                    }}
+                    onFocus={(e) => {
+                      // 포커스 시 빈 값이면 placeholder가 보이도록
+                      if (!e.target.value) {
+                        e.target.placeholder = '예: CALVIN_TEST';
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // 포커스 해제 시 placeholder 복원
+                      e.target.placeholder = '예: MAS_CAP_GRAY';
+                    }}
                     className="w-full px-3 py-2 border rounded-md text-sm"
+                    placeholder={formState.sku ? '' : '예: MAS_CAP_GRAY'}
                   />
+                  {editingProduct && editingProduct.sku !== formState.sku && formState.sku && (
+                    <p className="mt-1 text-xs text-amber-600">
+                      ⚠️ SKU가 변경됩니다. 저장 시 Supabase에서 중복 체크가 수행됩니다.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1001,7 +1506,7 @@ export default function ProductsAdminPage() {
                     onChange={(e) =>
                       setFormState({ ...formState, category: e.target.value })
                     }
-                    placeholder="cap, bucket_hat, tshirt 등"
+                    placeholder="cap, driver, component 등"
                     className="w-full px-3 py-2 border rounded-md text-sm"
                   />
                 </div>
@@ -1062,6 +1567,122 @@ export default function ProductsAdminPage() {
                   />
                 </div>
               </div>
+              {/* 드라이버 제품 전용 필드 */}
+              {formState.product_type === 'driver' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      제품 설명 (Subtitle)
+                    </label>
+                    <input
+                      type="text"
+                      value={formState.subtitle || ''}
+                      onChange={(e) =>
+                        setFormState({ ...formState, subtitle: e.target.value })
+                      }
+                      placeholder="예: 프리미엄 드라이버, MUZIIK 협업 제품, 고반발 드라이버 등"
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      배지 설정
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-2">왼쪽 배지</label>
+                        <div className="space-y-2">
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="badge_left"
+                              checked={formState.badge_left === 'NEW'}
+                              onChange={() => {
+                                setFormState({
+                                  ...formState,
+                                  badge_left: 'NEW',
+                                  badge_left_color: 'red',
+                                });
+                              }}
+                              className="rounded"
+                            />
+                            <span className="text-sm">NEW (빨간색)</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="badge_left"
+                              checked={formState.badge_left === 'BEST'}
+                              onChange={() => {
+                                setFormState({
+                                  ...formState,
+                                  badge_left: 'BEST',
+                                  badge_left_color: 'yellow',
+                                });
+                              }}
+                              className="rounded"
+                            />
+                            <span className="text-sm">BEST (노란색)</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="badge_left"
+                              checked={!formState.badge_left || formState.badge_left === null}
+                              onChange={() => {
+                                setFormState({
+                                  ...formState,
+                                  badge_left: null,
+                                  badge_left_color: null,
+                                });
+                              }}
+                              className="rounded"
+                            />
+                            <span className="text-sm text-gray-400">없음</span>
+                          </label>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-2">오른쪽 배지</label>
+                        <div className="space-y-2">
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="badge_right"
+                              checked={formState.badge_right === 'LIMITED'}
+                              onChange={() => {
+                                setFormState({
+                                  ...formState,
+                                  badge_right: 'LIMITED',
+                                  badge_right_color: 'green',
+                                });
+                              }}
+                              className="rounded"
+                            />
+                            <span className="text-sm">LIMITED (초록색)</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="badge_right"
+                              checked={!formState.badge_right || formState.badge_right === null}
+                              onChange={() => {
+                                setFormState({
+                                  ...formState,
+                                  badge_right: null,
+                                  badge_right_color: null,
+                                });
+                              }}
+                              className="rounded"
+                            />
+                            <span className="text-sm text-gray-400">없음</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
               <div className="flex flex-wrap gap-4">
                 <label className="flex items-center gap-2 text-sm text-gray-700">
                   <input
@@ -1094,14 +1715,45 @@ export default function ProductsAdminPage() {
                   활성
                 </label>
               </div>
+              {/* 합성 데이터 생성 옵션 (신규 제품 또는 합성 데이터가 없는 제품) */}
+              {formState.category && 
+               !['component', 'weight_pack', 'ball', 'tshirt'].includes(formState.category) && (
+                <div className="border-t pt-4 mt-4">
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={createComposition}
+                      onChange={(e) => setCreateComposition(e.target.checked)}
+                      className="rounded"
+                    />
+                    <span>
+                      {editingProduct && !editingProduct.product_composition
+                        ? '제품 합성 관리 데이터 생성'
+                        : '제품 합성 관리 데이터도 함께 생성'}
+                      <span className="text-xs text-gray-500 ml-1">
+                        {editingProduct && !editingProduct.product_composition
+                          ? '(현재 합성 데이터가 없습니다)'
+                          : '(제품 합성 관리 페이지에서 바로 사용 가능)'}
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              )}
               
-              {/* 상세페이지 이미지 관리 */}
+              {/* 제품 이미지 관리 */}
               <div className="border-t pt-4 mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  상세페이지 이미지
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  제품 이미지 관리 *
+                  {getAllImages().length > 0 && (
+                    <span className="ml-2 text-xs text-gray-500 font-normal">
+                      (총 {getAllImages().length}개)
+                    </span>
+                  )}
                 </label>
-                <div className="mb-3">
-                  <label className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 cursor-pointer inline-block">
+                
+                {/* 이미지 추가 버튼 */}
+                <div className="flex gap-2 mb-4">
+                  <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer text-sm">
                     {uploadingImage ? '업로드 중...' : '📷 이미지 업로드'}
                     <input
                       type="file"
@@ -1111,71 +1763,106 @@ export default function ProductsAdminPage() {
                       disabled={uploadingImage}
                     />
                   </label>
+                  <button
+                    type="button"
+                    onClick={handleOpenGallery}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+                  >
+                    🖼️ 갤러리에서 선택
+                  </button>
                 </div>
-                {detailImages.length > 0 && (
-                  <div className="grid grid-cols-4 gap-3">
-                    {detailImages.map((imageUrl, index) => (
-                      <div key={index} className="relative group">
-                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                          <Image
-                            src={getProductImageUrl(imageUrl)}
-                            alt={`상세 이미지 ${index + 1}`}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
-                        </div>
-                        <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {index > 0 && (
+
+                {/* 통합 이미지 그리드 */}
+                {getAllImages().length > 0 ? (
+                  <div className="grid grid-cols-4 gap-4">
+                    {getAllImages().map((img, index) => {
+                      const isMain = mainImageUrl === img;
+                      const fileName = getFileNameFromUrl(img);
+                      return (
+                        <div key={index} className="relative group">
+                          <div className={`relative w-full h-32 bg-gray-100 rounded overflow-hidden border-2 ${
+                            isMain ? 'border-blue-500' : 'border-gray-300'
+                          }`}>
+                            <Image
+                              src={getProductImageUrl(img)}
+                              alt={isMain ? '대표 이미지' : `이미지 ${index + 1}`}
+                              fill
+                              className="object-contain"
+                              unoptimized
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                console.error('❌ 이미지 로드 실패:', img);
+                              }}
+                            />
+                            {/* 대표 이미지 배지 */}
+                            {isMain && (
+                              <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                                대표
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* 파일명 표시 */}
+                          <div className="mt-1 text-xs text-gray-600 truncate" title={fileName || img}>
+                            {fileName || '파일명 없음'}
+                          </div>
+                          
+                          {/* 버튼 그룹 */}
+                          <div className="mt-2 flex gap-1">
+                            {!isMain && (
+                              <button
+                                type="button"
+                                onClick={() => handleSetMainImage(img)}
+                                className="flex-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                title="대표 이미지로 설정"
+                              >
+                                대표로
+                              </button>
+                            )}
                             <button
                               type="button"
-                              onClick={() => handleMoveDetailImage(index, 'up')}
-                              className="p-1 bg-blue-500 text-white rounded text-xs"
-                              title="위로"
+                              onClick={() => handleDeleteImage(img)}
+                              className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                              title="이미지 삭제"
                             >
-                              ↑
+                              삭제
                             </button>
-                          )}
-                          {index < detailImages.length - 1 && (
-                            <button
-                              type="button"
-                              onClick={() => handleMoveDetailImage(index, 'down')}
-                              className="p-1 bg-blue-500 text-white rounded text-xs"
-                              title="아래로"
-                            >
-                              ↓
-                            </button>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteDetailImage(index)}
-                            className="p-1 bg-red-500 text-white rounded text-xs"
-                            title="삭제"
-                          >
-                            ✕
-                          </button>
+                          </div>
                         </div>
-                        <div className="mt-1 text-xs text-center text-gray-500">
-                          {index + 1}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded">
+                    <p className="mb-2 font-medium">이미지가 없습니다.</p>
+                    <p className="text-xs text-gray-400">
+                      위 버튼을 사용하여 이미지를 추가하세요.
+                    </p>
                   </div>
                 )}
-                {detailImages.length === 0 && (
-                  <div className="text-sm text-gray-500 py-4 text-center">
-                    업로드된 이미지가 없습니다.
-                  </div>
-                )}
+              </div>
+              
+              {/* 메모 (하단으로 이동) */}
+              <div className="border-t pt-4 mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  메모
+                </label>
+                <input
+                  type="text"
+                  value={formState.legacy_name || ''}
+                  onChange={(e) =>
+                    setFormState({ ...formState, legacy_name: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border rounded-md text-sm"
+                  placeholder="메모를 입력하세요"
+                />
               </div>
               
               <div className="flex justify-end gap-2 pt-4">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowModal(false);
-                    setEditingProduct(null);
-                  }}
+                  onClick={handleCloseModal}
                   className="px-4 py-2 border rounded-md text-sm hover:bg-gray-50"
                 >
                   취소
@@ -1191,6 +1878,18 @@ export default function ProductsAdminPage() {
           </div>
         </div>
       )}
+
+      {/* 갤러리 이미지 선택 모달 */}
+      <FolderImagePicker
+        isOpen={showGalleryPicker}
+        onClose={() => {
+          setShowGalleryPicker(false);
+          setGalleryPickerMode(null);
+        }}
+        onSelect={handleGalleryImageSelect}
+        folderPath={getDetailFolderPath() || ''}
+        title="갤러리에서 이미지 선택"
+      />
 
       {inventoryModalOpen && inventoryProduct && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">

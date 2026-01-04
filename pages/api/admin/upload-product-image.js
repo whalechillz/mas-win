@@ -22,15 +22,29 @@ export const config = {
 };
 
 /**
+ * 폴더 경로에서 폴더명 추출 (영어로)
+ * @param {string} category - 제품 카테고리
+ * @returns {string} 폴더명 prefix (예: 'goods', 'product')
+ */
+function extractFolderPrefix(category) {
+  // 굿즈/액세서리: goods (cap = 모자)
+  if (category === 'cap' || category === 'accessory' || category === 'goods') {
+    return 'goods';
+  }
+  // 드라이버 제품: product
+  return 'product';
+}
+
+/**
  * 제품 slug를 기반으로 Storage 경로 결정
  * @param {string} productSlug - 제품 slug
- * @param {string} category - 제품 카테고리 (hat, driver, accessory)
+ * @param {string} category - 제품 카테고리 (cap, driver, accessory)
  * @param {string} imageType - 이미지 타입 (detail, composition, gallery)
  * @returns {string} Storage 폴더 경로
  */
 function getProductStoragePath(productSlug, category, imageType = 'detail') {
-  // 굿즈/액세서리: originals/goods/{slug}/{imageType}
-  if (category === 'hat' || category === 'accessory' || category === 'goods') {
+  // 굿즈/액세서리: originals/goods/{slug}/{imageType} (cap = 모자)
+  if (category === 'cap' || category === 'accessory' || category === 'goods') {
     return `originals/goods/${productSlug}/${imageType}`;
   }
 
@@ -57,6 +71,8 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('[upload-product-image] 요청 시작');
+    
     const formidable = (await import('formidable')).default;
     const form = formidable({
       maxFileSize: 10 * 1024 * 1024, // 10MB
@@ -67,44 +83,115 @@ export default async function handler(req, res) {
 
     const [fields, files] = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
-        if (err) reject(err);
-        else resolve([fields, files]);
+        if (err) {
+          console.error('[upload-product-image] form 파싱 오류:', err);
+          reject(err);
+        } else {
+          resolve([fields, files]);
+        }
       });
+    });
+
+    console.log('[upload-product-image] form 파싱 완료:', {
+      fields: Object.keys(fields),
+      hasFile: !!files.file,
     });
 
     const file = files.file?.[0];
     if (!file) {
+      console.error('[upload-product-image] 파일 없음');
       return res.status(400).json({ error: '이미지 파일이 필요합니다.' });
     }
 
     // 제품 정보 가져오기 (slug, category, imageType)
     const productSlug = fields.productSlug?.[0] || '';
-    const category = fields.category?.[0] || 'hat'; // 기본값: hat
+    const category = fields.category?.[0] || 'cap'; // 기본값: cap (모자)
     const imageType = fields.imageType?.[0] || 'detail'; // detail, composition, gallery
+    const preserveFilename = fields.preserveFilename?.[0] === 'true'; // 원본 파일명 유지 옵션
+
+    console.log('[upload-product-image] 제품 정보:', {
+      productSlug,
+      category,
+      imageType,
+      fileName: file.originalFilename,
+    });
 
     // ✅ productSlug 검증 추가
     if (!productSlug || productSlug.trim() === '') {
+      console.error('[upload-product-image] productSlug 없음');
       return res.status(400).json({
         error: '제품 Slug가 필요합니다.',
-        details: '제품 수정 모달에서 Slug를 먼저 입력해주세요.'
+        details: '제품 수정 모달에서 Slug 또는 SKU를 먼저 입력해주세요.'
       });
     }
 
     // 파일 읽기
+    console.log('[upload-product-image] 파일 읽기 시작:', file.filepath);
     const fileBuffer = fs.readFileSync(file.filepath);
+    console.log('[upload-product-image] 파일 읽기 완료, 크기:', fileBuffer.length);
+
     const originalName = file.originalFilename || `product-${Date.now()}.jpg`;
-    const baseName = path.parse(originalName).name;
     
     // WebP로 변환
+    console.log('[upload-product-image] WebP 변환 시작');
     const webpBuffer = await sharp(fileBuffer)
       .webp({ quality: 85 })
       .toBuffer();
+    console.log('[upload-product-image] WebP 변환 완료, 크기:', webpBuffer.length);
 
     // Storage 경로 결정 (새 구조 사용)
     const storageFolder = getProductStoragePath(productSlug, category, imageType);
-    const timestamp = Date.now();
-    const webpFileName = `${baseName}-${timestamp}.webp`;
-    const storagePath = `${storageFolder}/${webpFileName}`;
+    console.log('[upload-product-image] Storage 경로:', storageFolder);
+    
+    // 파일명 생성
+    let webpFileName;
+    if (preserveFilename) {
+      // 원본 파일명 유지 (확장자만 .webp로 변경)
+      const baseName = path.parse(originalName).name;
+      webpFileName = `${baseName}.webp`;
+    } else {
+      // 기본: 폴더명 + 타임스탬프 + 랜덤 문자열
+      const folderPrefix = extractFolderPrefix(category);
+      const timestamp = Date.now();
+      const randomString = Math.random().toString(36).substring(2, 8);
+      webpFileName = `${folderPrefix}-${timestamp}-${randomString}.webp`;
+    }
+    
+    let storagePath = `${storageFolder}/${webpFileName}`;
+    console.log('[upload-product-image] 업로드 시작:', storagePath);
+    
+    // 원본 파일명 유지 옵션일 때 중복 체크
+    if (preserveFilename) {
+      let counter = 0;
+      let finalPath = storagePath;
+      
+      // 중복 체크 (최대 10번 시도)
+      while (counter < 10) {
+        const folderPath = finalPath.split('/').slice(0, -1).join('/');
+        const fileName = finalPath.split('/').pop();
+        
+        const { data: existingFiles, error: listError } = await supabase.storage
+          .from('blog-images')
+          .list(folderPath || '', {
+            search: fileName
+          });
+        
+        if (listError || !existingFiles || existingFiles.length === 0) {
+          break; // 중복 없음
+        }
+        
+        // 중복이면 번호 추가
+        counter++;
+        const pathParts = finalPath.split('/');
+        const currentFileName = pathParts.pop();
+        const nameWithoutExt = currentFileName.replace(/\.[^/.]+$/, '');
+        const ext = currentFileName.match(/\.[^/.]+$/)?.[0] || '';
+        pathParts.push(`${nameWithoutExt}-${counter}${ext}`);
+        finalPath = pathParts.join('/');
+      }
+      
+      storagePath = finalPath;
+    }
 
     // Supabase Storage에 업로드
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -116,12 +203,14 @@ export default async function handler(req, res) {
       });
 
     if (uploadError) {
-      console.error('❌ Supabase Storage 업로드 오류:', uploadError);
+      console.error('[upload-product-image] ❌ Supabase Storage 업로드 오류:', uploadError);
       return res.status(500).json({
         error: '이미지 업로드에 실패했습니다.',
         details: uploadError.message
       });
     }
+
+    console.log('[upload-product-image] ✅ 업로드 성공');
 
     // 공개 URL 생성
     const { data: { publicUrl } } = supabase.storage
@@ -129,24 +218,27 @@ export default async function handler(req, res) {
       .getPublicUrl(storagePath);
 
     // 임시 파일 삭제
-    fs.unlinkSync(file.filepath);
+    try {
+      fs.unlinkSync(file.filepath);
+    } catch (unlinkError) {
+      console.warn('[upload-product-image] 임시 파일 삭제 실패:', unlinkError);
+    }
 
-    // Storage 경로를 상대 경로로 변환 (기존 코드 호환)
-    const relativePath = `/${storagePath}`;
-
+    // ✅ 전체 Supabase URL로 반환 (DB에 저장 시 일관성 유지)
     res.status(200).json({
       success: true,
-      url: relativePath, // 상대 경로: /originals/products/{slug}/{type}/...
-      storageUrl: publicUrl, // Supabase Storage 공개 URL (전체 URL)
+      url: publicUrl, // ✅ 전체 URL로 변경: https://yyytjudftvpmcnppaymw.supabase.co/...
+      storageUrl: publicUrl, // 동일 (호환성 유지)
       fileName: webpFileName,
       storagePath: storagePath,
       message: '이미지가 Supabase Storage에 업로드되고 WebP로 변환되었습니다.'
     });
 
   } catch (error) {
-    console.error('❌ 제품 이미지 업로드 오류:', error);
+    console.error('[upload-product-image] ❌ 예외 발생:', error);
     return res.status(500).json({
-      error: error.message || '이미지 업로드 중 오류가 발생했습니다.'
+      error: error.message || '이미지 업로드 중 오류가 발생했습니다.',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }

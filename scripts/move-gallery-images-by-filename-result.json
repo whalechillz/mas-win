@@ -1,0 +1,126 @@
+{
+  "bucketHat": {
+    "black": [
+      {
+        "fileName": "bucket-hat-muziik-1.webp",
+        "from": "originals/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-1.webp",
+        "to": "originals/goods/bucket-hat-muziik-black/gallery/bucket-hat-muziik-1.webp"
+      },
+      {
+        "fileName": "bucket-hat-muziik-11.webp",
+        "from": "originals/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-11.webp",
+        "to": "originals/goods/bucket-hat-muziik-black/gallery/bucket-hat-muziik-11.webp"
+      },
+      {
+        "fileName": "bucket-hat-muziik-12.webp",
+        "from": "originals/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-12.webp",
+        "to": "originals/goods/bucket-hat-muziik-black/gallery/bucket-hat-muziik-12.webp"
+      },
+      {
+        "fileName": "bucket-hat-muziik-2.webp",
+        "from": "originals/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-2.webp",
+        "to": "originals/goods/bucket-hat-muziik-black/gallery/bucket-hat-muziik-2.webp"
+      },
+      {
+        "fileName": "bucket-hat-muziik-4.webp",
+        "from": "originals/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-4.webp",
+        "to": "originals/goods/bucket-hat-muziik-black/gallery/bucket-hat-muziik-4.webp"
+      },
+      {
+        "fileName": "composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1767061550580.png",
+        "from": "originals/goods/bucket-hat-muziik/gallery/composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1767061550580.png",
+        "to": "originals/goods/bucket-hat-muziik-black/gallery/composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1767061550580.png"
+      },
+      {
+        "fileName": "composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1767338691526.png",
+        "from": "originals/goods/bucket-hat-muziik/gallery/composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1767338691526.png",
+        "to": "originals/goods/bucket-hat-muziik-black/gallery/composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1767338691526.png"
+      }
+    ],
+    "white": [
+      {
+        "fileName": "bucket-hat-muziik-10.webp",
+        "from": "originals/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-10.webp",
+        "to": "originals/goods/bucket-hat-muziik-white/gallery/bucket-hat-muziik-10.webp"
+      },
+      {
+        "fileName": "bucket-hat-muziik-3.webp",
+        "from": "originals/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-3.webp",
+        "to": "originals/goods/bucket-hat-muziik-white/gallery/bucket-hat-muziik-3.webp"
+      },
+      {
+        "fileName": "bucket-hat-muziik-5.webp",
+        "from": "originals/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-5.webp",
+        "to": "originals/goods/bucket-hat-muziik-white/gallery/bucket-hat-muziik-5.webp"
+      },
+      {
+        "fileName": "bucket-hat-muziik-6.webp",
+        "from": "originals/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-6.webp",
+        "to": "originals/goods/bucket-hat-muziik-white/gallery/bucket-hat-muziik-6.webp"
+      },
+      {
+        "fileName": "bucket-hat-muziik-7.webp",
+        "from": "originals/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-7.webp",
+        "to": "originals/goods/bucket-hat-muziik-white/gallery/bucket-hat-muziik-7.webp"
+      },
+      {
+        "fileName": "bucket-hat-muziik-8.webp",
+        "from": "originals/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-8.webp",
+        "to": "originals/goods/bucket-hat-muziik-white/gallery/bucket-hat-muziik-8.webp"
+      },
+      {
+        "fileName": "bucket-hat-muziik-9.webp",
+        "from": "originals/goods/bucket-hat-muziik/gallery/bucket-hat-muziik-9.webp",
+        "to": "originals/goods/bucket-hat-muziik-white/gallery/bucket-hat-muziik-9.webp"
+      },
+      {
+        "fileName": "composed-1-d1d615b7-9b7a-4ec8-b8fb-4296aa3ae964-1767061647996.png",
+        "from": "originals/goods/bucket-hat-muziik/gallery/composed-1-d1d615b7-9b7a-4ec8-b8fb-4296aa3ae964-1767061647996.png",
+        "to": "originals/goods/bucket-hat-muziik-white/gallery/composed-1-d1d615b7-9b7a-4ec8-b8fb-4296aa3ae964-1767061647996.png"
+      }
+    ],
+    "errors": []
+  },
+  "golfHat": {
+    "beige": [
+      {
+        "fileName": "golf-hat-muziik-1.webp",
+        "from": "originals/goods/golf-hat-muziik/gallery/golf-hat-muziik-1.webp",
+        "to": "originals/goods/golf-hat-muziik-beige/gallery/golf-hat-muziik-1.webp"
+      },
+      {
+        "fileName": "golf-hat-muziik-6.webp",
+        "from": "originals/goods/golf-hat-muziik/gallery/golf-hat-muziik-6.webp",
+        "to": "originals/goods/golf-hat-muziik-beige/gallery/golf-hat-muziik-6.webp"
+      }
+    ],
+    "white": [
+      {
+        "fileName": "golf-hat-muziik-2.webp",
+        "from": "originals/goods/golf-hat-muziik/gallery/golf-hat-muziik-2.webp",
+        "to": "originals/goods/golf-hat-muziik-white/gallery/golf-hat-muziik-2.webp"
+      },
+      {
+        "fileName": "golf-hat-muziik-3.webp",
+        "from": "originals/goods/golf-hat-muziik/gallery/golf-hat-muziik-3.webp",
+        "to": "originals/goods/golf-hat-muziik-white/gallery/golf-hat-muziik-3.webp"
+      },
+      {
+        "fileName": "golf-hat-muziik-4.webp",
+        "from": "originals/goods/golf-hat-muziik/gallery/golf-hat-muziik-4.webp",
+        "to": "originals/goods/golf-hat-muziik-white/gallery/golf-hat-muziik-4.webp"
+      },
+      {
+        "fileName": "golf-hat-muziik-5.webp",
+        "from": "originals/goods/golf-hat-muziik/gallery/golf-hat-muziik-5.webp",
+        "to": "originals/goods/golf-hat-muziik-white/gallery/golf-hat-muziik-5.webp"
+      },
+      {
+        "fileName": "golf-hat-muziik-7.webp",
+        "from": "originals/goods/golf-hat-muziik/gallery/golf-hat-muziik-7.webp",
+        "to": "originals/goods/golf-hat-muziik-white/gallery/golf-hat-muziik-7.webp"
+      }
+    ],
+    "errors": []
+  }
+}

@@ -72,8 +72,8 @@ export default function SurveyLanding() {
     try {
       setImagesLoading(true);
       
-      // 버킷햇 이미지 로드
-      const bucketRes = await fetch('/api/products/bucket-hat-muziik');
+      // 버킷햇 이미지 로드 (여러 색상 제품 합치기)
+      const bucketRes = await fetch('/api/products/survey-hats?type=bucket');
       const bucketData = await bucketRes.json();
       
       if (bucketData.success && bucketData.product?.gallery_images && bucketData.product.gallery_images.length > 0) {
@@ -91,8 +91,8 @@ export default function SurveyLanding() {
         setBucketHatImages(fallbackImages);
       }
       
-      // 골프모자 이미지 로드
-      const golfRes = await fetch('/api/products/golf-hat-muziik');
+      // 골프모자 이미지 로드 (여러 색상 제품 합치기)
+      const golfRes = await fetch('/api/products/survey-hats?type=golf');
       const golfData = await golfRes.json();
       
       if (golfData.success && golfData.product?.gallery_images && golfData.product.gallery_images.length > 0) {

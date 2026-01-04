@@ -1,0 +1,140 @@
+{
+  "bucketHat": {
+    "black": [
+      {
+        "fileName": "black-bucket-hat.webp",
+        "from": "originals/goods/bucket-hat-muziik/composition/black-bucket-hat.webp",
+        "to": "originals/goods/bucket-hat-muziik-black/composition/black-bucket-hat.webp"
+      }
+    ],
+    "white": [
+      {
+        "fileName": "white-bucket-hat.webp",
+        "from": "originals/goods/bucket-hat-muziik/composition/white-bucket-hat.webp",
+        "to": "originals/goods/bucket-hat-muziik-white/composition/white-bucket-hat.webp"
+      }
+    ],
+    "errors": [
+      {
+        "fileName": "bucket-hat-muziik-1.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "bucket-hat-muziik-10.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "bucket-hat-muziik-11.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "bucket-hat-muziik-12.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "bucket-hat-muziik-2.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "bucket-hat-muziik-3.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "bucket-hat-muziik-4.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "bucket-hat-muziik-5.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "bucket-hat-muziik-6.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "bucket-hat-muziik-7.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "bucket-hat-muziik-8.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "bucket-hat-muziik-9.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1767061550580.png",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1767338691526.png",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "composed-1-d1d615b7-9b7a-4ec8-b8fb-4296aa3ae964-1767061647996.png",
+        "reason": "color_not_detected"
+      }
+    ]
+  },
+  "golfHat": {
+    "black": [
+      {
+        "fileName": "black-golf-cap.webp",
+        "from": "originals/goods/golf-hat-muziik/composition/black-golf-cap.webp",
+        "to": "originals/goods/golf-hat-muziik-black/composition/black-golf-cap.webp"
+      }
+    ],
+    "white": [
+      {
+        "fileName": "white-golf-cap.webp",
+        "from": "originals/goods/golf-hat-muziik/composition/white-golf-cap.webp",
+        "to": "originals/goods/golf-hat-muziik-white/composition/white-golf-cap.webp"
+      }
+    ],
+    "navy": [
+      {
+        "fileName": "navy-golf-cap.webp",
+        "from": "originals/goods/golf-hat-muziik/composition/navy-golf-cap.webp",
+        "to": "originals/goods/golf-hat-muziik-navy/composition/navy-golf-cap.webp"
+      }
+    ],
+    "beige": [
+      {
+        "fileName": "beige-golf-cap.webp",
+        "from": "originals/goods/golf-hat-muziik/composition/beige-golf-cap.webp",
+        "to": "originals/goods/golf-hat-muziik-beige/composition/beige-golf-cap.webp"
+      }
+    ],
+    "errors": [
+      {
+        "fileName": "golf-hat-muziik-1.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "golf-hat-muziik-2.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "golf-hat-muziik-3.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "golf-hat-muziik-4.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "golf-hat-muziik-5.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "golf-hat-muziik-6.webp",
+        "reason": "color_not_detected"
+      },
+      {
+        "fileName": "golf-hat-muziik-7.webp",
+        "reason": "color_not_detected"
+      }
+    ]
+  }
+}

@@ -1176,6 +1176,7 @@ export default function GalleryAdmin() {
   const [pending, setPending] = useState(false);
   const [addUrl, setAddUrl] = useState('');
   const [selectedUploadFolder, setSelectedUploadFolder] = useState<string>('');
+  const [uploadMode, setUploadMode] = useState<'auto' | 'preserve-name' | 'preserve-original'>('auto'); // 업로드 모드
   const [aiBrandTone, setAiBrandTone] = useState<'senior_emotional' | 'high_tech_innovative'>('senior_emotional');
   
   // 모달 열 때 현재 폴더 자동 설정
@@ -3777,6 +3778,43 @@ export default function GalleryAdmin() {
                     fetchImages(1, true, folderFilter, includeChildren, searchQuery);
                   } catch {}
                 }}
+                onRefreshFolder={async (folderPath: string) => {
+                  // 특정 폴더의 하위 폴더만 조회
+                  try {
+                    const response = await fetch(`/api/admin/folders-list?parent=${encodeURIComponent(folderPath)}`);
+                    const data = await response.json();
+                    
+                    if (response.ok && data.folders && Array.isArray(data.folders)) {
+                      // 기존 폴더 목록에 새로 로드한 하위 폴더 병합
+                      const newFolders = new Set(availableFolders);
+                      
+                      // 새로 로드한 하위 폴더 추가
+                      data.folders.forEach((folder: string) => {
+                        newFolders.add(folder);
+                        
+                        // 하위 경로도 모두 추가 (예: originals/goods/bucket-hat-muziik-black/gallery → originals, originals/goods, ...)
+                        const parts = folder.split('/').filter(Boolean);
+                        let currentPath = '';
+                        parts.forEach(part => {
+                          currentPath = currentPath ? `${currentPath}/${part}` : part;
+                          newFolders.add(currentPath);
+                        });
+                      });
+                      
+                      const mergedFolders = Array.from(newFolders).sort();
+                      setAvailableFolders(mergedFolders);
+                      
+                      console.log(`✅ 폴더 새로고침 완료: ${folderPath} → ${data.folders.length}개 하위 폴더 추가 (총 ${mergedFolders.length}개)`);
+                      
+                      return data.folders;
+                    } else {
+                      throw new Error(data.error || '하위 폴더 조회 실패');
+                    }
+                  } catch (error: any) {
+                    console.error(`❌ 폴더 새로고침 오류: ${folderPath}`, error);
+                    throw error;
+                  }
+                }}
                 onImageDrop={async (imageData, targetFolder, event?: DragEvent) => {
                   console.log('📁 이미지 드롭:', { imageData, targetFolder, event });
                   
@@ -6177,6 +6215,67 @@ export default function GalleryAdmin() {
                     folders={availableFolders}
                     isLoadingFolders={isLoadingFolders}
                   />
+                  
+                  {/* 업로드 모드 선택 */}
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
+                    <label className="text-xs font-medium text-gray-600 mb-2 block">
+                      업로드 모드
+                    </label>
+                    
+                    {/* 자동 (기본) */}
+                    <label className="flex items-start cursor-pointer">
+                      <input
+                        type="radio"
+                        name="uploadMode"
+                        value="auto"
+                        checked={uploadMode === 'auto'}
+                        onChange={(e) => setUploadMode('auto')}
+                        className="mt-1 mr-2 w-4 h-4 text-blue-600"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm text-gray-700 font-medium">자동 (기본)</span>
+                        <p className="text-xs text-gray-500 mt-1">
+                          최적화 + 파일명 변경: {selectedUploadFolder ? (selectedUploadFolder.match(/originals\/([^\/]+)/)?.[1] || 'blog') : 'blog'}-{'{타임스탬프}'}-{'{랜덤}'}.jpg
+                        </p>
+                      </div>
+                    </label>
+                    
+                    {/* 파일명 유지 */}
+                    <label className="flex items-start cursor-pointer">
+                      <input
+                        type="radio"
+                        name="uploadMode"
+                        value="preserve-name"
+                        checked={uploadMode === 'preserve-name'}
+                        onChange={(e) => setUploadMode('preserve-name')}
+                        className="mt-1 mr-2 w-4 h-4 text-blue-600"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm text-gray-700 font-medium">파일명 유지</span>
+                        <p className="text-xs text-gray-500 mt-1">
+                          최적화 적용 + 파일명/확장자 원본 그대로: golf-hat-muziik-4.webp
+                        </p>
+                      </div>
+                    </label>
+                    
+                    {/* 원본 그대로 */}
+                    <label className="flex items-start cursor-pointer">
+                      <input
+                        type="radio"
+                        name="uploadMode"
+                        value="preserve-original"
+                        checked={uploadMode === 'preserve-original'}
+                        onChange={(e) => setUploadMode('preserve-original')}
+                        className="mt-1 mr-2 w-4 h-4 text-blue-600"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm text-gray-700 font-medium">원본 그대로</span>
+                        <p className="text-xs text-gray-500 mt-1">
+                          최적화 없음 + 파일명/확장자 원본 그대로: golf-hat-muziik-4.webp (원본 파일 그대로)
+                        </p>
+                      </div>
+                    </label>
+                  </div>
                   </div>
                   
                   {/* 오른쪽: 드래그 앤 드롭 업로드 영역 (컴팩트) */}
@@ -6209,6 +6308,7 @@ export default function GalleryAdmin() {
                             targetFolder: selectedUploadFolder || undefined,
                             enableHEICConversion: true,
                             enableEXIFBackfill: true,
+                            uploadMode: uploadMode,
                           });
                           
                           // ✅ 업로드한 폴더로 자동 이동
@@ -6263,6 +6363,8 @@ export default function GalleryAdmin() {
                                 targetFolder: selectedUploadFolder || undefined,
                                 enableHEICConversion: true,
                                 enableEXIFBackfill: true,
+                                preserveFilename: preserveFilename,
+                                preserveExtension: preserveExtension,
                               });
                               
                               setShowAddModal(false);

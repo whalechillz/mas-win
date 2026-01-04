@@ -1,0 +1,376 @@
+{
+  "matched": [
+    {
+      "composition": {
+        "id": "4023b2e7-24db-499e-b065-8ecc53551c69",
+        "name": "시크리트포스 골드 2 MUZIIK",
+        "slug": "gold2-sapphire",
+        "product_id": 23
+      },
+      "product": {
+        "id": 23,
+        "name": "시크리트포스 골드 2 MUZIIK",
+        "sku": "GOLD2_SAPPHIRE",
+        "slug": "gold2-sapphire",
+        "expected_sku": "GOLD2_SAPPHIRE"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    },
+    {
+      "composition": {
+        "id": "96e8e90e-d6db-4973-b2d3-4ac79fd7a8c4",
+        "name": "시크리트웨폰 블랙 MUZIIK",
+        "slug": "black-beryl",
+        "product_id": 24
+      },
+      "product": {
+        "id": 24,
+        "name": "시크리트웨폰 블랙 MUZIIK",
+        "sku": "SECRET_WEAPON_BLACK",
+        "slug": "secret-weapon-black",
+        "expected_sku": "BLACK_BERYL"
+      },
+      "match": {
+        "sku_match": false,
+        "slug_match": false,
+        "needs_update": true
+      }
+    },
+    {
+      "composition": {
+        "id": "c5949767-aae1-4a13-82bf-b27d867a7333",
+        "name": "시크리트포스 골드 2",
+        "slug": "gold2",
+        "product_id": 26
+      },
+      "product": {
+        "id": 26,
+        "name": "시크리트포스 골드 2",
+        "sku": "GOLD2",
+        "slug": "gold2",
+        "expected_sku": "GOLD2"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    },
+    {
+      "composition": {
+        "id": "eacc4da7-2c0a-48da-9007-e4e407e9a4d2",
+        "name": "시크리트포스 PRO 3",
+        "slug": "secret-force-pro-3",
+        "product_id": 27
+      },
+      "product": {
+        "id": 27,
+        "name": "시크리트포스 PRO 3",
+        "sku": "SECRET_FORCE_PRO_3",
+        "slug": "secret-force-pro-3",
+        "expected_sku": "SECRET_FORCE_PRO_3"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    },
+    {
+      "composition": {
+        "id": "f4a15366-2ee1-4c6f-b62e-864f93365dc8",
+        "name": "시크리트포스 V3",
+        "slug": "secret-force-v3",
+        "product_id": 28
+      },
+      "product": {
+        "id": 28,
+        "name": "시크리트포스 V3",
+        "sku": "SECRET_FORCE_V3",
+        "slug": "secret-force-v3",
+        "expected_sku": "SECRET_FORCE_V3"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    },
+    {
+      "composition": {
+        "id": "edb5207e-17e7-4f22-9b5c-a3cb7e96ddb6",
+        "name": "시크리트웨폰 블랙",
+        "slug": "secret-weapon-black",
+        "product_id": 24
+      },
+      "product": {
+        "id": 24,
+        "name": "시크리트웨폰 블랙 MUZIIK",
+        "sku": "SECRET_WEAPON_BLACK",
+        "slug": "secret-weapon-black",
+        "expected_sku": "SECRET_WEAPON_BLACK"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    },
+    {
+      "composition": {
+        "id": "bf218a36-9fbe-45eb-8191-2bb19a6702fd",
+        "name": "시크리트웨폰 골드 4.1",
+        "slug": "secret-weapon-gold-4-1",
+        "product_id": 30
+      },
+      "product": {
+        "id": 30,
+        "name": "시크리트웨폰 골드 4.1",
+        "sku": "SECRET_WEAPON_GOLD_4_1",
+        "slug": "secret-weapon-gold-4-1",
+        "expected_sku": "SECRET_WEAPON_GOLD_4_1"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    },
+    {
+      "composition": {
+        "id": "db221204-47f9-4a0e-acc4-fc336cef35d6",
+        "name": "마쓰구 화이트캡",
+        "slug": "massgoo-white-cap",
+        "product_id": 22
+      },
+      "product": {
+        "id": 22,
+        "name": "마쓰구 화이트캡",
+        "sku": "MASSGOO_WHITE_CAP",
+        "slug": "massgoo-white-cap",
+        "expected_sku": "MASSGOO_WHITE_CAP"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    },
+    {
+      "composition": {
+        "id": "0ed14f43-8b06-48fd-ae3b-f167ab394088",
+        "name": "MAS 한정판 모자(그레이)",
+        "slug": "mas-limited-cap-gray",
+        "product_id": 20
+      },
+      "product": {
+        "id": 20,
+        "name": "MAS 한정판 모자(그레이)",
+        "sku": "MAS_LIMITED_CAP_GRAY",
+        "slug": "mas-limited-cap-gray",
+        "expected_sku": "MAS_LIMITED_CAP_GRAY"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    },
+    {
+      "composition": {
+        "id": "47126124-2ccd-4eeb-9243-bdf86e7ac191",
+        "name": "MAS 한정판 모자(블랙)",
+        "slug": "mas-limited-cap-black",
+        "product_id": 19
+      },
+      "product": {
+        "id": 19,
+        "name": "MAS 한정판 모자(블랙)",
+        "sku": "MAS_LIMITED_CAP_BLACK",
+        "slug": "mas-limited-cap-black",
+        "expected_sku": "MAS_LIMITED_CAP_BLACK"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    },
+    {
+      "composition": {
+        "id": "d518c6f2-74d2-4a45-8966-8acb07ad9952",
+        "name": "MASSGOO × MUZIIK 스타일리시 버킷햇(화이트)",
+        "slug": "bucket-hat-muziik-white",
+        "product_id": 6
+      },
+      "product": {
+        "id": 6,
+        "name": "MASSGOO × MUZIIK 스타일리시 버킷햇(화이트)",
+        "sku": "BUCKET_HAT_MUZIIK_WHITE",
+        "slug": "bucket-hat-muziik-white",
+        "expected_sku": "BUCKET_HAT_MUZIIK_WHITE"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    },
+    {
+      "composition": {
+        "id": "33ea1b00-40dc-44bb-a041-42dc1b02c685",
+        "name": "MASSGOO × MUZIIK 스타일리시 버킷햇(블랙)",
+        "slug": "bucket-hat-muziik-black",
+        "product_id": 5
+      },
+      "product": {
+        "id": 5,
+        "name": "MASSGOO × MUZIIK 스타일리시 버킷햇(블랙)",
+        "sku": "BUCKET_HAT_MUZIIK_BLACK",
+        "slug": "bucket-hat-muziik-black",
+        "expected_sku": "BUCKET_HAT_MUZIIK_BLACK"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    },
+    {
+      "composition": {
+        "id": "31f56173-9811-4d53-b996-f827572251a0",
+        "name": "MASSGOO × MUZIIK 콜라보 골프모자 (화이트)",
+        "slug": "golf-hat-muziik-white",
+        "product_id": 4
+      },
+      "product": {
+        "id": 4,
+        "name": "MASSGOO × MUZIIK 콜라보 골프모자 (화이트)",
+        "sku": "GOLF_HAT_MUZIIK_WHITE",
+        "slug": "golf-hat-muziik-white",
+        "expected_sku": "GOLF_HAT_MUZIIK_WHITE"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    },
+    {
+      "composition": {
+        "id": "f5c213c8-9357-469d-929e-32eb2837af31",
+        "name": "MASSGOO × MUZIIK 콜라보 골프모자 (베이지)",
+        "slug": "golf-hat-muziik-beige",
+        "product_id": 3
+      },
+      "product": {
+        "id": 3,
+        "name": "MASSGOO × MUZIIK 콜라보 골프모자 (베이지)",
+        "sku": "GOLF_HAT_MUZIIK_BEIGE",
+        "slug": "golf-hat-muziik-beige",
+        "expected_sku": "GOLF_HAT_MUZIIK_BEIGE"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    },
+    {
+      "composition": {
+        "id": "2a2bb3af-1f2e-44b9-b092-0b59b1fc7179",
+        "name": "MASSGOO × MUZIIK 콜라보 골프모자 (네이비)",
+        "slug": "golf-hat-muziik-navy",
+        "product_id": 1
+      },
+      "product": {
+        "id": 1,
+        "name": "MASSGOO × MUZIIK 콜라보 골프모자 (네이비)",
+        "sku": "GOLF_HAT_MUZIIK_NAVY",
+        "slug": "golf-hat-muziik-navy",
+        "expected_sku": "GOLF_HAT_MUZIIK_NAVY"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    },
+    {
+      "composition": {
+        "id": "aa1a72c8-1e27-4a24-a8ff-5d0b70d6a411",
+        "name": "MASSGOO × MUZIIK 콜라보 골프모자 (블랙)",
+        "slug": "golf-hat-muziik-black",
+        "product_id": 2
+      },
+      "product": {
+        "id": 2,
+        "name": "MASSGOO × MUZIIK 콜라보 골프모자 (블랙)",
+        "sku": "GOLF_HAT_MUZIIK_BLACK",
+        "slug": "golf-hat-muziik-black",
+        "expected_sku": "GOLF_HAT_MUZIIK_BLACK"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    },
+    {
+      "composition": {
+        "id": "6b04d7be-fa12-4859-863a-1be02a6ad854",
+        "name": "MASSGOO × MUZIIK 프리미엄 클러치백 (베이지)",
+        "slug": "massgoo-muziik-clutch-beige",
+        "product_id": 7
+      },
+      "product": {
+        "id": 7,
+        "name": "MASSGOO × MUZIIK 프리미엄 클러치백",
+        "sku": "MASSGOO_MUZIIK_CLUTCH_BEIGE",
+        "slug": "massgoo-muziik-clutch-beige",
+        "expected_sku": "MASSGOO_MUZIIK_CLUTCH_BEIGE"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    },
+    {
+      "composition": {
+        "id": "2413ad39-de1d-4e79-947d-90cb2b98d8c6",
+        "name": "MASSGOO × MUZIIK 프리미엄 클러치백 (그레이)",
+        "slug": "massgoo-muziik-clutch-gray",
+        "product_id": 9
+      },
+      "product": {
+        "id": 9,
+        "name": "MASSGOO × MUZIIK 프리미엄 클러치백",
+        "sku": "MASSGOO_MUZIIK_CLUTCH_GRAY",
+        "slug": "massgoo-muziik-clutch-gray",
+        "expected_sku": "MASSGOO_MUZIIK_CLUTCH_GRAY"
+      },
+      "match": {
+        "sku_match": true,
+        "slug_match": true,
+        "needs_update": false
+      }
+    }
+  ],
+  "unmatched": [
+    {
+      "composition": {
+        "id": "2598d8bd-9cf6-4e5d-8c3b-1ce7d1c8b88d",
+        "name": "마쓰구 블랙캡",
+        "slug": "massgoo-black-cap",
+        "product_id": null
+      },
+      "expected_sku": "MASSGOO_BLACK_CAP"
+    }
+  ],
+  "errors": []
+}

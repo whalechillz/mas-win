@@ -3,7 +3,7 @@
  * AI 이미지 생성 시 마쓰구 드라이버 제품을 합성하기 위한 제품 정보
  */
 
-export type ProductCategory = 'driver' | 'hat' | 'apparel' | 'accessory';
+export type ProductCategory = 'driver' | 'cap' | 'apparel' | 'accessory';
 export type CompositionTarget = 'hands' | 'head' | 'body' | 'accessory';
 export type HatType = 'bucket' | 'baseball' | 'visor';
 export type DriverPart = 'crown' | 'sole' | 'face' | 'full';
@@ -11,7 +11,7 @@ export type DriverPart = 'crown' | 'sole' | 'face' | 'full';
 export interface ProductForComposition {
   id: string;
   name: string;
-  category: ProductCategory; // 'driver' | 'hat' | 'apparel' | 'accessory'
+  category: ProductCategory; // 'driver' | 'cap' | 'apparel' | 'accessory'
   compositionTarget: CompositionTarget; // 'hands' | 'head' | 'body' | 'accessory'
   imageUrl: string; // 제품 단독 이미지 URL (합성에 사용)
   referenceImages?: string[]; // 다양한 각도의 참조 이미지 배열 (뱃지/문구 없는 순수 헤드)

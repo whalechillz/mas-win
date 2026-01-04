@@ -5,6 +5,10 @@ interface UploadOptions {
   targetFolder?: string; // 업로드할 폴더 경로 (예: 'originals/daily-branding/kakao/2025-11-16/account1/feed')
   enableHEICConversion?: boolean; // HEIC 파일 자동 변환
   enableEXIFBackfill?: boolean; // EXIF 메타데이터 백필
+  uploadMode?: 'auto' | 'preserve-name' | 'preserve-original'; // 업로드 모드
+  // 하위 호환성: 기존 옵션들 (deprecated)
+  preserveFilename?: boolean; // 원본 파일명 전체 유지 옵션 (deprecated, uploadMode 사용 권장)
+  preserveExtension?: boolean; // 원본 확장자만 유지 옵션 (deprecated, uploadMode 사용 권장)
 }
 
 interface UploadResult {
@@ -66,6 +70,21 @@ export async function uploadImageToSupabase(
     // targetFolder가 있으면 추가
     if (options.targetFolder) {
       formData.append('targetFolder', options.targetFolder);
+    }
+    
+    // uploadMode 옵션 추가 (우선순위)
+    if (options.uploadMode) {
+      formData.append('uploadMode', options.uploadMode);
+    }
+    
+    // 하위 호환성: 기존 옵션들 (uploadMode가 없을 때만 사용)
+    if (!options.uploadMode) {
+      if (options.preserveFilename) {
+        formData.append('preserveFilename', 'true');
+      }
+      if (options.preserveExtension) {
+        formData.append('preserveExtension', 'true');
+      }
     }
 
     // 업로드 API 호출

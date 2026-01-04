@@ -117,7 +117,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({
               <div className="space-y-1">
                 <div className="flex items-start justify-between gap-2">
                   <div className="text-xs font-semibold text-gray-900 line-clamp-2 flex-1">
-                    {product.displayName}
+                    {product.name}
                   </div>
                   {product.badge && (
                     <span
@@ -200,7 +200,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <h4 className="text-sm font-semibold text-gray-900">
-                    {product.displayName}
+                    {product.name}
                   </h4>
                   {product.badge && (
                     <span
@@ -257,7 +257,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({
         <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-xs text-blue-800">
             <span className="font-semibold">선택된 제품:</span>{' '}
-            {products.find((p) => p.id === selectedProductId)?.displayName}
+            {products.find((p) => p.id === selectedProductId)?.name}
           </p>
         </div>
       )}

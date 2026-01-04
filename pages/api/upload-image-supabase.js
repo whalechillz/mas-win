@@ -7,6 +7,37 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+/**
+ * 폴더 경로에서 폴더명 추출 (영어로)
+ * @param {string} targetFolder - 폴더 경로 (예: 'originals/blog/2025-12/487')
+ * @returns {string} 폴더명 prefix (예: 'blog', 'goods', 'product')
+ */
+function extractFolderPrefix(targetFolder) {
+  if (!targetFolder) return 'blog'; // 기본값
+  
+  // originals/ 이후 첫 번째 폴더명 추출
+  const match = targetFolder.match(/originals\/([^\/]+)/);
+  if (match) {
+    const folderName = match[1];
+    
+    // 폴더명 매핑 (한글/복잡한 이름 → 영어)
+    const folderMap = {
+      'blog': 'blog',
+      'products': 'product',
+      'goods': 'goods',
+      'daily-branding': 'branding',
+      'campaigns': 'campaign',
+      'customers': 'customer',
+      'scraped-images': 'scraped',
+      'ai-generated': 'ai',
+    };
+    
+    return folderMap[folderName] || folderName.replace(/[^a-z0-9]/g, '-');
+  }
+  
+  return 'blog'; // 기본값
+}
+
 export const config = {
   api: {
     bodyParser: false, // FormData를 위해 bodyParser 비활성화
@@ -34,6 +65,19 @@ export default async function handler(req, res) {
     });
     const file = files.file?.[0];
     const targetFolder = fields.targetFolder?.[0] || ''; // targetFolder 파라미터 읽기
+    const uploadMode = fields.uploadMode?.[0] || 'auto'; // 업로드 모드: 'auto' | 'preserve-name' | 'preserve-original'
+    
+    // 하위 호환성: 기존 preserveFilename, preserveExtension 파라미터 지원
+    const preserveFilename = fields.preserveFilename?.[0] === 'true';
+    const preserveExtension = fields.preserveExtension?.[0] === 'true';
+    
+    // 기존 파라미터가 있으면 uploadMode로 변환
+    let effectiveUploadMode = uploadMode;
+    if (preserveFilename && uploadMode === 'auto') {
+      effectiveUploadMode = 'preserve-name';
+    } else if (preserveExtension && uploadMode === 'auto') {
+      effectiveUploadMode = 'preserve-name';
+    }
 
     if (!file) {
       return res.status(400).json({ error: '이미지 파일이 필요합니다.' });
@@ -42,6 +86,9 @@ export default async function handler(req, res) {
     // 파일을 Buffer로 읽기
     const fs = require('fs');
     const imageBuffer = fs.readFileSync(file.filepath);
+
+    // 원본 파일 확장자 추출
+    const originalExtension = (file.originalFilename || '').split('.').pop()?.toLowerCase() || 'jpg';
 
     let processedBuffer = imageBuffer;
     let finalFileName = file.originalFilename || `image-${Date.now()}.jpg`;
@@ -65,66 +112,184 @@ export default async function handler(req, res) {
       console.warn('⚠️ 메타데이터 추출 실패:', metadataError.message);
     }
 
-    // 이미지 최적화 (항상 실행)
-    try {
-      if (imageMetadata) {
-        // Sharp 동적 import (Vercel 환경 호환성)
-        const sharp = (await import('sharp')).default;
-        // 이미지 최적화 설정 (EXIF 회전 정보 자동 적용)
-        const optimizedImage = sharp(imageBuffer)
-          .rotate() // EXIF 회전 정보 자동 적용
-          .resize(1200, 800, { // 최대 크기 제한
-            fit: 'inside',
-            withoutEnlargement: true
-          })
-          .jpeg({ 
-            quality: 85, // 품질 85%
-            progressive: true,
-            mozjpeg: true // 더 나은 JPEG 압축
-          });
+    // 업로드 모드에 따른 처리
+    const originalFormat = imageMetadata?.format || originalExtension;
+    let outputFormat = 'jpeg';
+    let outputExtension = 'jpg';
+    let contentType = 'image/jpeg';
 
-        processedBuffer = await optimizedImage.toBuffer();
-        
-        // 최적화된 이미지 메타데이터 확인
-        // sharp는 위에서 import했으므로 같은 스코프에서 재사용 가능
-        const optimizedMetadata = await sharp(processedBuffer).metadata();
-        console.log(`🔄 최적화된 이미지 메타데이터:`, {
-          width: optimizedMetadata.width,
-          height: optimizedMetadata.height,
-          orientation: optimizedMetadata.orientation,
-          size: processedBuffer.length
-        });
-        
-        // 파일명을 .jpg로 변경
-        finalFileName = finalFileName.replace(/\.[^/.]+$/, '.jpg');
-        
-        console.log(`✅ 이미지 최적화 완료: ${imageMetadata.width}x${imageMetadata.height} -> ${optimizedMetadata.width}x${optimizedMetadata.height}`);
-        
-        // 최적화된 메타데이터로 업데이트
-        imageMetadata = optimizedMetadata;
-        imageMetadata.size = processedBuffer.length;
+    if (effectiveUploadMode === 'preserve-original') {
+      // 원본 파일 그대로 업로드 (최적화 건너뛰기)
+      processedBuffer = imageBuffer;
+      finalFileName = file.originalFilename || `image-${Date.now()}.${originalExtension}`;
+      
+      // 원본 포맷에 맞는 Content-Type 설정
+      if (originalFormat === 'webp' || originalExtension === 'webp') {
+        contentType = 'image/webp';
+      } else if (originalFormat === 'png' || originalExtension === 'png') {
+        contentType = 'image/png';
+      } else if (originalFormat === 'gif' || originalExtension === 'gif') {
+        contentType = 'image/gif';
       }
-    } catch (optimizeError) {
-      console.warn('⚠️ 이미지 최적화 실패, 원본 사용:', optimizeError.message);
-      // 최적화 실패 시 원본 사용
+      
+      console.log(`✅ 원본 파일 그대로 업로드: ${finalFileName} (${contentType})`);
+    } else {
+      // 최적화 적용
+      // 출력 포맷 결정
+      if (effectiveUploadMode === 'preserve-name') {
+        // 파일명 유지 모드: 원본 확장자 유지
+        outputExtension = originalExtension;
+        
+        // 포맷 매핑
+        if (originalExtension === 'webp' || originalFormat === 'webp') {
+          outputFormat = 'webp';
+        } else if (originalExtension === 'png' || originalFormat === 'png') {
+          outputFormat = 'png';
+        } else {
+          outputFormat = 'jpeg';
+        }
+      } else {
+        // auto 모드: JPEG로 변환
+        outputFormat = 'jpeg';
+        outputExtension = 'jpg';
+      }
+
+      // 이미지 최적화
+      try {
+        if (imageMetadata) {
+          const sharp = (await import('sharp')).default;
+          
+          // 이미지 최적화 설정 (EXIF 회전 정보 자동 적용)
+          let optimizedImage = sharp(imageBuffer)
+            .rotate() // EXIF 회전 정보 자동 적용
+            .resize(1200, 800, { // 최대 크기 제한
+              fit: 'inside',
+              withoutEnlargement: true
+            });
+
+          // 포맷별 최적화 옵션 적용
+          if (outputFormat === 'webp') {
+            optimizedImage = optimizedImage.webp({ quality: 85 });
+            contentType = 'image/webp';
+          } else if (outputFormat === 'png') {
+            optimizedImage = optimizedImage.png({ quality: 85, compressionLevel: 9 });
+            contentType = 'image/png';
+          } else {
+            optimizedImage = optimizedImage.jpeg({ 
+              quality: 85, // 품질 85%
+              progressive: true,
+              mozjpeg: true // 더 나은 JPEG 압축
+            });
+            contentType = 'image/jpeg';
+          }
+
+          processedBuffer = await optimizedImage.toBuffer();
+          
+          // 최적화된 이미지 메타데이터 확인
+          const optimizedMetadata = await sharp(processedBuffer).metadata();
+          console.log(`🔄 최적화된 이미지 메타데이터:`, {
+            width: optimizedMetadata.width,
+            height: optimizedMetadata.height,
+            orientation: optimizedMetadata.orientation,
+            format: optimizedMetadata.format,
+            size: processedBuffer.length
+          });
+          
+          // 파일명 확장자 업데이트
+          if (effectiveUploadMode === 'preserve-name') {
+            // 원본 확장자 유지
+            const baseName = finalFileName.replace(/\.[^/.]+$/, '');
+            finalFileName = `${baseName}.${outputExtension}`;
+          } else {
+            // 기본: JPEG로 변환
+            finalFileName = finalFileName.replace(/\.[^/.]+$/, `.${outputExtension}`);
+          }
+          
+          console.log(`✅ 이미지 최적화 완료: ${imageMetadata.width}x${imageMetadata.height} -> ${optimizedMetadata.width}x${optimizedMetadata.height} (포맷: ${outputFormat})`);
+          
+          // 최적화된 메타데이터로 업데이트
+          imageMetadata = optimizedMetadata;
+          imageMetadata.size = processedBuffer.length;
+        }
+      } catch (optimizeError) {
+        console.warn('⚠️ 이미지 최적화 실패, 원본 사용:', optimizeError.message);
+        // 최적화 실패 시 원본 사용
+      }
     }
 
-    // 고유한 파일명 생성
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 8);
-    const fileExtension = finalFileName.split('.').pop();
-    const uniqueFileName = `blog-${timestamp}-${randomString}.${fileExtension}`;
+    // 파일명 생성
+    let uniqueFileName;
+    if (effectiveUploadMode === 'preserve-original' || effectiveUploadMode === 'preserve-name') {
+      // 원본 파일명 전체 유지 (한글 파일명도 그대로)
+      uniqueFileName = file.originalFilename || `image-${Date.now()}.${outputExtension}`;
+      
+      // 확장자가 이미 올바른지 확인
+      if (effectiveUploadMode === 'preserve-original') {
+        // 원본 그대로 모드: 원본 확장자 그대로
+        if (!uniqueFileName.endsWith(`.${originalExtension}`)) {
+          const baseName = uniqueFileName.replace(/\.[^/.]+$/, '');
+          uniqueFileName = `${baseName}.${originalExtension}`;
+        }
+      } else {
+        // 파일명 유지 모드: 최적화된 확장자
+        if (!uniqueFileName.endsWith(`.${outputExtension}`)) {
+          const baseName = uniqueFileName.replace(/\.[^/.]+$/, '');
+          uniqueFileName = `${baseName}.${outputExtension}`;
+        }
+      }
+    } else {
+      // auto 모드: 폴더명 + 타임스탬프 + 랜덤 문자열 (JPEG로 변환)
+      const folderPrefix = extractFolderPrefix(targetFolder);
+      const timestamp = Date.now();
+      const randomString = Math.random().toString(36).substring(2, 8);
+      uniqueFileName = `${folderPrefix}-${timestamp}-${randomString}.${outputExtension}`;
+    }
     
     // targetFolder가 있으면 경로에 포함
-    const uploadPath = targetFolder 
+    let uploadPath = targetFolder 
       ? `${targetFolder}/${uniqueFileName}`.replace(/\/+/g, '/') // 중복 슬래시 제거
       : uniqueFileName;
+    
+    // 원본 파일명 유지 옵션일 때 중복 체크
+    if (effectiveUploadMode === 'preserve-original' || effectiveUploadMode === 'preserve-name') {
+      const baseFileName = uniqueFileName;
+      let counter = 0;
+      let finalPath = uploadPath;
+      
+      // 중복 체크 (최대 10번 시도)
+      while (counter < 10) {
+        const folderPath = finalPath.split('/').slice(0, -1).join('/');
+        const fileName = finalPath.split('/').pop();
+        
+        const { data: existingFiles, error: listError } = await supabase.storage
+          .from('blog-images')
+          .list(folderPath || '', {
+            search: fileName
+          });
+        
+        if (listError || !existingFiles || existingFiles.length === 0) {
+          break; // 중복 없음
+        }
+        
+        // 중복이면 번호 추가
+        counter++;
+        const pathParts = finalPath.split('/');
+        const currentFileName = pathParts.pop();
+        const nameWithoutExt = currentFileName.replace(/\.[^/.]+$/, '');
+        const ext = currentFileName.match(/\.[^/.]+$/)?.[0] || '';
+        pathParts.push(`${nameWithoutExt}-${counter}${ext}`);
+        finalPath = pathParts.join('/');
+      }
+      
+      uploadPath = finalPath;
+    }
 
     // Supabase Storage에 업로드
+    // (contentType은 이미 위에서 설정되었으므로 여기서는 사용만 함)
     const { data, error } = await supabase.storage
       .from('blog-images') // 버킷 이름
       .upload(uploadPath, processedBuffer, {
-        contentType: 'image/jpeg',
+        contentType: contentType,
         cacheControl: '3600',
         upsert: false
       });

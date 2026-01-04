@@ -85,9 +85,10 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', bas
     
     // 저장 폴더 결정
     // 블로그 폴더인 경우 같은 폴더에 저장, 아니면 제품별 gallery 폴더에 저장
+    // 모자(cap, hat)와 액세서리는 goods 폴더에 저장
     const storageFolder = targetFolder 
       ? targetFolder // 블로그 폴더인 경우 같은 폴더에 저장
-      : (category === 'hat' || category === 'accessory' || category === 'goods')
+      : (category === 'cap' || category === 'hat' || category === 'accessory' || category === 'goods')
         ? `originals/goods/${productSlug}/gallery`
         : `originals/products/${productSlug}/gallery`;
     

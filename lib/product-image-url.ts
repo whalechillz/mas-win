@@ -197,15 +197,15 @@ export function getProductImageUrl(imagePath: string): string {
  * @param productSlug - 제품 slug (예: black-beryl)
  * @param fileName - 파일명 (예: image.webp)
  * @param imageType - 이미지 타입 (detail, composition, gallery)
- * @param category - 제품 카테고리 (driver, hat, accessory)
+ * @param category - 제품 카테고리 (driver, cap, accessory)
  */
 export function buildProductImageUrl(
   productSlug: string,
   fileName: string,
   imageType: 'detail' | 'composition' | 'gallery' = 'detail',
-  category: 'driver' | 'hat' | 'accessory' = 'driver'
+  category: 'driver' | 'cap' | 'accessory' = 'driver'
 ): string {
-  const storagePath = category === 'hat' || category === 'accessory' || category === 'goods'
+  const storagePath = category === 'cap' || category === 'accessory' || category === 'goods'
     ? `originals/goods/${productSlug}/${imageType}/${fileName}`
     : `originals/products/${productSlug}/${imageType}/${fileName}`;
   

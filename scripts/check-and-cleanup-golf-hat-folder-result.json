@@ -1,0 +1,31 @@
+{
+  "gallery": {
+    "found": [
+      {
+        "name": "golf-hat-muziik-7.webp",
+        "path": "originals/goods/golf-hat-muziik/gallery/golf-hat-muziik-7.webp",
+        "size": 62988,
+        "created_at": "2025-12-29T13:01:10.597Z"
+      }
+    ],
+    "moved": [
+      {
+        "fileName": "golf-hat-muziik-7.webp",
+        "from": "originals/goods/golf-hat-muziik/gallery/golf-hat-muziik-7.webp",
+        "to": "originals/goods/golf-hat-muziik-white/gallery/golf-hat-muziik-7.webp",
+        "color": "white"
+      }
+    ],
+    "errors": []
+  },
+  "composition": {
+    "found": [],
+    "moved": [],
+    "errors": []
+  },
+  "other": {
+    "found": [],
+    "moved": [],
+    "errors": []
+  }
+}

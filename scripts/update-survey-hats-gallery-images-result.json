@@ -1,0 +1,68 @@
+{
+  "bucketHatBlack": {
+    "found": 7,
+    "updated": true,
+    "images": [
+      "originals/goods/bucket-hat-muziik-black/gallery/bucket-hat-muziik-1.webp",
+      "originals/goods/bucket-hat-muziik-black/gallery/bucket-hat-muziik-11.webp",
+      "originals/goods/bucket-hat-muziik-black/gallery/bucket-hat-muziik-12.webp",
+      "originals/goods/bucket-hat-muziik-black/gallery/bucket-hat-muziik-2.webp",
+      "originals/goods/bucket-hat-muziik-black/gallery/bucket-hat-muziik-4.webp",
+      "originals/goods/bucket-hat-muziik-black/gallery/composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1767061550580.png",
+      "originals/goods/bucket-hat-muziik-black/gallery/composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1767338691526.png"
+    ]
+  },
+  "bucketHatWhite": {
+    "found": 8,
+    "updated": true,
+    "images": [
+      "originals/goods/bucket-hat-muziik-white/gallery/bucket-hat-muziik-10.webp",
+      "originals/goods/bucket-hat-muziik-white/gallery/bucket-hat-muziik-3.webp",
+      "originals/goods/bucket-hat-muziik-white/gallery/bucket-hat-muziik-5.webp",
+      "originals/goods/bucket-hat-muziik-white/gallery/bucket-hat-muziik-6.webp",
+      "originals/goods/bucket-hat-muziik-white/gallery/bucket-hat-muziik-7.webp",
+      "originals/goods/bucket-hat-muziik-white/gallery/bucket-hat-muziik-8.webp",
+      "originals/goods/bucket-hat-muziik-white/gallery/bucket-hat-muziik-9.webp",
+      "originals/goods/bucket-hat-muziik-white/gallery/composed-1-d1d615b7-9b7a-4ec8-b8fb-4296aa3ae964-1767061647996.png"
+    ]
+  },
+  "golfHatBlack": {
+    "found": 0,
+    "updated": false,
+    "images": []
+  },
+  "golfHatWhite": {
+    "found": 5,
+    "updated": true,
+    "images": [
+      "originals/goods/golf-hat-muziik-white/gallery/golf-hat-muziik-2.webp",
+      "originals/goods/golf-hat-muziik-white/gallery/golf-hat-muziik-3.webp",
+      "originals/goods/golf-hat-muziik-white/gallery/golf-hat-muziik-4.webp",
+      "originals/goods/golf-hat-muziik-white/gallery/golf-hat-muziik-5.webp",
+      "originals/goods/golf-hat-muziik-white/gallery/golf-hat-muziik-7.webp"
+    ]
+  },
+  "golfHatNavy": {
+    "found": 0,
+    "updated": false,
+    "images": []
+  },
+  "golfHatBeige": {
+    "found": 2,
+    "updated": true,
+    "images": [
+      "originals/goods/golf-hat-muziik-beige/gallery/golf-hat-muziik-1.webp",
+      "originals/goods/golf-hat-muziik-beige/gallery/golf-hat-muziik-6.webp"
+    ]
+  },
+  "errors": [
+    {
+      "sku": "MZ_CAP_BLACK",
+      "error": "no_images"
+    },
+    {
+      "sku": "MZ_CAP_NAVY",
+      "error": "no_images"
+    }
+  ]
+}

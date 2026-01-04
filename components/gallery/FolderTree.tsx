@@ -18,6 +18,7 @@ interface FolderTreeProps {
   onIncludeChildrenChange: (include: boolean) => void;
   onImageDrop?: (imageData: { name: string; url: string; folder_path?: string }, targetFolder: string, event?: DragEvent) => void;
   onFoldersChanged?: () => void;
+  onRefreshFolder?: (folderPath: string) => Promise<string[]>; // 특정 폴더의 하위 폴더만 새로고침
 }
 
 export default function FolderTree({
@@ -28,10 +29,12 @@ export default function FolderTree({
   onIncludeChildrenChange,
   onImageDrop,
   onFoldersChanged,
+  onRefreshFolder,
 }: FolderTreeProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['originals']));
   const [dragOverFolder, setDragOverFolder] = useState<string | null>(null);
   const [menu, setMenu] = useState<{ x: number; y: number; path: string } | null>(null);
+  const [refreshingFolders, setRefreshingFolders] = useState<Set<string>>(new Set()); // 새로고침 중인 폴더
   const selectedFolderRef = useRef<HTMLDivElement | null>(null);
 
   // 선택된 폴더의 모든 부모 폴더를 자동으로 펼침
@@ -126,6 +129,31 @@ export default function FolderTree({
       newExpanded.add(path);
     }
     setExpandedFolders(newExpanded);
+  };
+
+  // 특정 폴더의 하위 폴더만 새로고침
+  const handleRefreshFolder = async (e: React.MouseEvent, folderPath: string) => {
+    e.stopPropagation();
+    if (!onRefreshFolder) return;
+    
+    setRefreshingFolders(prev => new Set(prev).add(folderPath));
+    try {
+      const newSubfolders = await onRefreshFolder(folderPath);
+      console.log(`✅ 폴더 새로고침 완료: ${folderPath} (${newSubfolders.length}개 하위 폴더)`);
+      // 폴더 목록이 업데이트되면 자동으로 트리가 재구성됨
+      if (onFoldersChanged) {
+        onFoldersChanged();
+      }
+    } catch (error) {
+      console.error(`❌ 폴더 새로고침 실패: ${folderPath}`, error);
+      alert(`폴더 새로고침 실패: ${error.message || '알 수 없는 오류'}`);
+    } finally {
+      setRefreshingFolders(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(folderPath);
+        return newSet;
+      });
+    }
   };
 
   // 드래그 앤 드롭 핸들러
@@ -229,6 +257,26 @@ export default function FolderTree({
             {/* 이미지 개수 (향후 추가 가능) */}
             {node.imageCount !== undefined && node.imageCount > 0 && (
               <span className="ml-2 text-xs text-gray-500">({node.imageCount})</span>
+            )}
+            
+            {/* 새로고침 버튼 */}
+            {onRefreshFolder && (
+              <button
+                onClick={(e) => handleRefreshFolder(e, node.path)}
+                disabled={refreshingFolders.has(node.path)}
+                className={`ml-2 p-1 rounded hover:bg-gray-200 transition-colors ${
+                  refreshingFolders.has(node.path) 
+                    ? 'opacity-50 cursor-not-allowed' 
+                    : 'opacity-70 hover:opacity-100'
+                }`}
+                title="하위 폴더 새로고침"
+              >
+                {refreshingFolders.has(node.path) ? (
+                  <span className="text-xs animate-spin">⟳</span>
+                ) : (
+                  <span className="text-xs">⟳</span>
+                )}
+              </button>
             )}
           </div>
         )}
