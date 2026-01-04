@@ -828,8 +828,8 @@ const GalleryPicker: React.FC<Props> = ({
           </div>
 
           {/* 비교 이미지 그리드 */}
-          <div className="flex-1 overflow-auto p-6 bg-gray-50">
-            <div className={`grid gap-6 ${compareImages.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          <div className="flex-1 overflow-auto p-2 sm:p-6 bg-gray-50">
+            <div className={`grid gap-2 sm:gap-6 ${compareImages.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'}`}>
               {compareImages.map((img, idx) => (
                 <div
                   key={img.name}
@@ -896,21 +896,21 @@ const GalleryPicker: React.FC<Props> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-2 sm:p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-full sm:max-w-7xl max-h-[95vh] overflow-hidden flex flex-col">
         {/* 헤더 */}
-        <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-gray-50 to-blue-50">
-          <div className="flex items-center gap-3 flex-1">
-            <h3 className="text-xl font-bold text-gray-800">🖼️ 갤러리에서 이미지 선택</h3>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-6 border-b bg-gradient-to-r from-gray-50 to-blue-50 gap-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-1 w-full">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-800">🖼️ 갤러리에서 이미지 선택</h3>
             {/* 이미지 소스 탭 */}
-            <div className="flex items-center gap-2 ml-4">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={() => {
                   setImageSource('supabase');
                   setPage(1);
                 }}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors min-h-[44px] sm:min-h-0 ${
                   imageSource === 'supabase'
                     ? 'bg-blue-500 text-white shadow-md'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -924,7 +924,7 @@ const GalleryPicker: React.FC<Props> = ({
                   setImageSource('solapi');
                   setPage(1);
                 }}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors min-h-[44px] sm:min-h-0 ${
                   imageSource === 'solapi'
                     ? 'bg-blue-500 text-white shadow-md'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -935,7 +935,7 @@ const GalleryPicker: React.FC<Props> = ({
             </div>
             {/* 브레드크럼 네비게이션 */}
             {folderFilter && (
-              <nav className="flex items-center gap-1 text-sm" aria-label="폴더 경로">
+              <nav className="flex flex-wrap items-center gap-1 text-xs sm:text-sm w-full sm:w-auto" aria-label="폴더 경로">
                 {folderFilter.split('/').map((segment, index, array) => {
                   const path = array.slice(0, index + 1).join('/');
                   const isLast = index === array.length - 1;
@@ -953,7 +953,7 @@ const GalleryPicker: React.FC<Props> = ({
                             setFolderFilter(path);
                             console.log('📁 브레드크럼 클릭:', path);
                           }}
-                          className="px-2 py-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded text-xs font-medium transition-colors"
+                          className="px-2 py-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded text-xs font-medium transition-colors min-h-[32px] sm:min-h-0"
                           title={`${path}로 이동`}
                         >
                           {segment}
@@ -965,41 +965,41 @@ const GalleryPicker: React.FC<Props> = ({
               </nav>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <button 
               type="button" 
               onClick={() => fetchImages(true)} 
-              className="px-4 py-2 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2 transition-colors shadow-sm"
+              className="px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2 transition-colors shadow-sm min-h-[44px] sm:min-h-0 flex-1 sm:flex-none"
               disabled={isLoading}
             >
               {isLoading ? (
                 <>
-                  <span className="animate-spin">⏳</span> 로딩 중...
+                  <span className="animate-spin">⏳</span> <span className="hidden sm:inline">로딩 중...</span>
                 </>
               ) : (
                 <>
-                  <span>🔄</span> 새로고침
+                  <span>🔄</span> <span className="hidden sm:inline">새로고침</span>
                 </>
               )}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-2xl font-light w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+              className="text-gray-500 hover:text-gray-700 text-3xl sm:text-2xl font-light w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
             >
               ×
             </button>
           </div>
         </div>
         {/* 필터 및 검색 바 */}
-        <div className="p-4 border-b bg-white">
+        <div className="p-3 sm:p-4 border-b bg-white">
           {/* 최근 사용 폴더 섹션 */}
           {(recentFolders.length > 0 || folderFilter) && (
             <div className="mb-3">
               <label className="block text-xs text-gray-500 font-medium mb-2">
                 📁 최근 사용 폴더
               </label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {/* 현재 폴더가 최근 폴더 목록에 없으면 먼저 표시 */}
                 {folderFilter && !recentFolders.includes(folderFilter) && (
                   <button
@@ -1009,7 +1009,7 @@ const GalleryPicker: React.FC<Props> = ({
                       setPage(1);
                       fetchImages(true);
                     }}
-                    className="px-3 py-1.5 text-xs border border-blue-500 bg-blue-50 text-blue-700 rounded-lg transition-all hover:bg-blue-100"
+                    className="px-2 py-1.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs border border-blue-500 bg-blue-50 text-blue-700 rounded-lg transition-all hover:bg-blue-100 min-h-[36px] sm:min-h-0"
                     title={folderFilter}
                   >
                     {folderFilter.replace(/^originals\//, '')}
@@ -1027,7 +1027,7 @@ const GalleryPicker: React.FC<Props> = ({
                         setPage(1);
                         fetchImages(true);
                       }}
-                      className={`px-3 py-1.5 text-xs border rounded-lg transition-all ${
+                      className={`px-2 py-1.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs border rounded-lg transition-all min-h-[36px] sm:min-h-0 ${
                         folderFilter === folder
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
                           : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
@@ -1042,28 +1042,28 @@ const GalleryPicker: React.FC<Props> = ({
             </div>
           )}
           
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             {/* 날짜 선택 (kakao 폴더인 경우) */}
             {autoFilterFolder && autoFilterFolder.includes('kakao') && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 font-medium">날짜:</span>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <span className="text-xs text-gray-500 font-medium whitespace-nowrap">날짜:</span>
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={(e) => handleDateChange(e.target.value)}
-                  className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-2 py-2 sm:px-3 sm:py-1.5 border border-gray-300 rounded-lg text-sm flex-1 sm:flex-none min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
                 />
               </div>
             )}
 
             {/* 폴더 필터 - 항상 표시 */}
-            <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-              <span className="text-xs text-gray-500 font-medium">폴더:</span>
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="text-xs text-gray-500 font-medium whitespace-nowrap">폴더:</span>
               <input
                 value={folderFilter}
                 onChange={(e) => setFolderFilter(e.target.value)}
-                placeholder="폴더 경로 (예: originals/daily-branding/kakao/2025-11-15/account1/background)"
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="폴더 경로"
+                className="px-2 py-2 sm:px-3 sm:py-1.5 border border-gray-300 rounded-lg text-xs sm:text-sm flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
               />
               {folderFilter && (
                 <button
@@ -1072,7 +1072,7 @@ const GalleryPicker: React.FC<Props> = ({
                     setFolderFilter('');
                     setSelectedDate('');
                   }}
-                  className="px-2 py-1.5 text-xs text-gray-500 hover:text-gray-700"
+                  className="px-2 py-2 sm:py-1.5 text-xs text-gray-500 hover:text-gray-700 min-h-[44px] sm:min-h-0 flex-shrink-0"
                   title="필터 초기화"
                 >
                   ✕
@@ -1080,15 +1080,34 @@ const GalleryPicker: React.FC<Props> = ({
               )}
             </div>
 
-            {/* 핫키 필터 버튼 */}
+            {/* 검색 */}
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="검색 (파일명/확장자)"
+                className="px-2 py-2 sm:px-3 sm:py-1.5 border border-gray-300 rounded-lg text-sm flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
+              />
+            </div>
+
+            {/* ALT 입력 */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <input
+                value={altText}
+                onChange={(e) => setAltText(e.target.value)}
+                placeholder="ALT 텍스트"
+                className="px-2 py-2 sm:px-3 sm:py-1.5 border border-gray-300 rounded-lg text-sm flex-1 sm:flex-none sm:min-w-[160px] min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
+              />
+            </div>
+
+            {/* 핫키 필터 버튼 및 업로드 버튼 */}
             <div className="flex items-center gap-2">
-              {/* ⚠️ 미사용 버튼 제거됨 */}
               <button
                 type="button"
                 onClick={() => {
                   setShowLikedOnly(!showLikedOnly);
                 }}
-                className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${
+                className={`px-3 py-2 sm:px-3 sm:py-1.5 text-xs rounded-lg font-medium transition-colors min-h-[44px] sm:min-h-0 ${
                   showLikedOnly
                     ? 'bg-pink-500 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -1097,35 +1116,11 @@ const GalleryPicker: React.FC<Props> = ({
               >
                 ❤️ 좋아요
               </button>
-            </div>
-
-            {/* 검색 */}
-            <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="검색 (파일명/확장자)"
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* ALT 입력 */}
-            <div className="flex items-center gap-2">
-              <input
-                value={altText}
-                onChange={(e) => setAltText(e.target.value)}
-                placeholder="ALT 텍스트"
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm min-w-[160px] focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* 이미지 업로드 버튼 */}
-            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="px-4 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors shadow-sm"
+                className="px-4 py-2.5 sm:px-4 sm:py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors shadow-sm min-h-[44px] sm:min-h-0 w-full sm:w-auto"
               >
                 {isUploading ? (
                   <>
@@ -1224,7 +1219,7 @@ const GalleryPicker: React.FC<Props> = ({
         </div>
         {/* 선택 액션 바 */}
         {(selected.size > 0 || (showCompareMode && selectedForCompare.size > 0)) && (
-          <div className="px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div className="px-3 sm:px-6 py-3 sm:py-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-4">
                 {selected.size > 0 && (
@@ -1275,7 +1270,7 @@ const GalleryPicker: React.FC<Props> = ({
             </div>
           </div>
         )}
-        <div className="flex-1 overflow-auto p-6 bg-gray-50">
+        <div className="flex-1 overflow-auto p-2 sm:p-6 bg-gray-50">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
@@ -1370,7 +1365,7 @@ const GalleryPicker: React.FC<Props> = ({
           ) : (
             <>
               {/* 전체 선택 체크박스 */}
-              <div className="mb-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+              <div className="mb-4 p-3 sm:p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-3 text-sm font-medium text-gray-700 cursor-pointer">
                     <input
@@ -1403,12 +1398,12 @@ const GalleryPicker: React.FC<Props> = ({
                 </div>
               </div>
               {/* 이미지 개수에 따른 그리드 레이아웃 */}
-              <div className={`grid gap-4 ${
+              <div className={`grid gap-2 sm:gap-4 ${
                 filtered.length === 1
                   ? 'grid-cols-1 max-w-md mx-auto' // 1개일 때 최대한 크게 (중앙 정렬)
                   : filtered.length >= 2 && filtered.length <= 3
-                  ? 'grid-cols-2 md:grid-cols-2' // 2-3개일 때 2열로 크게
-                  : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' // 4개 이상일 때 기본 그리드
+                  ? 'grid-cols-1 sm:grid-cols-2' // 2-3개일 때 모바일 1열, 데스크톱 2열
+                  : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' // 4개 이상일 때 모바일 1열, 데스크톱 반응형
               }`}>
               {filtered.map((img) => {
                 const isCompareSelected = selectedForCompare.has(img.name);
@@ -1522,14 +1517,14 @@ const GalleryPicker: React.FC<Props> = ({
                       </div>
                     </button>
 
-                    {/* 퀵액션 (호버 시 노출 또는 2-3개일 때 항상 표시) */}
-                    <div className={`absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center gap-2 rounded-xl ${
-                      shouldHighlightCompare ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                    {/* 퀵액션 (모바일에서 항상 표시, 데스크톱에서는 호버 시 노출 또는 2-3개일 때 항상 표시) */}
+                    <div className={`absolute inset-0 bg-black/40 sm:bg-black/0 sm:group-hover:bg-black/20 transition-all flex items-center justify-center gap-2 rounded-xl opacity-100 sm:opacity-0 sm:group-hover:opacity-100 ${
+                      shouldHighlightCompare ? 'sm:opacity-100' : ''
                     }`}>
                       <button
                         type="button"
                         title="빠른 삽입"
-                        className="px-4 py-2 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-lg font-medium transition-colors"
+                        className="px-4 py-3 sm:px-4 sm:py-2 text-sm sm:text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-lg font-medium transition-colors min-h-[44px] sm:min-h-0"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleSingleSelect(img);
@@ -1540,7 +1535,7 @@ const GalleryPicker: React.FC<Props> = ({
                       <button
                         type="button"
                         title="이미지 확대 보기"
-                        className="px-4 py-2 text-xs rounded-lg bg-white text-gray-800 hover:bg-gray-100 shadow-lg font-medium transition-colors"
+                        className="px-4 py-3 sm:px-4 sm:py-2 text-sm sm:text-xs rounded-lg bg-white text-gray-800 hover:bg-gray-100 shadow-lg font-medium transition-colors min-h-[44px] sm:min-h-0"
                         onClick={(e) => {
                           e.stopPropagation();
                           setPreviewUrl(img.url);
@@ -1551,7 +1546,7 @@ const GalleryPicker: React.FC<Props> = ({
                       <button
                         type="button"
                         title="cleanup.pictures에서 편집"
-                        className="px-4 py-2 text-xs rounded-lg bg-purple-600 text-white hover:bg-purple-700 shadow-lg font-medium transition-colors"
+                        className="px-4 py-3 sm:px-4 sm:py-2 text-sm sm:text-xs rounded-lg bg-purple-600 text-white hover:bg-purple-700 shadow-lg font-medium transition-colors min-h-[44px] sm:min-h-0"
                         onClick={async (e) => {
                           e.stopPropagation();
                           try {
@@ -1600,7 +1595,7 @@ const GalleryPicker: React.FC<Props> = ({
                       <button
                         type="button"
                         title="이미지 다운로드"
-                        className="px-4 py-2 text-xs rounded-lg bg-green-600 text-white hover:bg-green-700 shadow-lg font-medium transition-colors"
+                        className="px-4 py-3 sm:px-4 sm:py-2 text-sm sm:text-xs rounded-lg bg-green-600 text-white hover:bg-green-700 shadow-lg font-medium transition-colors min-h-[44px] sm:min-h-0"
                         onClick={async (e) => {
                           e.stopPropagation();
                           try {

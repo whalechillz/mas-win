@@ -3490,3 +3490,135 @@ WHERE
 2. **Composition 파일**: detail에 있던 500/350 관련 파일 (14개)
 3. **중복 파일**: 같은 번호의 중복 파일 (29개)
 
+---
+
+## 카카오톡 콘텐츠 생성 - 제품 합성 이미지 URL 수정 (2025-01-XX)
+
+### 문제
+- 카카오톡 콘텐츠 생성 페이지에서 모자 합성 시 "제품 합성은 완료되었지만 결과 이미지를 가져올 수 없습니다" 오류 발생
+- AI 이미지 생성기에서는 정상 작동하지만, 카카오톡 콘텐츠 생성에서는 작동하지 않음
+
+### 원인
+- API 응답 구조: `images` 배열을 반환 (`images[0].imageUrl`)
+- 카카오톡 콘텐츠 생성 코드: 존재하지 않는 `composedImageUrl` 필드를 참조
+- AI 이미지 생성기: 올바르게 `images[0].imageUrl` 사용
+
+### 수정 내용
+- `components/admin/kakao/FeedManager.tsx`: `composedImageUrl` → `images[0].imageUrl`로 변경
+- `components/admin/kakao/ProfileManager.tsx`: 배경 이미지 및 프로필 이미지 합성 로직 동일하게 수정
+- AI 이미지 생성기와 동일한 방식으로 통일
+
+### 변경된 파일
+- `components/admin/kakao/FeedManager.tsx`: 피드 이미지 제품 합성 응답 처리 수정
+- `components/admin/kakao/ProfileManager.tsx`: 배경/프로필 이미지 제품 합성 응답 처리 수정
+
+### 최종 상태
+- ✅ 카카오톡 콘텐츠 생성에서 제품 합성 이미지 정상 로드
+- ✅ AI 이미지 생성기와 동일한 응답 처리 방식으로 통일
+- ✅ 에러 처리 및 로깅 개선
+
+---
+
+## 갤러리 이미지 선택 모바일 UI 개선 (2025-01-XX)
+
+### 문제
+- 모바일 갤러리에서 이미지 선택 시 UI가 개선되지 않아 기능 사용 불가
+- 터치 타겟이 작아 조작 어려움
+- 필터 및 입력 필드가 모바일에서 겹치거나 작게 표시됨
+
+### 개선 내용
+1. **모달 컨테이너**
+   - 모바일: `p-2`, `max-w-full` (전체 너비)
+   - 데스크톱: `sm:p-4`, `sm:max-w-7xl`
+
+2. **헤더 영역**
+   - 모바일: 세로 배치 (`flex-col`)
+   - 탭 버튼: 작은 크기 (`px-3 py-1.5`, `text-xs`)
+   - 닫기 버튼: 큰 터치 영역 (`w-10 h-10`, `text-3xl`)
+
+3. **필터 섹션**
+   - 모바일: 세로 배치 (`flex-col`)
+   - 입력 필드: 전체 너비, 큰 패딩 (`py-2`, `min-h-[44px]`)
+   - 최근 사용 폴더 버튼: 작은 크기 (`text-[10px]`, `min-h-[36px]`)
+
+4. **이미지 그리드**
+   - 모바일: 1열 (`grid-cols-1`)
+   - 데스크톱: 반응형 (`sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5`)
+   - 간격: `gap-2 sm:gap-4`
+
+5. **퀵액션 버튼**
+   - 모바일: 항상 표시 (`opacity-100`, `bg-black/40`)
+   - 데스크톱: 호버 시 표시 (`sm:opacity-0 sm:group-hover:opacity-100`)
+   - 버튼 크기: `min-h-[44px]` (터치 최적화)
+
+6. **패딩 조정**
+   - 이미지 그리드 영역: `p-2 sm:p-6`
+   - 선택 액션 바: `px-3 sm:px-6 py-3 sm:py-4`
+
+### 변경된 파일
+- `components/admin/GalleryPicker.tsx`: 모바일 반응형 UI 개선
+
+### 최종 상태
+- ✅ 모바일에서 갤러리 이미지 선택 기능 정상 작동
+- ✅ 터치 타겟 최소 44px로 확대
+- ✅ 필터 및 입력 필드 모바일 최적화
+- ✅ 이미지 그리드 모바일 1열 레이아웃
+- ✅ 퀵액션 버튼 모바일에서 항상 표시
+
+---
+
+## 제품 합성 이미지 두 곳 저장 방식 범용 적용 (2025-01-XX)
+
+### 문제
+- 카카오 콘텐츠 합성 이미지가 제품 gallery에만 저장되어 카카오 폴더에서 관리 어려움
+- 블로그 폴더는 같은 폴더에 저장되지만, 카카오 폴더는 제외됨
+- 추후 다른 소스 폴더에도 확장 필요
+
+### 개선 내용
+1. **범용 소스 폴더 감지**
+   - 블로그: `originals/blog/` 감지
+   - 카카오: `originals/daily-branding/kakao/` 감지
+   - 기타: `originals/` 하위 폴더 감지 (확장 가능)
+
+2. **두 곳 저장 로직**
+   - **제품 gallery**: 항상 저장 (필수, 기본 저장 위치)
+   - **소스 폴더**: 감지되면 함께 저장 (선택, 원본 위치 유지)
+
+3. **에러 처리 개선**
+   - 제품 gallery 저장 실패 시 전체 실패
+   - 소스 폴더 저장 실패 시 경고만 (제품 gallery는 유지)
+
+4. **반환 정보 확장**
+   - `sourcePath`: 소스 폴더 경로 (있는 경우)
+   - `sourceUrl`: 소스 폴더 공개 URL (있는 경우)
+   - `sourceFolderType`: 소스 폴더 타입 ('blog', 'kakao', 'other')
+   - `savedLocations`: 저장된 위치 배열
+
+### 저장 위치 결정 로직
+```javascript
+// 1. 제품 gallery (항상 저장)
+- 모자/액세서리: originals/goods/{slug}/gallery
+- 드라이버 등: originals/products/{slug}/gallery
+
+// 2. 소스 폴더 (감지되면 저장)
+- 블로그: originals/blog/{year-month}/{blogId}/
+- 카카오: originals/daily-branding/kakao/{date}/{account}/{type}/
+- 기타: originals/{...}/
+```
+
+### 장점
+- ✅ **일관성**: 모든 소스에서 동일한 방식 적용
+- ✅ **확장성**: 새로운 폴더 타입 추가 용이
+- ✅ **안정성**: 제품 gallery는 항상 저장 보장
+- ✅ **유연성**: 소스 폴더 저장 실패해도 제품 gallery는 유지
+- ✅ **관리 편의성**: 각 폴더에서 독립적으로 관리 가능
+
+### 변경된 파일
+- `pages/api/compose-product-image.js`: `saveImageToSupabase` 함수 개선
+
+### 최종 상태
+- ✅ 카카오 콘텐츠 합성 이미지가 제품 gallery와 카카오 폴더에 모두 저장
+- ✅ 블로그 합성 이미지가 제품 gallery와 블로그 폴더에 모두 저장
+- ✅ 추후 다른 소스 폴더에도 자동 확장 가능
+- ✅ 각 폴더에서 독립적으로 이미지 관리 가능
+

@@ -93,10 +93,10 @@ export default function FeedManager({
     const loadProducts = async () => {
       setIsLoadingProducts(true);
       try {
-        // 드라이버, 모자, 액세서리 모두 로드
+        // ✅ product_composition 테이블은 'hat' 카테고리 사용
         const [driverRes, hatRes, accessoryRes] = await Promise.all([
           fetch('/api/admin/product-composition?category=driver&active=true'),
-          fetch('/api/admin/product-composition?category=hat&active=true'),
+          fetch('/api/admin/product-composition?category=hat&active=true'), // ✅ 'hat' 사용
           fetch('/api/admin/product-composition?category=accessory&active=true')
         ]);
         
@@ -106,20 +106,30 @@ export default function FeedManager({
           accessoryRes.json()
         ]);
         
+        console.log('📦 제품 목록 로드 결과:', {
+          driver: driverData.success ? driverData.products?.length || 0 : 0,
+          hat: hatData.success ? hatData.products?.length || 0 : 0,
+          accessory: accessoryData.success ? accessoryData.products?.length || 0 : 0
+        });
+        
         const allProducts: any[] = [];
         if (driverData.success && driverData.products) {
           allProducts.push(...driverData.products.map((p: any) => ({ ...p, category: 'driver' })));
         }
         if (hatData.success && hatData.products) {
           allProducts.push(...hatData.products.map((p: any) => ({ ...p, category: 'hat' })));
+          console.log('✅ 모자 제품 로드 완료:', hatData.products.map((p: any) => p.name));
+        } else {
+          console.warn('⚠️ 모자 제품 로드 실패:', hatData);
         }
         if (accessoryData.success && accessoryData.products) {
           allProducts.push(...accessoryData.products.map((p: any) => ({ ...p, category: 'accessory' })));
         }
         
+        console.log('📦 총 제품 개수:', allProducts.length);
         setProducts(allProducts);
       } catch (error) {
-        console.error('제품 목록 로드 실패:', error);
+        console.error('❌ 제품 목록 로드 실패:', error);
       } finally {
         setIsLoadingProducts(false);
       }
@@ -354,29 +364,67 @@ export default function FeedManager({
         if (enableProductComposition && selectedProductId) {
           setIsComposingProduct(true);
           try {
+            const selectedProduct = products.find(p => p.id === selectedProductId);
+            if (!selectedProduct) {
+              console.error('❌ 선택한 제품을 찾을 수 없습니다:', selectedProductId);
+              alert('선택한 제품을 찾을 수 없습니다. 제품을 다시 선택해주세요.');
+              return;
+            }
+
             const compositionTarget = getCompositionTarget(selectedProductId);
+            
+            console.log('🎨 피드 이미지 제품 합성 시작:', {
+              productId: selectedProductId,
+              productName: selectedProduct.name,
+              productCategory: selectedProduct.category,
+              compositionTarget,
+              modelImageUrl: finalImageUrl
+            });
+            
             const composeResponse = await fetch('/api/compose-product-image', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 modelImageUrl: finalImageUrl,
                 productId: selectedProductId,
-                compositionTarget: compositionTarget, // 선택한 제품의 compositionTarget 사용
+                compositionTarget: compositionTarget,
                 compositionMethod: 'nano-banana-pro',
                 compositionBackground: 'natural', // 배경 유지 명시
                 baseImageUrl: finalImageUrl // 저장 위치 결정용
               })
             });
             
-            if (composeResponse.ok) {
+            if (!composeResponse.ok) {
+              // ✅ API 실패 시 상세 에러 메시지
+              const errorData = await composeResponse.json().catch(() => ({ 
+                error: `서버 오류 (${composeResponse.status})` 
+              }));
+              console.error('❌ 제품 합성 API 실패:', {
+                status: composeResponse.status,
+                statusText: composeResponse.statusText,
+                error: errorData
+              });
+              alert(`제품 합성 실패: ${errorData.error || errorData.message || '서버 오류가 발생했습니다.'}\n\n원본 이미지를 사용합니다.`);
+              // 원본 이미지 사용 (finalImageUrl은 이미 설정됨)
+            } else {
               const composeResult = await composeResponse.json();
-              if (composeResult.success && composeResult.composedImageUrl) {
-                finalImageUrl = composeResult.composedImageUrl;
-                console.log('✅ 피드 이미지 제품 합성 완료:', composeResult.product?.name);
+              
+              // ✅ AI 이미지 생성기와 동일한 방식으로 수정
+              if (composeResult.success && composeResult.images && composeResult.images.length > 0) {
+                finalImageUrl = composeResult.images[0].imageUrl;
+                console.log('✅ 피드 이미지 제품 합성 완료:', {
+                  productName: composeResult.product?.name,
+                  composedImageUrl: finalImageUrl
+                });
+              } else {
+                // ✅ 합성은 성공했지만 이미지가 없는 경우
+                console.warn('⚠️ 제품 합성 응답에 이미지가 없습니다:', composeResult);
+                alert('제품 합성은 완료되었지만 결과 이미지를 가져올 수 없습니다.\n원본 이미지를 사용합니다.');
               }
             }
           } catch (composeError: any) {
-            console.error('제품 합성 실패, 원본 이미지 사용:', composeError);
+            console.error('❌ 제품 합성 예외 발생:', composeError);
+            alert(`제품 합성 중 오류가 발생했습니다: ${composeError.message || '알 수 없는 오류'}\n\n원본 이미지를 사용합니다.`);
             // 합성 실패해도 원본 이미지는 사용
           } finally {
             setIsComposingProduct(false);
