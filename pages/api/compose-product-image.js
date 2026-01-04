@@ -176,6 +176,14 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', bas
       savedLocations: result.savedLocations
     });
     
+    // 메타데이터 저장 (소스 폴더 저장 성공 후)
+    if (sourceFileName && sourcePublicUrl) {
+      await saveImageMetadata(sourcePublicUrl, sourceFileName, sourceFolderType);
+    }
+    
+    // 제품 gallery에도 메타데이터 저장
+    await saveImageMetadata(productPublicUrl, productFileName, 'product_gallery');
+    
     return result;
   } catch (error) {
     console.error('❌ 이미지 저장 실패:', error);
@@ -184,9 +192,133 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', bas
 }
 
 /**
- * 제품 이미지 URL을 절대 URL로 변환
- * FAL AI는 공개적으로 접근 가능한 URL만 사용할 수 있으므로 로컬호스트는 사용 불가
+ * 이미지 메타데이터 저장/업데이트
  */
+async function saveImageMetadata(imageUrl, filePath, sourceFolderType, platform = null) {
+  try {
+    // 소스 타입에 따른 태그 및 채널 설정
+    let tags = ['product-composition'];
+    let source = 'ai_generated';
+    let channel = null;
+    
+    if (sourceFolderType === 'kakao') {
+      tags.push('kakao-content', 'daily-branding');
+      source = 'kakao_content';
+      channel = 'kakao';
+    } else if (sourceFolderType === 'blog') {
+      tags.push('blog');
+      source = 'blog';
+      channel = 'blog';
+    } else if (sourceFolderType === 'mms' || sourceFolderType === 'sms' || platform === 'solapi') {
+      tags.push('sms', 'mms', 'solapi');
+      source = 'sms_mms';
+      channel = 'sms';
+    } else if (platform === 'naver') {
+      tags.push('naver-blog');
+      source = 'naver_blog';
+      channel = 'naver';
+    }
+    
+    // image_metadata에 저장/업데이트
+    const { data: existing } = await supabase
+      .from('image_metadata')
+      .select('id, tags')
+      .eq('image_url', imageUrl)
+      .maybeSingle();
+    
+    if (existing) {
+      // 기존 메타데이터 업데이트 (태그 병합)
+      const existingTags = existing.tags || [];
+      const mergedTags = [...new Set([...existingTags, ...tags])];
+      
+      await supabase
+        .from('image_metadata')
+        .update({
+          tags: mergedTags,
+          upload_source: source,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id);
+      
+      console.log('✅ 이미지 메타데이터 업데이트 완료:', { imageUrl, tags: mergedTags, source, channel });
+    } else {
+      // 새 메타데이터 생성
+      const folderPath = filePath.split('/').slice(0, -1).join('/');
+      
+      await supabase
+        .from('image_metadata')
+        .insert({
+          image_url: imageUrl,
+          folder_path: folderPath,
+          tags: tags,
+          upload_source: source,
+          status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      
+      console.log('✅ 이미지 메타데이터 생성 완료:', { imageUrl, tags, source, channel });
+    }
+  } catch (error) {
+    console.warn('⚠️ 이미지 메타데이터 저장 실패:', error.message);
+    // 메타데이터 저장 실패해도 이미지 저장은 성공으로 처리
+  }
+}
+
+/**
+ * 소스 타입에 따른 출력 포맷 자동 결정
+ * - 카카오 콘텐츠: WebP
+ * - 블로그/네이버/SMS/MMS: JPG 85%
+ * - 기타: PNG (기본값)
+ */
+function determineOutputFormat(baseImageUrl, requestedFormat = null) {
+  // 명시적으로 요청된 포맷이 있으면 우선 사용
+  if (requestedFormat && ['png', 'jpeg', 'webp'].includes(requestedFormat.toLowerCase())) {
+    return requestedFormat.toLowerCase();
+  }
+  
+  // baseImageUrl에서 소스 타입 감지
+  if (baseImageUrl) {
+    try {
+      const match = baseImageUrl.match(/blog-images\/([^?]+)/);
+      if (match) {
+        const fullPath = decodeURIComponent(match[1]);
+        
+        // 카카오 콘텐츠: WebP
+        if (fullPath.startsWith('originals/daily-branding/kakao/')) {
+          console.log('📦 포맷 자동 결정: 카카오 콘텐츠 → WebP');
+          return 'webp';
+        }
+        
+        // 블로그/네이버: JPG 85%
+        if (fullPath.startsWith('originals/blog/')) {
+          console.log('📦 포맷 자동 결정: 블로그 → JPG 85%');
+          return 'jpeg';
+        }
+        
+        // SMS/MMS: JPG 85% (Solapi는 JPG만 지원)
+        if (fullPath.includes('mms/') || fullPath.includes('sms/') || 
+            fullPath.includes('solapi/') || baseImageUrl.includes('solapi')) {
+          console.log('📦 포맷 자동 결정: SMS/MMS → JPG 85%');
+          return 'jpeg';
+        }
+      }
+      
+      // URL에서 직접 판단 (Solapi 관련)
+      if (baseImageUrl.includes('solapi') || baseImageUrl.includes('sms') || baseImageUrl.includes('mms')) {
+        console.log('📦 포맷 자동 결정: SMS/MMS (URL 기반) → JPG 85%');
+        return 'jpeg';
+      }
+    } catch (err) {
+      console.warn('⚠️ 소스 타입 감지 실패, 기본값 사용:', err.message);
+    }
+  }
+  
+  // 기본값: PNG (기존 호환성 유지)
+  console.log('📦 포맷 자동 결정: 기본값 → PNG');
+  return 'png';
+}
+
 function getAbsoluteProductImageUrl(productImageUrl) {
   // null, undefined, 빈 문자열 체크
   if (!productImageUrl || typeof productImageUrl !== 'string') return null;
@@ -269,11 +401,22 @@ export default async function handler(req, res) {
       numImages = 1,      // 생성할 이미지 개수
       resolution = '1K',  // '1K' | '2K' | '4K'
       aspectRatio = 'auto', // 'auto' | '1:1' | '16:9' 등
-      outputFormat = 'png',  // 'png' | 'jpeg' | 'webp'
+      outputFormat: requestedFormat = null,  // 클라이언트 요청 포맷 (선택, 자동 감지 우선)
       compositionBackground = 'natural', // 배경 타입: 'natural' | 'studio' | 'product-page'
       productOnlyMode = false, // 제품컷 전용 모드
       baseImageUrl = null // 베이스 이미지 URL (저장 위치 결정용)
     } = req.body;
+
+    // 소스 타입에 따라 포맷 자동 결정
+    const outputFormat = determineOutputFormat(baseImageUrl || modelImageUrl, requestedFormat);
+    const quality = outputFormat === 'jpeg' ? 85 : undefined; // JPG는 85% 품질
+    
+    console.log('📦 출력 포맷 결정:', {
+      baseImageUrl: baseImageUrl || modelImageUrl,
+      requestedFormat,
+      finalFormat: outputFormat,
+      quality
+    });
 
     // 필수 파라미터 확인
     if (!productId) {
@@ -514,15 +657,23 @@ export default async function handler(req, res) {
 
     let result;
     try {
+      // FAL AI 입력 파라미터 구성
+      const falInput = {
+        prompt: compositionPrompt,
+        image_urls: sanitizedUrls, // 검증된 URL 배열 사용
+        num_images: numImages,
+        aspect_ratio: aspectRatio,
+        output_format: outputFormat,
+        resolution: resolution
+      };
+      
+      // JPG인 경우 quality 파라미터 추가 (FAL AI가 지원하는 경우)
+      if (outputFormat === 'jpeg' && quality) {
+        falInput.quality = quality;
+      }
+      
       result = await fal.subscribe(modelName, {
-        input: {
-          prompt: compositionPrompt,
-          image_urls: sanitizedUrls, // 검증된 URL 배열 사용
-          num_images: numImages,
-          aspect_ratio: aspectRatio,
-          output_format: outputFormat,
-          resolution: resolution
-        },
+        input: falInput,
         logs: true,
         onQueueUpdate: (update) => {
           console.log('📊 FAL AI 큐 상태:', update.status);

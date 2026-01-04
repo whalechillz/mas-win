@@ -1,6 +1,71 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
-## ✅ 최근 작업: 설문 관리 - 체크박스 3개 구조 및 선물 지급 시 재고 차감 (2026-01-16)
+## ✅ 최근 작업: AI 이미지 생성 JPG 90% 압축 적용 (2026-01-16)
+
+### 완료된 작업
+- **모든 AI 생성 이미지를 JPG 90%로 압축** ✅:
+  - `pages/api/kakao-content/generate-images.js`: 모든 이미지 타입(피드/배경/프로필)을 JPG 90%로 변환
+  - 피드 이미지: 1080x1350 크롭 + JPG 90%
+  - 배경/프로필 이미지: 리사이즈 없이 JPG 90% 변환
+  - 투명도 처리: 알파 채널이 있는 경우 흰색 배경으로 변환
+  - 파일 확장자: 모든 이미지를 `.jpg`로 저장
+  - Content-Type: `image/jpeg`로 통일
+- **예상 효과**:
+  - 파일 크기 약 70-80% 감소 (PNG 대비)
+  - Supabase Storage 사용량 절약
+  - 이미지 로딩 속도 개선
+
+### 변경된 파일
+- `pages/api/kakao-content/generate-images.js` (모든 이미지 JPG 90% 압축)
+
+---
+
+## ✅ 이전 작업: 이미지 포맷 자동 선택 및 사용 기록 업데이트 (2026-01-16)
+
+### 완료된 작업
+- **소스 타입별 포맷 자동 선택** ✅:
+  - `pages/api/compose-product-image.js`: `determineOutputFormat` 함수 추가
+    - 카카오 콘텐츠: WebP (자동 감지)
+    - 블로그/네이버/SMS/MMS: JPG 85% (자동 감지)
+    - 기타: PNG (기본값)
+  - FAL AI 호출 시 `quality` 파라미터 추가 (JPG인 경우 85%)
+- **카카오 콘텐츠 배포 완료 시 이미지 사용 기록 업데이트** ✅:
+  - `pages/api/kakao-content/calendar-save.js`: `updateImageUsageOnPublish` 함수 추가
+    - 배포 완료된 프로필/피드 이미지의 `usage_count`, `last_used_at` 자동 업데이트
+    - `image_metadata` 및 `image_assets` 테이블 동시 업데이트
+- **이미지 메타데이터 정확성 개선** ✅:
+  - `pages/api/compose-product-image.js`: `saveImageMetadata` 함수 추가
+    - 소스 타입에 따른 태그/채널 자동 설정
+    - 카카오: `kakao-content`, `daily-branding` 태그
+    - 블로그: `blog` 태그
+    - SMS/MMS: `sms`, `mms`, `solapi` 태그
+    - MMS 뱃지 오분류 방지
+- **클라이언트 측 포맷 요청 제거** ✅:
+  - `pages/admin/ai-image-generator.tsx`: `outputFormat` 파라미터 제거
+  - 서버에서 `baseImageUrl` 기반 자동 감지로 단순화
+
+### 변경된 파일
+- `pages/api/compose-product-image.js` (포맷 자동 선택, 메타데이터 저장)
+- `pages/api/kakao-content/calendar-save.js` (이미지 사용 기록 업데이트)
+- `pages/admin/ai-image-generator.tsx` (outputFormat 파라미터 제거)
+
+### 데이터 흐름
+1. 제품 합성 요청 시 `baseImageUrl` 전달
+2. 서버에서 소스 타입 자동 감지 (카카오/블로그/SMS/MMS)
+3. 포맷 자동 결정 (카카오: WebP, 블로그/SMS/MMS: JPG 85%)
+4. FAL AI 호출 시 결정된 포맷 사용
+5. 이미지 저장 시 메타데이터 자동 생성/업데이트
+6. 카카오 콘텐츠 배포 완료 시 사용 기록 자동 업데이트
+
+### 포맷 결정 규칙
+- **카카오 콘텐츠** (`originals/daily-branding/kakao/`): WebP
+- **블로그** (`originals/blog/`): JPG 85%
+- **SMS/MMS** (`solapi`, `mms/`, `sms/`): JPG 85%
+- **기타**: PNG (기본값, 호환성 유지)
+
+---
+
+## ✅ 이전 작업: 설문 관리 - 체크박스 3개 구조 및 선물 지급 시 재고 차감 (2026-01-16)
 
 ### 완료된 작업
 - **데이터베이스 수정** ✅:

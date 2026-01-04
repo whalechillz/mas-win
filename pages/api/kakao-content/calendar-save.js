@@ -5,6 +5,94 @@
 
 import { createServerSupabase } from '../../../lib/supabase';
 
+/**
+ * 배포 완료 시 이미지 사용 기록 업데이트
+ */
+async function updateImageUsageOnPublish(calendarData) {
+  const supabase = createServerSupabase();
+  const imageUrls = [];
+  
+  // 프로필 콘텐츠 이미지 수집 (배포 완료된 항목만)
+  if (calendarData.profileContent) {
+    for (const accountKey of ['account1', 'account2']) {
+      const accountData = calendarData.profileContent[accountKey];
+      if (!accountData?.dailySchedule) continue;
+      
+      for (const schedule of accountData.dailySchedule) {
+        if (schedule.status === 'published' && schedule.publishedAt) {
+          if (schedule.background?.imageUrl) {
+            imageUrls.push(schedule.background.imageUrl);
+          }
+          if (schedule.profile?.imageUrl) {
+            imageUrls.push(schedule.profile.imageUrl);
+          }
+        }
+      }
+    }
+  }
+  
+  // 피드 콘텐츠 이미지 수집 (배포 완료된 항목만)
+  if (calendarData.kakaoFeed?.dailySchedule) {
+    for (const feed of calendarData.kakaoFeed.dailySchedule) {
+      for (const accountKey of ['account1', 'account2']) {
+        const feedData = feed[accountKey];
+        if (feedData?.status === 'published' && feedData.imageUrl) {
+          imageUrls.push(feedData.imageUrl);
+        }
+      }
+    }
+  }
+  
+  // 각 이미지 URL에 대해 사용 기록 업데이트
+  let updatedCount = 0;
+  for (const imageUrl of imageUrls) {
+    try {
+      // image_metadata 테이블 업데이트
+      const { data: metadata } = await supabase
+        .from('image_metadata')
+        .select('id, usage_count')
+        .eq('image_url', imageUrl)
+        .maybeSingle();
+      
+      if (metadata) {
+        await supabase
+          .from('image_metadata')
+          .update({
+            usage_count: (metadata.usage_count || 0) + 1,
+            last_used_at: new Date().toISOString()
+          })
+          .eq('id', metadata.id);
+        updatedCount++;
+      }
+      
+      // image_assets 테이블도 업데이트 (있는 경우)
+      const { data: asset } = await supabase
+        .from('image_assets')
+        .select('id, usage_count')
+        .eq('file_path', imageUrl)
+        .maybeSingle();
+      
+      if (asset) {
+        await supabase
+          .from('image_assets')
+          .update({
+            usage_count: (asset.usage_count || 0) + 1,
+            last_used_at: new Date().toISOString()
+          })
+          .eq('id', asset.id);
+      }
+    } catch (error) {
+      console.warn(`⚠️ 이미지 사용 기록 업데이트 실패 (${imageUrl}):`, error.message);
+    }
+  }
+  
+  if (updatedCount > 0) {
+    console.log(`✅ ${updatedCount}개 이미지 사용 기록 업데이트 완료`);
+  }
+  
+  return updatedCount;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, message: 'Method not allowed' });
@@ -123,6 +211,26 @@ export default async function handler(req, res) {
             errors.push({ type: 'feed', date: feed.date, account: accountKey, error: error.message });
           }
         }
+      }
+    }
+
+    // 배포 완료된 항목이 있으면 이미지 사용 기록 업데이트
+    const hasPublishedContent = 
+      (calendarData.profileContent && 
+       Object.values(calendarData.profileContent).some(account => 
+         account.dailySchedule?.some(s => s.status === 'published')
+       )) ||
+      (calendarData.kakaoFeed?.dailySchedule?.some(feed =>
+        ['account1', 'account2'].some(key => feed[key]?.status === 'published')
+      ));
+    
+    if (hasPublishedContent) {
+      try {
+        const updatedCount = await updateImageUsageOnPublish(calendarData);
+        console.log(`✅ 배포 완료 이미지 사용 기록 업데이트: ${updatedCount}개`);
+      } catch (error) {
+        console.warn('⚠️ 이미지 사용 기록 업데이트 실패:', error.message);
+        // 사용 기록 업데이트 실패해도 저장은 성공으로 처리
       }
     }
 

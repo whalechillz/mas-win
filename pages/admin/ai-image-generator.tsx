@@ -463,7 +463,7 @@ ${compositionSpec}${improveHandQuality ? `
             numImages: 1,
             resolution: '1K',
             aspectRatio: 'auto',
-            outputFormat: 'png',
+            // outputFormat 제거: 서버에서 baseImageUrl 기반 자동 감지
           }),
         });
 
@@ -555,11 +555,11 @@ ${compositionSpec}${improveHandQuality ? `
             numImages: 1,
             resolution: '1K',
             aspectRatio: 'auto',
-            outputFormat: 'png', // 항상 PNG
+            // outputFormat 제거: 서버에서 baseImageUrl 기반 자동 감지 (카카오: WebP, 블로그/SMS/MMS: JPG 85%)
             compositionBackground: formData.compositionTarget === 'head'
               ? formData.compositionBackground || 'natural'
               : undefined,
-            baseImageUrl: formData.selectedBaseImageUrl, // 베이스 이미지 URL 전달 (저장 위치 결정용)
+            baseImageUrl: formData.selectedBaseImageUrl, // 베이스 이미지 URL 전달 (저장 위치 및 포맷 결정용)
           }),
         });
 
@@ -802,10 +802,11 @@ ${compositionSpec}${improveHandQuality ? `
                 numImages: 1,
                 resolution: '1K',
                 aspectRatio: 'auto',
-                outputFormat: 'png', // 항상 PNG
+                // outputFormat 제거: 서버에서 baseImageUrl 기반 자동 감지 (카카오: WebP, 블로그/SMS/MMS: JPG 85%)
                 compositionBackground: (formData.compositionTarget === 'head' || formData.compositionTarget === 'accessory')
                   ? formData.compositionBackground || 'natural'
                   : undefined,
+                baseImageUrl: imageUrl, // 베이스 이미지 URL 전달 (저장 위치 및 포맷 결정용)
               }),
             });
 

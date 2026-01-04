@@ -208,37 +208,63 @@ export default async function handler(req, res) {
           let imageBuffer = await imageFetchResponse.arrayBuffer();
           imageBuffer = Buffer.from(imageBuffer);
           
-          // 피드 이미지인 경우 카카오톡 최적 사이즈로 크롭 (1080x1350, 세로형 4:5)
+          // ✅ 모든 이미지를 JPG 90%로 변환 (기본값)
           let finalBuffer = imageBuffer;
           let finalFileName, finalFilePath;
           
-          if (metadata && metadata.type === 'feed') {
-            try {
+          try {
+            // Sharp 동적 import (Vercel 환경 호환성)
+            const sharp = (await import('sharp')).default;
+            
+            let sharpImage = sharp(imageBuffer);
+            
+            // 피드 이미지인 경우 카카오톡 최적 사이즈로 크롭 (1080x1350, 세로형 4:5)
+            if (metadata && metadata.type === 'feed') {
               console.log(`🔄 피드 이미지 카카오톡 최적화 시작 (1080x1350, 세로형 4:5, AI 크롭)...`);
               
-              // Sharp 동적 import (Vercel 환경 호환성)
-              const sharp = (await import('sharp')).default;
-              
               // 카카오톡 피드 최적 사이즈: 1080x1350 (4:5 세로형) - AI 기반 중요 영역 크롭
-              finalBuffer = await sharp(imageBuffer)
+              finalBuffer = await sharpImage
                 .resize(1080, 1350, {
                   fit: 'cover',
                   position: 'entropy' // AI 기반 중요 영역 자동 감지
                 })
-                .jpeg({ quality: 90 })
+                .jpeg({ 
+                  quality: 90,
+                  progressive: true,
+                  mozjpeg: true
+                })
                 .toBuffer();
               
               console.log(`✅ 피드 이미지 최적화 완료 (원본: ${imageBuffer.length} bytes → 최적화: ${finalBuffer.length} bytes)`);
-            } catch (optimizeError) {
-              console.error('⚠️ 피드 이미지 최적화 실패 (원본 사용):', optimizeError);
-              // 최적화 실패 시 원본 사용
-              finalBuffer = imageBuffer;
+            } else {
+              // 배경/프로필 이미지: 리사이즈 없이 JPG 90%로만 변환
+              // 투명도가 있으면 흰색 배경으로 변환
+              const imageMetadata = await sharpImage.metadata();
+              if (imageMetadata.hasAlpha) {
+                sharpImage = sharpImage.flatten({ background: { r: 255, g: 255, b: 255 } });
+                console.log('🔄 투명도 제거 (흰색 배경으로 변환)');
+              }
+              
+              finalBuffer = await sharpImage
+                .jpeg({ 
+                  quality: 90,
+                  progressive: true,
+                  mozjpeg: true
+                })
+                .toBuffer();
+              
+              console.log(`✅ 이미지 JPG 90% 압축 완료 (원본: ${imageBuffer.length} bytes → 압축: ${finalBuffer.length} bytes)`);
             }
+          } catch (optimizeError) {
+            console.error('⚠️ 이미지 압축 실패 (원본 사용):', optimizeError);
+            // 압축 실패 시 원본 사용
+            finalBuffer = imageBuffer;
           }
           
           // ✅ targetFolder가 제공되면 우선 사용
           if (targetFolder) {
-            const fileExtension = metadata && metadata.type === 'feed' ? 'jpg' : 'png';
+            // ✅ 모든 이미지를 JPG로 저장
+            const fileExtension = 'jpg';
             const sceneStep = metadata.sceneStep;
             
             // blog 폴더인 경우 blog-scene-{sceneStep}.jpg 형식 사용
@@ -271,15 +297,10 @@ export default async function handler(req, res) {
             const imageType = metadata.type || 'feed'; // background, profile, feed
             const sceneStep = metadata.sceneStep; // 장면 번호 (1-7)
             
-            // 파일명: ai-generated-{brandTone}-scene{sceneStep}-{imageType}-{timestamp}-{index}.jpg|png
+            // ✅ 파일명: 모든 타입을 JPG로 저장
             const scenePart = sceneStep ? `-scene${sceneStep}` : '';
-            if (metadata.type === 'feed') {
-              finalFileName = `ai-generated-${brandTone}${scenePart}-${imageType}-${timestamp}-${i + 1}-${imgIdx + 1}.jpg`;
-              finalFilePath = `originals/ai-generated/${dateStr}/${finalFileName}`;
-            } else {
-              finalFileName = `ai-generated-${brandTone}${scenePart}-${imageType}-${timestamp}-${i + 1}-${imgIdx + 1}.png`;
-              finalFilePath = `originals/ai-generated/${dateStr}/${finalFileName}`;
-            }
+            finalFileName = `ai-generated-${brandTone}${scenePart}-${imageType}-${timestamp}-${i + 1}-${imgIdx + 1}.jpg`;
+            finalFilePath = `originals/ai-generated/${dateStr}/${finalFileName}`;
             
             // 경로 검증 로깅
             console.log(`📁 AI 이미지 저장 경로: ${finalFilePath}`);
@@ -298,24 +319,21 @@ export default async function handler(req, res) {
             const typeFolder = metadata.type;
             const timestamp = Date.now();
             
-            if (metadata.type === 'feed') {
-              finalFileName = `kakao-${metadata.account}-${metadata.type}-${timestamp}-${i + 1}-${imgIdx + 1}.jpg`;
-              finalFilePath = `originals/daily-branding/kakao/${dateStr}/${accountFolder}/${typeFolder}/${finalFileName}`;
-            } else {
-              finalFileName = `kakao-${metadata.account}-${metadata.type}-${timestamp}-${i + 1}-${imgIdx + 1}.png`;
-              finalFilePath = `originals/daily-branding/kakao/${dateStr}/${accountFolder}/${typeFolder}/${finalFileName}`;
-            }
+            // ✅ 모든 타입을 JPG로 저장
+            finalFileName = `kakao-${metadata.account}-${metadata.type}-${timestamp}-${i + 1}-${imgIdx + 1}.jpg`;
+            finalFilePath = `originals/daily-branding/kakao/${dateStr}/${accountFolder}/${typeFolder}/${finalFileName}`;
             
             console.log(`📁 카카오 콘텐츠 저장 경로: ${finalFilePath}`);
             console.log(`   - 날짜: ${dateStr}, 계정: ${accountFolder}, 타입: ${typeFolder}`);
           } else {
             // 기존 방식 (블로그 등)
-            finalFileName = `paragraph-image-custom-${Date.now()}-${i + 1}-${imgIdx + 1}.png`;
+            finalFileName = `paragraph-image-custom-${Date.now()}-${i + 1}-${imgIdx + 1}.jpg`;
             finalFilePath = finalFileName;
           }
           
           // Supabase Storage에 업로드
-          const contentType = metadata && metadata.type === 'feed' ? 'image/jpeg' : 'image/png';
+          // ✅ 모든 이미지를 JPG로 저장
+          const contentType = 'image/jpeg';
           const { data: uploadData, error: uploadError } = await supabase.storage
             .from('blog-images')
             .upload(finalFilePath, finalBuffer, {
