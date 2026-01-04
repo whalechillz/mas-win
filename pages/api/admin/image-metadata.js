@@ -151,7 +151,13 @@ export default async function handler(req, res) {
              data.category_id === 2 ? '장비' : 
              data.category_id === 3 ? '코스' : 
              data.category_id === 4 ? '이벤트' : '기타') : '',
-          createdAt: data.created_at
+          createdAt: data.created_at,
+          // EXIF 정보 포함
+          gps_lat: data.gps_lat || null,
+          gps_lng: data.gps_lng || null,
+          taken_at: data.taken_at || null,
+          width: data.width || null,
+          height: data.height || null
         };
 
         return res.status(200).json({ metadata });
@@ -162,7 +168,18 @@ export default async function handler(req, res) {
       
     } else if (req.method === 'POST') {
       // 이미지 메타데이터 생성/업데이트
-      const { imageName, imageUrl, alt_text, keywords, title, description, category, categories } = req.body;
+      const { 
+        imageName, 
+        imageUrl, 
+        alt_text, 
+        keywords, 
+        title, 
+        description, 
+        category, 
+        categories,
+        // EXIF 정보
+        exifData
+      } = req.body;
       
       if (!imageName || !imageUrl) {
         return res.status(400).json({
@@ -255,6 +272,25 @@ export default async function handler(req, res) {
       // category_id는 NULL일 수 있으므로 있을 때만 추가
       if (categoryId !== null && categoryId !== undefined) {
         metadataData.category_id = categoryId;
+      }
+      
+      // EXIF 정보 추가 (있는 경우)
+      if (exifData) {
+        if (exifData.gps_lat !== undefined && exifData.gps_lat !== null) {
+          metadataData.gps_lat = exifData.gps_lat;
+        }
+        if (exifData.gps_lng !== undefined && exifData.gps_lng !== null) {
+          metadataData.gps_lng = exifData.gps_lng;
+        }
+        if (exifData.taken_at) {
+          metadataData.taken_at = exifData.taken_at;
+        }
+        if (exifData.width !== undefined && exifData.width !== null) {
+          metadataData.width = exifData.width;
+        }
+        if (exifData.height !== undefined && exifData.height !== null) {
+          metadataData.height = exifData.height;
+        }
       }
       
       console.log('📊 최종 저장 데이터:', {

@@ -175,3 +175,5 @@ CREATE TABLE kakao_recipient_groups (
 - `kakao_friend_mappings` 테이블에 데이터 존재 확인
 
 
+
+

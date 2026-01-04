@@ -341,8 +341,8 @@ export default async function handler(req, res) {
         }
         
         if (req.method === 'GET') {
-      // 기본 limit을 24로 줄여서 빠른 응답 (갤러리에서 사용)
-      const { limit = 24, offset = 0, page = 1, prefix = '', includeChildren = 'true', searchQuery = '', source, channel } = req.query;
+      // 기본 limit을 12로 줄여서 빠른 응답 (갤러리에서 사용)
+      const { limit = 12, offset = 0, page = 1, prefix = '', includeChildren = 'true', searchQuery = '', source, channel, includeUsageInfo = 'false' } = req.query;
       const pageSize = parseInt(limit);
       const currentPage = parseInt(page);
       const currentOffset = parseInt(offset) || (currentPage - 1) * pageSize;
@@ -598,21 +598,6 @@ export default async function handler(req, res) {
             searchAssets.forEach(asset => {
               searchAssetsMap.set(asset.cdn_url, asset);
             });
-          }
-          
-          // 카테고리 매핑
-          const categoryIdMap = new Map();
-          const categoryIds = [...new Set(metadataResults.map(m => m.category_id).filter(Boolean))];
-          if (categoryIds.length > 0) {
-            const { data: categories } = await supabase
-              .from('image_categories')
-              .select('id, name')
-              .in('id', categoryIds);
-            if (categories) {
-              categories.forEach(cat => {
-                categoryIdMap.set(cat.id, cat.name);
-              });
-            }
           }
           
           // 6. 최종 이미지 데이터 생성 (사용 횟수 실시간 계산)
@@ -1447,23 +1432,6 @@ export default async function handler(req, res) {
         });
       }
 
-      // 카테고리 매핑 (category_id -> 카테고리 이름)
-      const categoryIdMap = new Map();
-      if (allMetadata && allMetadata.length > 0) {
-        const categoryIds = [...new Set(allMetadata.map(m => m.category_id).filter(Boolean))];
-        if (categoryIds.length > 0) {
-          const { data: categories } = await supabase
-            .from('image_categories')
-            .select('id, name')
-            .in('id', categoryIds);
-          if (categories) {
-            categories.forEach(cat => {
-              categoryIdMap.set(cat.id, cat.name);
-            });
-          }
-        }
-      }
-
       // 메타데이터를 URL 기준으로 매핑
       const metadataMap = new Map();
       if (allMetadata) {
@@ -1472,30 +1440,33 @@ export default async function handler(req, res) {
         });
       }
 
-      // 🔧 배치 사용 위치 조회: 사용 위치가 필요한 이미지 URL 수집
+      // 🔧 배치 사용 위치 조회: 사용 위치가 필요한 이미지 URL 수집 (includeUsageInfo가 true일 때만)
       const urlsNeedingUsageInfo = [];
       const imageUrlToIndexMap = new Map();
+      const shouldIncludeUsageInfo = includeUsageInfo === 'true' || includeUsageInfo === true;
       
-      imageUrls.forEach(({ file, url, fullPath }, index) => {
-        const metadata = metadataMap.get(url);
-        let usageCount = metadata?.usage_count || 0;
-        
-        // 모든 폴더를 배치 조회로 통일 (정확도 향상)
-        // campaigns 폴더도 배치 조회로 처리하여 모든 사용 위치 확인
-        if (fullPath) {
-          // 모든 이미지를 배치 조회 대상에 포함 (usage_count와 관계없이)
-          urlsNeedingUsageInfo.push(url);
-          imageUrlToIndexMap.set(url, index);
-        } else if (usageCount > 0) {
-          // fullPath가 없어도 usage_count > 0이면 배치 조회 대상
-          urlsNeedingUsageInfo.push(url);
-          imageUrlToIndexMap.set(url, index);
-        }
-      });
+      if (shouldIncludeUsageInfo) {
+        imageUrls.forEach(({ file, url, fullPath }, index) => {
+          const metadata = metadataMap.get(url);
+          let usageCount = metadata?.usage_count || 0;
+          
+          // 모든 폴더를 배치 조회로 통일 (정확도 향상)
+          // campaigns 폴더도 배치 조회로 처리하여 모든 사용 위치 확인
+          if (fullPath) {
+            // 모든 이미지를 배치 조회 대상에 포함 (usage_count와 관계없이)
+            urlsNeedingUsageInfo.push(url);
+            imageUrlToIndexMap.set(url, index);
+          } else if (usageCount > 0) {
+            // fullPath가 없어도 usage_count > 0이면 배치 조회 대상
+            urlsNeedingUsageInfo.push(url);
+            imageUrlToIndexMap.set(url, index);
+          }
+        });
+      }
       
-      // 🔧 배치로 사용 위치 정보 조회 (한 번의 API 호출)
+      // 🔧 배치로 사용 위치 정보 조회 (한 번의 API 호출) - includeUsageInfo가 true일 때만
       const usageInfoMap = new Map();
-      if (urlsNeedingUsageInfo.length > 0) {
+      if (shouldIncludeUsageInfo && urlsNeedingUsageInfo.length > 0) {
         try {
           const batchStartTime = Date.now();
           const usageResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/image-usage-tracker`, {
@@ -1624,8 +1595,8 @@ export default async function handler(req, res) {
         let usedIn = [];
         let lastUsedAt = null;
         
-        if (fullPath) {
-          // 🔧 배치로 조회한 사용 위치 정보 사용 (모든 폴더 통일)
+        if (shouldIncludeUsageInfo && fullPath) {
+          // 🔧 배치로 조회한 사용 위치 정보 사용 (모든 폴더 통일) - includeUsageInfo가 true일 때만
           const usageInfo = usageInfoMap.get(url);
           if (usageInfo) {
             usedIn = usageInfo.usedIn;
@@ -1716,11 +1687,10 @@ export default async function handler(req, res) {
             }
             return [];
           })(),
-          // category는 category_id를 기반으로 카테고리 이름 반환 (하위 호환성)
-          // 실제로는 카테고리 체크박스에서 categories 배열을 사용하므로, category_id가 있으면 해당 카테고리 이름을 배열로 반환
-          category: metadata?.category_id ? categoryIdMap.get(metadata.category_id) || '' : '',
-          // categories는 배열 형태로 반환 (카테고리 체크박스용)
-          categories: metadata?.category_id ? [categoryIdMap.get(metadata.category_id)].filter(Boolean) : [],
+          // category는 제거됨 (메타태그로 대체)
+          category: '',
+          // categories는 빈 배열로 반환 (카테고리 기능 제거)
+          categories: [],
           usage_count: usageCount,
           used_in: usedIn,
           last_used_at: lastUsedAt,

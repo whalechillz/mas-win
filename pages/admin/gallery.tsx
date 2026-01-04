@@ -5,12 +5,12 @@ import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import Link from 'next/link';
 import { ImageMetadataModal } from '../../components/ImageMetadataModal';
-import { CategoryManagementModal } from '../../components/CategoryManagementModal';
 import FolderTree from '../../components/gallery/FolderTree';
 import { createClient } from '@supabase/supabase-js';
 import { uploadImageToSupabase } from '../../lib/image-upload-utils';
 import FolderSelector from '../../components/admin/FolderSelector';
 import { rotateImageWithCanvas, convertImageWithCanvas, getImageMetadata } from '../../lib/client/image-processor';
+import JSZip from 'jszip';
 
 // 디바운스 훅 (PerformanceUtils에서 분리하여 직접 구현)
 function useDebounce<T>(value: T, delay: number): T {
@@ -111,7 +111,7 @@ export default function GalleryAdmin() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [imagesPerPage] = useState(20); // 성능 최적화를 위해 페이지당 이미지 수 감소
+  const [imagesPerPage] = useState(12); // 성능 최적화를 위해 페이지당 이미지 수 감소
   const [hasMoreImages, setHasMoreImages] = useState(true);
   
   // 초기 로드 추적을 위한 ref
@@ -509,13 +509,25 @@ export default function GalleryAdmin() {
     }
   };
 
-  // Phase 5-7: 이미지 비교 핸들러
+  // Phase 5-7: 이미지 비교 핸들러 (통합: 1개는 확대, 2-3개는 비교)
   const handleCompareImages = async () => {
     if (selectedForCompare.size < 1 || selectedForCompare.size > 3) {
       alert('1-3개의 이미지를 선택해주세요.');
       return;
     }
 
+    // 1개 선택 시: 확대 모달 열기
+    if (selectedForCompare.size === 1) {
+      const imageId = Array.from(selectedForCompare)[0];
+      const image = images.find(img => img.id === imageId);
+      if (image) {
+        setSelectedImageForZoom(image);
+        setSelectedForCompare(new Set()); // 선택 초기화
+        return;
+      }
+    }
+
+    // 2-3개 선택 시: 비교 모달 열기
     try {
       const imageIds = Array.from(selectedForCompare);
       
@@ -588,6 +600,7 @@ export default function GalleryAdmin() {
       
       setCompareResult(data.comparison);
       setShowCompareModal(true);
+      setSelectedForCompare(new Set()); // 선택 초기화
 
     } catch (error: any) {
       console.error('❌ 이미지 비교 오류:', error);
@@ -1162,9 +1175,10 @@ export default function GalleryAdmin() {
   }, [images, filterType, folderFilter, selectedCategoryFilter, dynamicCategories, sortBy, sortOrder]);
   // searchQuery는 의존성에서 제거 (서버 사이드 검색 사용)
   
-  // 카테고리 관리 UI 상태
-  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
-  const [categoryMoveModalOpen, setCategoryMoveModalOpen] = useState(false);
+  // 복사/붙여넣기 상태
+  const [copiedImages, setCopiedImages] = useState<ImageMetadata[]>([]);
+  const [showPasteModal, setShowPasteModal] = useState(false);
+  const [pasteTargetFolder, setPasteTargetFolder] = useState<string | null>(null);
   
   // 폴더 관리 UI 상태
   const [folderModalOpen, setFolderModalOpen] = useState(false);
@@ -1264,6 +1278,14 @@ export default function GalleryAdmin() {
   
   // Replicate 변형 관련 상태 (프롬프트 입력 불가, 빠르고 간단)
   const [isGeneratingReplicateVariation, setIsGeneratingReplicateVariation] = useState(false);
+  
+  // Nanobanana 변형 관련 상태
+  const [isGeneratingNanobananaVariation, setIsGeneratingNanobananaVariation] = useState(false);
+  
+  // 프롬프트 입력 모달 관련 상태
+  const [showPromptModal, setShowPromptModal] = useState(false);
+  const [promptModalType, setPromptModalType] = useState<'fal' | 'replicate' | 'nanobanana' | null>(null);
+  const [customPrompt, setCustomPrompt] = useState('');
   
   // 업스케일링 관련 상태
   const [isUpscaling, setIsUpscaling] = useState(false);
@@ -1523,6 +1545,22 @@ export default function GalleryAdmin() {
   const [isBulkWorking, setIsBulkWorking] = useState(false);
   const [seoPreview, setSeoPreview] = useState<any[] | null>(null);
 
+  // 단일 이미지의 사용 위치 정보 가져오기 (상세보기 모달용)
+  const fetchImageUsageInfo = async (imageUrl: string): Promise<ImageMetadata | null> => {
+    try {
+      const response = await fetch(`/api/admin/all-images?limit=1&offset=0&includeUsageInfo=true&searchQuery=${encodeURIComponent(imageUrl)}`);
+      const data = await response.json();
+      
+      if (response.ok && data.images && data.images.length > 0) {
+        return data.images[0];
+      }
+      return null;
+    } catch (error) {
+      console.error('❌ 사용 위치 정보 로드 에러:', error);
+      return null;
+    }
+  };
+
   // 이미지 로드
   const fetchImages = async (page = 1, reset = false, customFolderFilter?: string, customIncludeChildren?: boolean, customSearchQuery?: string, forceRefresh?: boolean) => {
     try {
@@ -1565,7 +1603,7 @@ export default function GalleryAdmin() {
         });
       }
       
-      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${effectiveIncludeChildren}${searchParam}${refreshParam}`);
+      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${effectiveIncludeChildren}&includeUsageInfo=false${searchParam}${refreshParam}`);
       const data = await response.json();
       
       if (response.ok) {
@@ -1702,6 +1740,25 @@ export default function GalleryAdmin() {
     }
   };
 
+  // 상세보기 모달이 열릴 때 사용 위치 정보 가져오기
+  useEffect(() => {
+    if (selectedImageForZoom && (!selectedImageForZoom.used_in || selectedImageForZoom.used_in.length === 0)) {
+      // 사용 위치 정보가 없으면 가져오기
+      const imageUrl = selectedImageForZoom.url || selectedImageForZoom.original_url || '';
+      if (imageUrl) {
+        fetchImageUsageInfo(imageUrl).then((imageWithUsage) => {
+          if (imageWithUsage && imageWithUsage.used_in) {
+            setSelectedImageForZoom(prev => prev ? {
+              ...prev,
+              used_in: imageWithUsage.used_in,
+              usage_count: imageWithUsage.usage_count || prev.usage_count
+            } : null);
+          }
+        });
+      }
+    }
+  }, [selectedImageForZoom]);
+
   // 무한 스크롤 로드 (성능 최적화)
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -1781,16 +1838,33 @@ export default function GalleryAdmin() {
 
   // 이미지 선택/해제
   const toggleImageSelection = (image: ImageMetadata) => {
-    const uniqueId = getImageUniqueId(image);
-    setSelectedImages(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(uniqueId)) {
-        newSet.delete(uniqueId);
+    // 일반 선택 토글
+    const imageId = getImageUniqueId(image);
+    const newSelected = new Set(selectedImages);
+    
+    if (newSelected.has(imageId)) {
+      newSelected.delete(imageId);
+    } else {
+      newSelected.add(imageId);
+    }
+    setSelectedImages(newSelected);
+    
+    // 비교 선택도 함께 업데이트 (최대 3개까지)
+    if (image.id) {
+      const newCompareSelected = new Set(selectedForCompare);
+      if (newSelected.has(imageId)) {
+        if (newCompareSelected.size < 3) {
+          newCompareSelected.add(image.id);
+        } else {
+          // 3개 초과 시 알림
+          alert('비교는 최대 3개까지만 선택할 수 있습니다.');
+          return;
+        }
       } else {
-        newSet.add(uniqueId);
+        newCompareSelected.delete(image.id);
       }
-      return newSet;
-    });
+      setSelectedForCompare(newCompareSelected);
+    }
   };
 
   // 전체 선택/해제
@@ -2000,6 +2074,80 @@ export default function GalleryAdmin() {
     }
   };
 
+  // Nanobanana 변형 함수 (원본 스타일 유지에 최적화)
+  const generateNanobananaVariation = async (imageUrl: string, imageName: string, imageFolderPath?: string, customPrompt?: string) => {
+    if (!imageUrl) {
+      alert('변형할 이미지를 선택해주세요.');
+      return;
+    }
+
+    if (isGeneratingNanobananaVariation) {
+      alert('이미 변형 중입니다. 잠시만 기다려주세요.');
+      return;
+    }
+
+    setIsGeneratingNanobananaVariation(true);
+    setImageGenerationStep('Nanobanana로 이미지 변형 중...');
+    setImageGenerationModel('Nanobanana (원본 스타일 유지)');
+    setShowGenerationProcess(true);
+
+    try {
+      const response = await fetch('/api/vary-nanobanana', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: imageUrl,
+          prompt: customPrompt || undefined,
+          preserveStyle: true,
+          numImages: 1,
+          aspectRatio: '1:1',
+          outputFormat: 'jpeg',
+          quality: 90,
+          title: '갤러리 이미지 변형',
+          excerpt: 'Nanobanana로 변형된 이미지',
+          contentType: 'gallery',
+          brandStrategy: 'professional',
+          originalImageFolder: imageFolderPath || selectedImageForZoom?.folder_path || null
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || error.details || '이미지 변형 실패');
+      }
+
+      const result = await response.json();
+      
+      if (result.imageUrl) {
+        // selectedImageForZoom을 변형된 이미지로 업데이트 (모달 유지)
+        if (selectedImageForZoom) {
+          setSelectedImageForZoom({
+            ...selectedImageForZoom,
+            url: result.imageUrl,
+            name: result.fileName || selectedImageForZoom.name,
+            folder_path: imageFolderPath || selectedImageForZoom.folder_path
+          });
+        }
+        
+        // 이미지 목록 새로고침
+        fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+        
+        alert('✅ Nanobanana 변형이 완료되었습니다!');
+      } else {
+        throw new Error('변형된 이미지가 생성되지 않았습니다.');
+      }
+    } catch (error: any) {
+      console.error('❌ Nanobanana 변형 오류:', error);
+      alert('Nanobanana 변형 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsGeneratingNanobananaVariation(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+
   // 편집 시작
   // Replicate 변형 함수 (프롬프트 입력 불가, 빠르고 간단)
   const generateReplicateVariation = async (imageUrl: string, imageName: string, imageFolderPath?: string) => {
@@ -2041,14 +2189,14 @@ export default function GalleryAdmin() {
       const result = await response.json();
       
       if (result.images && result.images.length > 0) {
-        // 현재 이미지의 folder_path 가져오기 (전달받은 값 또는 images 배열에서 찾기)
+        // 원본 이미지의 folder_path 가져오기 (원본 폴더에 저장)
         let targetFolderPath = imageFolderPath;
         if (!targetFolderPath) {
           const currentImage = images.find(img => img.url === imageUrl || img.name === imageName);
-          targetFolderPath = currentImage?.folder_path || (folderFilter !== 'all' && folderFilter !== 'root' ? folderFilter : null);
+          targetFolderPath = currentImage?.folder_path || null;
         }
         
-        // 변형된 이미지를 Supabase에 저장
+        // 변형된 이미지를 Supabase에 저장 (원본 폴더에)
         const savedImages = [];
         for (let i = 0; i < result.images.length; i++) {
           try {
@@ -2059,7 +2207,7 @@ export default function GalleryAdmin() {
                 imageUrl: result.images[i].originalUrl || result.images[i],
                 fileName: `replicate-variation-${Date.now()}-${i + 1}.png`,
                 blogPostId: null,
-                folderPath: targetFolderPath // 현재 폴더 경로 전달
+                folderPath: targetFolderPath // 원본 이미지 폴더 경로 전달
               })
             });
             
@@ -2075,13 +2223,20 @@ export default function GalleryAdmin() {
           }
         }
 
-        alert(`✅ Replicate 변형 완료!\n\n${savedImages.length}개의 이미지가 생성되었습니다.`);
+        // 첫 번째 이미지로 selectedImageForZoom 업데이트 (모달 유지)
+        if (savedImages.length > 0 && selectedImageForZoom) {
+          setSelectedImageForZoom({
+            ...selectedImageForZoom,
+            url: savedImages[0],
+            name: `replicate-variation-${Date.now()}-1.png`,
+            folder_path: targetFolderPath || selectedImageForZoom.folder_path
+          });
+        }
         
-        // ✅ 모달 닫기
-        setSelectedImageForZoom(null);
-        
-        // ✅ 현재 폴더 유지하고 이미지 목록만 새로고침 (캐시 무효화 포함)
+        // 이미지 목록 새로고침
         fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+        
+        alert(`✅ Replicate 변형 완료!\n\n${savedImages.length}개의 이미지가 생성되었습니다.`);
       } else {
         throw new Error('변형된 이미지가 생성되지 않았습니다.');
       }
@@ -2717,68 +2872,195 @@ export default function GalleryAdmin() {
     }
   };
 
-  // 일괄 복제 실행
-  const handleBulkDuplicate = async () => {
+  // 복사 기능
+  const handleCopyImages = () => {
     if (selectedImages.size === 0) {
-      alert('복제할 이미지를 선택해주세요.');
+      alert('복사할 이미지를 선택해주세요.');
+      return;
+    }
+    
+    const selectedIds = Array.from(selectedImages);
+    const imagesToCopy = selectedIds.map(id => {
+      const image = images.find(img => getImageUniqueId(img) === id);
+      return image;
+    }).filter(Boolean) as ImageMetadata[];
+    
+    setCopiedImages(imagesToCopy);
+    alert(`${imagesToCopy.length}개 이미지가 복사되었습니다.\n붙여넣기 버튼을 눌러 대상 폴더를 선택하세요.`);
+  };
+
+  // 붙여넣기 기능
+  const handlePasteImages = async (targetFolder: string) => {
+    if (copiedImages.length === 0) {
+      alert('복사된 이미지가 없습니다.');
+      return;
+    }
+    
+    if (!targetFolder || targetFolder === 'all' || targetFolder === 'root') {
+      alert('붙여넣기할 폴더를 선택해주세요.');
       return;
     }
     
     setIsBulkWorking(true);
     
     try {
-      const selectedIds = Array.from(selectedImages);
-      console.log('📋 일괄 복제 시작:', selectedIds.length, '개');
+      // 같은 폴더인지 확인
+      const sameFolderImages = copiedImages.filter(img => {
+        const sourceFolder = img.folder_path || '';
+        return sourceFolder === targetFolder;
+      });
       
-      // 선택된 이미지들의 정보 수집
-      const imagesToDuplicate = selectedIds.map(id => {
-        const image = images.find(img => getImageUniqueId(img) === id);
-        return image;
-      }).filter(Boolean);
+      if (sameFolderImages.length > 0) {
+        const confirmMessage = `⚠️ 일부 이미지가 같은 폴더에 있습니다.\n\n` +
+          `같은 폴더: ${sameFolderImages.length}개\n` +
+          `다른 폴더: ${copiedImages.length - sameFolderImages.length}개\n\n` +
+          `같은 폴더의 이미지는 파일명 뒤에 순번이 추가됩니다.\n계속하시겠습니까?`;
+        
+        if (!confirm(confirmMessage)) {
+          setIsBulkWorking(false);
+          return;
+        }
+      }
       
-      console.log('📋 복제할 이미지들:', imagesToDuplicate);
+      console.log('📋 붙여넣기 시작:', copiedImages.length, '개 이미지');
+      console.log('📋 대상 폴더:', targetFolder);
       
-      // 일괄 복제 API 호출
-      const response = await fetch('/api/admin/duplicate-images', {
+      // API 호출
+      const response = await fetch('/api/admin/copy-images-to-folder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          images: imagesToDuplicate.map(img => ({
+        body: JSON.stringify({
+          images: copiedImages.map(img => ({
             name: img.name,
             url: img.url,
+            folder_path: img.folder_path || '',
             alt_text: img.alt_text || '',
             title: img.title || '',
             description: img.description || '',
-            keywords: img.keywords || [],
-            category: img.category || ''
-          }))
+            keywords: img.keywords || []
+          })),
+          targetFolder: targetFolder
         })
       });
       
       if (!response.ok) {
         const errorData = await response.json();
-        const errorMessage = errorData.error || errorData.details || '일괄 복제에 실패했습니다.';
+        const errorMessage = errorData.error || errorData.details || '붙여넣기에 실패했습니다.';
         throw new Error(errorMessage);
       }
       
       const result = await response.json();
-      console.log('✅ 일괄 복제 성공:', result);
+      console.log('✅ 붙여넣기 성공:', result);
       
-      // 선택 해제
-      setSelectedImages(new Set());
+      // 모달 닫기
+      setShowPasteModal(false);
+      setPasteTargetFolder(null);
       
       // 갤러리 새로고침
       setTimeout(() => {
         fetchImages(1, true);
       }, 500);
       
-      alert(`일괄 복제 완료: ${result.duplicatedCount}개 이미지가 복제되었습니다.`);
+      alert(`붙여넣기 완료: ${result.copiedCount}개 이미지가 "${targetFolder}" 폴더에 복사되었습니다.`);
       
-    } catch (error) {
-      console.error('❌ 일괄 복제 오류:', error);
-      alert(`일괄 복제에 실패했습니다: ${error.message}`);
+    } catch (error: any) {
+      console.error('❌ 붙여넣기 오류:', error);
+      alert(`붙여넣기에 실패했습니다: ${error.message}`);
     } finally {
       setIsBulkWorking(false);
+    }
+  };
+
+  // 다운로드 기능
+  const handleDownloadImages = async () => {
+    if (selectedImages.size === 0) {
+      alert('다운로드할 이미지를 선택해주세요.');
+      return;
+    }
+
+    const selectedIds = Array.from(selectedImages);
+    const imagesToDownload = selectedIds.map(id => {
+      const image = images.find(img => getImageUniqueId(img) === id);
+      return image;
+    }).filter(Boolean) as ImageMetadata[];
+
+    // 1개 선택 시: 즉시 다운로드
+    if (imagesToDownload.length === 1) {
+      const img = imagesToDownload[0];
+      try {
+        const response = await fetch(img.url);
+        if (!response.ok) throw new Error('이미지 다운로드 실패');
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = img.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } catch (error: any) {
+        console.error('다운로드 오류:', error);
+        alert(`다운로드 실패: ${error.message}`);
+      }
+      return;
+    }
+
+    // 여러 개 선택 시: 압축 후 다운로드
+    try {
+      const zip = new JSZip();
+      let successCount = 0;
+      let failCount = 0;
+
+      for (let i = 0; i < imagesToDownload.length; i++) {
+        const img = imagesToDownload[i];
+        try {
+          const response = await fetch(img.url);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const blob = await response.blob();
+          
+          // 파일명 중복 처리 (같은 이름이 여러 개 있을 수 있음)
+          let fileName = img.name;
+          if (zip.file(fileName)) {
+            const ext = fileName.split('.').pop();
+            const baseName = fileName.replace(/\.[^/.]+$/, '');
+            let counter = 1;
+            while (zip.file(`${baseName}-${counter}.${ext}`)) {
+              counter++;
+            }
+            fileName = `${baseName}-${counter}.${ext}`;
+          }
+          
+          zip.file(fileName, blob);
+          successCount++;
+        } catch (error: any) {
+          console.error(`이미지 다운로드 실패 (${img.name}):`, error);
+          failCount++;
+        }
+      }
+
+      if (successCount === 0) {
+        alert('다운로드할 수 있는 이미지가 없습니다.');
+        return;
+      }
+
+      // ZIP 파일 생성 및 다운로드
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const url = window.URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `images-${new Date().toISOString().slice(0, 10)}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      if (failCount > 0) {
+        alert(`다운로드 완료: ${successCount}개 성공, ${failCount}개 실패`);
+      }
+    } catch (error: any) {
+      console.error('압축 다운로드 오류:', error);
+      alert(`압축 다운로드 실패: ${error.message}`);
     }
   };
 
@@ -2791,6 +3073,24 @@ export default function GalleryAdmin() {
     if (path.startsWith('variants/')) return 'variants';
     if (path.startsWith('references/')) return 'references';
     return 'other';
+  };
+
+  // 폴더 경로 포맷팅 헬퍼 함수 (originals/ 제거, 한두 뎁스 전까지 표시)
+  const formatFolderPath = (folderPath: string | undefined): string => {
+    if (!folderPath) return '';
+    // originals/ 제거
+    let formatted = folderPath.startsWith('originals/') 
+      ? folderPath.replace('originals/', '') 
+      : folderPath;
+    
+    // 한두 뎁스 전까지 표시 (예: blog/2025-12/487 → blog/2025-12/487)
+    // 예: daily-branding/kakao/2026-01-04/account1/feed → kakao/2026-01-04/account1/feed
+    const parts = formatted.split('/');
+    if (parts.length > 3) {
+      // 3개 이상이면 마지막 3개만 표시
+      return parts.slice(-3).join('/');
+    }
+    return formatted;
   };
 
   // Phase 4: 삭제 경고 생성 함수
@@ -3243,7 +3543,7 @@ export default function GalleryAdmin() {
     <div>
       <AdminNav />
       <Head>
-        <title>이미지 갤러리 관리 - MAS Golf</title>
+        <title>갤러리 관리 - MAS Golf</title>
       </Head>
       <style jsx>{`
         @keyframes fadeIn {
@@ -3258,414 +3558,7 @@ export default function GalleryAdmin() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-6">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">🖼️ 이미지 갤러리 관리</h1>
-                <p className="text-sm text-gray-600 mt-1">이미지 메타데이터 관리 및 최적화</p>
-              </div>
-              <div className="flex items-center space-x-4 relative">
-                <Link 
-                  href="/admin/blog"
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
-                >
-                  📝 블로그 관리로 돌아가기
-                </Link>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="number"
-                    placeholder="블로그 ID"
-                    value={blogIdForOrganization || ''}
-                    onChange={(e) => setBlogIdForOrganization(e.target.value ? parseInt(e.target.value) : null)}
-                    className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
-                  />
-                  <button
-                    onClick={handleOrganizeBlogImages}
-                    disabled={isOrganizingImages}
-                    className="px-3 py-1 bg-purple-500 text-white rounded text-sm hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isOrganizingImages ? '정렬 중...' : '📁 이미지 정렬'}
-                  </button>
-                  <button
-                    onClick={handleSyncBlogMetadata}
-                    disabled={isSyncingBlogMetadata}
-                    className="px-3 py-1 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSyncingBlogMetadata ? '동기화 중...' : '🔄 메타 동기화'}
-                  </button>
-                </div>
-                <button
-                  onClick={handleOpenAddModal}
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
-                >
-                  ➕ 이미지 추가
-                </button>
-              <button onClick={()=>{
-                setCategoryModalOpen(true);
-                loadDynamicCategories(); // 카테고리 새로고침
-              }} className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 text-sm">📂 카테고리 관리</button>
-              <button onClick={()=>{
-                setFolderModalOpen(true);
-              }} className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-sm">📁 폴더 관리</button>
-              <button
-                onClick={handleCheckAndRemoveDuplicates}
-                disabled={isCheckingDuplicates}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                title="현재 선택된 폴더의 중복 이미지를 감지하고 제거합니다"
-              >
-                {isCheckingDuplicates ? '🔍 확인 중...' : '🔍 중복 제거 확인'}
-              </button>
-              <button
-                onClick={handleCheckExtensionDuplicates}
-                disabled={isCheckingExtensionDuplicates}
-                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                title="현재 선택된 폴더의 JPG/WebP 확장자 중복을 감지합니다"
-              >
-                {isCheckingExtensionDuplicates ? '🔄 확인 중...' : '🔄 확장자 중복 확인'}
-              </button>
-              <button
-                onClick={() => handleAnalyzeBlogDuplicates()}
-                disabled={isAnalyzingBlogDuplicates}
-                className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                title="블로그 글의 중복 이미지를 Hash 기반으로 감지합니다"
-              >
-                {isAnalyzingBlogDuplicates ? '[분석 중...]' : '[분석] 블로그 중복 이미지 분석'}
-              </button>
-              {selectedForCompare.size >= 1 && (
-                <button
-                  onClick={handleCompareImages}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
-                  title={selectedForCompare.size === 1 ? "선택된 이미지 상세 정보를 확인합니다" : "선택된 이미지를 비교합니다"}
-                >
-                  {selectedForCompare.size === 1 ? '📋 상세 보기' : `🔍 비교 (${selectedForCompare.size}개)`}
-                </button>
-              )}
-              <div className="relative">
-                <button
-                  onClick={handleCampaignImageMigration}
-                  disabled={isMigratingCampaigns}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="월별 퍼널 이미지를 Supabase Storage로 마이그레이션"
-                >
-                  {isMigratingCampaigns ? '🔄 마이그레이션 중...' : '📦 퍼널 이미지 마이그레이션'}
-                </button>
-                {campaignMigrationProgress && (
-                  <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
-                    <div className="text-sm font-semibold text-gray-700 mb-2">
-                      {campaignMigrationProgress.step === 'init' && '마이그레이션 시작'}
-                      {campaignMigrationProgress.step === 'folders' && '폴더 구조 생성'}
-                      {campaignMigrationProgress.step === 'migrate' && `이미지 마이그레이션 (${campaignMigrationProgress.month})`}
-                      {campaignMigrationProgress.step === 'html' && 'HTML 파일 업데이트'}
-                      {campaignMigrationProgress.step === 'blog' && '블로그 본문 업데이트'}
-                      {campaignMigrationProgress.step === 'complete' && '마이그레이션 완료'}
-                      {campaignMigrationProgress.step === 'error' && '오류 발생'}
-                    </div>
-                    {campaignMigrationProgress.message && (
-                      <div className="text-xs text-gray-600 mb-2">
-                        {campaignMigrationProgress.message}
-                      </div>
-                    )}
-                    {campaignMigrationProgress.current && campaignMigrationProgress.total && (
-                      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                        <div
-                          className="bg-teal-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${(campaignMigrationProgress.current / campaignMigrationProgress.total) * 100}%` }}
-                        />
-                      </div>
-                    )}
-                    {campaignMigrationProgress.current && campaignMigrationProgress.total && (
-                      <div className="text-xs text-gray-500">
-                        {campaignMigrationProgress.current} / {campaignMigrationProgress.total}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              {SHOW_LEGACY_META_SYNC_BUTTON && (
-              <div className="relative">
-              <button
-                onClick={async () => {
-                  if (isSyncingMetadata) return;
-                  
-                  setIsSyncingMetadata(true);
-                  setSyncStatus('누락된 메타데이터 확인 중...');
-                  setSyncProgress(null);
-                  
-                  try {
-                    // 1단계: 누락된 메타데이터 확인 (배치 모드)
-                    // ✅ 개선: limit을 충분히 크게 설정하여 모든 누락 메타데이터 확인
-                    const checkResponse = await fetch('/api/admin/sync-missing-metadata', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ batch: true, limit: 1000 })  // ✅ limit 증가
-                    });
-                    
-                    if (!checkResponse.ok) {
-                      throw new Error('메타데이터 확인 실패');
-                    }
-                    
-                    const checkData = await checkResponse.json();
-                    const missingCount = checkData.missing || checkData.missing_count || 0;
-                    
-                    setSyncProgress({
-                      total: checkData.total || 0,
-                      missing: missingCount,
-                      processed: 0
-                    });
-                    
-                    if (missingCount === 0) {
-                      setSyncStatus('누락된 메타데이터가 없습니다.');
-                      setIsSyncingMetadata(false);
-                      alert('모든 이미지에 메타데이터가 있습니다.');
-                      return;
-                    }
-                    
-                    // ✅ 개선: 모든 누락 메타데이터 개수 표시
-                    const displayMessage = checkData.has_more 
-                      ? `누락된 메타데이터 ${missingCount}개가 발견되었습니다.\n\n(현재 ${checkData.display_limit || checkData.images?.length || 0}개 표시, 나머지는 처리 중 표시)\n\nAI를 사용하여 메타데이터를 생성하시겠습니까?\n\n처리 시간이 소요될 수 있습니다.`
-                      : `누락된 메타데이터 ${missingCount}개가 발견되었습니다.\n\nAI를 사용하여 메타데이터를 생성하시겠습니까?\n\n처리 시간이 소요될 수 있습니다.`;
-                    
-                    // 2단계: 사용자 확인
-                    const shouldProceed = confirm(displayMessage);
-                    
-                    if (!shouldProceed) {
-                      setIsSyncingMetadata(false);
-                      setSyncStatus('');
-                      setSyncProgress(null);
-                      return;
-                    }
-                    
-                    // 3단계: 메타데이터 생성 및 저장 (한 번에 처리)
-                    setSyncStatus(`메타데이터 생성 중... (0/${checkData.missing})`);
-                    
-                    // 한 번에 처리할 개수 제한 (API 호출 제한 방지)
-                    const processLimit = Math.min(50, checkData.missing);
-                    
-                    const syncResponse = await fetch('/api/admin/sync-missing-metadata', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ 
-                        batch: false, 
-                        limit: processLimit 
-                      })
-                    });
-                    
-                    if (!syncResponse.ok) {
-                      const errorData = await syncResponse.json();
-                      throw new Error(errorData.error || '메타데이터 생성 실패');
-                    }
-                    
-                    const syncData = await syncResponse.json();
-                    const processedCount = syncData.processed || 0;
-                    
-                    setSyncStatus(`동기화 완료: ${processedCount}개 처리`);
-                    setSyncProgress(prev => prev ? {
-                      ...prev,
-                      processed: processedCount
-                    } : null);
-                    
-                    // 갤러리 새로고침
-                    await fetchImages(1, true);
-                    
-                    const remaining = checkData.missing - processedCount;
-                    if (remaining > 0) {
-                      alert(`메타데이터 동기화 진행!\n\n처리된 이미지: ${processedCount}개\n남은 이미지: ${remaining}개\n\n남은 이미지는 다시 동기화 버튼을 눌러 처리하세요.`);
-                    } else {
-                      alert(`메타데이터 동기화 완료!\n\n처리된 이미지: ${processedCount}개`);
-                    }
-                    
-                  } catch (error) {
-                    console.error('메타데이터 동기화 오류:', error);
-                    setSyncStatus('동기화 실패');
-                    alert(`메타데이터 동기화 중 오류가 발생했습니다: ${error.message}`);
-                  } finally {
-                    setIsSyncingMetadata(false);
-                    setTimeout(() => {
-                      setSyncStatus('');
-                      setSyncProgress(null);
-                    }, 5000);
-                  }
-                }}
-                disabled={isSyncingMetadata}
-                className={`px-4 py-2 rounded-lg text-sm ${
-                  isSyncingMetadata
-                    ? 'bg-gray-400 text-white cursor-not-allowed'
-                    : 'bg-orange-500 text-white hover:bg-orange-600'
-                }`}
-                title="Storage에 있는 이미지 중 메타데이터가 없는 이미지에 대해 AI로 메타데이터를 자동 생성합니다."
-              >
-                {isSyncingMetadata ? (
-                  <span className="flex items-center gap-2">
-                    <span className="animate-spin">⏳</span>
-                    {syncStatus || '동기화 중...'}
-                  </span>
-                ) : (
-                  '🔄 메타데이터 동기화'
-                )}
-              </button>
-              {syncProgress && (
-                <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
-                  <div className="text-sm text-gray-700 mb-2">
-                    {syncStatus}
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-orange-500 h-2 rounded-full transition-all duration-300"
-                      style={{
-                        width: `${syncProgress.missing > 0 ? (syncProgress.processed / syncProgress.missing) * 100 : 0}%`
-                      }}
-                    />
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    전체: {syncProgress.total}개 | 누락: {syncProgress.missing}개 | 처리됨: {syncProgress.processed}개
-                  </div>
-                </div>
-              )}
-              </div>
-              )}
-              
-              {/* 블로그 이미지 분석 버튼 */}
-              <div className="relative">
-              <button
-                onClick={async () => {
-                  if (isAnalyzingBlogImages) return;
-                  
-                  if (!confirm('모든 블로그 이미지를 분석하시겠습니까?\n\n이 작업은 시간이 소요될 수 있습니다.')) {
-                    return;
-                  }
-                  
-                  setIsAnalyzingBlogImages(true);
-                  setAnalysisStatus('블로그 이미지 분석 중...');
-                  setAnalysisResult(null);
-                  
-                  try {
-                    const response = await fetch('/api/admin/analyze-all-blog-images', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ dryRun: true })
-                    });
-                    
-                    if (!response.ok) {
-                      const errorData = await response.json();
-                      throw new Error(errorData.error || errorData.details || '분석 실패');
-                    }
-                    
-                    const data = await response.json();
-                    setAnalysisResult(data);
-                    setAnalysisStatus('분석 완료');
-                    
-                    // 결과 요약 표시
-                    const summary = data.summary || {};
-                    const message = `블로그 이미지 분석 완료!\n\n` +
-                      `📊 총 블로그 글: ${summary.totalBlogPosts || 0}개\n` +
-                      `🖼️ 고유 이미지 URL: ${summary.totalUniqueImageUrls || 0}개\n` +
-                      `📦 처리된 이미지: ${summary.totalImagesProcessed || 0}개\n` +
-                      `✅ Storage에서 찾음: ${summary.totalImagesFoundInStorage || 0}개\n` +
-                      `❌ Storage에서 못 찾음: ${summary.totalImagesNotFoundInStorage || 0}개\n` +
-                      `${summary.totalExternalUrls ? `🌐 외부 URL (다른 도메인): ${summary.totalExternalUrls}개\n` : ''}` +
-                      `${summary.totalExtractionFailed ? `⚠️ 경로 추출 실패: ${summary.totalExtractionFailed}개\n` : ''}` +
-                      `🔄 중복 이미지 그룹: ${summary.duplicateGroupsCount || 0}개\n` +
-                      `🔗 연결되지 않은 이미지: ${summary.unlinkedImagesCount || 0}개\n` +
-                      `${data.notFoundInStorage && data.notFoundInStorage.length > 0 ? `\n⚠️ Storage에서 못 찾은 이미지: ${data.notFoundInStorage.length}개\n상세 목록은 개발자 콘솔을 확인하세요.` : ''}\n\n` +
-                      `상세 결과는 개발자 콘솔을 확인하세요.`;
-                    
-                    alert(message);
-                    console.log('📊 블로그 이미지 분석 결과:', data);
-                    
-                    // Storage에서 못 찾은 이미지 상세 목록 콘솔 출력
-                    if (data.notFoundInStorage && data.notFoundInStorage.length > 0) {
-                      console.log('\n❌ Storage에서 못 찾은 이미지 상세 목록:');
-                      data.notFoundInStorage.slice(0, 20).forEach((img, index) => {
-                        console.log(`\n${index + 1}. ${img.fileName || img.url}`);
-                        console.log(`   URL: ${img.url}`);
-                        console.log(`   경로: ${img.path || 'N/A'}`);
-                        console.log(`   블로그 글: ${img.blogPostTitles?.join(', ') || 'N/A'}`);
-                        console.log(`   블로그 ID: ${img.blogPostIds?.join(', ') || 'N/A'}`);
-                      });
-                      if (data.notFoundInStorage.length > 20) {
-                        console.log(`\n... 외 ${data.notFoundInStorage.length - 20}개 더 있음`);
-                      }
-                    }
-                    
-                  } catch (error: any) {
-                    console.error('블로그 이미지 분석 오류:', error);
-                    setAnalysisStatus('분석 실패');
-                    alert(`블로그 이미지 분석 중 오류가 발생했습니다: ${error.message}`);
-                  } finally {
-                    setIsAnalyzingBlogImages(false);
-                    setTimeout(() => {
-                      setAnalysisStatus('');
-                    }, 5000);
-                  }
-                }}
-                disabled={isAnalyzingBlogImages}
-                className={`px-4 py-2 rounded-lg text-sm ${
-                  isAnalyzingBlogImages
-                    ? 'bg-gray-400 text-white cursor-not-allowed'
-                    : 'bg-blue-500 text-white hover:bg-blue-600'
-                }`}
-                title="모든 블로그 글에서 이미지 URL을 추출하고, Storage에서 실제 파일을 찾으며, 중복 이미지를 감지합니다."
-              >
-                {isAnalyzingBlogImages ? (
-                  <span className="flex items-center gap-2">
-                    <span className="animate-spin">⏳</span>
-                    {analysisStatus || '분석 중...'}
-                  </span>
-                ) : (
-                  '📊 블로그 이미지 분석'
-                )}
-              </button>
-              {analysisResult && (
-                <div className="absolute top-full right-0 mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50 max-h-96 overflow-y-auto">
-                  <div className="text-sm text-gray-700 mb-2 font-semibold">
-                    분석 결과
-                  </div>
-                  {analysisResult.summary && (
-                    <div className="text-xs text-gray-600 space-y-1">
-                      <div>블로그 글: {analysisResult.summary.totalBlogPosts}개</div>
-                      <div>고유 이미지: {analysisResult.summary.totalUniqueImageUrls}개</div>
-                      <div>처리된 이미지: {analysisResult.summary.totalImagesProcessed}개</div>
-                      <div>Storage에서 찾음: {analysisResult.summary.totalImagesFoundInStorage}개</div>
-                      <div>Storage에서 못 찾음: {analysisResult.summary.totalImagesNotFoundInStorage}개</div>
-                      {analysisResult.summary.totalExternalUrls > 0 && (
-                        <div className="text-orange-600">외부 URL: {analysisResult.summary.totalExternalUrls}개</div>
-                      )}
-                      {analysisResult.summary.totalExtractionFailed > 0 && (
-                        <div className="text-red-600">경로 추출 실패: {analysisResult.summary.totalExtractionFailed}개</div>
-                      )}
-                      {analysisResult.notFoundInStorage && analysisResult.notFoundInStorage.length > 0 && (
-                        <div className="text-orange-600 font-semibold">
-                          ⚠️ Storage에서 못 찾은 이미지: {analysisResult.notFoundInStorage.length}개
-                        </div>
-                      )}
-                      <div>중복 그룹: {analysisResult.summary.duplicateGroupsCount}개</div>
-                      <div>연결 안 된 이미지: {analysisResult.summary.unlinkedImagesCount}개</div>
-                    </div>
-                  )}
-                  {analysisResult.notFoundInStorage && analysisResult.notFoundInStorage.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <div className="text-xs font-semibold text-orange-600 mb-2">
-                        Storage에서 못 찾은 이미지 목록 (상위 10개):
-                      </div>
-                      <div className="space-y-1 max-h-40 overflow-y-auto">
-                        {analysisResult.notFoundInStorage.slice(0, 10).map((img, index) => (
-                          <div key={index} className="text-xs text-gray-600 p-1 bg-orange-50 rounded">
-                            <div className="font-medium">{img.fileName || img.url}</div>
-                            <div className="text-xs text-gray-500 truncate">
-                              블로그: {img.blogPostTitles?.slice(0, 1).join(', ') || 'N/A'}
-                            </div>
-                          </div>
-                        ))}
-                        {analysisResult.notFoundInStorage.length > 10 && (
-                          <div className="text-xs text-gray-500 italic">
-                            ... 외 {analysisResult.notFoundInStorage.length - 10}개 더 있음 (콘솔 확인)
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-              </div>
-              
-              {/* 🔄 버전 관리 버튼 비활성화 (다중 버전 기능 임시 중단) */}
+                <h1 className="text-2xl font-bold text-gray-900">갤러리 관리</h1>
               </div>
             </div>
           </div>
@@ -3740,6 +3633,16 @@ export default function GalleryAdmin() {
                   </button>
                 </div>
               ) : null}
+              
+              {/* 이미지 추가 버튼 */}
+              {!isLoadingFolders && !folderLoadError && (
+                <button
+                  onClick={handleOpenAddModal}
+                  className="w-full mb-3 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium transition-colors"
+                >
+                  ➕ 이미지 추가
+                </button>
+              )}
               
               {/* 폴더 트리 (로딩 완료 후에만 표시) */}
               {!isLoadingFolders && !folderLoadError && availableFolders.length > 0 && (
@@ -4063,14 +3966,6 @@ export default function GalleryAdmin() {
                   {selectedImages.size}개 이미지 선택됨
                 </span>
               <div className="flex items-center space-x-2">
-                  <button
-                    type="button"
-                    onClick={handleBulkGolfAIGeneration}
-                    disabled={isBulkWorking}
-                    className="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isBulkWorking ? '⏳ 생성 중...' : '⛳ 골프 AI 생성 (일괄)'}
-                  </button>
                 {seoPreview && (
                   <button
                     type="button"
@@ -4110,37 +4005,27 @@ export default function GalleryAdmin() {
 
                 <button
                   type="button"
-                  onClick={async () => {
-                    const names = Array.from(selectedImages);
-                    for (const n of names) {
-                      const img = images.find(i=>i.name===n);
-                      if (!img) continue;
-                      const a = document.createElement('a');
-                      a.href = img.url;
-                      a.download = img.name;
-                      a.target = '_blank';
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                    }
-                  }}
-                  className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                  onClick={handleDownloadImages}
+                  disabled={selectedImages.size === 0}
+                  className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  ⬇️ 일괄 다운로드
+                  ⬇️ 다운로드
                 </button>
                 <button
                   type="button"
-                  onClick={() => setCategoryMoveModalOpen(true)}
-                  className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
+                  onClick={handleCopyImages}
+                  disabled={selectedImages.size === 0}
+                  className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  📁 카테고리 이동
+                  📋 복사
                 </button>
                 <button
                   type="button"
-                  onClick={handleBulkDuplicate}
-                  className="px-3 py-1 bg-orange-500 text-white text-sm rounded hover:bg-orange-600"
+                  onClick={() => setShowPasteModal(true)}
+                  disabled={copiedImages.length === 0}
+                  className="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  📋 일괄 복제
+                  📌 붙여넣기
                 </button>
                 <button
                   type="button"
@@ -4149,30 +4034,18 @@ export default function GalleryAdmin() {
                 >
                   🗑️ 일괄 삭제
                 </button>
-                </div>
-                <button
-                  onClick={async()=>{
-                    if (selectedImages.size === 0){ alert('메타를 채울 이미지를 선택하세요.'); return; }
-                    const names = Array.from(selectedImages).map(id=>{
-                      const image = images.find(img=> (img.id||img.name)===id || img.name===id);
-                      if (!image) return null;
-                      return image.folder_path && image.folder_path !== '' ? `${image.folder_path}/${image.name}` : image.name;
-                    }).filter(Boolean) as string[];
-                    if (names.length===0){ alert('선택된 이미지 경로를 찾을 수 없습니다.'); return; }
-                    try{
-                      const res = await fetch('/api/admin/backfill-exif',{
-                        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ paths: names })
-                      });
-                      const json = await res.json();
-                      if (!res.ok){ throw new Error(json.error||'백필 실패'); }
-                      alert(`메타 다시 채우기 완료: ${json.successCount}/${names.length}`);
-                      fetchImages(1, true);
-                    }catch(e:any){ alert(`메타 다시 채우기 실패: ${e.message}`); }
-                  }}
-                  className="px-3 py-1 bg-amber-600 text-white text-sm rounded hover:bg-amber-700"
-                >
-                  🔄 메타 다시 채우기
-                </button>
+                
+                {/* 상세 보기 버튼 (1-3개 선택 시) */}
+                {selectedForCompare.size >= 1 && selectedForCompare.size <= 3 && (
+                  <button
+                    type="button"
+                    onClick={handleCompareImages}
+                    className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+                  >
+                    {selectedForCompare.size === 1 ? '상세 보기' : `비교 (${selectedForCompare.size}개)`}
+                  </button>
+                )}
+              </div>
               </div>
             </div>
           )}
@@ -4379,45 +4252,12 @@ export default function GalleryAdmin() {
                         </div>
                       )}
                       
-                      {/* 비교 선택 표시 (비교용 - 초록색) */}
-                      {image.id && selectedForCompare.has(image.id) && (
-                        <div className="absolute top-2 left-2 z-10">
-                          <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                            <span className="text-white text-xs">🔍</span>
-                          </div>
-                        </div>
-                      )}
-                      
                       {/* 🔗 링크된 이미지 배지 */}
                       {(image as any).is_linked && (
                         <span className="absolute top-2 right-2 z-20 px-2 py-1 text-[10px] font-bold rounded-md bg-purple-600 text-white shadow-lg">
                           🔗 링크
                         </span>
                       )}
-                      
-                      {/* 비교용 체크박스 (Phase 5-7) - 하단 우측에 배치 */}
-                      <div 
-                        className="absolute bottom-2 right-2 z-20 compare-checkbox opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (image.id) {
-                            toggleImageForCompare(image.id);
-                          }
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={image.id ? selectedForCompare.has(image.id) : false}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            if (image.id) {
-                              toggleImageForCompare(image.id);
-                            }
-                          }}
-                          className="w-5 h-5 rounded border-2 border-green-500 text-green-600 focus:ring-green-500 compare-checkbox bg-white"
-                          title="비교용 선택 (2-3개)"
-                        />
-                      </div>
                       
                       {/* 이미지 */}
                       <div className="aspect-square bg-gray-100">
@@ -4535,102 +4375,6 @@ export default function GalleryAdmin() {
                           </div>
                         </div>
                         
-                        {/* 🔗 사용 위치 상세 정보 (새로 추가) */}
-                        {image.usage_count > 0 && image.used_in && image.used_in.length > 0 && (
-                          <div className="mt-2 p-2 bg-gray-50 rounded text-xs border border-gray-200">
-                            <div className="font-semibold mb-1 text-gray-700">
-                              🔗 {image.usage_count}회 사용 ({image.used_in.length}개 위치)
-                            </div>
-                            <div className="space-y-1 max-h-24 overflow-y-auto">
-                              {image.used_in.slice(0, 3).map((usage, idx) => {
-                                // 🔧 배포되지 않은 블로그 판단: status가 명시적으로 draft/archived이거나, isPublished가 false인 경우만
-                                const isUnpublishedBlog = usage.type === 'blog' && 
-                                  (usage.status === 'draft' || usage.status === 'archived' || 
-                                   (usage.isPublished === false && usage.status !== 'published'));
-                                
-                                // 🔧 id가 없거나 유효하지 않으면 slug 사용, 둘 다 없으면 링크 생성 안 함
-                                const getEditId = () => {
-                                  if (usage.id && usage.id !== 'undefined' && usage.id !== 'null' && String(usage.id).trim() !== '') {
-                                    return usage.id;
-                                  }
-                                  if (usage.slug && usage.slug !== 'undefined' && usage.slug !== 'null' && String(usage.slug).trim() !== '') {
-                                    return usage.slug;
-                                  }
-                                  return null;
-                                };
-                                
-                                const editId = getEditId();
-                                
-                                // 🔧 링크 URL 생성: 배포된 블로그는 usage.url 또는 slug로, 미배포는 editId로
-                                let linkUrl = '#';
-                                if (isUnpublishedBlog) {
-                                  linkUrl = editId ? `/admin/blog?edit=${editId}` : '#';
-                                } else {
-                                  // 배포된 블로그
-                                  if (usage.url) {
-                                    linkUrl = usage.url.startsWith('http') ? usage.url : `http://localhost:3000${usage.url}`;
-                                  } else if (usage.slug) {
-                                    // url이 없으면 slug로 블로그 페이지 링크 생성
-                                    linkUrl = `http://localhost:3000/blog/${usage.slug}`;
-                                  } else {
-                                    linkUrl = '#';
-                                  }
-                                }
-                                
-                                return (
-                                  <div key={idx} className="text-gray-600 flex items-start">
-                                    <span className="mr-1">
-                                      {usage.type === 'blog' && '📰'}
-                                      {usage.type === 'funnel' && '🎯'}
-                                      {usage.type === 'homepage' && '🏠'}
-                                      {usage.type === 'muziik' && '🎵'}
-                                      {usage.type === 'static_page' && '📄'}
-                                    </span>
-                                    <span className="flex-1 truncate">
-                                      {linkUrl !== '#' ? (
-                                        <a 
-                                          href={linkUrl}
-                                          target={isUnpublishedBlog ? undefined : "_blank"}
-                                          rel={isUnpublishedBlog ? undefined : "noopener noreferrer"}
-                                          className={`${isUnpublishedBlog ? 'text-orange-600 hover:text-orange-800' : 'text-blue-600 hover:text-blue-800'} underline`}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            // 🔧 배포되지 않은 블로그는 새 탭에서 열지 않음
-                                            if (isUnpublishedBlog) {
-                                              e.preventDefault();
-                                              if (linkUrl !== '#') {
-                                                window.location.href = linkUrl;
-                                              }
-                                            }
-                                            // 🔧 배포된 블로그는 기본 링크 동작 사용 (target="_blank"로 새 탭에서 열림)
-                                          }}
-                                          title={isUnpublishedBlog ? `초안/미배포: ${usage.title}` : (usage.url || linkUrl)}
-                                        >
-                                          {usage.title}
-                                          {isUnpublishedBlog && ' (초안)'}
-                                        </a>
-                                      ) : (
-                                        <span className="text-gray-500">{usage.title} (링크 없음)</span>
-                                      )}
-                                      {usage.isFeatured && <span className="text-yellow-600 ml-1">(대표)</span>}
-                                      {usage.isInContent && !usage.isFeatured && <span className="text-blue-600 ml-1">(본문)</span>}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                              {image.used_in.length > 3 && (
-                                <div className="text-gray-500 text-xs">
-                                  +{image.used_in.length - 3}개 위치 더...
-                                </div>
-                              )}
-                            </div>
-                            {image.last_used_at && (
-                              <div className="mt-1 text-gray-500 text-xs">
-                                📅 최근 사용: {new Date(image.last_used_at).toLocaleDateString('ko-KR')}
-                              </div>
-                            )}
-                          </div>
-                        )}
                       </div>
                       
                       {/* 퀵 액션 버튼들: 확대 / 편집 / 삭제만 표시 */}
@@ -4709,7 +4453,7 @@ export default function GalleryAdmin() {
           return found ? { ...found, category: String(found.category ?? '') } as any : null;
         })()}
         onClose={() => setEditingImage(null)}
-        onSave={async (metadata) => {
+        onSave={async (metadata, exifData) => {
           // 기존 saveEdit 로직 사용
           const rawKw: any = metadata.keywords as any;
           const keywords: string[] = Array.isArray(rawKw)
@@ -4771,7 +4515,8 @@ export default function GalleryAdmin() {
               title: titleValue,  // 파일명과 같으면 빈 문자열
               description: metadata.description || '',
               category: categoryString,  // 하위 호환성: 문자열로 전송
-              categories: categoriesArray  // 다중 선택: 배열로 전송
+              categories: categoriesArray,  // 다중 선택: 배열로 전송
+              exifData: exifData || null  // EXIF 정보 추가
             };
             
             console.log('📤 저장 요청 데이터:', requestData);
@@ -4888,45 +4633,25 @@ export default function GalleryAdmin() {
 
       {/* 확대 모달 */}
       {selectedImageForZoom && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="relative max-w-7xl max-h-[90vh] w-full h-full flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-7xl w-full max-h-[95vh] overflow-y-auto">
             {/* 헤더 */}
-            <div className="flex justify-between items-center p-4 bg-white bg-opacity-90 rounded-t-lg">
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-4">
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    {selectedImageForZoom.name}
-                  </h3>
-                  <span className="text-sm text-gray-500">
-                    {selectedImageForZoom.size ? `${(selectedImageForZoom.size / 1024 / 1024).toFixed(1)}MB` : ''}
-                  </span>
-                </div>
-                {/* 경로 표시 */}
-                <div className="text-xs text-gray-400">
-                  {(() => {
-                    // Supabase Storage 경로가 있으면 표시
-                    if (selectedImageForZoom.folder_path) {
-                      return `📁 ${selectedImageForZoom.folder_path}`;
-                    }
-                    // 파일명에서 Solapi imageId 추출 시도
-                    const solapiMatch = selectedImageForZoom.name.match(/solapi-(ST01FZ[A-Z0-9a-z]+)/);
-                    if (solapiMatch) {
-                      return `📦 Solapi: ${solapiMatch[1]}`;
-                    }
-                    // URL이 Solapi imageId인 경우
-                    if (selectedImageForZoom.url && selectedImageForZoom.url.startsWith('ST01FZ')) {
-                      return `📦 Solapi: ${selectedImageForZoom.url}`;
-                    }
-                    // URL에서 Solapi imageId 추출 시도 (get-image-preview URL인 경우)
-                    const urlMatch = selectedImageForZoom.url?.match(/imageId=([ST01FZ][A-Z0-9a-z]+)/);
-                    if (urlMatch) {
-                      return `📦 Solapi: ${urlMatch[1]}`;
-                    }
-                    return '경로 정보 없음';
-                  })()}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+              <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+                <span className="text-blue-600">📋</span>
+                이미지 상세 정보
+              </h2>
+              <button
+                onClick={() => setSelectedImageForZoom(null)}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-light transition-colors"
+                title="닫기"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* 상단 액션 버튼들 (아이콘 제거) */}
+            <div className="flex items-center gap-2 px-4 py-3 border-b bg-gray-50 mb-6">
                 {/* 액션 버튼들 */}
                 <button
                   onClick={async () => {
@@ -4973,23 +4698,7 @@ export default function GalleryAdmin() {
                   className="px-3 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 transition-colors"
                   title="cleanup.pictures에서 편집"
                 >
-                  ✏️ 수정
-                </button>
-                <button
-                  onClick={() => {
-                    const fullPath = selectedImageForZoom.folder_path && selectedImageForZoom.folder_path !== '' 
-                      ? `${selectedImageForZoom.folder_path}/${selectedImageForZoom.name}` 
-                      : selectedImageForZoom.name;
-                    if (confirm(`"${selectedImageForZoom.name}" 이미지를 삭제하시겠습니까?`)) {
-                      // 개별 이미지 삭제 (폴더 경로 포함)
-                      handleDeleteImage(fullPath);
-                      setSelectedImageForZoom(null);
-                    }
-                  }}
-                  className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition-colors"
-                  title="삭제"
-                >
-                  🗑️ 삭제
+                  수정
                 </button>
                 {/* 회전 버튼 */}
                 <div className="relative inline-block">
@@ -5004,7 +4713,7 @@ export default function GalleryAdmin() {
                     }`}
                     title="회전"
                   >
-                    {isRotating ? '⏳ 회전 중...' : '🔄 회전'}
+                    {isRotating ? '회전 중...' : '회전'}
                   </button>
                   {showRotateMenu && !isRotating && (
                     <div data-rotate-menu className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-10 min-w-[220px]">
@@ -5143,7 +4852,7 @@ export default function GalleryAdmin() {
                     }`}
                     title="변환"
                   >
-                    {isConverting ? '⏳ 변환 중...' : '🎨 변환'}
+                    {isConverting ? '변환 중...' : '변환'}
                   </button>
                   {showConvertMenu && !isConverting && (
                     <div data-convert-menu className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-10 min-w-[200px]">
@@ -5330,37 +5039,206 @@ export default function GalleryAdmin() {
                     </div>
                   )}
                 </div>
-                <button
-                  onClick={() => {
-                    // 기존 이미지 변형 모달 열기 (FAL AI - 프롬프트 입력 가능)
-                    setSelectedExistingImage(selectedImageForZoom.url);
-                    setShowExistingImageModal(true);
-                  }}
-                  className="px-3 py-1 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 transition-colors"
-                  title="변형 (FAL AI - 프롬프트 입력 가능)"
-                >
-                  🔄 변형 (FAL)
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={async () => {
+                      if (!selectedImageForZoom) return;
+                      if (isGeneratingExistingVariation) return;
+                      
+                      // 바로 변형 시작
+                      setIsGeneratingExistingVariation(true);
+                      setImageGenerationStep('FAL AI로 이미지 변형 중...');
+                      setImageGenerationModel('FAL AI (기존 이미지 변형)');
+                      setShowGenerationProcess(true);
+                      
+                      try {
+                        // 1. 기존 프롬프트 확인 또는 생성
+                        let prompt = '';
+                        try {
+                          const promptResponse = await fetch('/api/get-image-prompt', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ imageUrl: selectedImageForZoom.url })
+                          });
+                          
+                          if (promptResponse.ok) {
+                            const promptData = await promptResponse.json();
+                            prompt = promptData.prompt || '';
+                          }
+                        } catch (error) {
+                          console.warn('기존 프롬프트 조회 실패, AI로 생성:', error);
+                        }
+                        
+                        // 프롬프트가 없으면 AI로 생성
+                        if (!prompt) {
+                          setImageGenerationStep('이미지 분석 및 프롬프트 생성 중...');
+                          
+                          const isGolfImage = selectedImageForZoom.url.includes('golf') || 
+                                             selectedImageForZoom.url.includes('골프') ||
+                                             selectedImageForZoom.url.includes('driver') ||
+                                             selectedImageForZoom.url.includes('club');
+                          
+                          const analysisEndpoint = isGolfImage 
+                            ? '/api/analyze-image-prompt'
+                            : '/api/analyze-image-general';
+                          
+                          const analysisResponse = await fetch(analysisEndpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                              imageUrl: selectedImageForZoom.url,
+                              title: '갤러리 이미지 변형',
+                              excerpt: '갤러리에서 변형된 이미지'
+                            })
+                          });
+                          
+                          if (analysisResponse.ok) {
+                            const analysisData = await analysisResponse.json();
+                            prompt = analysisData.prompt || analysisData.englishPrompt || '';
+                          }
+                        }
+                        
+                        // 2. 바로 FAL AI 변형 시작
+                        setImageGenerationStep('FAL AI로 이미지 변형 중...');
+                        
+                        const response = await fetch('/api/vary-existing-image', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            imageUrl: selectedImageForZoom.url,
+                            prompt: prompt || 'high quality image variation',
+                            title: '갤러리 이미지 변형',
+                            excerpt: '갤러리에서 변형된 이미지',
+                            contentType: 'gallery',
+                            brandStrategy: 'professional',
+                            preset: variationPreset || 'creative',
+                            originalImageFolder: selectedImageForZoom.folder_path || null
+                          })
+                        });
+                        
+                        if (response.ok) {
+                          const result = await response.json();
+                          
+                          if (result.imageUrl) {
+                            // selectedImageForZoom을 변형된 이미지로 업데이트 (모달 유지)
+                            setSelectedImageForZoom({
+                              ...selectedImageForZoom,
+                              url: result.imageUrl,
+                              name: result.fileName || selectedImageForZoom.name,
+                              folder_path: selectedImageForZoom.folder_path
+                            });
+                            
+                            // 이미지 목록 새로고침
+                            fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+                            
+                            alert('✅ 이미지 변형이 완료되었습니다!');
+                          } else {
+                            throw new Error('변형된 이미지가 생성되지 않았습니다.');
+                          }
+                        } else {
+                          const error = await response.json();
+                          throw new Error(error.message || '이미지 변형에 실패했습니다.');
+                        }
+                      } catch (error: any) {
+                        console.error('이미지 변형 오류:', error);
+                        alert('이미지 변형 중 오류가 발생했습니다: ' + error.message);
+                      } finally {
+                        setIsGeneratingExistingVariation(false);
+                        setTimeout(() => {
+                          setShowGenerationProcess(false);
+                          setImageGenerationStep('');
+                        }, 2000);
+                      }
+                    }}
+                    disabled={isGeneratingExistingVariation}
+                    className={`px-3 py-1.5 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 transition-colors ${
+                      isGeneratingExistingVariation ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    title="변형 (FAL AI - 바로 변형 시작)"
+                  >
+                    {isGeneratingExistingVariation ? '변형 중...' : '변형 (FAL)'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setPromptModalType('fal');
+                      setCustomPrompt('');
+                      setShowPromptModal(true);
+                    }}
+                    disabled={isGeneratingExistingVariation}
+                    className={`px-1.5 py-1.5 bg-orange-400 text-white text-xs rounded hover:bg-orange-500 transition-colors ${
+                      isGeneratingExistingVariation ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    title="프롬프트 입력 후 변형"
+                  >
+                    ✏️
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={async () => {
+                      if (!selectedImageForZoom) return;
+                      if (isGeneratingReplicateVariation) return;
+                      await generateReplicateVariation(selectedImageForZoom.url, selectedImageForZoom.name, selectedImageForZoom.folder_path);
+                    }}
+                    disabled={isGeneratingReplicateVariation}
+                    className={`px-3 py-1.5 text-sm rounded transition-colors ${
+                      isGeneratingReplicateVariation
+                        ? 'bg-purple-300 text-white cursor-not-allowed'
+                        : 'bg-purple-500 text-white hover:bg-purple-600'
+                    }`}
+                    title="변형 (Replicate - 빠르고 간단)"
+                  >
+                    {isGeneratingReplicateVariation ? '변형 중...' : '변형 (Replicate)'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setPromptModalType('replicate');
+                      setCustomPrompt('');
+                      setShowPromptModal(true);
+                    }}
+                    disabled={isGeneratingReplicateVariation}
+                    className={`px-1.5 py-1.5 bg-purple-400 text-white text-xs rounded hover:bg-purple-500 transition-colors ${
+                      isGeneratingReplicateVariation ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    title="프롬프트 입력 후 변형 (Replicate는 프롬프트 지원 안 함)"
+                  >
+                    ✏️
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={async () => {
+                      if (!selectedImageForZoom) return;
+                      if (isGeneratingNanobananaVariation) return;
+                      await generateNanobananaVariation(selectedImageForZoom.url, selectedImageForZoom.name, selectedImageForZoom.folder_path);
+                    }}
+                    disabled={isGeneratingNanobananaVariation}
+                    className={`px-3 py-1.5 text-sm rounded transition-colors ${
+                      isGeneratingNanobananaVariation
+                        ? 'bg-green-300 text-white cursor-not-allowed'
+                        : 'bg-green-500 text-white hover:bg-green-600'
+                    }`}
+                    title="변형 (Nanobanana - 원본 스타일 유지)"
+                  >
+                    {isGeneratingNanobananaVariation ? '변형 중...' : '변형 (Nanobanana)'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setPromptModalType('nanobanana');
+                      setCustomPrompt('');
+                      setShowPromptModal(true);
+                    }}
+                    disabled={isGeneratingNanobananaVariation}
+                    className={`px-1.5 py-1.5 bg-green-400 text-white text-xs rounded hover:bg-green-500 transition-colors ${
+                      isGeneratingNanobananaVariation ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    title="프롬프트 입력 후 변형"
+                  >
+                    ✏️
+                  </button>
+                </div>
                 <button
                   onClick={async () => {
-                    // Replicate 변형 (프롬프트 입력 불가, 빠르고 간단)
-                    if (!selectedImageForZoom) return;
-                    if (isGeneratingReplicateVariation) return;
-                    await generateReplicateVariation(selectedImageForZoom.url, selectedImageForZoom.name, selectedImageForZoom.folder_path);
-                  }}
-                  disabled={isGeneratingReplicateVariation}
-                  className={`px-3 py-1 text-sm rounded transition-colors ${
-                    isGeneratingReplicateVariation
-                      ? 'bg-purple-300 text-white cursor-not-allowed'
-                      : 'bg-purple-500 text-white hover:bg-purple-600'
-                  }`}
-                  title="변형 (Replicate - 빠르고 간단, 프롬프트 입력 불가)"
-                >
-                  {isGeneratingReplicateVariation ? '⏳ 변형 중...' : '🎨 변형 (Replicate)'}
-                </button>
-                <button
-                  onClick={async () => {
-                    // 업스케일링 시작
                     if (!selectedImageForZoom) return;
                     if (isUpscaling) return;
                     
@@ -5389,9 +5267,7 @@ export default function GalleryAdmin() {
                       const data = await response.json();
                       if (data.success) {
                         alert(`✅ 업스케일링 완료!\n\n새 이미지: ${data.fileName || 'URL 사용'}`);
-                        // 이미지 목록 새로고침
                         fetchImages(1, true, folderFilter, includeChildren, searchQuery);
-                        // 업스케일된 이미지로 교체
                         if (data.imageUrl) {
                           setSelectedImageForZoom({
                             ...selectedImageForZoom,
@@ -5411,101 +5287,181 @@ export default function GalleryAdmin() {
                     }
                   }}
                   disabled={isUpscaling}
-                  className="px-3 py-1 bg-indigo-500 text-white text-sm rounded hover:bg-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1.5 bg-indigo-500 text-white text-sm rounded hover:bg-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   title="업스케일"
                 >
-                  {isUpscaling ? '⏳ 업스케일링 중...' : '⬆️ 업스케일'}
+                  {isUpscaling ? '업스케일링 중...' : '업스케일'}
                 </button>
-                <button
-                  onClick={() => setSelectedImageForZoom(null)}
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                  title="닫기 (Esc)"
+            </div>
+
+            {/* 이미지 카드 (비교 모달과 동일한 구조) */}
+            <div className="grid gap-6 mb-6 grid-cols-1">
+              <div className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6 shadow-lg">
+                {/* 이미지 썸네일 */}
+                <div 
+                  className="bg-gray-100 rounded-lg mb-4 overflow-hidden shadow-inner flex items-center justify-center relative"
+                  style={{ 
+                    maxHeight: '600px',
+                    minHeight: '200px',
+                    width: 'auto',
+                    maxWidth: '600px',
+                    margin: '0 auto'
+                  }}
                 >
-                  ✕
-                </button>
+                  <img
+                    src={selectedImageForZoom.url}
+                    alt={selectedImageForZoom.alt_text || selectedImageForZoom.name}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                  
+                  {/* 좌우 네비게이션 버튼 */}
+                  <button
+                    onClick={() => showAdjacentImage('prev')}
+                    disabled={isNavigating}
+                    className={`absolute left-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full shadow-lg transition-all ${
+                      isNavigating 
+                        ? 'bg-gray-300 cursor-not-allowed' 
+                        : 'bg-white bg-opacity-80 hover:bg-opacity-100'
+                    }`}
+                    title="이전 이미지 (←)"
+                  >
+                    {isNavigating ? '⏳' : '←'}
+                  </button>
+                  <button
+                    onClick={() => showAdjacentImage('next')}
+                    disabled={isNavigating}
+                    className={`absolute right-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full shadow-lg transition-all ${
+                      isNavigating 
+                        ? 'bg-gray-300 cursor-not-allowed' 
+                        : 'bg-white bg-opacity-80 hover:bg-opacity-100'
+                    }`}
+                    title="다음 이미지 (→)"
+                  >
+                    {isNavigating ? '⏳' : '→'}
+                  </button>
+                </div>
+                
+                {/* 이미지 정보 (개선된 디자인) */}
+                <div className="space-y-3">
+                  {/* 파일명 */}
+                  <div className="bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                    <div className="text-sm font-semibold text-gray-800 truncate" title={selectedImageForZoom.name}>
+                      {selectedImageForZoom.name}
+                    </div>
+                  </div>
+                  
+                  {/* 폴더 경로 */}
+                  <div className="text-xs text-gray-600">
+                    <span className="font-medium">📁</span> {selectedImageForZoom.folder_path || '경로 없음'}
+                  </div>
+                  
+                  {/* 크기, 포맷, 사용현황 (배지 형태) */}
+                  <div className="flex gap-2 flex-wrap">
+                    {selectedImageForZoom.size && (
+                      <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium">
+                        {(selectedImageForZoom.size / 1024 / 1024).toFixed(1)}MB
+                      </span>
+                    )}
+                    <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded text-xs font-medium uppercase">
+                      {selectedImageForZoom.name.split('.').pop()?.toUpperCase() || ''}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                      selectedImageForZoom.usage_count && selectedImageForZoom.usage_count > 0
+                        ? 'bg-green-50 text-green-700'
+                        : 'bg-gray-50 text-gray-500'
+                    }`}>
+                      {selectedImageForZoom.usage_count && selectedImageForZoom.usage_count > 0 
+                        ? `✅ ${selectedImageForZoom.usage_count}회 사용` 
+                        : '❌ 미사용'}
+                    </span>
+                  </div>
+                  
+                  {/* 사용 위치 (details 태그) */}
+                  {selectedImageForZoom.used_in && selectedImageForZoom.used_in.length > 0 && (
+                    <details className="text-xs mt-2">
+                      <summary className="cursor-pointer text-gray-600 hover:text-gray-800 font-medium">
+                        🔗 사용 위치 ({selectedImageForZoom.used_in.length}개)
+                      </summary>
+                      <div className="mt-2 space-y-1 pl-2 max-h-32 overflow-y-auto">
+                        {selectedImageForZoom.used_in.slice(0, 5).map((u: any, idx: number) => (
+                          <div key={idx} className="text-gray-600">
+                            {u.type === 'blog' && '📰'} {u.type === 'funnel' && '🎯'} {u.type === 'homepage' && '🏠'} {u.type === 'muziik' && '🎵'} {(u.type === 'kakao_profile' || u.type === 'kakao_feed') && '💬'} {u.title || u.url || '링크 없음'}
+                          </div>
+                        ))}
+                        {selectedImageForZoom.used_in.length > 5 && (
+                          <div className="text-gray-400">... 외 {selectedImageForZoom.used_in.length - 5}개</div>
+                        )}
+                      </div>
+                    </details>
+                  )}
+                  
+                  {/* 삭제 버튼 */}
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      onClick={() => {
+                        const fullPath = selectedImageForZoom.folder_path && selectedImageForZoom.folder_path !== '' 
+                          ? `${selectedImageForZoom.folder_path}/${selectedImageForZoom.name}` 
+                          : selectedImageForZoom.name;
+                        if (confirm(`"${selectedImageForZoom.name}" 이미지를 삭제하시겠습니까?`)) {
+                          handleDeleteImage(fullPath);
+                          setSelectedImageForZoom(null);
+                        }
+                      }}
+                      className="px-4 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors font-medium"
+                      title="삭제"
+                    >
+                      삭제
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* 메인 이미지 영역 */}
-            <div className="flex-1 flex items-center justify-center bg-gray-100 relative overflow-hidden">
-              <img
-                src={selectedImageForZoom.url}
-                alt={selectedImageForZoom.alt_text || selectedImageForZoom.name}
-                className="max-w-full max-h-full object-contain"
-                style={{ 
-                  transition: 'opacity 0.1s ease-in-out'
-                }}
-              />
-              
-              {/* 좌우 네비게이션 버튼 */}
-              <button
-                onClick={() => showAdjacentImage('prev')}
-                disabled={isNavigating}
-                className={`absolute left-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full shadow-lg transition-all ${
-                  isNavigating 
-                    ? 'bg-gray-300 cursor-not-allowed' 
-                    : 'bg-white bg-opacity-80 hover:bg-opacity-100'
-                }`}
-                title="이전 이미지 (←)"
-              >
-                {isNavigating ? '⏳' : '←'}
-              </button>
-              <button
-                onClick={() => showAdjacentImage('next')}
-                disabled={isNavigating}
-                className={`absolute right-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full shadow-lg transition-all ${
-                  isNavigating 
-                    ? 'bg-gray-300 cursor-not-allowed' 
-                    : 'bg-white bg-opacity-80 hover:bg-opacity-100'
-                }`}
-                title="다음 이미지 (→)"
-              >
-                {isNavigating ? '⏳' : '→'}
-              </button>
-            </div>
 
-            {/* 썸네일 스트립 */}
-            <div className="bg-white bg-opacity-90 p-4 rounded-b-lg">
-              <div 
-                ref={thumbnailStripRef}
-                className="flex gap-2 overflow-x-auto pb-2"
-                style={{ scrollbarWidth: 'thin' }}
-              >
-                {filteredImages.map((img) => (
-                  <div
-                    key={getImageUniqueId(img)}
-                    className={`flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
-                      img.name === selectedImageForZoom.name 
-                        ? 'border-blue-500 shadow-lg' 
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => setSelectedImageForZoom(img)}
-                  >
-                    <img
-                      src={img.url}
-                      alt={img.alt_text || img.name}
-                      className="w-16 h-16 object-cover"
+            {/* 썸네일 스트립 (1개 선택 시에만 표시) */}
+            {!showCompareModal && (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div 
+                  ref={thumbnailStripRef}
+                  className="flex gap-2 overflow-x-auto pb-2"
+                  style={{ scrollbarWidth: 'thin' }}
+                >
+                  {filteredImages.map((img) => (
+                    <div
+                      key={getImageUniqueId(img)}
+                      className={`flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                        img.name === selectedImageForZoom.name 
+                          ? 'border-blue-500 shadow-lg' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => setSelectedImageForZoom(img)}
+                    >
+                      <img
+                        src={img.url}
+                        alt={img.alt_text || img.name}
+                        className="w-16 h-16 object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+                
+                {/* 구글 지도 (GPS 정보가 있는 경우) */}
+                {selectedImageForZoom && (selectedImageForZoom as any).gps_lat && (selectedImageForZoom as any).gps_lng && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">📍 촬영 위치</h4>
+                    <iframe
+                      src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${(selectedImageForZoom as any).gps_lat},${(selectedImageForZoom as any).gps_lng}&zoom=17`}
+                      width="100%"
+                      height="300"
+                      style={{ border: 0 }}
+                      allowFullScreen
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
                     />
                   </div>
-                ))}
+                )}
               </div>
-              
-              {/* 구글 지도 (GPS 정보가 있는 경우) */}
-              {selectedImageForZoom && (selectedImageForZoom as any).gps_lat && (selectedImageForZoom as any).gps_lng && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">📍 촬영 위치</h4>
-                  <iframe
-                    src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${(selectedImageForZoom as any).gps_lat},${(selectedImageForZoom as any).gps_lng}&zoom=17`}
-                    width="100%"
-                    height="300"
-                    style={{ border: 0 }}
-                    allowFullScreen
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
       )}
@@ -5788,6 +5744,160 @@ export default function GalleryAdmin() {
         </div>
       )}
 
+      {/* 프롬프트 입력 모달 */}
+      {showPromptModal && promptModalType && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  프롬프트 입력
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowPromptModal(false);
+                    setPromptModalType(null);
+                    setCustomPrompt('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    변형 프롬프트 {promptModalType === 'replicate' && '(Replicate는 프롬프트 지원 안 함)'}
+                  </label>
+                  <textarea
+                    value={customPrompt}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                    placeholder="예: Korean golfer, professional golf course, high quality, natural lighting"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-32 resize-none"
+                    disabled={promptModalType === 'replicate'}
+                  />
+                  {promptModalType === 'replicate' && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      Replicate는 프롬프트 입력을 지원하지 않습니다. FAL 또는 Nanobanana를 사용해주세요.
+                    </p>
+                  )}
+                  {promptModalType === 'nanobanana' && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      원본 스타일 유지가 자동으로 적용됩니다. 프롬프트는 추가 변형 지시사항으로 사용됩니다.
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={() => {
+                      setShowPromptModal(false);
+                      setPromptModalType(null);
+                      setCustomPrompt('');
+                    }}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!selectedImageForZoom) {
+                        alert('이미지를 선택해주세요.');
+                        return;
+                      }
+
+                      if (promptModalType === 'replicate') {
+                        alert('Replicate는 프롬프트 입력을 지원하지 않습니다.');
+                        setShowPromptModal(false);
+                        setPromptModalType(null);
+                        setCustomPrompt('');
+                        return;
+                      }
+
+                      setShowPromptModal(false);
+                      
+                      if (promptModalType === 'fal') {
+                        setIsGeneratingExistingVariation(true);
+                        setImageGenerationStep('FAL AI로 이미지 변형 중...');
+                        setImageGenerationModel('FAL AI (프롬프트 입력)');
+                        setShowGenerationProcess(true);
+                        
+                        try {
+                          const response = await fetch('/api/vary-existing-image', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                              imageUrl: selectedImageForZoom.url,
+                              prompt: customPrompt || 'high quality image variation',
+                              title: '갤러리 이미지 변형',
+                              excerpt: '갤러리에서 변형된 이미지',
+                              contentType: 'gallery',
+                              brandStrategy: 'professional',
+                              preset: variationPreset || 'creative',
+                              originalImageFolder: selectedImageForZoom.folder_path || null
+                            })
+                          });
+                          
+                          if (response.ok) {
+                            const result = await response.json();
+                            
+                            if (result.imageUrl) {
+                              // selectedImageForZoom을 변형된 이미지로 업데이트 (모달 유지)
+                              setSelectedImageForZoom({
+                                ...selectedImageForZoom,
+                                url: result.imageUrl,
+                                name: result.fileName || selectedImageForZoom.name,
+                                folder_path: selectedImageForZoom.folder_path
+                              });
+                              
+                              fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+                              alert('✅ 이미지 변형이 완료되었습니다!');
+                            } else {
+                              throw new Error('변형된 이미지가 생성되지 않았습니다.');
+                            }
+                          } else {
+                            const error = await response.json();
+                            throw new Error(error.message || '이미지 변형에 실패했습니다.');
+                          }
+                        } catch (error: any) {
+                          console.error('이미지 변형 오류:', error);
+                          alert('이미지 변형 중 오류가 발생했습니다: ' + error.message);
+                        } finally {
+                          setIsGeneratingExistingVariation(false);
+                          setTimeout(() => {
+                            setShowGenerationProcess(false);
+                            setImageGenerationStep('');
+                          }, 2000);
+                        }
+                      } else if (promptModalType === 'nanobanana') {
+                        await generateNanobananaVariation(
+                          selectedImageForZoom.url,
+                          selectedImageForZoom.name,
+                          selectedImageForZoom.folder_path,
+                          customPrompt
+                        );
+                      }
+                      
+                      setPromptModalType(null);
+                      setCustomPrompt('');
+                    }}
+                    disabled={promptModalType === 'replicate'}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      promptModalType === 'replicate'
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : promptModalType === 'fal'
+                        ? 'bg-orange-500 text-white hover:bg-orange-600'
+                        : 'bg-green-500 text-white hover:bg-green-600'
+                    }`}
+                  >
+                    변형 시작
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 일괄 삭제 확인 모달 */}
       {showBulkDeleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -5844,20 +5954,17 @@ export default function GalleryAdmin() {
         </div>
       )}
 
-      {/* 카테고리 관리 모달 */}
-      <CategoryManagementModal
-        isOpen={categoryModalOpen}
-        onClose={() => setCategoryModalOpen(false)}
-      />
-
-      {/* 카테고리 이동 모달 */}
-      {categoryMoveModalOpen && (
+      {/* 붙여넣기 모달 */}
+      {showPasteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-800">📁 카테고리 이동</h3>
+              <h3 className="text-lg font-semibold text-gray-800">📌 붙여넣기</h3>
               <button 
-                onClick={() => setCategoryMoveModalOpen(false)}
+                onClick={() => {
+                  setShowPasteModal(false);
+                  setPasteTargetFolder(null);
+                }}
                 className="text-gray-500 hover:text-gray-700 text-xl"
               >
                 ✕
@@ -5865,89 +5972,50 @@ export default function GalleryAdmin() {
             </div>
             <div className="p-4">
               <p className="text-sm text-gray-600 mb-4">
-                {selectedImages.size}개 이미지를 이동할 카테고리를 선택하세요.
+                {copiedImages.length}개 이미지를 붙여넣을 폴더를 선택하세요.
               </p>
-              <select
-                id="categorySelect"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                defaultValue=""
-              >
-                <option value="">카테고리 선택</option>
-                {dynamicCategories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+              <p className="text-xs text-gray-500 mb-4">
+                💡 같은 폴더에 붙여넣으면 파일명 뒤에 순번이 자동으로 추가됩니다.
+              </p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  폴더 경로
+                </label>
+                <input
+                  type="text"
+                  value={pasteTargetFolder || folderFilter !== 'all' && folderFilter !== 'root' ? folderFilter : ''}
+                  onChange={(e) => setPasteTargetFolder(e.target.value)}
+                  placeholder="originals/blog/2025-01 또는 폴더 트리에서 선택"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+              <div className="text-xs text-gray-500">
+                현재 선택된 폴더: {folderFilter !== 'all' && folderFilter !== 'root' ? folderFilter : '없음'}
+              </div>
             </div>
             <div className="flex justify-end gap-3 p-4 border-t">
               <button
-                onClick={() => setCategoryMoveModalOpen(false)}
+                onClick={() => {
+                  setShowPasteModal(false);
+                  setPasteTargetFolder(null);
+                }}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
               >
                 취소
               </button>
               <button
-                onClick={async () => {
-                  const selectElement = document.getElementById('categorySelect') as HTMLSelectElement;
-                  const selectedCategoryId = selectElement.value;
-                  
-                  if (!selectedCategoryId) {
-                    alert('카테고리를 선택해주세요.');
-                    return;
-                  }
-                  
-                  const targetCategory = dynamicCategories.find(cat => cat.id === parseInt(selectedCategoryId));
-                  if (!targetCategory) {
-                    alert('선택된 카테고리를 찾을 수 없습니다.');
-                    return;
-                  }
-                  
-                  try {
-                    const selectedIds = Array.from(selectedImages);
-                    const names = selectedIds.map(id => {
-                      const image = images.find(img => getImageUniqueId(img) === id);
-                      return image ? image.name : id;
-                    });
-                    
-                    console.log('📁 카테고리 이동 시작:', names.length, '개 이미지');
-                    console.log('📁 대상 카테고리:', targetCategory.name, '(ID:', targetCategory.id, ')');
-                    
-                    // 각 이미지의 카테고리 업데이트
-                    for (const imageName of names) {
-                      const response = await fetch('/api/admin/image-metadata', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          imageName: imageName,
-                          category: targetCategory.id
-                        })
-                      });
-                      
-                      if (!response.ok) {
-                        const error = await response.json();
-                        console.error('❌ 카테고리 업데이트 실패:', imageName, error);
-                      }
-                    }
-                    
-                    // 로컬 상태 업데이트
-                    setImages(prev => prev.map(img => 
-                      selectedImages.has(getImageUniqueId(img)) 
-                        ? { ...img, category: targetCategory.id }
-                        : img
-                    ));
-                    
-                    setCategoryMoveModalOpen(false);
-                    alert(`카테고리 이동 완료!\n\n${names.length}개 이미지가 "${targetCategory.name}" 카테고리로 이동되었습니다.`);
-                    
-                  } catch (error) {
-                    console.error('❌ 카테고리 이동 오류:', error);
-                    alert('카테고리 이동 중 오류가 발생했습니다.');
+                onClick={() => {
+                  const target = pasteTargetFolder || (folderFilter !== 'all' && folderFilter !== 'root' ? folderFilter : null);
+                  if (target) {
+                    handlePasteImages(target);
+                  } else {
+                    alert('폴더를 선택하거나 입력해주세요.');
                   }
                 }}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                disabled={isBulkWorking}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                이동
+                {isBulkWorking ? '붙여넣는 중...' : '붙여넣기'}
               </button>
             </div>
           </div>
@@ -6774,118 +6842,30 @@ export default function GalleryAdmin() {
             </div>
             )}
             
-            {/* 유사도 점수 표시 (개선) - 2개 이상일 때만 표시 */}
+            {/* 유사도 점수 표시 (간소화) - 2개 이상일 때만 표시 */}
             {compareResult.images.length >= 2 && compareResult.analysis.similarityScore !== undefined && (
-                  <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg shadow-sm">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* 종합 유사도 */}
-                      <div>
-                        <div className="text-sm font-semibold text-gray-700 mb-2">
-                          📊 종합 유사도
-                          <span className="ml-2 text-xs text-gray-500">(파일명, 해시, 크기, 포맷 종합)</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-2xl font-bold text-blue-700">
-                            {compareResult.analysis.similarityScore}%
-                          </div>
-                          <div className="flex-1 bg-gray-200 rounded-full h-3">
-                            <div 
-                              className={`h-3 rounded-full transition-all ${
-                                compareResult.analysis.similarityScore >= 80 ? 'bg-red-500' :
-                                compareResult.analysis.similarityScore >= 60 ? 'bg-yellow-500' :
-                                'bg-green-500'
-                              }`}
-                              style={{ width: `${Math.min(compareResult.analysis.similarityScore, 100)}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-600 mt-1">
-                          {compareResult.analysis.similarityScore >= 80 && '⚠️ 중복 가능성 높음'}
-                          {compareResult.analysis.similarityScore >= 60 && compareResult.analysis.similarityScore < 80 && '⚡ 중복 가능성 있음'}
-                          {compareResult.analysis.similarityScore < 60 && '✅ 다른 이미지'}
-                        </div>
-                      </div>
-                      
-                      {/* 시각적 유사도 */}
-                      {compareResult.analysis.phashSimilarity > 0 && (
-                        <div>
-                          <div className="text-sm font-semibold text-gray-700 mb-2">
-                            🎨 시각적 유사도
-                            <span className="ml-2 text-xs text-gray-500">(pHash 기반 이미지 유사도)</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="text-2xl font-bold text-purple-700">
-                              {compareResult.analysis.phashSimilarity}%
-                            </div>
-                            <div className="flex-1 bg-gray-200 rounded-full h-3">
-                              <div 
-                                className={`h-3 rounded-full transition-all ${
-                                  compareResult.analysis.phashSimilarity >= 85 ? 'bg-purple-600' :
-                                  compareResult.analysis.phashSimilarity >= 70 ? 'bg-purple-400' :
-                                  'bg-purple-300'
-                                }`}
-                                style={{ width: `${Math.min(compareResult.analysis.phashSimilarity, 100)}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                          <div className="text-xs text-gray-600 mt-1">
-                            {compareResult.analysis.phashSimilarity >= 85 && '🎯 매우 유사'}
-                            {compareResult.analysis.phashSimilarity >= 70 && compareResult.analysis.phashSimilarity < 85 && '👁️ 유사'}
-                            {compareResult.analysis.phashSimilarity < 70 && '🔍 다름'}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+              <div className="mb-4 px-4 py-3 border-b bg-gray-50">
+                <div className="text-sm text-gray-700">
+                  <span className="font-semibold">유사도:</span>
+                  <span className="ml-2 text-lg font-bold text-blue-600">{compareResult.analysis.similarityScore}%</span>
+                  {compareResult.analysis.similarityScore >= 80 && <span className="ml-2 text-xs text-orange-600">⚠️ 중복 가능</span>}
+                  {compareResult.analysis.similarityScore >= 60 && compareResult.analysis.similarityScore < 80 && <span className="ml-2 text-xs text-yellow-600">⚡ 가능성 있음</span>}
+                  <div className="flex gap-2 mt-2 text-xs">
+                    <span className={`px-2 py-1 rounded ${compareResult.analysis.filenameMatch ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                      {compareResult.analysis.filenameMatch ? '✓' : '✗'} 파일명
+                    </span>
+                    <span className={`px-2 py-1 rounded ${compareResult.analysis.hashMatch ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                      {compareResult.analysis.hashMatch ? '✓' : '✗'} 해시
+                    </span>
+                    <span className={`px-2 py-1 rounded ${compareResult.analysis.sizeMatch ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                      {compareResult.analysis.sizeMatch ? '✓' : '✗'} 크기
+                    </span>
+                    <span className={`px-2 py-1 rounded ${compareResult.analysis.formatMatch ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                      {compareResult.analysis.formatMatch ? '✓' : '✗'} 포맷
+                    </span>
                   </div>
-                )}
-            
-            {/* 비교 기준 상세 - 2개 이상일 때만 표시 */}
-            {compareResult.images.length >= 2 && (
-            <div className="mt-4 pt-4 border-t border-gray-200 mb-6">
-                  <div className="text-xs font-semibold text-gray-500 mb-2">비교 기준:</div>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    <div className={`p-2 rounded text-center transition-all ${
-                      compareResult.analysis.filenameMatch 
-                        ? 'bg-green-100 text-green-700 border border-green-300 shadow-sm' 
-                        : 'bg-gray-100 text-gray-400 border border-gray-200'
-                    }`}>
-                      <div className="text-lg mb-1">{compareResult.analysis.filenameMatch ? '✓' : '✗'}</div>
-                      <div className="text-xs">파일명 일치</div>
-                    </div>
-                    <div className={`p-2 rounded text-center transition-all ${
-                      compareResult.analysis.normalizedFilenameMatch 
-                        ? 'bg-green-100 text-green-700 border border-green-300 shadow-sm' 
-                        : 'bg-gray-100 text-gray-400 border border-gray-200'
-                    }`}>
-                      <div className="text-lg mb-1">{compareResult.analysis.normalizedFilenameMatch ? '✓' : '✗'}</div>
-                      <div className="text-xs">정규화 파일명</div>
-                    </div>
-                    <div className={`p-2 rounded text-center transition-all ${
-                      compareResult.analysis.hashMatch 
-                        ? 'bg-green-100 text-green-700 border border-green-300 shadow-sm' 
-                        : 'bg-gray-100 text-gray-400 border border-gray-200'
-                    }`}>
-                      <div className="text-lg mb-1">{compareResult.analysis.hashMatch ? '✓' : '✗'}</div>
-                      <div className="text-xs">해시 일치</div>
-                    </div>
-                    <div className={`p-2 rounded text-center transition-all ${
-                      compareResult.analysis.sizeMatch 
-                        ? 'bg-green-100 text-green-700 border border-green-300 shadow-sm' 
-                        : 'bg-gray-100 text-gray-400 border border-gray-200'
-                    }`}>
-                      <div className="text-lg mb-1">{compareResult.analysis.sizeMatch ? '✓' : '✗'}</div>
-                      <div className="text-xs">크기 일치</div>
-                    </div>
-                    <div className={`p-2 rounded text-center transition-all ${
-                      compareResult.analysis.formatMatch 
-                        ? 'bg-green-100 text-green-700 border border-green-300 shadow-sm' 
-                        : 'bg-gray-100 text-gray-400 border border-gray-200'
-                    }`}>
-                      <div className="text-lg mb-1">{compareResult.analysis.formatMatch ? '✓' : '✗'}</div>
-                      <div className="text-xs">포맷 일치</div>
-                    </div>
-                  </div>
-            </div>
+                </div>
+              </div>
             )}
 
 
@@ -6945,56 +6925,60 @@ export default function GalleryAdmin() {
                       />
                     </div>
                     
-                    {/* 이미지 정보 */}
+                    {/* 이미지 정보 (개선된 디자인) */}
                     <div className="space-y-3">
-                      <div>
-                        <div className="text-xs font-semibold text-gray-500 mb-1">파일명</div>
-                        <div className="text-sm text-gray-800 break-all font-mono" title={img.filename}>
+                      {/* 파일명 */}
+                      <div className="bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                        <div className="text-sm font-semibold text-gray-800 truncate" title={img.filename}>
                           {img.filename}
                         </div>
                       </div>
                       
-                      {/* 파일 위치 추가 */}
-                      {img.filePath && (
-                        <div>
-                          <div className="text-xs font-semibold text-gray-500 mb-1">파일 위치</div>
-                          <div className="text-sm text-gray-700 break-all" title={img.filePath}>
-                            📁 {img.filePath}
-                          </div>
-                        </div>
-                      )}
-                      
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <div className="text-xs font-semibold text-gray-500 mb-1">파일 크기</div>
-                          <div className="text-sm font-semibold text-gray-700">{(img.fileSize / 1024).toFixed(1)}KB</div>
-                        </div>
-                        {img.width && img.height && (
-                          <div>
-                            <div className="text-xs font-semibold text-gray-500 mb-1">픽셀 사이즈</div>
-                            <div className="text-sm font-semibold text-gray-700">{img.width} × {img.height}px</div>
-                          </div>
-                        )}
-                        <div>
-                          <div className="text-xs font-semibold text-gray-500 mb-1">포맷</div>
-                          <div className="text-sm font-semibold text-gray-700 uppercase">{img.format}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs font-semibold text-gray-500 mb-1">사용 현황</div>
-                          {img.usage && img.usedIn && img.usedIn.length > 0 ? (
-                            <div className="text-sm font-semibold text-green-600">
-                              ✅ {img.usageCount}회 사용 ({img.usedIn.length}개 위치)
-                            </div>
-                          ) : (
-                            <div className="text-sm font-semibold text-gray-400">
-                              ❌ 미사용
-                            </div>
-                          )}
-                        </div>
+                      {/* 폴더 경로 */}
+                      <div className="text-xs text-gray-600">
+                        <span className="font-medium">📁</span> {img.filePath || '경로 없음'}
                       </div>
                       
-                      {/* 사용 위치 - URL별 그룹화 */}
-                      {usedInList.length > 0 && (() => {
+                      {/* 크기, 포맷, 사용현황 (배지 형태) */}
+                      <div className="flex gap-2 flex-wrap">
+                        <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium">
+                          {(img.fileSize / 1024).toFixed(1)}KB
+                        </span>
+                        <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded text-xs font-medium uppercase">
+                          {img.format}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                          img.usage && img.usedIn && img.usedIn.length > 0
+                            ? 'bg-green-50 text-green-700'
+                            : 'bg-gray-50 text-gray-500'
+                        }`}>
+                          {img.usage && img.usedIn && img.usedIn.length > 0 
+                            ? `✅ ${img.usageCount}회 사용` 
+                            : '❌ 미사용'}
+                        </span>
+                      </div>
+                      
+                      {/* 사용 위치 (간소화 - details 태그) */}
+                      {usedInList.length > 0 && (
+                        <details className="text-xs mt-2">
+                          <summary className="cursor-pointer text-gray-600 hover:text-gray-800 font-medium">
+                            🔗 사용 위치 ({usedInList.length}개)
+                          </summary>
+                          <div className="mt-2 space-y-1 pl-2 max-h-32 overflow-y-auto">
+                            {usedInList.slice(0, 5).map((u: any, idx: number) => (
+                              <div key={idx} className="text-gray-600">
+                                {u.type === 'blog' && '📰'} {u.type === 'funnel' && '🎯'} {u.type === 'homepage' && '🏠'} {u.type === 'muziik' && '🎵'} {(u.type === 'kakao_profile' || u.type === 'kakao_feed') && '💬'} {u.title || u.url || '링크 없음'}
+                              </div>
+                            ))}
+                            {usedInList.length > 5 && (
+                              <div className="text-gray-400">... 외 {usedInList.length - 5}개</div>
+                            )}
+                          </div>
+                        </details>
+                      )}
+                      
+                      {/* 사용 위치 - URL별 그룹화 (기존 상세 버전 - 주석 처리) */}
+                      {false && usedInList.length > 0 && (() => {
                         // URL별로 그룹화
                         const groupedByUrl: { [key: string]: { url: string, title: string, locations: any[], count: number, lastUsed: string | null, type: string, isCommon: boolean } } = {};
                         
@@ -7185,123 +7169,25 @@ export default function GalleryAdmin() {
                         );
                       })()}
                       
-                      {/* 개별 삭제 버튼 */}
-                      {!img.usage && (
+                      {/* 삭제 버튼 */}
+                      <div className="mt-3 flex justify-end">
                         <button
                           onClick={() => {
                             setImageToDelete(img);
                             setShowCompareDeleteConfirm(true);
                           }}
-                          className="w-full mt-4 px-4 py-2.5 bg-red-500 text-white text-sm font-semibold rounded-lg hover:bg-red-600 transition-colors shadow-sm"
+                          className="px-4 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors font-medium"
+                          title="삭제"
                         >
-                          🗑️ 이 이미지 삭제
+                          삭제
                         </button>
-                      )}
+                      </div>
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            {/* 하단 액션 버튼 */}
-            <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-200">
-              <button
-                onClick={() => {
-                  setShowCompareModal(false);
-                  setCompareResult(null);
-                  setSelectedForCompare(new Set());
-                }}
-                className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium shadow-sm"
-              >
-                닫기
-              </button>
-              {/* 중복 이미지이고 미사용인 경우 삭제 버튼 표시 */}
-              {compareResult.analysis.isDuplicate && 
-               compareResult.images.some((img: any) => !img.usage) && (
-                <button
-                  onClick={async () => {
-                    const unusedImages = compareResult.images.filter((img: any) => !img.usage);
-                    const unusedIds = unusedImages.map((img: any) => img.id);
-                    
-                    if (unusedIds.length === 0) {
-                      alert('삭제할 수 있는 이미지가 없습니다.');
-                      return;
-                    }
-
-                    const confirmMessage = unusedIds.length === 1
-                      ? `이미지 1개를 삭제하시겠습니까?\n\n${unusedImages[0].filename}`
-                      : `이미지 ${unusedIds.length}개를 삭제하시겠습니까?\n\n${unusedImages.map((img: any) => img.filename).join('\n')}`;
-
-                    if (!confirm(confirmMessage)) {
-                      return;
-                    }
-
-                    try {
-                      // 각 이미지 삭제 (image-asset-manager API 사용)
-                      const deletePromises = unusedIds.map(async (id: string) => {
-                        const image = compareResult.images.find((img: any) => img.id === id);
-                        if (!image) return { success: false, id, error: '이미지를 찾을 수 없습니다' };
-
-                        try {
-                          // image-asset-manager API로 영구 삭제 (DELETE 메서드 사용)
-                          const response = await fetch('/api/admin/image-asset-manager', {
-                            method: 'DELETE',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
-                              id: id,
-                              permanent: true 
-                            }),
-                          });
-
-                          if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.error || errorData.details || '삭제 실패');
-                          }
-
-                          const result = await response.json();
-                          if (!result.success) {
-                            throw new Error(result.error || '삭제 실패');
-                          }
-
-                          return { success: true, id, filename: image.filename };
-                        } catch (error: any) {
-                          return { success: false, id, error: error.message, filename: image.filename };
-                        }
-                      });
-
-                      const results = await Promise.all(deletePromises);
-                      const successCount = results.filter(r => r.success).length;
-                      const failCount = results.filter(r => !r.success).length;
-
-                      if (failCount === 0) {
-                        alert(`✅ ${successCount}개 이미지 삭제 완료!`);
-                      } else {
-                        alert(`⚠️ ${successCount}개 삭제 완료, ${failCount}개 실패\n\n${results.filter(r => !r.success).map(r => `${r.filename}: ${r.error}`).join('\n')}`);
-                      }
-
-                      // ✅ 삭제된 이미지들을 로컬 상태에서도 즉시 제거
-                      const deletedIds = results.filter(r => r.success).map(r => r.id);
-                      setImages((prev: any[]) => prev.filter((i: any) => !deletedIds.includes(i.id)));
-
-                      // 모달 닫기 및 이미지 목록 새로고침 (캐시 무효화, 타이밍 증가)
-                      setShowCompareModal(false);
-                      setCompareResult(null);
-                      setSelectedForCompare(new Set());
-                      setTimeout(() => {
-                        fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
-                      }, 500);
-
-                    } catch (error: any) {
-                      console.error('❌ 이미지 삭제 오류:', error);
-                      alert(`이미지 삭제 중 오류가 발생했습니다: ${error.message}`);
-                    }
-                  }}
-                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                >
-                  🗑️ 미사용 이미지 삭제 ({compareResult.images.filter((img: any) => !img.usage).length}개)
-                </button>
-              )}
-            </div>
           </div>
         </div>
       )}
@@ -7417,8 +7303,8 @@ export default function GalleryAdmin() {
         </div>
       )}
 
-      {/* Phase 8-9-7: 확장자 중복 확인 모달 */}
-      {showExtensionDuplicateModal && extensionDuplicateResult && (
+      {/* 확장자 중복 확인 모달 - 삭제됨 */}
+      {false && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold mb-4">🔄 확장자 중복 확인 결과</h2>
@@ -7670,8 +7556,8 @@ export default function GalleryAdmin() {
         </div>
       )}
 
-      {/* 블로그 중복 이미지 분석 모달 */}
-      {showBlogDuplicateModal && blogDuplicateAnalysis && (
+      {/* 블로그 중복 이미지 분석 모달 - 삭제됨 */}
+      {false && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto my-8">
             <div className="p-6">

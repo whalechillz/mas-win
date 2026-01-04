@@ -294,13 +294,13 @@ export default function FolderTree({
   };
 
   return (
-    <div className="w-full h-full bg-white rounded-lg border border-gray-200 p-4 overflow-y-auto">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">📂 폴더 구조</h3>
+    <div className="w-full h-full bg-white rounded-lg border border-gray-200 p-3 overflow-y-auto">
+      <div className="mb-3">
+        <h3 className="text-sm font-semibold text-gray-800 mb-2">📂 폴더 구조</h3>
         
         {/* 전체 폴더 선택 */}
         <div
-          className={`flex items-center py-2 px-2 rounded cursor-pointer text-sm mb-2 transition-all ${
+          className={`flex items-center py-1 px-2 rounded cursor-pointer text-sm mb-1 transition-all ${
             dragOverFolder === 'all'
               ? 'bg-blue-200 border-2 border-blue-500 border-dashed'
               : selectedFolder === 'all'
@@ -317,7 +317,7 @@ export default function FolderTree({
 
         {/* 루트 폴더 선택 */}
         <div
-          className={`flex items-center py-2 px-2 rounded cursor-pointer text-sm mb-2 transition-all ${
+          className={`flex items-center py-1 px-2 rounded cursor-pointer text-sm mb-1 transition-all ${
             dragOverFolder === 'root'
               ? 'bg-blue-200 border-2 border-blue-500 border-dashed'
               : selectedFolder === 'root'
@@ -333,7 +333,7 @@ export default function FolderTree({
         </div>
 
         {/* 하위 폴더 포함 체크박스 */}
-        <label className="flex items-center space-x-2 text-sm text-gray-700 mt-4 mb-4 p-2 hover:bg-gray-50 rounded">
+        <label className="flex items-center space-x-2 text-sm text-gray-700 mt-2 mb-2 py-1 hover:bg-gray-50 rounded">
           <input
             type="checkbox"
             checked={includeChildren}

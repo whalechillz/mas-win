@@ -9,7 +9,15 @@ interface ImageMetadataModalProps {
   isOpen: boolean;
   image: ImageMetadata | null;
   onClose: () => void;
-  onSave: (metadata: MetadataForm) => Promise<void>;
+  onSave: (metadata: MetadataForm, exifData?: {
+    taken_at?: string;
+    gps_lat?: number;
+    gps_lng?: number;
+    width?: number;
+    height?: number;
+    camera?: string;
+    orientation?: number;
+  } | null) => Promise<void>;
   onRename?: (newFilename: string) => Promise<void>;
   categories?: Array<{ id: number; name: string }>;
 }
@@ -95,6 +103,16 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isExtractingEXIF, setIsExtractingEXIF] = useState(false);
+  const [exifData, setExifData] = useState<{
+    taken_at?: string;
+    gps_lat?: number;
+    gps_lng?: number;
+    width?: number;
+    height?: number;
+    camera?: string;
+    orientation?: number;
+  } | null>(null);
 
   const { isGenerating, generateGolfMetadata, generateGeneralMetadata, generateField } = useAIGeneration();
 
@@ -332,9 +350,25 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
         categories: imageCategories,  // 다중 선택용
         filename: image.name || ''
       };
+      
       setForm(newForm);
       setHasChanges(false);
       setValidationErrors({});
+      
+      // EXIF 정보 자동 로드 (이미지에 EXIF 정보가 있는 경우)
+      if (image.gps_lat || image.taken_at || image.width || (image as any).gps_lng) {
+        setExifData({
+          taken_at: image.taken_at || (image as any).taken_at || undefined,
+          gps_lat: image.gps_lat || (image as any).gps_lat || undefined,
+          gps_lng: (image as any).gps_lng || undefined,
+          width: image.width || (image as any).width || undefined,
+          height: image.height || (image as any).height || undefined,
+          camera: (image as any).camera || undefined,
+          orientation: (image as any).orientation || undefined
+        });
+      } else {
+        setExifData(null);
+      }
     }
   }, [image]);
 
@@ -477,6 +511,79 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     }
   }, [image, generateField]);
 
+  // EXIF 추출
+  const handleExtractEXIF = useCallback(async () => {
+    if (!image) return;
+
+    setIsExtractingEXIF(true);
+    try {
+      const response = await fetch('/api/admin/extract-exif', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publicUrl: image.url })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'EXIF 추출 실패' }));
+        throw new Error(errorData.error || 'EXIF 추출 실패');
+      }
+
+      const data = await response.json();
+      const extractedExif = data.meta || {};
+      const exifRaw = data.exif || {};
+
+      // EXIF 데이터를 별도 state에 저장 (description에 넣지 않음)
+      const exifInfo: {
+        taken_at?: string;
+        gps_lat?: number;
+        gps_lng?: number;
+        width?: number;
+        height?: number;
+        camera?: string;
+        orientation?: number;
+      } = {};
+
+      if (extractedExif.taken_at) {
+        exifInfo.taken_at = extractedExif.taken_at;
+      }
+      
+      if (extractedExif.gps_lat && extractedExif.gps_lng) {
+        exifInfo.gps_lat = extractedExif.gps_lat;
+        exifInfo.gps_lng = extractedExif.gps_lng;
+      }
+      
+      if (extractedExif.width && extractedExif.height) {
+        exifInfo.width = extractedExif.width;
+        exifInfo.height = extractedExif.height;
+      }
+
+      if (extractedExif.orientation) {
+        exifInfo.orientation = extractedExif.orientation;
+      }
+
+      // EXIF에서 카메라 정보 추출 (있는 경우)
+      if (exifRaw.Make || exifRaw.Model) {
+        exifInfo.camera = [exifRaw.Make, exifRaw.Model].filter(Boolean).join(' ');
+      }
+
+      setExifData(Object.keys(exifInfo).length > 0 ? exifInfo : null);
+      setHasChanges(true);
+
+      // 성공 메시지
+      const infoCount = Object.keys(exifInfo).length;
+      if (infoCount > 0) {
+        alert(`✅ EXIF 정보 추출 완료!\n\n${infoCount}개의 정보를 추출했습니다.`);
+      } else {
+        alert('⚠️ 이 이미지에는 EXIF 정보가 없습니다.');
+      }
+    } catch (error: any) {
+      console.error('EXIF 추출 오류:', error);
+      alert(`EXIF 추출에 실패했습니다: ${error.message || '알 수 없는 오류'}`);
+    } finally {
+      setIsExtractingEXIF(false);
+    }
+  }, [image]);
+
   // 저장
   const handleSave = useCallback(async () => {
     // ✅ 저장 전에 카테고리를 키워드에 포함시킴
@@ -553,8 +660,8 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       // 실제 파일명은 변경하지 않음 (복잡성 감소 및 버그 방지)
       // formWithKeywords.filename은 메타데이터 저장용으로만 사용
       
-      // 모든 메타데이터 저장 (카테고리가 키워드에 포함된 버전)
-      await onSave(formWithKeywords);
+      // 모든 메타데이터 저장 (카테고리가 키워드에 포함된 버전 + EXIF 정보)
+      await onSave(formWithKeywords, exifData);
       setHasChanges(false);
       onClose();
     } catch (error) {
@@ -583,7 +690,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
           </div>
           
           <div className="flex items-center gap-3">
-            {/* AI 생성 버튼들 */}
+            {/* AI 생성 및 EXIF 추출 버튼들 */}
             <button
               onClick={() => handleGenerateGolf('korean')}
               disabled={isGenerating}
@@ -598,6 +705,14 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
               className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isGenerating ? '⏳' : '🌐'} 일반 메타 생성
+            </button>
+            
+            <button
+              onClick={handleExtractEXIF}
+              disabled={isGenerating || isExtractingEXIF}
+              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isExtractingEXIF ? '⏳' : '📷'} EXIF 추출
             </button>
             
             <button
@@ -640,6 +755,65 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
                   />
                 );
               })}
+              
+              {/* EXIF 정보 표시 영역 */}
+              {exifData && (
+                <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">EXIF 정보</h3>
+                  <div className="grid grid-cols-2 gap-1.5 text-sm">
+                    {exifData.taken_at && (
+                      <div>
+                        <span className="text-gray-500">촬영일:</span>
+                        <span className="ml-1.5 text-gray-900">
+                          {new Date(exifData.taken_at).toLocaleString('ko-KR')}
+                        </span>
+                      </div>
+                    )}
+                    {exifData.width && exifData.height && (
+                      <div>
+                        <span className="text-gray-500">크기:</span>
+                        <span className="ml-1.5 text-gray-900">
+                          {exifData.width} × {exifData.height}px
+                        </span>
+                      </div>
+                    )}
+                    {exifData.gps_lat && exifData.gps_lng && (
+                      <div className="col-span-2">
+                        <span className="text-gray-500">위치:</span>
+                        <span className="ml-1.5 text-gray-900">
+                          {exifData.gps_lat.toFixed(6)}, {exifData.gps_lng.toFixed(6)}
+                        </span>
+                        <a
+                          href={`https://www.google.com/maps?q=${exifData.gps_lat},${exifData.gps_lng}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-1.5 text-blue-600 hover:text-blue-800 underline text-xs"
+                        >
+                          지도 보기
+                        </a>
+                      </div>
+                    )}
+                    {exifData.camera && (
+                      <div className="col-span-2">
+                        <span className="text-gray-500">카메라:</span>
+                        <span className="ml-1.5 text-gray-900">{exifData.camera}</span>
+                      </div>
+                    )}
+                    {exifData.orientation && (
+                      <div>
+                        <span className="text-gray-500">회전:</span>
+                        <span className="ml-1.5 text-gray-900">
+                          {exifData.orientation === 1 ? '정상' : 
+                           exifData.orientation === 3 ? '180°' :
+                           exifData.orientation === 6 ? '90° 시계방향' :
+                           exifData.orientation === 8 ? '90° 반시계방향' :
+                           `${exifData.orientation}`}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
               
               {/* 키워드 자동 완성 안내 */}
               <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">

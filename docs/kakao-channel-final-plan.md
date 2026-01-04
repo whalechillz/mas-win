@@ -294,3 +294,5 @@ curl "https://your-domain.vercel.app/api/kakao/friends?sync=true"
 - `SOLAPI_API_KEY`, `SOLAPI_API_SECRET` 확인
 
 
+
+

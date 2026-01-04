@@ -29,3 +29,5 @@ COMMENT ON COLUMN kakao_recipient_groups.recipient_count IS '수신자 수';
 COMMENT ON COLUMN kakao_recipient_groups.is_active IS '활성 여부';
 
 
+
+
