@@ -6745,7 +6745,7 @@ export default function GalleryAdmin() {
                               setUploadProgress(0);
                               
                               // 공통 업로드 함수 사용
-                              const { url } = await uploadImageToSupabase(file, {
+                              const uploadResult = await uploadImageToSupabase(file, {
                                 targetFolder: selectedUploadFolder || undefined,
                                 enableHEICConversion: true,
                                 enableEXIFBackfill: true,
@@ -6759,13 +6759,52 @@ export default function GalleryAdmin() {
                               const uploadFolder = selectedUploadFolder || folderFilter;
                               setSelectedUploadFolder(''); // 업로드 후 폴더 선택 초기화
                               
-                              // 업로드한 폴더만 새로고침 (전체 조회 방지로 타임아웃 방지)
-                              if (uploadFolder && uploadFolder !== 'all' && uploadFolder !== 'root') {
-                                fetchImages(1, true, uploadFolder, includeChildren, '', true); // forceRefresh=true
-                              } else {
-                                // 폴더가 없으면 현재 필터 사용 (전체 조회는 피함)
-                                fetchImages(1, true, folderFilter !== 'all' ? folderFilter : 'root', includeChildren, searchQuery, true);
+                              // 파일 타입 감지 (서버 응답의 metadata 또는 파일 정보 사용)
+                              const isVideo = uploadResult.metadata?.is_video ?? 
+                                              (file.type.startsWith('video/') || 
+                                              /\.(mp4|avi|mov|webm|mkv|flv|m4v|3gp|wmv)$/i.test(file.name));
+                              
+                              // 파일명에서 확장자 추출
+                              const fileName = uploadResult.fileName || file.name;
+                              
+                              // 즉시 로컬 상태에 추가 (optimistic update)
+                              const newImage: ImageMetadata = {
+                                name: fileName,
+                                url: uploadResult.url,
+                                size: uploadResult.metadata?.file_size || file.size,
+                                width: uploadResult.metadata?.width || null,
+                                height: uploadResult.metadata?.height || null,
+                                created_at: new Date().toISOString(),
+                                updated_at: new Date().toISOString(),
+                                folder_path: uploadFolder && uploadFolder !== 'all' && uploadFolder !== 'root' 
+                                  ? uploadFolder 
+                                  : undefined,
+                                title: fileName.replace(/\.[^/.]+$/, ''),
+                                file_size: uploadResult.metadata?.file_size || file.size,
+                                usage_count: 0,
+                              };
+                              
+                              // 현재 폴더 필터와 일치하면 즉시 추가
+                              const shouldAddImmediately = 
+                                (uploadFolder && uploadFolder !== 'all' && uploadFolder !== 'root' && 
+                                 (folderFilter === uploadFolder || (folderFilter === 'all' && includeChildren))) ||
+                                (folderFilter === 'all' || folderFilter === 'root');
+                              
+                              if (shouldAddImmediately) {
+                                setImages(prev => [newImage, ...prev]);
+                                setTotalCount(prev => prev + 1);
+                                console.log('✅ 업로드된 파일 즉시 추가:', fileName, isVideo ? '(동영상)' : '(이미지)');
                               }
+                              
+                              // 백그라운드에서 서버 동기화 (2초 후)
+                              setTimeout(() => {
+                                if (uploadFolder && uploadFolder !== 'all' && uploadFolder !== 'root') {
+                                  fetchImages(1, false, uploadFolder, includeChildren, '', true);
+                                } else {
+                                  fetchImages(1, false, folderFilter !== 'all' ? folderFilter : 'root', includeChildren, searchQuery, true);
+                                }
+                              }, 2000);
+                              
                               alert('이미지 업로드 완료');
                             } catch (e: any) {
                               console.error('❌ 이미지 업로드 오류:', e);

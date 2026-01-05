@@ -15,6 +15,13 @@ interface UploadOptions {
 interface UploadResult {
   url: string; // 업로드된 이미지의 공개 URL
   fileName?: string; // 업로드된 파일명
+  metadata?: {
+    width?: number;
+    height?: number;
+    format?: string;
+    file_size?: number;
+    is_video?: boolean;
+  };
 }
 
 /**
@@ -168,7 +175,8 @@ export async function uploadImageToSupabase(
             
             resolve({
               url: data.url,
-              fileName: data.fileName || processedFile.name
+              fileName: data.fileName || processedFile.name,
+              metadata: data.metadata // 서버 응답의 metadata 포함
             });
           } catch (parseError: any) {
             console.error('❌ 응답 파싱 오류:', parseError);
