@@ -702,7 +702,7 @@ export default function FeedManager({
             <div className="flex items-center gap-2 mb-2">
               <input
                 type="checkbox"
-                id="enable-product-composition-feed"
+                id={`enable-product-composition-feed-${accountKey || 'default'}`}
                 checked={enableProductComposition}
                 onChange={(e) => {
                   setEnableProductComposition(e.target.checked);
@@ -714,7 +714,7 @@ export default function FeedManager({
                 disabled={publishStatus === 'published'}
                 className="w-4 h-4"
               />
-              <label htmlFor="enable-product-composition-feed" className="text-gray-700 font-medium">
+              <label htmlFor={`enable-product-composition-feed-${accountKey || 'default'}`} className="text-gray-700 font-medium">
                 제품 합성 활성화
               </label>
             </div>
