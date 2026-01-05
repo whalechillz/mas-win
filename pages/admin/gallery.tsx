@@ -6551,7 +6551,11 @@ export default function GalleryAdmin() {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col my-auto">
             <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
               <h3 className="text-lg font-semibold text-gray-800">이미지 추가</h3>
-              <button onClick={()=>setShowAddModal(false)} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+              <button 
+                onClick={()=>setShowAddModal(false)} 
+                disabled={pending}
+                className={`text-gray-500 hover:text-gray-700 text-xl ${pending ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >✕</button>
             </div>
             
             {/* 현재 경로 표시 (상단 고정) */}
@@ -6664,53 +6668,127 @@ export default function GalleryAdmin() {
                       파일 업로드
                     </label>
                   <div 
-                      className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors"
+                      className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                        pending 
+                          ? 'border-gray-200 bg-gray-50 pointer-events-none opacity-50' 
+                          : 'border-gray-300 hover:border-blue-400'
+                      }`}
                     onDragOver={(e) => {
+                      if (pending) return;
                       e.preventDefault();
                       e.stopPropagation();
                     }}
                     onDragEnter={(e) => {
+                      if (pending) return;
                       e.preventDefault();
                       e.stopPropagation();
                     }}
                     onDrop={async (e) => {
+                      if (pending) return;
                       e.preventDefault();
                       e.stopPropagation();
-                      const files = e.dataTransfer.files;
-                      if (files.length > 0) {
-                        const file = files[0];
-                        if (!file) return;
-                        try {
-                          setPending(true);
-                          setUploadProgress(0);
-                          
-                          // 공통 업로드 함수 사용
-                          const { url } = await uploadImageToSupabase(file, {
-                            targetFolder: selectedUploadFolder || undefined,
-                            enableHEICConversion: true,
-                            enableEXIFBackfill: true,
-                            uploadMode: uploadMode as any, // 새로운 모드 지원
-                            onProgress: (progress) => {
-                              setUploadProgress(progress);
-                            },
-                          });
-                          
-                          // ✅ 업로드한 폴더로 자동 이동
-                          const targetFolder = selectedUploadFolder || folderFilter;
-                          if (targetFolder && targetFolder !== 'all' && targetFolder !== 'root') {
-                            setFolderFilter(targetFolder);
+                      const files = Array.from(e.dataTransfer.files);
+                      if (files.length === 0) return;
+                      
+                      try {
+                        setPending(true);
+                        setUploadProgress(0);
+                        
+                        const uploadFolder = selectedUploadFolder || folderFilter;
+                        const uploadedFiles: ImageMetadata[] = [];
+                        let successCount = 0;
+                        let failCount = 0;
+                        
+                        // 모든 파일을 순차적으로 업로드
+                        for (let i = 0; i < files.length; i++) {
+                          const file = files[i];
+                          try {
+                            // 공통 업로드 함수 사용
+                            const uploadResult = await uploadImageToSupabase(file, {
+                              targetFolder: selectedUploadFolder || undefined,
+                              enableHEICConversion: true,
+                              enableEXIFBackfill: true,
+                              uploadMode: uploadMode as any, // 새로운 모드 지원
+                              onProgress: (progress) => {
+                                // 전체 진행률 계산 (각 파일의 평균)
+                                const totalProgress = ((i * 100) + progress) / files.length;
+                                setUploadProgress(Math.round(totalProgress));
+                              },
+                            });
+                            
+                            // 파일 타입 감지
+                            const isVideo = uploadResult.metadata?.is_video ?? 
+                                            (file.type.startsWith('video/') || 
+                                            /\.(mp4|avi|mov|webm|mkv|flv|m4v|3gp|wmv)$/i.test(file.name));
+                            
+                            const fileName = uploadResult.fileName || file.name;
+                            
+                            // 즉시 로컬 상태에 추가할 이미지 정보
+                            const newImage: ImageMetadata = {
+                              name: fileName,
+                              url: uploadResult.url,
+                              size: uploadResult.metadata?.file_size || file.size,
+                              width: uploadResult.metadata?.width || null,
+                              height: uploadResult.metadata?.height || null,
+                              created_at: new Date().toISOString(),
+                              updated_at: new Date().toISOString(),
+                              folder_path: uploadFolder && uploadFolder !== 'all' && uploadFolder !== 'root' 
+                                ? uploadFolder 
+                                : undefined,
+                              title: fileName.replace(/\.[^/.]+$/, ''),
+                              file_size: uploadResult.metadata?.file_size || file.size,
+                              usage_count: 0,
+                            };
+                            
+                            uploadedFiles.push(newImage);
+                            successCount++;
+                            console.log(`✅ 파일 ${i + 1}/${files.length} 업로드 완료:`, fileName, isVideo ? '(동영상)' : '(이미지)');
+                          } catch (fileError: any) {
+                            failCount++;
+                            console.error(`❌ 파일 ${i + 1}/${files.length} 업로드 실패:`, file.name, fileError);
                           }
-                          
-                          setShowAddModal(false);
-                          fetchImages(1, true, targetFolder);
-                          alert(`이미지 업로드 완료!\n저장 위치: ${targetFolder || '기본 폴더'}`);
-                        } catch (e: any) {
-                          console.error('❌ 이미지 업로드 오류:', e);
-                          alert(`업로드 실패: ${e.message}`);
-                        } finally {
-                          setPending(false);
-                          setUploadProgress(0);
                         }
+                        
+                        // ✅ 업로드한 폴더로 자동 이동
+                        const targetFolder = selectedUploadFolder || folderFilter;
+                        if (targetFolder && targetFolder !== 'all' && targetFolder !== 'root') {
+                          setFolderFilter(targetFolder);
+                        }
+                        
+                        // 현재 폴더 필터와 일치하면 즉시 추가
+                        const shouldAddImmediately = 
+                          (targetFolder && targetFolder !== 'all' && targetFolder !== 'root' && 
+                           (folderFilter === targetFolder || (folderFilter === 'all' && includeChildren))) ||
+                          (folderFilter === 'all' || folderFilter === 'root');
+                        
+                        if (shouldAddImmediately && uploadedFiles.length > 0) {
+                          setImages(prev => [...uploadedFiles, ...prev]);
+                          setTotalCount(prev => prev + uploadedFiles.length);
+                          console.log(`✅ ${uploadedFiles.length}개 파일 즉시 추가 완료`);
+                        }
+                        
+                        // 백그라운드에서 서버 동기화 (2초 후)
+                        setTimeout(() => {
+                          fetchImages(1, false, targetFolder, includeChildren, '', true);
+                        }, 2000);
+                        
+                        // 결과 알림
+                        if (failCount === 0) {
+                          alert(`${successCount}개 파일 업로드 완료!\n저장 위치: ${targetFolder || '기본 폴더'}`);
+                        } else {
+                          alert(`업로드 완료: ${successCount}개 성공, ${failCount}개 실패\n저장 위치: ${targetFolder || '기본 폴더'}`);
+                        }
+                        
+                        // 모든 파일 업로드 완료 후 모달 닫기
+                        if (successCount > 0) {
+                          setShowAddModal(false);
+                        }
+                      } catch (e: any) {
+                        console.error('❌ 업로드 오류:', e);
+                        alert(`업로드 실패: ${e.message}`);
+                      } finally {
+                        setPending(false);
+                        setUploadProgress(0);
                       }
                     }}
                   >
@@ -6735,54 +6813,75 @@ export default function GalleryAdmin() {
                           id="gallery-file-upload"
                           name="gallery-file-upload"
                           type="file"
+                          multiple
+                          disabled={pending}
                           className="sr-only"
                           accept="image/*,video/*,.heic,.heif"
                           onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
+                            const files = Array.from(e.target.files || []);
+                            if (files.length === 0) return;
+                            
                             try {
                               setPending(true);
                               setUploadProgress(0);
                               
-                              // 공통 업로드 함수 사용
-                              const uploadResult = await uploadImageToSupabase(file, {
-                                targetFolder: selectedUploadFolder || undefined,
-                                enableHEICConversion: true,
-                                enableEXIFBackfill: true,
-                                uploadMode: uploadMode as any, // 새로운 모드 지원
-                                onProgress: (progress) => {
-                                  setUploadProgress(progress);
-                                },
-                              });
-                              
-                              setShowAddModal(false);
                               const uploadFolder = selectedUploadFolder || folderFilter;
+                              const uploadedFiles: ImageMetadata[] = [];
+                              let successCount = 0;
+                              let failCount = 0;
+                              
+                              // 모든 파일을 순차적으로 업로드
+                              for (let i = 0; i < files.length; i++) {
+                                const file = files[i];
+                                try {
+                                  // 공통 업로드 함수 사용
+                                  const uploadResult = await uploadImageToSupabase(file, {
+                                    targetFolder: selectedUploadFolder || undefined,
+                                    enableHEICConversion: true,
+                                    enableEXIFBackfill: true,
+                                    uploadMode: uploadMode as any, // 새로운 모드 지원
+                                    onProgress: (progress) => {
+                                      // 전체 진행률 계산 (각 파일의 평균)
+                                      const totalProgress = ((i * 100) + progress) / files.length;
+                                      setUploadProgress(Math.round(totalProgress));
+                                    },
+                                  });
+                                  
+                                  // 파일 타입 감지 (서버 응답의 metadata 또는 파일 정보 사용)
+                                  const isVideo = uploadResult.metadata?.is_video ?? 
+                                                  (file.type.startsWith('video/') || 
+                                                  /\.(mp4|avi|mov|webm|mkv|flv|m4v|3gp|wmv)$/i.test(file.name));
+                                  
+                                  // 파일명에서 확장자 추출
+                                  const fileName = uploadResult.fileName || file.name;
+                                  
+                                  // 즉시 로컬 상태에 추가할 이미지 정보
+                                  const newImage: ImageMetadata = {
+                                    name: fileName,
+                                    url: uploadResult.url,
+                                    size: uploadResult.metadata?.file_size || file.size,
+                                    width: uploadResult.metadata?.width || null,
+                                    height: uploadResult.metadata?.height || null,
+                                    created_at: new Date().toISOString(),
+                                    updated_at: new Date().toISOString(),
+                                    folder_path: uploadFolder && uploadFolder !== 'all' && uploadFolder !== 'root' 
+                                      ? uploadFolder 
+                                      : undefined,
+                                    title: fileName.replace(/\.[^/.]+$/, ''),
+                                    file_size: uploadResult.metadata?.file_size || file.size,
+                                    usage_count: 0,
+                                  };
+                                  
+                                  uploadedFiles.push(newImage);
+                                  successCount++;
+                                  console.log(`✅ 파일 ${i + 1}/${files.length} 업로드 완료:`, fileName, isVideo ? '(동영상)' : '(이미지)');
+                                } catch (fileError: any) {
+                                  failCount++;
+                                  console.error(`❌ 파일 ${i + 1}/${files.length} 업로드 실패:`, file.name, fileError);
+                                }
+                              }
+                              
                               setSelectedUploadFolder(''); // 업로드 후 폴더 선택 초기화
-                              
-                              // 파일 타입 감지 (서버 응답의 metadata 또는 파일 정보 사용)
-                              const isVideo = uploadResult.metadata?.is_video ?? 
-                                              (file.type.startsWith('video/') || 
-                                              /\.(mp4|avi|mov|webm|mkv|flv|m4v|3gp|wmv)$/i.test(file.name));
-                              
-                              // 파일명에서 확장자 추출
-                              const fileName = uploadResult.fileName || file.name;
-                              
-                              // 즉시 로컬 상태에 추가 (optimistic update)
-                              const newImage: ImageMetadata = {
-                                name: fileName,
-                                url: uploadResult.url,
-                                size: uploadResult.metadata?.file_size || file.size,
-                                width: uploadResult.metadata?.width || null,
-                                height: uploadResult.metadata?.height || null,
-                                created_at: new Date().toISOString(),
-                                updated_at: new Date().toISOString(),
-                                folder_path: uploadFolder && uploadFolder !== 'all' && uploadFolder !== 'root' 
-                                  ? uploadFolder 
-                                  : undefined,
-                                title: fileName.replace(/\.[^/.]+$/, ''),
-                                file_size: uploadResult.metadata?.file_size || file.size,
-                                usage_count: 0,
-                              };
                               
                               // 현재 폴더 필터와 일치하면 즉시 추가
                               const shouldAddImmediately = 
@@ -6790,10 +6889,10 @@ export default function GalleryAdmin() {
                                  (folderFilter === uploadFolder || (folderFilter === 'all' && includeChildren))) ||
                                 (folderFilter === 'all' || folderFilter === 'root');
                               
-                              if (shouldAddImmediately) {
-                                setImages(prev => [newImage, ...prev]);
-                                setTotalCount(prev => prev + 1);
-                                console.log('✅ 업로드된 파일 즉시 추가:', fileName, isVideo ? '(동영상)' : '(이미지)');
+                              if (shouldAddImmediately && uploadedFiles.length > 0) {
+                                setImages(prev => [...uploadedFiles, ...prev]);
+                                setTotalCount(prev => prev + uploadedFiles.length);
+                                console.log(`✅ ${uploadedFiles.length}개 파일 즉시 추가 완료`);
                               }
                               
                               // 백그라운드에서 서버 동기화 (2초 후)
@@ -6805,9 +6904,19 @@ export default function GalleryAdmin() {
                                 }
                               }, 2000);
                               
-                              alert('이미지 업로드 완료');
+                              // 결과 알림
+                              if (failCount === 0) {
+                                alert(`${successCount}개 파일 업로드 완료!`);
+                              } else {
+                                alert(`업로드 완료: ${successCount}개 성공, ${failCount}개 실패`);
+                              }
+                              
+                              // 모든 파일 업로드 완료 후 모달 닫기
+                              if (successCount > 0) {
+                                setShowAddModal(false);
+                              }
                             } catch (e: any) {
-                              console.error('❌ 이미지 업로드 오류:', e);
+                              console.error('❌ 업로드 오류:', e);
                               alert(`업로드 실패: ${e.message}`);
                             } finally {
                               setPending(false);
@@ -7081,7 +7190,11 @@ export default function GalleryAdmin() {
             </div>
 
             <div className="p-4 border-t flex justify-end">
-              <button onClick={()=>setShowAddModal(false)} className="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200">닫기</button>
+              <button 
+                onClick={()=>setShowAddModal(false)} 
+                disabled={pending}
+                className={`px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 ${pending ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >닫기</button>
             </div>
           </div>
         </div>

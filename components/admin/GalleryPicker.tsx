@@ -443,11 +443,27 @@ const GalleryPicker: React.FC<Props> = ({
   };
 
   // 파일 선택 핸들러
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleImageUpload(file);
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    
+    // 이미지 파일만 필터링
+    const imageFiles = files.filter(file => file.type.startsWith('image/') || /\.(heic|heif)$/i.test(file.name));
+    
+    if (imageFiles.length === 0) {
+      alert('이미지 파일만 업로드할 수 있습니다.');
+      // 같은 파일을 다시 선택할 수 있도록 초기화
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
     }
+    
+    // 모든 이미지 파일을 순차적으로 업로드
+    for (const file of imageFiles) {
+      await handleImageUpload(file);
+    }
+    
     // 같은 파일을 다시 선택할 수 있도록 초기화
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -1169,6 +1185,8 @@ const GalleryPicker: React.FC<Props> = ({
               <input
                 ref={fileInputRef}
                 type="file"
+                multiple
+                disabled={isUploading}
                 accept="image/*,.heic,.heif"
                 aria-label="이미지 파일 업로드"
                 className="hidden"
@@ -1181,21 +1199,26 @@ const GalleryPicker: React.FC<Props> = ({
         {/* 드래그 앤 드롭 업로드 영역 */}
         <div
           className={`mx-4 mb-4 border-2 border-dashed rounded-lg p-6 text-center transition-all ${
-            isDragging
+            isUploading
+              ? 'border-gray-200 bg-gray-50 pointer-events-none opacity-50'
+              : isDragging
               ? 'border-blue-500 bg-blue-50'
               : 'border-gray-300 hover:border-blue-400 bg-gray-50'
           }`}
           onDragOver={(e) => {
+            if (isUploading) return;
             e.preventDefault();
             e.stopPropagation();
             if (!isDragging) setIsDragging(true);
           }}
           onDragEnter={(e) => {
+            if (isUploading) return;
             e.preventDefault();
             e.stopPropagation();
             setIsDragging(true);
           }}
           onDragLeave={(e) => {
+            if (isUploading) return;
             e.preventDefault();
             e.stopPropagation();
             // 드래그가 영역을 벗어났는지 확인
@@ -1207,18 +1230,25 @@ const GalleryPicker: React.FC<Props> = ({
             }
           }}
           onDrop={async (e) => {
+            if (isUploading) return;
             e.preventDefault();
             e.stopPropagation();
             setIsDragging(false);
             
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-              const file = files[0];
-              if (file && file.type.startsWith('image/')) {
-                await handleImageUpload(file);
-              } else {
-                alert('이미지 파일만 업로드할 수 있습니다.');
-              }
+            const files = Array.from(e.dataTransfer.files);
+            if (files.length === 0) return;
+            
+            // 이미지 파일만 필터링
+            const imageFiles = files.filter(file => file.type.startsWith('image/') || /\.(heic|heif)$/i.test(file.name));
+            
+            if (imageFiles.length === 0) {
+              alert('이미지 파일만 업로드할 수 있습니다.');
+              return;
+            }
+            
+            // 모든 이미지 파일을 순차적으로 업로드
+            for (const file of imageFiles) {
+              await handleImageUpload(file);
             }
           }}
         >
