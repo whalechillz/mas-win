@@ -356,6 +356,83 @@ export default function FeedManager({
 
     try {
       setIsGeneratingImage(true);
+      
+      // ✅ 기존 이미지가 있고 제품 합성이 활성화된 경우: 제품 합성만 수행
+      if (feedData.imageUrl && enableProductComposition && selectedProductId) {
+        setIsComposingProduct(true);
+        try {
+          const selectedProduct = products.find(p => p.id === selectedProductId);
+          if (!selectedProduct) {
+            console.error('❌ 선택한 제품을 찾을 수 없습니다:', selectedProductId);
+            alert('선택한 제품을 찾을 수 없습니다. 제품을 다시 선택해주세요.');
+            return;
+          }
+
+          const compositionTarget = getCompositionTarget(selectedProductId);
+          
+          console.log('🎨 기존 이미지 제품 합성 시작:', {
+            productId: selectedProductId,
+            productName: selectedProduct.name,
+            productCategory: selectedProduct.category,
+            compositionTarget,
+            modelImageUrl: feedData.imageUrl
+          });
+          
+          const composeResponse = await fetch('/api/compose-product-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              modelImageUrl: feedData.imageUrl,
+              productId: selectedProductId,
+              compositionTarget: compositionTarget,
+              compositionMethod: 'nano-banana-pro',
+              compositionBackground: 'natural',
+              baseImageUrl: feedData.imageUrl // 저장 위치 결정용
+            })
+          });
+          
+          if (!composeResponse.ok) {
+            const errorData = await composeResponse.json().catch(() => ({ 
+              error: `서버 오류 (${composeResponse.status})` 
+            }));
+            console.error('❌ 제품 합성 API 실패:', {
+              status: composeResponse.status,
+              statusText: composeResponse.statusText,
+              error: errorData
+            });
+            alert(`제품 합성 실패: ${errorData.error || errorData.message || '서버 오류가 발생했습니다.'}`);
+            return;
+          }
+          
+          const composeResult = await composeResponse.json();
+          
+          if (composeResult.success && composeResult.images && composeResult.images.length > 0) {
+            const finalImageUrl = composeResult.images[0].imageUrl;
+            console.log('✅ 기존 이미지 제품 합성 완료:', {
+              productName: composeResult.product?.name,
+              composedImageUrl: finalImageUrl
+            });
+            
+            onUpdate({
+              ...feedData,
+              imageUrl: finalImageUrl
+            });
+            alert('✅ 기존 이미지에 제품이 합성되었습니다.');
+          } else {
+            console.warn('⚠️ 제품 합성 응답에 이미지가 없습니다:', composeResult);
+            alert('제품 합성은 완료되었지만 결과 이미지를 가져올 수 없습니다.');
+          }
+        } catch (composeError: any) {
+          console.error('❌ 제품 합성 예외 발생:', composeError);
+          alert(`제품 합성 중 오류가 발생했습니다: ${composeError.message || '알 수 없는 오류'}`);
+        } finally {
+          setIsComposingProduct(false);
+          setIsGeneratingImage(false);
+        }
+        return; // 제품 합성만 수행한 경우 여기서 종료
+      }
+      
+      // ✅ 기존 로직: 새 이미지 생성 → 제품 합성 (필요한 경우)
       const result = await onGenerateImage(feedData.imagePrompt);
       if (result.imageUrls.length > 0) {
         let finalImageUrl = result.imageUrls[0];
