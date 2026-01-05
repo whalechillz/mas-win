@@ -3279,10 +3279,26 @@ export default function GalleryAdmin() {
             
             alert(`이미지가 삭제되었습니다. (중복 표시된 ${duplicateCount}개 항목 모두 UI에서 제거됨)`);
             
-            // ✅ 서버에서 목록 새로고침 (캐시 무효화 포함)
+            // ✅ totalCount 업데이트
+            setTotalCount((prev) => Math.max(0, prev - duplicateCount));
+
+            // ✅ 조건부 즉시 새로고침:
+            // - 전체 폴더('all')일 경우: 즉시 새로고침 안 함
+            // - 특정 폴더일 경우: 현재 페이지만 다시 로드
+            if (folderFilter !== 'all') {
+              // 특정 폴더: 현재 페이지만 다시 로드
+              setTimeout(() => {
+                fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery, false);
+              }, 300);
+            }
+
+            // ✅ 백그라운드 점진적 새로고침 (모든 경우)
             setTimeout(() => {
-              fetchImages(1, true, folderFilter, includeChildren, searchQuery);
-            }, 500);
+              fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery, false)
+                .catch(err => {
+                  console.warn('⚠️ 백그라운드 새로고침 실패 (무시):', err);
+                });
+            }, 2000);
           } else {
             const error = await response.json().catch(() => ({ error: '삭제 실패' }));
             alert(`이미지 삭제 실패: ${error.error || '알 수 없는 오류'}`);
@@ -3398,10 +3414,26 @@ export default function GalleryAdmin() {
         
         alert('이미지가 삭제되었습니다.');
         
-        // ✅ 서버에서 목록 새로고침 (캐시 무효화 포함)
+        // ✅ totalCount 업데이트
+        setTotalCount((prev) => Math.max(0, prev - 1));
+
+        // ✅ 조건부 즉시 새로고침:
+        // - 전체 폴더('all')일 경우: 즉시 새로고침 안 함
+        // - 특정 폴더일 경우: 현재 페이지만 다시 로드
+        if (folderFilter !== 'all') {
+          // 특정 폴더: 현재 페이지만 다시 로드
+          setTimeout(() => {
+            fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery, false);
+          }, 300);
+        }
+
+        // ✅ 백그라운드 점진적 새로고침 (모든 경우)
         setTimeout(() => {
-          fetchImages(1, true, folderFilter, includeChildren, searchQuery);
-        }, 500);
+          fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery, false)
+            .catch(err => {
+              console.warn('⚠️ 백그라운드 새로고침 실패 (무시):', err);
+            });
+        }, 2000);
       } else {
         let errorData;
         try {
@@ -7168,6 +7200,18 @@ export default function GalleryAdmin() {
                       <div className="mt-3 flex justify-end">
                         <button
                           onClick={() => {
+                            console.log('🗑️ 삭제 버튼 클릭:', {
+                              id: img.id,
+                              filename: img.filename,
+                              fullImage: img
+                            });
+                            
+                            if (!img.id) {
+                              console.error('❌ 이미지 ID가 없습니다:', img);
+                              alert(`이미지 ID가 없어 삭제할 수 없습니다.\n\n파일명: ${img.filename || '알 수 없음'}`);
+                              return;
+                            }
+                            
                             setImageToDelete(img);
                             setShowCompareDeleteConfirm(true);
                           }}
@@ -7218,14 +7262,26 @@ export default function GalleryAdmin() {
                   </button>
                   <button
                     onClick={async () => {
-                      if (!imageToDelete) return;
+                      if (!imageToDelete) {
+                        console.error('❌ 삭제할 이미지가 없습니다');
+                        return;
+                      }
+
+                      if (!imageToDelete.id) {
+                        console.error('❌ 이미지 ID가 없습니다:', imageToDelete);
+                        alert(`이미지 ID가 없어 삭제할 수 없습니다.\n\n파일명: ${imageToDelete.filename || '알 수 없음'}`);
+                        setShowCompareDeleteConfirm(false);
+                        setImageToDelete(null);
+                        return;
+                      }
 
                       try {
                         console.log('🗑️ 이미지 삭제 시작:', {
                           id: imageToDelete.id,
                           filename: imageToDelete.filename,
                           usage: imageToDelete.usage,
-                          usageCount: imageToDelete.usageCount
+                          usageCount: imageToDelete.usageCount,
+                          fullImage: imageToDelete
                         });
 
                         const response = await fetch('/api/admin/image-asset-manager', {
@@ -7240,7 +7296,16 @@ export default function GalleryAdmin() {
                         console.log('📡 API 응답 상태:', response.status, response.statusText);
 
                         if (!response.ok) {
-                          const errorData = await response.json();
+                          const errorText = await response.text();
+                          console.error('❌ API 오류 응답 (텍스트):', errorText);
+                          
+                          let errorData;
+                          try {
+                            errorData = JSON.parse(errorText);
+                          } catch (e) {
+                            errorData = { error: errorText || 'Unknown error' };
+                          }
+                          
                           console.error('❌ API 오류 응답:', errorData);
                           throw new Error(errorData.error || errorData.details || '삭제 실패');
                         }
@@ -7256,19 +7321,48 @@ export default function GalleryAdmin() {
                         // ✅ 모달을 닫지 않고 삭제된 이미지만 목록에서 제거
                         setCompareResult((prev: any) => {
                           if (!prev) return null;
+                          const filtered = prev.images.filter((i: any) => i.id !== imageToDelete.id);
+                          
+                          // 이미지가 1개 이하로 남으면 모달 닫기
+                          if (filtered.length <= 1) {
+                            setTimeout(() => {
+                              setShowCompareModal(false);
+                              setCompareResult(null);
+                            }, 100);
+                          }
+                          
                           return {
                             ...prev,
-                            images: prev.images.filter((i: any) => i.id !== imageToDelete.id)
+                            images: filtered
                           };
                         });
 
-                        // ✅ 로컬 images 상태에서도 즉시 제거
+                        // ✅ 로컬 images 상태에서 즉시 제거
                         setImages((prev: any[]) => prev.filter((i: any) => i.id !== imageToDelete.id));
+                        
+                        // ✅ totalCount 업데이트
+                        setTotalCount((prev) => Math.max(0, prev - 1));
 
-                        // ✅ 이미지 목록 새로고침 (캐시 무효화, 타이밍 증가)
+                        // ✅ 조건부 즉시 새로고침:
+                        // - 전체 폴더('all')일 경우: 즉시 새로고침 안 함
+                        // - 특정 폴더일 경우: 현재 페이지만 다시 로드
+                        if (folderFilter !== 'all') {
+                          // 특정 폴더: 현재 페이지만 다시 로드
+                          setTimeout(() => {
+                            fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery, false);
+                          }, 300);
+                        }
+
+                        // ✅ 백그라운드 점진적 새로고침 (모든 경우)
+                        // - 로딩 표시 없이 조용히 동기화
+                        // - 실패해도 사용자 경험에 영향 없음
                         setTimeout(() => {
-                          fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
-                        }, 500);
+                          fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery, false)
+                            .catch(err => {
+                              console.warn('⚠️ 백그라운드 새로고침 실패 (무시):', err);
+                              // 실패해도 사용자에게 알리지 않음 (이미 로컬 상태는 업데이트됨)
+                            });
+                        }, 2000); // 2초 후 백그라운드 동기화
 
                         // 모달 닫기
                         setShowCompareDeleteConfirm(false);
