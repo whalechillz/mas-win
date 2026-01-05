@@ -358,7 +358,11 @@ const GalleryPicker: React.FC<Props> = ({
 
   // 폴더 필터나 페이지 변경 시 이미지 로드 (캐시 무효화 포함)
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      // 모달이 닫힐 때 업로드 상태 리셋
+      setIsUploading(false);
+      return;
+    }
     // folderFilter가 변경될 때는 캐시 무효화를 위해 resetPage=true
     const shouldResetPage = folderFilter !== undefined;
     console.log('📁 folderFilter 또는 page 변경 감지, 이미지 다시 로드:', { folderFilter, page, shouldResetPage });
@@ -368,6 +372,14 @@ const GalleryPicker: React.FC<Props> = ({
   // 이미지 업로드 핸들러
   const handleImageUpload = async (file: File) => {
     if (!file) return;
+    
+    // 강제 타임아웃 설정 (100초 - 서버 타임아웃보다 약간 길게)
+    let forceTimeout: NodeJS.Timeout | null = setTimeout(() => {
+      console.error('⚠️ 업로드 강제 타임아웃 (100초 초과)');
+      setIsUploading(false);
+      forceTimeout = null;
+      alert('업로드 시간이 초과되었습니다. 페이지를 새로고침하거나 다시 시도해주세요.');
+    }, 100000); // 100초
     
     try {
       setIsUploading(true);
@@ -385,7 +397,15 @@ const GalleryPicker: React.FC<Props> = ({
         targetFolder: targetFolder,
         enableHEICConversion: true,
         enableEXIFBackfill: true,
+        // ✅ 카카오톡 콘텐츠는 항상 원본 그대로 (빠른 업로드, 멈춤 문제 해결)
+        uploadMode: 'preserve-original',
       });
+      
+      // 타임아웃 클리어
+      if (forceTimeout) {
+        clearTimeout(forceTimeout);
+        forceTimeout = null;
+      }
       
       console.log('✅ 이미지 업로드 완료:', url);
       
@@ -405,9 +425,19 @@ const GalleryPicker: React.FC<Props> = ({
       
       alert('이미지 업로드 완료!');
     } catch (error: any) {
+      // 타임아웃 클리어
+      if (forceTimeout) {
+        clearTimeout(forceTimeout);
+        forceTimeout = null;
+      }
+      
       console.error('❌ 이미지 업로드 오류:', error);
       alert(`업로드 실패: ${error.message || '알 수 없는 오류'}`);
     } finally {
+      // 타임아웃이 아직 활성화되어 있으면 클리어
+      if (forceTimeout) {
+        clearTimeout(forceTimeout);
+      }
       setIsUploading(false);
     }
   };
@@ -1051,6 +1081,7 @@ const GalleryPicker: React.FC<Props> = ({
                   type="date"
                   value={selectedDate}
                   onChange={(e) => handleDateChange(e.target.value)}
+                  aria-label="날짜 선택"
                   className="px-2 py-2 sm:px-3 sm:py-1.5 border border-gray-300 rounded-lg text-sm flex-1 sm:flex-none min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
                 />
               </div>
@@ -1063,6 +1094,7 @@ const GalleryPicker: React.FC<Props> = ({
                 value={folderFilter}
                 onChange={(e) => setFolderFilter(e.target.value)}
                 placeholder="폴더 경로"
+                aria-label="폴더 경로 필터"
                 className="px-2 py-2 sm:px-3 sm:py-1.5 border border-gray-300 rounded-lg text-xs sm:text-sm flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
               />
               {folderFilter && (
@@ -1086,6 +1118,7 @@ const GalleryPicker: React.FC<Props> = ({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="검색 (파일명/확장자)"
+                aria-label="검색 (파일명/확장자)"
                 className="px-2 py-2 sm:px-3 sm:py-1.5 border border-gray-300 rounded-lg text-sm flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
               />
             </div>
@@ -1096,6 +1129,7 @@ const GalleryPicker: React.FC<Props> = ({
                 value={altText}
                 onChange={(e) => setAltText(e.target.value)}
                 placeholder="ALT 텍스트"
+                aria-label="ALT 텍스트"
                 className="px-2 py-2 sm:px-3 sm:py-1.5 border border-gray-300 rounded-lg text-sm flex-1 sm:flex-none sm:min-w-[160px] min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
               />
             </div>
@@ -1136,6 +1170,7 @@ const GalleryPicker: React.FC<Props> = ({
                 ref={fileInputRef}
                 type="file"
                 accept="image/*,.heic,.heif"
+                aria-label="이미지 파일 업로드"
                 className="hidden"
                 onChange={handleFileSelect}
               />
@@ -1199,7 +1234,7 @@ const GalleryPicker: React.FC<Props> = ({
                   {isDragging ? '여기에 이미지를 놓으세요' : '이미지 파일을 드래그하거나 클릭하여 업로드'}
                 </span>
                 <span className="mt-1 block text-sm text-gray-500">
-                  이미지: PNG, JPG, GIF, HEIC | 동영상: MP4, AVI, MOV, WEBM
+                  이미지: PNG, JPG, GIF, HEIC
                   {folderFilter && (
                     <span className="block mt-1 text-xs text-blue-600">
                       📁 업로드 위치: {folderFilter}
@@ -1210,7 +1245,7 @@ const GalleryPicker: React.FC<Props> = ({
               <input
                 id="gallery-picker-file-upload"
                 type="file"
-                accept="image/*,video/*,.heic,.heif"
+                accept="image/*,.heic,.heif"
                 className="hidden"
                 onChange={handleFileSelect}
               />

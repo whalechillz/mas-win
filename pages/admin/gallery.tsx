@@ -1191,7 +1191,7 @@ export default function GalleryAdmin() {
   const [uploadProgress, setUploadProgress] = useState(0); // 업로드 진행률 (0-100)
   const [addUrl, setAddUrl] = useState('');
   const [selectedUploadFolder, setSelectedUploadFolder] = useState<string>('');
-  const [uploadMode, setUploadMode] = useState<'auto' | 'preserve-name' | 'preserve-original'>('auto'); // 업로드 모드
+  const [uploadMode, setUploadMode] = useState<'preserve-original' | 'preserve-original-optimized-name'>('preserve-original'); // 업로드 모드 (기본값: preserve-original)
   const [aiBrandTone, setAiBrandTone] = useState<'senior_emotional' | 'high_tech_innovative'>('senior_emotional');
   
   // 모달 열 때 현재 폴더 자동 설정
@@ -6616,45 +6616,7 @@ export default function GalleryAdmin() {
                       업로드 모드
                     </label>
                     
-                    {/* 자동 (기본) */}
-                    <label className="flex items-start cursor-pointer">
-                      <input
-                        type="radio"
-                        name="uploadMode"
-                        value="auto"
-                        checked={uploadMode === 'auto'}
-                        onChange={(e) => setUploadMode('auto')}
-                        className="mt-1 mr-2 w-4 h-4 text-blue-600"
-                      />
-                      <div className="flex-1">
-                        <span className="text-sm text-gray-700 font-medium">자동 (기본)</span>
-                        <p className="text-xs text-gray-500 mt-1">
-                          이미지: 최적화 + 파일명 변경 → {selectedUploadFolder ? (selectedUploadFolder.match(/originals\/([^\/]+)/)?.[1] || 'blog') : 'blog'}-{'{타임스탬프}'}-{'{랜덤}'}.jpg<br/>
-                          동영상: 파일명만 최적화 + 확장자 유지 → {selectedUploadFolder ? (selectedUploadFolder.match(/originals\/([^\/]+)/)?.[1] || 'blog') : 'blog'}-{'{타임스탬프}'}-{'{랜덤}'}.mp4
-                        </p>
-                      </div>
-                    </label>
-                    
-                    {/* 파일명 유지 */}
-                    <label className="flex items-start cursor-pointer">
-                      <input
-                        type="radio"
-                        name="uploadMode"
-                        value="preserve-name"
-                        checked={uploadMode === 'preserve-name'}
-                        onChange={(e) => setUploadMode('preserve-name')}
-                        className="mt-1 mr-2 w-4 h-4 text-blue-600"
-                      />
-                      <div className="flex-1">
-                        <span className="text-sm text-gray-700 font-medium">파일명 유지</span>
-                        <p className="text-xs text-gray-500 mt-1">
-                          이미지: 최적화 적용 + 파일명/확장자 원본 그대로<br/>
-                          동영상: 원본 파일명/확장자 그대로 (최적화 없음)
-                        </p>
-                      </div>
-                    </label>
-                    
-                    {/* 원본 그대로 */}
+                    {/* 원본 유지, 파일명 유지, 확장자 유지 (기본) */}
                     <label className="flex items-start cursor-pointer">
                       <input
                         type="radio"
@@ -6665,9 +6627,27 @@ export default function GalleryAdmin() {
                         className="mt-1 mr-2 w-4 h-4 text-blue-600"
                       />
                       <div className="flex-1">
-                        <span className="text-sm text-gray-700 font-medium">원본 그대로</span>
+                        <span className="text-sm text-gray-700 font-medium">원본 유지, 파일명 유지, 확장자 유지 (기본)</span>
                         <p className="text-xs text-gray-500 mt-1">
-                          이미지/동영상: 최적화 없음 + 파일명/확장자 원본 그대로
+                          이미지/동영상: 원본 파일 그대로 + 원본 파일명 그대로 + 원본 확장자 그대로
+                        </p>
+                      </div>
+                    </label>
+                    
+                    {/* 원본 유지, 파일명 최적화, 확장자 유지 */}
+                    <label className="flex items-start cursor-pointer">
+                      <input
+                        type="radio"
+                        name="uploadMode"
+                        value="preserve-original-optimized-name"
+                        checked={uploadMode === 'preserve-original-optimized-name'}
+                        onChange={(e) => setUploadMode('preserve-original-optimized-name')}
+                        className="mt-1 mr-2 w-4 h-4 text-blue-600"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm text-gray-700 font-medium">원본 유지, 파일명 최적화, 확장자 유지</span>
+                        <p className="text-xs text-gray-500 mt-1">
+                          이미지/동영상: 원본 파일 그대로 + 파일명 최적화 ({selectedUploadFolder ? (selectedUploadFolder.match(/originals\/([^\/]+)/)?.[1] || 'blog') : 'blog'}-{'{타임스탬프}'}-{'{랜덤}'}.{'{원본확장자}'}) + 원본 확장자 유지
                         </p>
                       </div>
                     </label>

@@ -69,8 +69,29 @@ export const config = {
 };
 
 export default async function handler(req, res) {
+  // 디버깅: 요청 정보 로깅
+  console.log('📥 API 요청 수신:', {
+    method: req.method,
+    url: req.url,
+    path: req.url?.split('?')[0],
+    headers: {
+      'content-type': req.headers['content-type'],
+      'content-length': req.headers['content-length'],
+      'user-agent': req.headers['user-agent']?.substring(0, 50)
+    }
+  });
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    console.error('❌ 잘못된 메서드:', {
+      received: req.method,
+      expected: 'POST',
+      url: req.url
+    });
+    return res.status(405).json({ 
+      error: 'Method not allowed',
+      receivedMethod: req.method,
+      allowedMethod: 'POST'
+    });
   }
 
   try {
@@ -78,15 +99,28 @@ export default async function handler(req, res) {
     const formidable = (await import('formidable')).default;
     const form = formidable({
       maxFileSize: 50 * 1024 * 1024, // 50MB 제한 (Supabase 버킷 제한에 맞춤)
+      keepExtensions: true, // 확장자 유지 (갤러리 관리와 일관성)
+      multiples: false, // 단일 파일만 허용
     });
 
-    // Promise 래퍼로 변환 (formidable 버전 호환성)
+    // Promise 래퍼로 변환 (formidable 버전 호환성) + 타임아웃 추가
+    const parseTimeout = setTimeout(() => {
+      console.error('❌ FormData 파싱 타임아웃 (60초 초과)');
+      reject(new Error('파일 파싱 시간이 초과되었습니다. 파일 크기를 확인해주세요.'));
+    }, 60000); // 60초 타임아웃
+
     const [fields, files] = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
+        clearTimeout(parseTimeout);
         if (err) {
           console.error('❌ FormData 파싱 오류:', err);
           reject(err);
         } else {
+          console.log('✅ FormData 파싱 완료:', {
+            fieldsCount: Object.keys(fields).length,
+            filesCount: Object.keys(files).length,
+            hasFile: !!(files.file?.[0] || files.image?.[0])
+          });
           resolve([fields, files]);
         }
       });
@@ -95,18 +129,32 @@ export default async function handler(req, res) {
     // file 또는 image 필드명 지원 (하위 호환성)
     const file = files.file?.[0] || files.image?.[0];
     const targetFolder = fields.targetFolder?.[0] || ''; // targetFolder 파라미터 읽기
-    const uploadMode = fields.uploadMode?.[0] || 'auto'; // 업로드 모드: 'auto' | 'preserve-name' | 'preserve-original'
+    const uploadMode = fields.uploadMode?.[0] || 'preserve-original'; // 업로드 모드: 'preserve-original' | 'preserve-original-optimized-name' (기본값: preserve-original)
+    const originalFilename = file?.originalFilename || '';
     
-    // 하위 호환성: 기존 preserveFilename, preserveExtension 파라미터 지원
+    // 하위 호환성: 기존 파라미터 지원 (deprecated)
     const preserveFilename = fields.preserveFilename?.[0] === 'true';
     const preserveExtension = fields.preserveExtension?.[0] === 'true';
     
-    // 기존 파라미터가 있으면 uploadMode로 변환
+    // 기존 파라미터가 있으면 uploadMode로 변환 (하위 호환성)
     let effectiveUploadMode = uploadMode;
-    if (preserveFilename && uploadMode === 'auto') {
-      effectiveUploadMode = 'preserve-name';
-    } else if (preserveExtension && uploadMode === 'auto') {
-      effectiveUploadMode = 'preserve-name';
+    if (preserveFilename && !uploadMode) {
+      effectiveUploadMode = 'preserve-original';
+    } else if (preserveExtension && !uploadMode) {
+      effectiveUploadMode = 'preserve-original';
+    }
+    
+    // 한글 파일명 감지 및 자동 모드 전환 (서버 측 이중 안전장치)
+    const hasKoreanInFileName = /[가-힣]/.test(originalFilename);
+    if (hasKoreanInFileName && effectiveUploadMode === 'preserve-original') {
+      console.log('🔄 서버 측 한글 파일명 감지, 자동으로 파일명 최적화 모드로 전환:', originalFilename);
+      effectiveUploadMode = 'preserve-original-optimized-name';
+    }
+    
+    // 유효하지 않은 모드는 기본값으로 변경
+    if (effectiveUploadMode !== 'preserve-original' && effectiveUploadMode !== 'preserve-original-optimized-name') {
+      console.warn(`⚠️ 유효하지 않은 uploadMode: ${effectiveUploadMode}, 기본값(preserve-original) 사용`);
+      effectiveUploadMode = 'preserve-original';
     }
 
     if (!file) {
@@ -166,14 +214,17 @@ export default async function handler(req, res) {
       
       // 파일명 처리
       if (effectiveUploadMode === 'preserve-original') {
-        // 옵션 1: 원본 파일명과 확장자 그대로
+        // 원본 파일명과 확장자 그대로
         finalFileName = file.originalFilename || `video-${Date.now()}.${originalExtension}`;
-      } else {
-        // 옵션 2: 파일명만 폴더에 맞게 최적화하고 확장자 유지
+      } else if (effectiveUploadMode === 'preserve-original-optimized-name') {
+        // 파일명만 폴더에 맞게 최적화하고 확장자 유지
         const folderPrefix = extractFolderPrefix(targetFolder);
         const timestamp = Date.now();
         const randomString = Math.random().toString(36).substring(2, 8);
         finalFileName = `${folderPrefix}-${timestamp}-${randomString}.${originalExtension}`;
+      } else {
+        // 기본값: preserve-original과 동일
+        finalFileName = file.originalFilename || `video-${Date.now()}.${originalExtension}`;
       }
       
       // 동영상 Content-Type 설정
@@ -199,6 +250,21 @@ export default async function handler(req, res) {
       console.log(`✅ 동영상 파일 준비 완료: ${finalFileName} (${contentType})`);
     } else {
       // 이미지 파일 처리
+      // 먼저 실제로 이미지인지 확인
+      const isActuallyImage = file.mimetype?.startsWith('image/') || 
+                              /\.(jpg|jpeg|png|gif|webp|bmp|svg|heic|heif)$/i.test(file.originalFilename || '');
+      
+      if (!isActuallyImage) {
+        console.error('❌ 이미지가 아닌 파일:', {
+          mimetype: file.mimetype,
+          filename: file.originalFilename
+        });
+        return res.status(400).json({ 
+          error: '이미지 파일만 업로드할 수 있습니다.',
+          details: `지원되지 않는 파일 형식: ${file.mimetype || 'unknown'}`
+        });
+      }
+
       // 이미지 메타데이터 추출
       try {
         // Sharp 동적 import (Vercel 환경 호환성)
@@ -214,7 +280,19 @@ export default async function handler(req, res) {
           size: fileBuffer.length
         });
       } catch (metadataError) {
-        console.warn('⚠️ 메타데이터 추출 실패:', metadataError.message);
+        console.error('❌ 메타데이터 추출 실패:', {
+          error: metadataError.message,
+          stack: metadataError.stack,
+          mimetype: file.mimetype,
+          filename: file.originalFilename
+        });
+        // Sharp 실패 시 기본값 설정
+        imageMetadata = {
+          width: null,
+          height: null,
+          format: originalExtension,
+          size: fileBuffer.length
+        };
       }
 
       // 이미지 파일만 최적화 처리 (동영상은 이미 위에서 처리됨)
@@ -226,10 +304,21 @@ export default async function handler(req, res) {
       outputExtension = 'jpg';
       contentType = 'image/jpeg';
 
-      if (effectiveUploadMode === 'preserve-original') {
+      if (effectiveUploadMode === 'preserve-original' || effectiveUploadMode === 'preserve-original-optimized-name') {
         // 원본 파일 그대로 업로드 (최적화 건너뛰기)
         processedBuffer = fileBuffer;
-        finalFileName = file.originalFilename || `image-${Date.now()}.${originalExtension}`;
+        
+        // 파일명 처리
+        if (effectiveUploadMode === 'preserve-original') {
+          // 원본 파일명 그대로
+          finalFileName = file.originalFilename || `image-${Date.now()}.${originalExtension}`;
+        } else {
+          // 파일명만 최적화 (확장자 유지)
+          const folderPrefix = extractFolderPrefix(targetFolder);
+          const timestamp = Date.now();
+          const randomString = Math.random().toString(36).substring(2, 8);
+          finalFileName = `${folderPrefix}-${timestamp}-${randomString}.${originalExtension}`;
+        }
         
         // 원본 포맷에 맞는 Content-Type 설정
         if (originalFormat === 'webp' || originalExtension === 'webp') {
@@ -242,6 +331,8 @@ export default async function handler(req, res) {
         
         console.log(`✅ 원본 파일 그대로 업로드: ${finalFileName} (${contentType})`);
       } else {
+        // 이제 사용하지 않는 최적화 모드 (하위 호환성을 위해 유지)
+        console.warn('⚠️ 사용되지 않는 최적화 모드입니다. preserve-original 또는 preserve-original-optimized-name을 사용하세요.');
         // 최적화 적용
         // 출력 포맷 결정
         if (effectiveUploadMode === 'preserve-name') {
@@ -264,64 +355,98 @@ export default async function handler(req, res) {
 
         // 이미지 최적화
         try {
-          if (imageMetadata) {
-            const sharp = (await import('sharp')).default;
-            
-            // 이미지 최적화 설정 (EXIF 회전 정보 자동 적용)
-            let optimizedImage = sharp(fileBuffer)
-              .rotate() // EXIF 회전 정보 자동 적용
-              .resize(1200, 800, { // 최대 크기 제한
-                fit: 'inside',
-                withoutEnlargement: true
-              });
-
-            // 포맷별 최적화 옵션 적용
-            if (outputFormat === 'webp') {
-              optimizedImage = optimizedImage.webp({ quality: 85 });
-              contentType = 'image/webp';
-            } else if (outputFormat === 'png') {
-              optimizedImage = optimizedImage.png({ quality: 85, compressionLevel: 9 });
-              contentType = 'image/png';
+          if (!imageMetadata) {
+            console.warn('⚠️ 메타데이터가 없어 원본 파일을 사용합니다.');
+            processedBuffer = fileBuffer;
+          } else {
+            // 큰 이미지(5MB 이상)는 최적화 스킵 (빠른 업로드)
+            const fileSizeMB = fileBuffer.length / 1024 / 1024;
+            if (fileSizeMB > 5 && effectiveUploadMode === 'auto') {
+              console.log(`⚠️ 큰 이미지(${fileSizeMB.toFixed(2)}MB) 감지, 최적화 스킵하여 빠른 업로드`);
+              processedBuffer = fileBuffer;
+              finalFileName = file.originalFilename || `image-${Date.now()}.${originalExtension}`;
+              
+              // 원본 포맷에 맞는 Content-Type 설정
+              if (originalExtension === 'png' || originalFormat === 'png') {
+                contentType = 'image/png';
+              } else if (originalExtension === 'webp' || originalFormat === 'webp') {
+                contentType = 'image/webp';
+              } else {
+                contentType = 'image/jpeg';
+              }
             } else {
-              optimizedImage = optimizedImage.jpeg({ 
-                quality: 85, // 품질 85%
-                progressive: true,
-                mozjpeg: true // 더 나은 JPEG 압축
-              });
-              contentType = 'image/jpeg';
-            }
+              const optimizationStart = Date.now();
+              const sharp = (await import('sharp')).default;
+              
+              console.log(`🔄 이미지 최적화 시작 (${fileSizeMB.toFixed(2)}MB)...`);
+              
+              // 이미지 최적화 설정 (EXIF 회전 정보 자동 적용)
+              let optimizedImage = sharp(fileBuffer)
+                .rotate() // EXIF 회전 정보 자동 적용
+                .resize(1200, 800, { // 최대 크기 제한
+                  fit: 'inside',
+                  withoutEnlargement: true
+                });
 
-            processedBuffer = await optimizedImage.toBuffer();
-            
-            // 최적화된 이미지 메타데이터 확인
-            const optimizedMetadata = await sharp(processedBuffer).metadata();
-            console.log(`🔄 최적화된 이미지 메타데이터:`, {
-              width: optimizedMetadata.width,
-              height: optimizedMetadata.height,
-              orientation: optimizedMetadata.orientation,
-              format: optimizedMetadata.format,
-              size: processedBuffer.length
-            });
-            
-            // 파일명 확장자 업데이트
-            if (effectiveUploadMode === 'preserve-name') {
-              // 원본 확장자 유지
-              const baseName = finalFileName.replace(/\.[^/.]+$/, '');
-              finalFileName = `${baseName}.${outputExtension}`;
-            } else {
-              // 기본: JPEG로 변환
-              finalFileName = finalFileName.replace(/\.[^/.]+$/, `.${outputExtension}`);
+              // 포맷별 최적화 옵션 적용
+              if (outputFormat === 'webp') {
+                optimizedImage = optimizedImage.webp({ quality: 85 });
+                contentType = 'image/webp';
+              } else if (outputFormat === 'png') {
+                optimizedImage = optimizedImage.png({ quality: 85, compressionLevel: 9 });
+                contentType = 'image/png';
+              } else {
+                optimizedImage = optimizedImage.jpeg({ 
+                  quality: 85, // 품질 85%
+                  progressive: true,
+                  mozjpeg: true // 더 나은 JPEG 압축
+                });
+                contentType = 'image/jpeg';
+              }
+
+              processedBuffer = await optimizedImage.toBuffer();
+              
+              const optimizationTime = Date.now() - optimizationStart;
+              console.log(`⏱️ 이미지 최적화 완료 (${optimizationTime}ms):`, {
+                originalSize: `${fileSizeMB.toFixed(2)}MB`,
+                optimizedSize: `${(processedBuffer.length / 1024 / 1024).toFixed(2)}MB`,
+                reduction: `${((1 - processedBuffer.length / fileBuffer.length) * 100).toFixed(1)}%`
+              });
+              
+              // 최적화된 이미지 메타데이터 확인
+              const optimizedMetadata = await sharp(processedBuffer).metadata();
+              console.log(`🔄 최적화된 이미지 메타데이터:`, {
+                width: optimizedMetadata.width,
+                height: optimizedMetadata.height,
+                orientation: optimizedMetadata.orientation,
+                format: optimizedMetadata.format,
+                size: processedBuffer.length
+              });
+              
+              // 파일명 확장자 업데이트
+              if (effectiveUploadMode === 'preserve-name') {
+                // 원본 확장자 유지
+                const baseName = finalFileName.replace(/\.[^/.]+$/, '');
+                finalFileName = `${baseName}.${outputExtension}`;
+              } else {
+                // 기본: JPEG로 변환
+                finalFileName = finalFileName.replace(/\.[^/.]+$/, `.${outputExtension}`);
+              }
+              
+              console.log(`✅ 이미지 최적화 완료: ${imageMetadata.width}x${imageMetadata.height} -> ${optimizedMetadata.width}x${optimizedMetadata.height} (포맷: ${outputFormat})`);
+              
+              // 최적화된 메타데이터로 업데이트
+              imageMetadata = optimizedMetadata;
+              imageMetadata.size = processedBuffer.length;
             }
-            
-            console.log(`✅ 이미지 최적화 완료: ${imageMetadata.width}x${imageMetadata.height} -> ${optimizedMetadata.width}x${optimizedMetadata.height} (포맷: ${outputFormat})`);
-            
-            // 최적화된 메타데이터로 업데이트
-            imageMetadata = optimizedMetadata;
-            imageMetadata.size = processedBuffer.length;
           }
         } catch (optimizeError) {
-          console.warn('⚠️ 이미지 최적화 실패, 원본 사용:', optimizeError.message);
+          console.error('❌ 이미지 최적화 실패:', {
+            error: optimizeError.message,
+            stack: optimizeError.stack
+          });
           // 최적화 실패 시 원본 사용
+          processedBuffer = fileBuffer;
         }
       } // 이미지 처리 종료
     } // else 블록 닫기
@@ -333,30 +458,33 @@ export default async function handler(req, res) {
       uniqueFileName = finalFileName;
     } else {
       // 이미지 파일명 처리
-      if (effectiveUploadMode === 'preserve-original' || effectiveUploadMode === 'preserve-name') {
+      if (effectiveUploadMode === 'preserve-original') {
         // 원본 파일명 전체 유지 (한글 파일명도 그대로)
-        uniqueFileName = file.originalFilename || `image-${Date.now()}.${outputExtension}`;
+        uniqueFileName = file.originalFilename || `image-${Date.now()}.${originalExtension}`;
         
-        // 확장자가 이미 올바른지 확인
-        if (effectiveUploadMode === 'preserve-original') {
-          // 원본 그대로 모드: 원본 확장자 그대로
+        // 원본 확장자 그대로
+        if (!uniqueFileName.endsWith(`.${originalExtension}`)) {
+          const baseName = uniqueFileName.replace(/\.[^/.]+$/, '');
+          uniqueFileName = `${baseName}.${originalExtension}`;
+        }
+      } else if (effectiveUploadMode === 'preserve-original-optimized-name') {
+        // 파일명만 최적화 (확장자 유지) - 이미 finalFileName에 설정됨
+        uniqueFileName = finalFileName;
+      } else {
+        // 하위 호환성: 기존 모드 지원 (deprecated)
+        if (effectiveUploadMode === 'preserve-name') {
+          uniqueFileName = file.originalFilename || `image-${Date.now()}.${originalExtension}`;
           if (!uniqueFileName.endsWith(`.${originalExtension}`)) {
             const baseName = uniqueFileName.replace(/\.[^/.]+$/, '');
             uniqueFileName = `${baseName}.${originalExtension}`;
           }
         } else {
-          // 파일명 유지 모드: 최적화된 확장자
-          if (!uniqueFileName.endsWith(`.${outputExtension}`)) {
-            const baseName = uniqueFileName.replace(/\.[^/.]+$/, '');
-            uniqueFileName = `${baseName}.${outputExtension}`;
-          }
+          // auto 모드 (deprecated): 폴더명 + 타임스탬프 + 랜덤 문자열
+          const folderPrefix = extractFolderPrefix(targetFolder);
+          const timestamp = Date.now();
+          const randomString = Math.random().toString(36).substring(2, 8);
+          uniqueFileName = `${folderPrefix}-${timestamp}-${randomString}.jpg`;
         }
-      } else {
-        // auto 모드: 폴더명 + 타임스탬프 + 랜덤 문자열 (JPEG로 변환)
-        const folderPrefix = extractFolderPrefix(targetFolder);
-        const timestamp = Date.now();
-        const randomString = Math.random().toString(36).substring(2, 8);
-        uniqueFileName = `${folderPrefix}-${timestamp}-${randomString}.${outputExtension}`;
       }
     }
     
@@ -366,7 +494,7 @@ export default async function handler(req, res) {
       : uniqueFileName;
     
     // 원본 파일명 유지 옵션일 때 중복 체크
-    if (effectiveUploadMode === 'preserve-original' || effectiveUploadMode === 'preserve-name') {
+    if (effectiveUploadMode === 'preserve-original' || effectiveUploadMode === 'preserve-original-optimized-name') {
       const baseFileName = uniqueFileName;
       let counter = 0;
       let finalPath = uploadPath;
@@ -639,25 +767,73 @@ export default async function handler(req, res) {
 
   } catch (error) {
     // 파일 정보 추출 (에러 발생 시점에 file이 정의되어 있을 수 있음)
+    let file = null;
+    let targetFolder = '';
+    let effectiveUploadMode = 'auto';
+    
+    try {
+      // 에러 발생 전에 이미 파싱된 파일 정보가 있는지 확인
+      const formidable = (await import('formidable')).default;
+      const form = formidable({
+        maxFileSize: 50 * 1024 * 1024,
+        keepExtensions: true,
+        multiples: false,
+      });
+      
+      const [fields, files] = await new Promise((resolve, reject) => {
+        form.parse(req, (err, fields, files) => {
+          if (err) reject(err);
+          else resolve([fields, files]);
+        });
+      });
+      
+      file = files.file?.[0] || files.image?.[0];
+      targetFolder = fields.targetFolder?.[0] || '';
+      effectiveUploadMode = fields.uploadMode?.[0] || 'auto';
+    } catch (parseError) {
+      // 파싱 실패 시 무시
+    }
+
     const fileInfo = {
       fileName: file?.originalFilename || 'unknown',
       fileSize: file?.size || 0,
       fileType: file?.mimetype || 'unknown',
       targetFolder: targetFolder || 'unknown',
-      uploadMode: effectiveUploadMode || 'unknown'
+      uploadMode: effectiveUploadMode || 'unknown',
+      filePath: file?.filepath || file?.path || file?.tempFilePath || 'unknown',
+      isVideo: file ? isVideoFile(file.mimetype, file.originalFilename) : false
     };
 
-    console.error('❌ 이미지 업로드 오류:', {
-      error: error.message,
-      stack: error.stack,
+    // 에러 타입별 상세 로깅
+    let errorDetails = {
+      message: error.message,
       name: error.name,
       code: error.code,
       fileInfo
-    });
+    };
+
+    // Sharp 관련 오류인지 확인
+    if (error.message?.includes('Input buffer contains unsupported image format') ||
+        error.message?.includes('Unsupported image format') ||
+        error.message?.includes('unsupported image')) {
+      errorDetails.errorType = 'UNSUPPORTED_IMAGE_FORMAT';
+      errorDetails.suggestion = '지원되는 이미지 형식(PNG, JPG, GIF, WEBP, HEIC)을 사용해주세요.';
+    } else if (error.code === 'LIMIT_FILE_SIZE') {
+      errorDetails.errorType = 'FILE_SIZE_EXCEEDED';
+      errorDetails.maxSize = '50MB';
+    } else if (error.message?.includes('ENOENT') || error.message?.includes('no such file')) {
+      errorDetails.errorType = 'FILE_NOT_FOUND';
+    } else if (error.message?.includes('permission') || error.message?.includes('EACCES')) {
+      errorDetails.errorType = 'PERMISSION_DENIED';
+    }
+
+    console.error('❌ 이미지 업로드 오류:', errorDetails);
 
     res.status(500).json({ 
       error: '이미지 업로드에 실패했습니다.',
       details: error.message,
+      errorType: errorDetails.errorType,
+      suggestion: errorDetails.suggestion,
       // 개발 환경에서만 상세 정보 제공
       ...(process.env.NODE_ENV === 'development' && { 
         stack: error.stack,

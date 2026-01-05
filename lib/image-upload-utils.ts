@@ -5,7 +5,7 @@ interface UploadOptions {
   targetFolder?: string; // 업로드할 폴더 경로 (예: 'originals/daily-branding/kakao/2025-11-16/account1/feed')
   enableHEICConversion?: boolean; // HEIC 파일 자동 변환
   enableEXIFBackfill?: boolean; // EXIF 메타데이터 백필
-  uploadMode?: 'auto' | 'preserve-name' | 'preserve-original'; // 업로드 모드
+  uploadMode?: 'preserve-original' | 'preserve-original-optimized-name'; // 업로드 모드 (기본값: preserve-original)
   onProgress?: (progress: number) => void; // 업로드 진행률 콜백 (0-100)
   // 하위 호환성: 기존 옵션들 (deprecated)
   preserveFilename?: boolean; // 원본 파일명 전체 유지 옵션 (deprecated, uploadMode 사용 권장)
@@ -28,6 +28,15 @@ export async function uploadImageToSupabase(
   options: UploadOptions = {}
 ): Promise<UploadResult> {
   try {
+    // 한글 파일명 감지 및 자동 모드 전환
+    const hasKoreanInFileName = /[가-힣]/.test(file.name);
+    let finalUploadMode = options.uploadMode || 'preserve-original';
+    
+    if (hasKoreanInFileName && finalUploadMode === 'preserve-original') {
+      console.log('🔄 한글 파일명 감지, 자동으로 파일명 최적화 모드로 전환:', file.name);
+      finalUploadMode = 'preserve-original-optimized-name';
+    }
+    
     // HEIC 파일 변환 처리
     let processedFile = file;
     
@@ -73,9 +82,9 @@ export async function uploadImageToSupabase(
       formData.append('targetFolder', options.targetFolder);
     }
     
-    // uploadMode 옵션 추가 (우선순위)
-    if (options.uploadMode) {
-      formData.append('uploadMode', options.uploadMode);
+    // uploadMode 옵션 추가 (한글 감지 시 자동 변경된 모드 사용)
+    if (finalUploadMode) {
+      formData.append('uploadMode', finalUploadMode);
     }
     
     // 하위 호환성: 기존 옵션들 (uploadMode가 없을 때만 사용)
@@ -94,12 +103,35 @@ export async function uploadImageToSupabase(
       fileSize: `${(processedFile.size / 1024 / 1024).toFixed(2)}MB`,
       fileType: processedFile.type,
       targetFolder: options.targetFolder || '기본 폴더',
-      uploadMode: options.uploadMode || 'auto'
+      uploadMode: finalUploadMode,
+      hasKorean: hasKoreanInFileName
     });
 
     // 진행률 추적을 위해 XMLHttpRequest 사용
     return new Promise<UploadResult>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
+      
+      // 타임아웃 설정 (90초로 단축)
+      xhr.timeout = 90000; // 90초
+      
+      // readyState 변경 추적
+      xhr.addEventListener('readystatechange', () => {
+        if (xhr.readyState === XMLHttpRequest.OPENED) {
+          console.log('📤 XMLHttpRequest OPENED: 요청 준비 완료');
+        } else if (xhr.readyState === XMLHttpRequest.HEADERS_RECEIVED) {
+          console.log('📥 XMLHttpRequest HEADERS_RECEIVED: 서버 응답 헤더 수신');
+        } else if (xhr.readyState === XMLHttpRequest.LOADING) {
+          console.log('⏳ XMLHttpRequest LOADING: 응답 데이터 수신 중...');
+        } else if (xhr.readyState === XMLHttpRequest.DONE) {
+          console.log('✅ XMLHttpRequest DONE: 요청 완료');
+        }
+      });
+      
+      // 타임아웃 이벤트 리스너
+      xhr.addEventListener('timeout', () => {
+        console.error('❌ 업로드 타임아웃 (90초 초과)');
+        reject(new Error('업로드 시간이 초과되었습니다. (90초) 파일 크기를 확인하거나 네트워크 연결을 확인해주세요.'));
+      });
 
       // 진행률 이벤트 리스너
       if (options.onProgress) {
@@ -160,8 +192,15 @@ export async function uploadImageToSupabase(
       });
 
       // 요청 시작
-      xhr.open('POST', '/api/upload-image-supabase');
-      xhr.send(formData);
+      try {
+        console.log('🚀 XMLHttpRequest 시작: POST /api/upload-image-supabase');
+        xhr.open('POST', '/api/upload-image-supabase');
+        xhr.send(formData);
+        console.log('📤 XMLHttpRequest.send() 호출 완료');
+      } catch (sendError: any) {
+        console.error('❌ XMLHttpRequest.send() 오류:', sendError);
+        reject(new Error(`요청 전송 실패: ${sendError.message || '알 수 없는 오류'}`));
+      }
     });
   } catch (error: any) {
     console.error('❌ 이미지 업로드 오류:', error);
