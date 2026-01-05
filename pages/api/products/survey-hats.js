@@ -43,14 +43,20 @@ async function listGalleryImages(folderPath) {
         break;
       }
 
-      // 이미지 파일만 필터링 (폴더 제외, .keep.png 제외)
-      const imageFiles = files
+      // 이미지 및 동영상 파일 필터링 (폴더 제외, .keep.png 제외)
+      const mediaFiles = files
         .filter(file => file.id !== null) // 폴더 제외
         .filter(file => {
           const ext = file.name.toLowerCase();
-          return (ext.endsWith('.webp') || ext.endsWith('.png') || 
-                  ext.endsWith('.jpg') || ext.endsWith('.jpeg')) &&
-                 !file.name.toLowerCase().includes('.keep');
+          return (
+            // 이미지 파일
+            (ext.endsWith('.webp') || ext.endsWith('.png') || 
+             ext.endsWith('.jpg') || ext.endsWith('.jpeg')) ||
+            // 동영상 파일
+            (ext.endsWith('.mp4') || ext.endsWith('.avi') || 
+             ext.endsWith('.mov') || ext.endsWith('.webm') ||
+             ext.endsWith('.mkv') || ext.endsWith('.m4v'))
+          ) && !file.name.toLowerCase().includes('.keep');
         })
         .map(file => {
           const filePath = `${folderPath}/${file.name}`;
@@ -60,7 +66,7 @@ async function listGalleryImages(folderPath) {
           return publicUrl;
         });
 
-      allImages.push(...imageFiles);
+      allImages.push(...mediaFiles);
       offset += batchSize;
 
       if (files.length < batchSize) {
@@ -136,7 +142,21 @@ export default async function handler(req, res) {
     // 중복 제거 (같은 URL이 여러 폴더에 있을 수 있음)
     const uniqueImages = [...new Set(allGalleryImages)];
 
-    console.log(`[survey-hats] ${type} 총 이미지: ${uniqueImages.length}개 (중복 제거 전: ${allGalleryImages.length}개)`);
+    // 이미지와 동영상 분리
+    const imageFiles = uniqueImages.filter(url => {
+      const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.m4v'];
+      return !videoExtensions.some(ext => url.toLowerCase().includes(ext));
+    });
+
+    const videoFiles = uniqueImages.filter(url => {
+      const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.m4v'];
+      return videoExtensions.some(ext => url.toLowerCase().includes(ext));
+    });
+
+    // 이미지를 먼저, 동영상을 마지막에 배치
+    const sortedImages = [...imageFiles, ...videoFiles];
+
+    console.log(`[survey-hats] ${type} 총 미디어: ${sortedImages.length}개 (이미지: ${imageFiles.length}개, 동영상: ${videoFiles.length}개, 중복 제거 전: ${allGalleryImages.length}개)`);
 
     // 제품 정보 조회 (로깅용, 선택사항)
     let products = [];
@@ -161,7 +181,7 @@ export default async function handler(req, res) {
       success: true,
       product: {
         name: type === 'bucket' ? 'MASSGOO X MUZIIK 버킷햇' : 'MASSGOO X MUZIIK 골프모자',
-        gallery_images: uniqueImages,
+        gallery_images: sortedImages, // 이미지 먼저, 동영상 마지막
         folder_results: folderResults, // 디버깅용
         products: products.map(p => ({
           id: p.id,

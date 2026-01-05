@@ -41,6 +41,14 @@ export default function SurveyLanding() {
   const [imagesLoading, setImagesLoading] = useState(true);
   const [pro3MuziikImage, setPro3MuziikImage] = useState<string>(getProductImageUrl('originals/products/pro3-muziik/detail/secret-force-pro-3-muziik-00.webp')); // Fallback
 
+  // 파일 타입 감지 함수 (이미지/동영상)
+  const getFileType = (url: string): 'image' | 'video' => {
+    if (!url) return 'image';
+    const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.m4v'];
+    const urlLower = url.toLowerCase();
+    return videoExtensions.some(ext => urlLower.includes(ext)) ? 'video' : 'image';
+  };
+
   // 설문 이미지 로드 (데이터베이스에서)
   useEffect(() => {
     loadSurveyImages();
@@ -318,24 +326,47 @@ export default function SurveyLanding() {
                         <span className="text-gray-400 text-sm">이미지 로딩 중...</span>
                       </div>
                     ) : bucketHatImages.length > 0 ? (
-                      <Image
-                        src={bucketHatImages[bucketHatIndex]?.src || bucketHatImages[0]?.src}
-                        alt={bucketHatImages[bucketHatIndex]?.alt || '버킷햇'}
-                        fill
-                        className="object-contain p-4 transition-transform duration-500 group-hover:scale-110"
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        onError={(e) => {
-                          console.error('버킷햇 이미지 로드 실패:', bucketHatImages[bucketHatIndex]?.src);
-                          const target = e.target as HTMLImageElement;
-                          if (target) {
-                            target.style.display = 'none';
-                            const parent = target.parentElement;
-                            if (parent) {
-                              parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-gray-400 text-sm">이미지 없음</span></div>';
+                      getFileType(bucketHatImages[bucketHatIndex]?.src || bucketHatImages[0]?.src) === 'video' ? (
+                        <video
+                          src={bucketHatImages[bucketHatIndex]?.src || bucketHatImages[0]?.src}
+                          className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110"
+                          controls
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          onError={(e) => {
+                            console.error('버킷햇 동영상 로드 실패:', bucketHatImages[bucketHatIndex]?.src);
+                            const target = e.target as HTMLVideoElement;
+                            if (target) {
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-gray-400 text-sm">동영상 없음</span></div>';
+                              }
                             }
-                          }
-                        }}
-                      />
+                          }}
+                        />
+                      ) : (
+                        <Image
+                          src={bucketHatImages[bucketHatIndex]?.src || bucketHatImages[0]?.src}
+                          alt={bucketHatImages[bucketHatIndex]?.alt || '버킷햇'}
+                          fill
+                          className="object-contain p-4 transition-transform duration-500 group-hover:scale-110"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          onError={(e) => {
+                            console.error('버킷햇 이미지 로드 실패:', bucketHatImages[bucketHatIndex]?.src);
+                            const target = e.target as HTMLImageElement;
+                            if (target) {
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-gray-400 text-sm">이미지 없음</span></div>';
+                              }
+                            }
+                          }}
+                        />
+                      )
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <span className="text-gray-400 text-sm">이미지 없음</span>
@@ -378,24 +409,47 @@ export default function SurveyLanding() {
                         <span className="text-gray-400 text-sm">이미지 로딩 중...</span>
                       </div>
                     ) : golfCapImages.length > 0 ? (
-                      <Image
-                        src={golfCapImages[golfCapIndex]?.src || golfCapImages[0]?.src}
-                        alt={golfCapImages[golfCapIndex]?.alt || '골프모자'}
-                        fill
-                        className="object-contain p-4 transition-transform duration-500 group-hover:scale-110"
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        onError={(e) => {
-                          console.error('골프모자 이미지 로드 실패:', golfCapImages[golfCapIndex]?.src);
-                          const target = e.target as HTMLImageElement;
-                          if (target) {
-                            target.style.display = 'none';
-                            const parent = target.parentElement;
-                            if (parent) {
-                              parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-gray-400 text-sm">이미지 없음</span></div>';
+                      getFileType(golfCapImages[golfCapIndex]?.src || golfCapImages[0]?.src) === 'video' ? (
+                        <video
+                          src={golfCapImages[golfCapIndex]?.src || golfCapImages[0]?.src}
+                          className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110"
+                          controls
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          onError={(e) => {
+                            console.error('골프모자 동영상 로드 실패:', golfCapImages[golfCapIndex]?.src);
+                            const target = e.target as HTMLVideoElement;
+                            if (target) {
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-gray-400 text-sm">동영상 없음</span></div>';
+                              }
                             }
-                          }
-                        }}
-                      />
+                          }}
+                        />
+                      ) : (
+                        <Image
+                          src={golfCapImages[golfCapIndex]?.src || golfCapImages[0]?.src}
+                          alt={golfCapImages[golfCapIndex]?.alt || '골프모자'}
+                          fill
+                          className="object-contain p-4 transition-transform duration-500 group-hover:scale-110"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          onError={(e) => {
+                            console.error('골프모자 이미지 로드 실패:', golfCapImages[golfCapIndex]?.src);
+                            const target = e.target as HTMLImageElement;
+                            if (target) {
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-gray-400 text-sm">이미지 없음</span></div>';
+                              }
+                            }
+                          }}
+                        />
+                      )
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <span className="text-gray-400 text-sm">이미지 없음</span>

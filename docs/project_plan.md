@@ -1,6 +1,166 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
-## ✅ 최근 작업: AI 이미지 생성 JPG 90% 압축 적용 (2026-01-16)
+## ✅ 최근 작업: 설문 조사 페이지 동영상 파일 정렬 개선 (2026-01-29)
+
+### 완료된 작업
+- **동영상 파일 정렬 개선** ✅:
+  - `pages/api/products/survey-hats.js`: 이미지와 동영상을 분리하여 동영상을 마지막에 배치
+  - 이미지 파일이 먼저 표시되고, 동영상 파일이 마지막에 표시되도록 정렬 로직 추가
+  - 로그에 이미지/동영상 개수 표시 추가
+
+### 변경된 파일
+- `pages/api/products/survey-hats.js` (동영상 정렬 로직 추가)
+
+### 예상 효과
+- 설문 조사 페이지에서 이미지가 먼저 롤링되고, 동영상이 마지막에 표시됨
+- 사용자 경험 개선 (이미지를 먼저 보고, 동영상은 마지막에 재생)
+
+---
+
+## ✅ 이전 작업: 설문 조사 페이지 동영상 파일 지원 추가 (2026-01-29)
+
+### 완료된 작업
+- **설문 조사 페이지 동영상 파일 지원** ✅:
+  - `pages/api/products/survey-hats.js`: 동영상 파일(.mp4, .avi, .mov, .webm, .mkv, .m4v)도 필터링에 포함
+  - `pages/survey/index.tsx`: 동영상 파일을 `<video>` 태그로 렌더링하도록 수정
+  - `getFileType` 함수 추가: URL 기반으로 이미지/동영상 구분
+  - 버킷햇 및 골프모자 롤링 갤러리에서 동영상 파일 자동 재생 지원
+
+### 변경된 파일
+- `pages/api/products/survey-hats.js` (동영상 파일 필터링 추가)
+- `pages/survey/index.tsx` (동영상 렌더링 지원 추가)
+
+### 예상 효과
+- 갤러리에 업로드한 동영상 파일이 설문 조사 페이지(`/survey`)에서 자동으로 표시됨
+- 이미지와 동영상이 혼합되어 롤링 갤러리에서 자동 재생
+- 사용자 경험 향상 (동영상 콘텐츠 활용 가능)
+
+---
+
+## ✅ 이전 작업: 동영상 파일 업로드 지원 완료 (2026-01-29)
+
+### 완료된 작업
+- **Supabase 버킷 설정 업데이트** ✅:
+  - Allowed MIME types: `image/*` → `image/*,video/*`
+  - File size limit: 30MB → 50MB (Free Plan 최대값)
+  
+- **코드 파일 크기 제한 업데이트** ✅:
+  - `pages/api/upload-image-supabase.js`: 30MB → 50MB로 업데이트
+  - 버킷 제한과 일치하도록 조정
+
+- **문서 업데이트** ✅:
+  - `docs/supabase-storage-current-status.md`: 현재 설정 상태 반영
+
+### 변경된 파일
+- `pages/api/upload-image-supabase.js` (파일 크기 제한 50MB로 업데이트)
+- `docs/supabase-storage-current-status.md` (설정 상태 업데이트)
+
+### 예상 효과
+- 동영상 파일(MP4, AVI, MOV, WEBM 등) 업로드 가능
+- 최대 50MB까지의 파일 업로드 지원
+- 이미지와 동영상 모두 지원하는 통합 갤러리
+
+---
+
+## ✅ 이전 작업: 이미지 업로드 오류 해결 및 UX 개선 (2026-01-29)
+
+### 완료된 작업
+- **서버 측 에러 핸들링 개선** ✅:
+  - `pages/api/upload-image-supabase.js`: 에러 발생 시 파일 정보, 업로드 모드 등 상세 정보 로깅
+  - 개발 환경에서만 스택 트레이스 및 상세 오류 정보 제공
+  - Supabase Storage 업로드 단계별 로깅 추가
+
+- **클라이언트 측 에러 핸들링 개선** ✅:
+  - `lib/image-upload-utils.ts`: XMLHttpRequest로 변경하여 진행률 추적 가능
+  - `onProgress` 콜백 옵션 추가 (0-100%)
+  - 더 상세한 에러 메시지 표시 (서버 응답의 details 포함)
+
+- **업로드 진행률 표시 기능 추가** ✅:
+  - `pages/admin/gallery.tsx`: `uploadProgress` 상태 추가
+  - 드래그 앤 드롭 및 파일 선택 업로드 시 진행률 바 표시
+  - 진행률 퍼센트 표시 및 로딩 스피너 추가
+
+- **디버깅 정보 개선** ✅:
+  - 업로드 시작 시 파일 정보 로깅 (파일명, 크기, 타입, 대상 폴더, 업로드 모드)
+  - Supabase Storage 업로드 전/후 로깅
+  - 메타데이터 저장 단계 로깅
+
+### 변경된 파일
+- `pages/api/upload-image-supabase.js` (에러 핸들링 및 로깅 개선)
+- `lib/image-upload-utils.ts` (진행률 추적 및 에러 핸들링 개선)
+- `pages/admin/gallery.tsx` (진행률 UI 추가)
+
+### 예상 효과
+- 500 에러의 원인을 서버 로그에서 명확히 파악 가능
+- 사용자에게 업로드 진행 상황을 시각적으로 제공
+- 대용량 파일 업로드 시 진행률 확인 가능
+- 개발 환경에서 더 상세한 디버깅 정보 제공
+
+---
+
+## ✅ 이전 작업: 업로드 API 수정 및 Supabase 설정 확인 (2026-01-29)
+
+### 완료된 작업
+- **업로드 API 문법 오류 수정** ✅:
+  - `pages/api/upload-image-supabase.js`: 216줄 else 블록 들여쓰기 수정
+  - 217줄부터의 코드를 else 블록 안으로 올바르게 이동
+  - 파일 크기 제한을 500MB → 30MB로 조정 (Supabase 버킷 제한에 맞춤)
+
+- **Supabase Storage 설정 확인** ✅:
+  - 버킷 `blog-images`: 30MB 파일 크기 제한 확인
+  - Global file size limit: Free Plan 50MB (고정)
+  - Policies: 현재 설정되지 않음 (Service Role Key로 작동 중)
+  - Allowed MIME types: `image/*` (동영상 추가 필요 시 `video/*` 추가 권장)
+  - 설정 상태 문서화: `docs/supabase-storage-current-status.md`
+
+### 변경된 파일
+- `pages/api/upload-image-supabase.js` (문법 수정 및 파일 크기 제한 조정)
+- `docs/supabase-storage-current-status.md` (새 문서)
+
+---
+
+## ✅ 이전 작업: 갤러리 UX 성능 최적화 (2026-01-16)
+
+### 완료된 작업
+- **삭제 후 즉시 UI 업데이트** ✅:
+  - `pages/admin/gallery.tsx`: 삭제 기능 최적화
+  - 로컬 상태에서 즉시 제거 (서버 응답 대기 없음)
+  - 조건부 새로고침:
+    * 전체 폴더(`folderFilter === 'all'`): 서버 새로고침 생략
+    * 특정 폴더: 현재 페이지만 다시 로드 (300ms 후)
+  - 백그라운드 점진적 동기화 (2초 후, 로딩 표시 없음)
+  - `totalCount` 즉시 업데이트
+  - 비교 모달 삭제 기능 개선 (ID 검증, 에러 처리 강화)
+  
+- **붙여넣기 후 즉시 UI 업데이트** ✅:
+  - `pages/admin/gallery.tsx`: `handlePasteImages` 함수 최적화
+  - API 응답으로 새 이미지 정보 즉시 로컬 상태에 추가
+  - 현재 폴더에 붙여넣은 경우: 즉시 표시
+  - 다른 폴더에 붙여넣은 경우: `totalCount`만 업데이트
+  - 조건부 새로고침 및 백그라운드 동기화 적용
+  
+- **폴더 생성 후 즉시 UI 업데이트** ✅:
+  - `pages/admin/gallery.tsx`: 폴더 생성 핸들러 최적화
+  - 폴더 트리 즉시 업데이트 (onFoldersChanged 콜백)
+  - 백그라운드 점진적 동기화 (2초 후)
+  - 현재 폴더가 생성된 폴더면 현재 페이지만 새로고침
+
+### 성능 개선 효과
+- **전체 폴더에서 작업 시**: 서버 호출 제거로 즉시 반응 (0ms)
+- **특정 폴더에서 작업 시**: 현재 페이지만 로드하여 빠른 반응 (300ms)
+- **504 Gateway Timeout 위험**: 대폭 감소 (전체 새로고침 제거)
+- **데이터 일관성**: 백그라운드 동기화로 유지
+- **사용자 경험**: 로딩 표시 없이 작업 지속 가능
+
+### 변경된 파일
+- `pages/admin/gallery.tsx` (삭제/붙여넣기/폴더 생성 최적화)
+
+### 관련 문서
+- `docs/gallery-performance-optimization.md` (상세 기술 문서)
+
+---
+
+## ✅ 이전 작업: AI 이미지 생성 JPG 90% 압축 적용 (2026-01-16)
 
 ### 완료된 작업
 - **모든 AI 생성 이미지를 JPG 90%로 압축** ✅:
