@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { AIGenerationOptions, MetadataForm } from '../types/metadata.types';
+import { extractVideoThumbnailClient } from '@/lib/video-utils';
 
 // 텍스트 자르기 함수
 const truncateText = (text: string, maxLength: number): string => {
@@ -43,24 +44,34 @@ export const useAIGeneration = () => {
     return videoExtensions.some(ext => urlLower.includes(ext));
   };
 
-  // 동영상 첫 프레임 추출
+  // 동영상 첫 프레임 추출 (클라이언트 사이드)
   const extractVideoThumbnail = async (videoUrl: string): Promise<string> => {
     try {
-      const response = await fetch('/api/admin/extract-video-thumbnail', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ publicUrl: videoUrl })
-      });
-
-      if (!response.ok) {
-        throw new Error('동영상 썸네일 추출 실패');
-      }
-
-      const data = await response.json();
-      return data.thumbnail; // Base64 인코딩된 이미지 (data:image/jpeg;base64,...)
-    } catch (error) {
+      // 클라이언트에서 직접 추출 (서버 API 대신)
+      console.log('🎬 클라이언트에서 동영상 첫 프레임 추출 중...', videoUrl);
+      const thumbnail = await extractVideoThumbnailClient(videoUrl);
+      console.log('✅ 동영상 첫 프레임 추출 완료');
+      return thumbnail; // Base64 인코딩된 이미지 (data:image/jpeg;base64,...)
+    } catch (error: any) {
       console.error('동영상 썸네일 추출 오류:', error);
-      throw error;
+      // 서버 API 폴백 시도 (로컬 환경에서 ffmpeg가 있는 경우)
+      try {
+        console.log('🔄 서버 API 폴백 시도...');
+        const response = await fetch('/api/admin/extract-video-thumbnail', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ publicUrl: videoUrl })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          return data.thumbnail;
+        }
+      } catch (fallbackError) {
+        console.warn('서버 API 폴백도 실패:', fallbackError);
+      }
+      
+      throw new Error(`동영상 썸네일 추출 실패: ${error.message || '알 수 없는 오류'}`);
     }
   };
 

@@ -4,6 +4,7 @@ import { FieldGroup } from './components/FieldGroup';
 import { SEOScore } from './components/SEOScore';
 import { useAIGeneration } from './hooks/useAIGeneration';
 import { validateForm, calculateSEOScore, getSEORecommendations } from './utils/validation';
+import { extractVideoMetadataClient } from '@/lib/video-utils';
 
 interface ImageMetadataModalProps {
   isOpen: boolean;
@@ -538,64 +539,54 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     setIsExtractingEXIF(true);
     try {
       const isVideo = fileType === 'video';
-      const apiEndpoint = isVideo ? '/api/admin/extract-video-metadata' : '/api/admin/extract-exif';
-      
-      const response = await fetch(apiEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ publicUrl: image.url })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: `${isVideo ? '비디오 메타데이터' : 'EXIF'} 추출 실패` }));
-        throw new Error(errorData.error || `${isVideo ? '비디오 메타데이터' : 'EXIF'} 추출 실패`);
-      }
-
-      const data = await response.json();
       
       if (isVideo) {
-        // 동영상 메타데이터 처리
-        const videoMeta = data.meta || {};
+        // 동영상 메타데이터 추출 (클라이언트 사이드)
+        console.log('🎬 클라이언트에서 동영상 메타데이터 추출 중...', image.url);
+        const videoMeta = await extractVideoMetadataClient(image.url);
+        
         const videoInfo: {
           width?: number;
           height?: number;
           duration?: number;
-          codec?: string;
-          fps?: string;
-          bitrate?: number;
-        } = {};
+          codec?: string | null;
+          fps?: string | null;
+          bitrate?: number | null;
+        } = {
+          width: videoMeta.width,
+          height: videoMeta.height,
+          duration: videoMeta.duration,
+          codec: videoMeta.codec || null,
+          fps: videoMeta.fps || null,
+          bitrate: videoMeta.bitrate || null,
+        };
 
-        if (videoMeta.width && videoMeta.height) {
-          videoInfo.width = videoMeta.width;
-          videoInfo.height = videoMeta.height;
-        }
-        
-        if (videoMeta.duration) {
-          videoInfo.duration = videoMeta.duration;
-        }
-        
-        if (videoMeta.codec) {
-          videoInfo.codec = videoMeta.codec;
-        }
-        
-        if (videoMeta.fps) {
-          videoInfo.fps = videoMeta.fps;
-        }
-        
-        if (videoMeta.bitrate) {
-          videoInfo.bitrate = videoMeta.bitrate;
-        }
-
-        setExifData(Object.keys(videoInfo).length > 0 ? videoInfo : null);
+        setExifData(Object.keys(videoInfo).filter(k => videoInfo[k as keyof typeof videoInfo] !== null).length > 0 ? videoInfo : null);
         setHasChanges(true);
 
-        const infoCount = Object.keys(videoInfo).length;
+        const infoCount = Object.keys(videoInfo).filter(k => videoInfo[k as keyof typeof videoInfo] !== null).length;
         if (infoCount > 0) {
-          alert(`✅ 동영상 메타데이터 추출 완료!\n\n${infoCount}개의 정보를 추출했습니다.`);
+          const durationStr = videoMeta.duration 
+            ? `${Math.floor(videoMeta.duration / 60)}:${(videoMeta.duration % 60).toFixed(0).padStart(2, '0')}`
+            : '알 수 없음';
+          alert(`✅ 동영상 메타데이터 추출 완료!\n\n해상도: ${videoMeta.width}×${videoMeta.height}px\n길이: ${durationStr}\n\n※ codec, fps, bitrate는 브라우저에서 추출할 수 없습니다.`);
         } else {
           alert('⚠️ 이 동영상에서 메타데이터를 추출할 수 없습니다.');
         }
       } else {
+        // 이미지 EXIF 추출 (서버 API 사용)
+        const response = await fetch('/api/admin/extract-exif', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ publicUrl: image.url })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'EXIF 추출 실패' }));
+          throw new Error(errorData.error || 'EXIF 추출 실패');
+        }
+
+        const data = await response.json();
         // 이미지 EXIF 처리 (기존 로직)
         const extractedExif = data.meta || {};
         const exifRaw = data.exif || {};
