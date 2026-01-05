@@ -4,6 +4,7 @@ import AdminNav from '../../../components/admin/AdminNav';
 import CustomerMessageHistoryModal from '../../../components/admin/CustomerMessageHistoryModal';
 import { useRouter } from 'next/router';
 import { createClient } from '@supabase/supabase-js';
+import { uploadImageToSupabase } from '../../../lib/image-upload-utils';
 
 type Customer = {
   id: number;
@@ -974,6 +975,8 @@ function CustomerImageModal({ customer, onClose }: {
 }) {
   const [visitDate, setVisitDate] = useState(new Date().toISOString().slice(0, 10));
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadMode, setUploadMode] = useState<'optimize-filename' | 'preserve-filename'>('optimize-filename');
   const [uploadedImages, setUploadedImages] = useState<any[]>([]);
   const [loadingImages, setLoadingImages] = useState(false);
 
@@ -997,87 +1000,90 @@ function CustomerImageModal({ customer, onClose }: {
     loadCustomerImages();
   }, [customer.id]);
 
-  const handleFileUpload = async (file: File) => {
-    if (!file) return;
+  const handleFileUpload = async (files: File[]) => {
+    if (files.length === 0) return;
+    
+    if (!visitDate) {
+      alert('방문일자를 선택해주세요.');
+      return;
+    }
 
     setUploading(true);
-    try {
-      // Supabase 클라이언트 초기화
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error('Supabase 환경 변수가 설정되지 않았습니다.');
-      }
-      const sb = createClient(supabaseUrl, supabaseAnonKey);
+    setUploadProgress(0);
 
+    try {
       // 고객 ID를 customer-001 형식으로 변환
       const customerId = `customer-${String(customer.id).padStart(3, '0')}`;
-      const folderPath = `originals/customers/${customerId}/${visitDate}`;
+      const targetFolder = `originals/customers/${customerId}/${visitDate}`;
+      
+      let successCount = 0;
+      let failCount = 0;
 
-      // 파일명 정리
-      const baseName = (file.name || 'upload').replace(/[^a-zA-Z0-9_.-]/g, '_').replace(/\s+/g, '_');
-      const ts = Date.now();
-      const objectPath = `${folderPath}/${ts}_${baseName}`;
+      // 모든 파일을 순차적으로 업로드
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        try {
+          // 공통 업로드 함수 사용
+          const uploadResult = await uploadImageToSupabase(file, {
+            targetFolder: targetFolder,
+            enableHEICConversion: true,
+            enableEXIFBackfill: true,
+            uploadMode: uploadMode,
+            onProgress: (progress) => {
+              // 전체 진행률 계산 (각 파일의 평균)
+              const totalProgress = ((i * 100) + progress) / files.length;
+              setUploadProgress(Math.round(totalProgress));
+            },
+          });
 
-      // 서명 업로드 URL 발급
-      const res = await fetch('/api/admin/storage-signed-upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: objectPath })
-      });
+          // 업로드된 URL에서 파일 경로 추출
+          const urlObj = new URL(uploadResult.url);
+          const filePath = urlObj.pathname.replace('/storage/v1/object/public/blog-images/', '');
 
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || '서명 URL 발급 실패');
+          // 고객 이미지 메타데이터 저장
+          const saveResponse = await fetch('/api/admin/upload-customer-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              customerId: customer.id,
+              customerName: customer.name,
+              visitDate: visitDate,
+              imageUrl: uploadResult.url,
+              filePath: filePath,
+              fileName: uploadResult.fileName || file.name,
+              fileSize: uploadResult.metadata?.file_size || file.size
+            })
+          });
+
+          if (!saveResponse.ok) {
+            throw new Error('메타데이터 저장 실패');
+          }
+
+          successCount++;
+          console.log(`✅ 파일 ${i + 1}/${files.length} 업로드 완료:`, uploadResult.fileName || file.name);
+        } catch (fileError: any) {
+          failCount++;
+          console.error(`❌ 파일 ${i + 1}/${files.length} 업로드 실패:`, file.name, fileError);
+        }
       }
 
-      const { token } = await res.json();
-
-      // Supabase SDK로 업로드
-      const { error: uploadError } = await sb.storage
-        .from('blog-images')
-        .uploadToSignedUrl(objectPath, token, file);
-
-      if (uploadError) {
-        throw new Error(`업로드 실패: ${uploadError.message}`);
+      // 결과 알림
+      if (failCount === 0) {
+        alert(`${successCount}개 파일 업로드 완료!`);
+      } else {
+        alert(`업로드 완료: ${successCount}개 성공, ${failCount}개 실패`);
       }
 
-      // 공개 URL 가져오기
-      const { data: publicUrlData } = sb.storage
-        .from('blog-images')
-        .getPublicUrl(objectPath);
-      const publicUrl = publicUrlData?.publicUrl;
-
-      if (!publicUrl) {
-        throw new Error('공개 URL을 가져올 수 없습니다.');
+      // 이미지 목록 새로고침
+      if (successCount > 0) {
+        loadCustomerImages();
       }
-
-      // 고객 이미지 메타데이터 저장
-      const saveResponse = await fetch('/api/admin/upload-customer-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerId: customer.id,
-          customerName: customer.name,
-          visitDate: visitDate,
-          imageUrl: publicUrl,
-          filePath: objectPath,
-          fileName: file.name,
-          fileSize: file.size
-        })
-      });
-
-      if (!saveResponse.ok) {
-        throw new Error('메타데이터 저장 실패');
-      }
-
-      alert('이미지 업로드 완료');
-      loadCustomerImages(); // 이미지 목록 새로고침
     } catch (error: any) {
-      console.error('❌ 이미지 업로드 오류:', error);
+      console.error('❌ 업로드 오류:', error);
       alert(`업로드 실패: ${error.message}`);
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -1088,7 +1094,11 @@ function CustomerImageModal({ customer, onClose }: {
           <h2 className="text-xl font-bold text-gray-900">
             고객 이미지 관리: {customer.name}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+          <button 
+            onClick={onClose} 
+            disabled={uploading}
+            className={`text-gray-400 hover:text-gray-600 ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >✕</button>
         </div>
 
         <div className="space-y-6">
@@ -1101,8 +1111,57 @@ function CustomerImageModal({ customer, onClose }: {
               type="date"
               value={visitDate}
               onChange={(e) => setVisitDate(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md"
+              disabled={uploading}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              required
             />
+          </div>
+
+          {/* 업로드 모드 선택 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              업로드 모드
+            </label>
+            <div className="space-y-2">
+              <label className="flex items-start cursor-pointer">
+                <input
+                  type="radio"
+                  name="uploadMode"
+                  value="optimize-filename"
+                  checked={uploadMode === 'optimize-filename'}
+                  onChange={(e) => setUploadMode('optimize-filename')}
+                  disabled={uploading}
+                  className="mt-1 mr-2 w-4 h-4 text-blue-600"
+                />
+                <div className="flex-1">
+                  <span className="text-sm text-gray-700 font-medium">파일명 최적화 (기본)</span>
+                  <p className="text-xs text-gray-500 mt-1">
+                    파일명: 폴더 기반 최적화 + 타임스탬프 + 중복방지<br/>
+                    확장자: 원본 유지<br/>
+                    최적화: 없음 (원본 그대로)
+                  </p>
+                </div>
+              </label>
+              <label className="flex items-start cursor-pointer">
+                <input
+                  type="radio"
+                  name="uploadMode"
+                  value="preserve-filename"
+                  checked={uploadMode === 'preserve-filename'}
+                  onChange={(e) => setUploadMode('preserve-filename')}
+                  disabled={uploading}
+                  className="mt-1 mr-2 w-4 h-4 text-blue-600"
+                />
+                <div className="flex-1">
+                  <span className="text-sm text-gray-700 font-medium">파일명 유지</span>
+                  <p className="text-xs text-gray-500 mt-1">
+                    파일명: 원본 그대로<br/>
+                    확장자: 원본 유지<br/>
+                    최적화: 없음 (원본 그대로)
+                  </p>
+                </div>
+              </label>
+            </div>
           </div>
 
           {/* 파일 업로드 */}
@@ -1111,46 +1170,71 @@ function CustomerImageModal({ customer, onClose }: {
               이미지/영상 업로드
             </label>
             <div 
-              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors"
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                uploading 
+                  ? 'border-gray-200 bg-gray-50 pointer-events-none opacity-50' 
+                  : 'border-gray-300 hover:border-blue-400'
+              }`}
               onDragOver={(e) => {
+                if (uploading) return;
                 e.preventDefault();
                 e.stopPropagation();
               }}
               onDrop={async (e) => {
+                if (uploading) return;
                 e.preventDefault();
                 e.stopPropagation();
-                const files = e.dataTransfer.files;
+                const files = Array.from(e.dataTransfer.files);
                 if (files.length > 0) {
-                  await handleFileUpload(files[0]);
+                  await handleFileUpload(files);
                 }
               }}
             >
               <input
                 type="file"
-                accept="image/*,video/*"
+                multiple
+                disabled={uploading}
+                accept="image/*,video/*,.heic,.heif"
                 onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    handleFileUpload(file);
+                  const files = Array.from(e.target.files || []);
+                  if (files.length > 0) {
+                    handleFileUpload(files);
                   }
                 }}
                 className="hidden"
                 id="customer-image-upload"
               />
-              <label htmlFor="customer-image-upload" className="cursor-pointer">
+              <label htmlFor="customer-image-upload" className={`cursor-pointer ${uploading ? 'pointer-events-none' : ''}`}>
                 <svg className="mx-auto h-12 w-12 text-gray-400 hover:text-blue-500 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                   <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <span className="mt-2 block text-sm font-medium text-gray-900">
-                  이미지/영상 파일을 선택하거나 드래그하세요
+                  파일 선택 또는 드래그
                 </span>
-                <span className="mt-1 block text-sm text-gray-500">
-                  PNG, JPG, GIF, HEIC, MP4 파일 지원
+                <span className="mt-1 block text-xs text-gray-500">
+                  이미지: PNG, JPG, GIF, HEIC | 동영상: MP4, AVI, MOV, WEBM
                 </span>
               </label>
             </div>
-            {uploading && (
-              <div className="mt-2 text-sm text-blue-600">업로드 중...</div>
+
+            {/* 업로드 진행률 */}
+            {uploadProgress > 0 && uploadProgress < 100 && (
+              <div className="mt-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-medium text-gray-700">업로드 중...</span>
+                  <span className="text-xs text-gray-500">{uploadProgress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {uploading && uploadProgress === 0 && (
+              <div className="mt-2 text-sm text-blue-600 text-center">처리 중...</div>
             )}
           </div>
 
