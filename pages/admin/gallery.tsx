@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo, memo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import Link from 'next/link';
@@ -111,14 +111,11 @@ export default function GalleryAdmin() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [imagesPerPage] = useState(12); // 성능 최적화를 위해 페이지당 이미지 수 감소
+  const [imagesPerPage] = useState(20); // 성능 최적화를 위해 페이지당 이미지 수 감소
   const [hasMoreImages, setHasMoreImages] = useState(true);
   
   // 초기 로드 추적을 위한 ref
   const initialLoadRef = useRef(true);
-  
-  // 프리로드 캐시
-  const prefetchCache = useRef<Map<number, ImageMetadata[]>>(new Map());
   
   // SEO 최적화된 파일명 생성 함수 (한글 자동 영문 변환)
   const generateSEOFileName = (title, keywords, index = 1) => {
@@ -611,22 +608,20 @@ export default function GalleryAdmin() {
     }
   };
 
-  // 이미지 비교 선택 토글 (useCallback으로 최적화)
-  const toggleImageForCompare = useCallback((imageId: string) => {
-    setSelectedForCompare(prev => {
-      const newSelected = new Set(prev);
-      if (newSelected.has(imageId)) {
-        newSelected.delete(imageId);
-      } else {
-        if (newSelected.size >= 3) {
-          alert('최대 3개까지만 선택할 수 있습니다.');
-          return prev;
-        }
-        newSelected.add(imageId);
+  // 이미지 비교 선택 토글
+  const toggleImageForCompare = (imageId: string) => {
+    const newSelected = new Set(selectedForCompare);
+    if (newSelected.has(imageId)) {
+      newSelected.delete(imageId);
+    } else {
+      if (newSelected.size >= 3) {
+        alert('최대 3개까지만 선택할 수 있습니다.');
+        return;
       }
-      return newSelected;
-    });
-  }, []);
+      newSelected.add(imageId);
+    }
+    setSelectedForCompare(newSelected);
+  };
 
   // 중복 제거 실행 핸들러
   const handleRemoveDuplicates = async () => {
@@ -1310,10 +1305,10 @@ export default function GalleryAdmin() {
   const [isNavigating, setIsNavigating] = useState(false);
   const thumbnailStripRef = useRef<HTMLDivElement>(null);
 
-  // 이미지의 고유 식별자 생성 (id가 있으면 사용, 없으면 name만 사용) - useCallback으로 최적화
-  const getImageUniqueId = useCallback((image: ImageMetadata) => {
+  // 이미지의 고유 식별자 생성 (id가 있으면 사용, 없으면 name만 사용)
+  const getImageUniqueId = (image: ImageMetadata) => {
     return image.id || image.name;
-  }, []);
+  };
 
   // 메뉴 외부 클릭 시 닫기
   useEffect(() => {
@@ -1550,22 +1545,6 @@ export default function GalleryAdmin() {
   const [isBulkWorking, setIsBulkWorking] = useState(false);
   const [seoPreview, setSeoPreview] = useState<any[] | null>(null);
 
-  // 단일 이미지의 사용 위치 정보 가져오기 (상세보기 모달용)
-  const fetchImageUsageInfo = async (imageUrl: string): Promise<ImageMetadata | null> => {
-    try {
-      const response = await fetch(`/api/admin/all-images?limit=1&offset=0&includeUsageInfo=true&searchQuery=${encodeURIComponent(imageUrl)}`);
-      const data = await response.json();
-      
-      if (response.ok && data.images && data.images.length > 0) {
-        return data.images[0];
-      }
-      return null;
-    } catch (error) {
-      console.error('❌ 사용 위치 정보 로드 에러:', error);
-      return null;
-    }
-  };
-
   // 이미지 로드
   const fetchImages = async (page = 1, reset = false, customFolderFilter?: string, customIncludeChildren?: boolean, customSearchQuery?: string, forceRefresh?: boolean) => {
     try {
@@ -1608,33 +1587,8 @@ export default function GalleryAdmin() {
         });
       }
       
-      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${effectiveIncludeChildren}&includeUsageInfo=false${searchParam}${refreshParam}`);
+      const response = await fetch(`/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${effectiveIncludeChildren}${searchParam}${refreshParam}`);
       const data = await response.json();
-      
-      // 🔧 프리로드 캐시 확인 (응답 후)
-      if (prefetchCache.current.has(page) && !reset && !forceRefresh && response.ok) {
-        const cachedImages = prefetchCache.current.get(page);
-        prefetchCache.current.delete(page); // 사용 후 삭제
-        
-        console.log(`✅ 프리로드 캐시 사용: ${page}페이지 (${cachedImages?.length || 0}개)`);
-        
-        // 프리로드된 데이터로 상태 업데이트
-        if (reset || page === 1) {
-          setImages(cachedImages || []);
-          setCurrentPage(1);
-        } else {
-          setImages(prev => {
-            const existingKeys = new Set(prev.map(img => getImageUniqueId(img)));
-            const newImages = (cachedImages || []).filter(img => !existingKeys.has(getImageUniqueId(img)));
-            return [...prev, ...newImages];
-          });
-          setCurrentPage(page);
-        }
-        setTotalCount(data.total || totalCount);
-        setIsLoading(false);
-        setIsLoadingMore(false);
-        return;
-      }
       
       if (response.ok) {
         const list = data.images || [];
@@ -1770,85 +1724,6 @@ export default function GalleryAdmin() {
     }
   };
 
-  // 상세보기 모달이 열릴 때 사용 위치 정보 가져오기
-  useEffect(() => {
-    if (selectedImageForZoom && (!selectedImageForZoom.used_in || selectedImageForZoom.used_in.length === 0)) {
-      // 사용 위치 정보가 없으면 가져오기
-      const imageUrl = selectedImageForZoom.url || selectedImageForZoom.original_url || '';
-      if (imageUrl) {
-        fetchImageUsageInfo(imageUrl).then((imageWithUsage) => {
-          if (imageWithUsage && imageWithUsage.used_in) {
-            setSelectedImageForZoom(prev => prev ? {
-              ...prev,
-              used_in: imageWithUsage.used_in,
-              usage_count: imageWithUsage.usage_count || prev.usage_count
-            } : null);
-          }
-        });
-      }
-    }
-  }, [selectedImageForZoom]);
-
-  // 🔧 다음 페이지 프리로드 (백그라운드)
-  useEffect(() => {
-    if (currentPage > 0 && hasMoreImages && !isLoading && !isLoadingMore) {
-      const nextPage = currentPage + 1;
-      
-      // 이미 프리로드된 경우 스킵
-      if (prefetchCache.current.has(nextPage)) {
-        return;
-      }
-      
-      // 백그라운드에서 다음 페이지 프리로드
-      const prefetchNextPage = async () => {
-        try {
-          const offset = nextPage * imagesPerPage;
-          const prefix = folderFilter === 'all' ? '' : (folderFilter === 'root' ? '' : encodeURIComponent(folderFilter));
-          const searchParam = searchQuery.trim() ? `&searchQuery=${encodeURIComponent(searchQuery.trim())}` : '';
-          
-          const response = await fetch(
-            `/api/admin/all-images?limit=${imagesPerPage}&offset=${offset}&prefix=${prefix}&includeChildren=${includeChildren}&includeUsageInfo=false${searchParam}`,
-            { 
-              // 낮은 우선순위로 프리로드 (브라우저가 지원하는 경우)
-              signal: AbortSignal.timeout ? AbortSignal.timeout(30000) : undefined
-            } as RequestInit
-          );
-          
-          if (response.ok) {
-            const data = await response.json();
-            if (data.images && data.images.length > 0) {
-              // 메타데이터 보강
-              const imagesWithMetadata = data.images.map((img: any) => ({
-                ...img,
-                id: img.id || `temp-${Date.now()}-${Math.random()}`,
-                alt_text: img.alt_text || '',
-                keywords: img.keywords || [],
-                title: img.title || '',
-                description: img.description || '',
-                category: img.category || '',
-                folder_path: img.folder_path || '',
-                is_featured: img.is_featured || false,
-                usage_count: img.usage_count || 0,
-                used_in_posts: img.used_in_posts || [],
-                has_metadata: img.has_metadata !== false
-              }));
-              
-              prefetchCache.current.set(nextPage, imagesWithMetadata);
-              console.log(`✅ 다음 페이지 프리로드 완료: ${nextPage}페이지 (${imagesWithMetadata.length}개)`);
-            }
-          }
-        } catch (error) {
-          // 프리로드 실패는 무시 (에러 로그만)
-          console.warn('⚠️ 프리로드 실패:', error);
-        }
-      };
-      
-      // 약간의 지연 후 프리로드 (현재 페이지 로딩 완료 후)
-      const timer = setTimeout(prefetchNextPage, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [currentPage, hasMoreImages, folderFilter, includeChildren, searchQuery, imagesPerPage, isLoading, isLoadingMore]);
-
   // 무한 스크롤 로드 (성능 최적화)
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -1926,40 +1801,36 @@ export default function GalleryAdmin() {
   // useEffect에서는 제거 (중복 호출 방지)
   // 필요 시 프로그래밍 방식으로 변경할 때만 여기서 처리
 
-  // 이미지 선택/해제 (useCallback으로 최적화)
-  const toggleImageSelection = useCallback((image: ImageMetadata) => {
+  // 이미지 선택/해제
+  const toggleImageSelection = (image: ImageMetadata) => {
     // 일반 선택 토글
     const imageId = getImageUniqueId(image);
-    setSelectedImages(prev => {
-      const newSelected = new Set(prev);
+    const newSelected = new Set(selectedImages);
+    
+    if (newSelected.has(imageId)) {
+      newSelected.delete(imageId);
+    } else {
+      newSelected.add(imageId);
+    }
+    setSelectedImages(newSelected);
+    
+    // 비교 선택도 함께 업데이트 (최대 3개까지)
+    if (image.id) {
+      const newCompareSelected = new Set(selectedForCompare);
       if (newSelected.has(imageId)) {
-        newSelected.delete(imageId);
+        if (newCompareSelected.size < 3) {
+          newCompareSelected.add(image.id);
+        } else {
+          // 3개 초과 시 알림
+          alert('비교는 최대 3개까지만 선택할 수 있습니다.');
+          return;
+        }
       } else {
-        newSelected.add(imageId);
+        newCompareSelected.delete(image.id);
       }
-      
-      // 비교 선택도 함께 업데이트 (최대 3개까지)
-      if (image.id) {
-        setSelectedForCompare(prevCompare => {
-          const newCompareSelected = new Set(prevCompare);
-          if (newSelected.has(imageId)) {
-            if (newCompareSelected.size < 3) {
-              newCompareSelected.add(image.id);
-            } else {
-              // 3개 초과 시 알림
-              alert('비교는 최대 3개까지만 선택할 수 있습니다.');
-              return prevCompare;
-            }
-          } else {
-            newCompareSelected.delete(image.id);
-          }
-          return newCompareSelected;
-        });
-      }
-      
-      return newSelected;
-    });
-  }, [getImageUniqueId]);
+      setSelectedForCompare(newCompareSelected);
+    }
+  };
 
   // 전체 선택/해제
   const toggleSelectAll = () => {
@@ -2168,83 +2039,9 @@ export default function GalleryAdmin() {
     }
   };
 
-  // Nanobanana 변형 함수 (원본 스타일 유지에 최적화)
-  const generateNanobananaVariation = async (imageUrl: string, imageName: string, imageFolderPath?: string, customPrompt?: string) => {
-    if (!imageUrl) {
-      alert('변형할 이미지를 선택해주세요.');
-      return;
-    }
-
-    if (isGeneratingNanobananaVariation) {
-      alert('이미 변형 중입니다. 잠시만 기다려주세요.');
-      return;
-    }
-
-    setIsGeneratingNanobananaVariation(true);
-    setImageGenerationStep('Nanobanana로 이미지 변형 중...');
-    setImageGenerationModel('Nanobanana (원본 스타일 유지)');
-    setShowGenerationProcess(true);
-
-    try {
-      const response = await fetch('/api/vary-nanobanana', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageUrl: imageUrl,
-          prompt: customPrompt || undefined,
-          preserveStyle: true,
-          numImages: 1,
-          aspectRatio: '1:1',
-          outputFormat: 'jpeg',
-          quality: 90,
-          title: '갤러리 이미지 변형',
-          excerpt: 'Nanobanana로 변형된 이미지',
-          contentType: 'gallery',
-          brandStrategy: 'professional',
-          originalImageFolder: imageFolderPath || selectedImageForZoom?.folder_path || null
-        })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || error.details || '이미지 변형 실패');
-      }
-
-      const result = await response.json();
-      
-      if (result.imageUrl) {
-        // selectedImageForZoom을 변형된 이미지로 업데이트 (모달 유지)
-        if (selectedImageForZoom) {
-          setSelectedImageForZoom({
-            ...selectedImageForZoom,
-            url: result.imageUrl,
-            name: result.fileName || selectedImageForZoom.name,
-            folder_path: imageFolderPath || selectedImageForZoom.folder_path
-          });
-        }
-        
-        // 이미지 목록 새로고침
-        fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
-        
-        alert('✅ Nanobanana 변형이 완료되었습니다!');
-      } else {
-        throw new Error('변형된 이미지가 생성되지 않았습니다.');
-      }
-    } catch (error: any) {
-      console.error('❌ Nanobanana 변형 오류:', error);
-      alert('Nanobanana 변형 중 오류가 발생했습니다: ' + error.message);
-    } finally {
-      setIsGeneratingNanobananaVariation(false);
-      setTimeout(() => {
-        setShowGenerationProcess(false);
-        setImageGenerationStep('');
-      }, 2000);
-    }
-  };
-
   // 편집 시작
   // Replicate 변형 함수 (프롬프트 입력 불가, 빠르고 간단)
-  const generateReplicateVariation = async (imageUrl: string, imageName: string, imageFolderPath?: string) => {
+  const generateReplicateVariation = async (imageUrl: string, imageName: string, imageFolderPath?: string, customPrompt?: string) => {
     if (!imageUrl) {
       alert('변형할 이미지를 선택해주세요.');
       return;
@@ -2270,7 +2067,7 @@ export default function GalleryAdmin() {
           contentType: 'gallery',
           brandStrategy: 'professional',
           baseImageUrl: imageUrl,
-          variationStrength: 0.8,
+          variationStrength: 0.3, // 원본 스타일 유지를 위해 낮춤
           variationCount: 1
         })
       });
@@ -2283,14 +2080,14 @@ export default function GalleryAdmin() {
       const result = await response.json();
       
       if (result.images && result.images.length > 0) {
-        // 원본 이미지의 folder_path 가져오기 (원본 폴더에 저장)
+        // 현재 이미지의 folder_path 가져오기 (전달받은 값 또는 images 배열에서 찾기)
         let targetFolderPath = imageFolderPath;
         if (!targetFolderPath) {
           const currentImage = images.find(img => img.url === imageUrl || img.name === imageName);
-          targetFolderPath = currentImage?.folder_path || null;
+          targetFolderPath = currentImage?.folder_path || (folderFilter !== 'all' && folderFilter !== 'root' ? folderFilter : null);
         }
         
-        // 변형된 이미지를 Supabase에 저장 (원본 폴더에)
+        // 변형된 이미지를 Supabase에 저장
         const savedImages = [];
         for (let i = 0; i < result.images.length; i++) {
           try {
@@ -2301,7 +2098,7 @@ export default function GalleryAdmin() {
                 imageUrl: result.images[i].originalUrl || result.images[i],
                 fileName: `replicate-variation-${Date.now()}-${i + 1}.png`,
                 blogPostId: null,
-                folderPath: targetFolderPath // 원본 이미지 폴더 경로 전달
+                folderPath: targetFolderPath // 현재 폴더 경로 전달
               })
             });
             
@@ -2317,20 +2114,13 @@ export default function GalleryAdmin() {
           }
         }
 
-        // 첫 번째 이미지로 selectedImageForZoom 업데이트 (모달 유지)
-        if (savedImages.length > 0 && selectedImageForZoom) {
-          setSelectedImageForZoom({
-            ...selectedImageForZoom,
-            url: savedImages[0],
-            name: `replicate-variation-${Date.now()}-1.png`,
-            folder_path: targetFolderPath || selectedImageForZoom.folder_path
-          });
-        }
-        
-        // 이미지 목록 새로고침
-        fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
-        
         alert(`✅ Replicate 변형 완료!\n\n${savedImages.length}개의 이미지가 생성되었습니다.`);
+        
+        // ✅ 모달 닫기
+        setSelectedImageForZoom(null);
+        
+        // ✅ 현재 폴더 유지하고 이미지 목록만 새로고침 (캐시 무효화 포함)
+        fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
       } else {
         throw new Error('변형된 이미지가 생성되지 않았습니다.');
       }
@@ -2339,6 +2129,191 @@ export default function GalleryAdmin() {
       alert(`Replicate 변형 실패: ${error.message}`);
     } finally {
       setIsGeneratingReplicateVariation(false);
+    }
+  };
+
+  // FAL 변형 함수 (프롬프트 파라미터 추가)
+  const handleFALVariation = async (imageUrl: string, customPrompt?: string) => {
+    if (!imageUrl) return;
+    if (isGeneratingExistingVariation) return;
+    
+    setIsGeneratingExistingVariation(true);
+    setImageGenerationStep('FAL AI로 이미지 변형 중...');
+    setImageGenerationModel('FAL AI (기존 이미지 변형)');
+    setShowGenerationProcess(true);
+    
+    try {
+      // 1. 프롬프트 확인 또는 생성
+      let prompt = customPrompt;
+      
+      if (!prompt) {
+        // 기존 프롬프트 확인
+        try {
+          const promptResponse = await fetch('/api/get-image-prompt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl: imageUrl })
+          });
+          
+          if (promptResponse.ok) {
+            const promptData = await promptResponse.json();
+            prompt = promptData.prompt || '';
+          }
+        } catch (error) {
+          console.warn('기존 프롬프트 조회 실패, AI로 생성:', error);
+        }
+        
+        // 프롬프트가 없으면 AI로 생성
+        if (!prompt) {
+          setImageGenerationStep('이미지 분석 및 프롬프트 생성 중...');
+          
+          const isGolfImage = imageUrl.includes('golf') || 
+                             imageUrl.includes('골프') ||
+                             imageUrl.includes('driver') ||
+                             imageUrl.includes('club');
+          
+          const analysisEndpoint = isGolfImage 
+            ? '/api/analyze-image-prompt'
+            : '/api/analyze-image-general';
+          
+          const analysisResponse = await fetch(analysisEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              imageUrl: imageUrl,
+              title: '갤러리 이미지 변형',
+              excerpt: '갤러리에서 변형된 이미지'
+            })
+          });
+          
+          if (analysisResponse.ok) {
+            const analysisData = await analysisResponse.json();
+            prompt = analysisData.prompt || analysisData.englishPrompt || '';
+          }
+        }
+      }
+      
+      // 원본 스타일 유지를 위한 프롬프트 개선
+      if (prompt && !prompt.includes('maintain original') && !prompt.includes('preserve character')) {
+        prompt = `maintain original style, preserve character appearance, Korean style, ${prompt}`;
+      }
+      
+      // 2. FAL AI 변형 시작
+      setImageGenerationStep('FAL AI로 이미지 변형 중...');
+      
+      const response = await fetch('/api/vary-existing-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          imageUrl: imageUrl,
+          prompt: prompt || 'high quality image variation, maintain original style',
+          title: '갤러리 이미지 변형',
+          excerpt: '갤러리에서 변형된 이미지',
+          contentType: 'gallery',
+          brandStrategy: 'professional',
+          preset: 'balanced' // 원본 스타일 유지를 위해 balanced 사용
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        
+        if (result.imageUrl) {
+          setGeneratedImages(prev => [result.imageUrl, ...prev]);
+          setShowGeneratedImages(true);
+          
+          // 확대 모달 닫기
+          setSelectedImageForZoom(null);
+          
+          // 이미지 목록 새로고침
+          fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+          
+          alert('✅ 이미지 변형이 완료되었습니다!');
+        } else {
+          throw new Error('변형된 이미지가 생성되지 않았습니다.');
+        }
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || '이미지 변형에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('이미지 변형 오류:', error);
+      alert('이미지 변형 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsGeneratingExistingVariation(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+
+  // Nanobanana 변형 함수
+  const generateNanobananaVariation = async (imageUrl: string, imageName: string, imageFolderPath?: string, customPrompt?: string) => {
+    if (!imageUrl) {
+      alert('변형할 이미지를 선택해주세요.');
+      return;
+    }
+
+    if (isGeneratingNanobananaVariation) {
+      alert('이미 변형 중입니다. 잠시만 기다려주세요.');
+      return;
+    }
+
+    setIsGeneratingNanobananaVariation(true);
+    setImageGenerationStep('Nanobanana로 이미지 변형 중...');
+    setImageGenerationModel('Nanobanana (원본 스타일 유지)');
+    setShowGenerationProcess(true);
+
+    try {
+      const response = await fetch('/api/vary-nanobanana', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: imageUrl,
+          prompt: customPrompt || undefined, // 사용자 프롬프트 또는 자동 생성
+          preserveStyle: true, // 원본 스타일 유지
+          numImages: 1,
+          aspectRatio: '1:1',
+          outputFormat: 'jpeg',
+          quality: 90,
+          title: '갤러리 이미지 변형',
+          excerpt: 'Nanobanana로 변형된 이미지',
+          contentType: 'gallery',
+          brandStrategy: 'professional'
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || error.details || '이미지 변형 실패');
+      }
+
+      const result = await response.json();
+      
+      if (result.imageUrl) {
+        setGeneratedImages(prev => [result.imageUrl, ...prev]);
+        setShowGeneratedImages(true);
+        
+        // 확대 모달 닫기
+        setSelectedImageForZoom(null);
+        
+        // 이미지 목록 새로고침
+        fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+        
+        alert('✅ Nanobanana 변형이 완료되었습니다!');
+      } else {
+        throw new Error('변형된 이미지가 생성되지 않았습니다.');
+      }
+    } catch (error: any) {
+      console.error('❌ Nanobanana 변형 오류:', error);
+      alert('Nanobanana 변형 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsGeneratingNanobananaVariation(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 2000);
     }
   };
 
@@ -4242,7 +4217,7 @@ export default function GalleryAdmin() {
                     
                     return (
                     <div 
-                      key={image.name} 
+                      key={getImageUniqueId(image) || image.url || `image-${image.name}-${image.folder_path || 'no-folder'}-${index}`} 
                       className={`relative group border-2 rounded-lg overflow-hidden hover:shadow-md transition-all ${
                         selectedForCompare.has(image.id || '')
                           ? 'border-green-500 ring-2 ring-green-200'
@@ -4356,17 +4331,9 @@ export default function GalleryAdmin() {
                       {/* 이미지 */}
                       <div className="aspect-square bg-gray-100">
                         <LazyImage
-                          src={`${image.url}?width=200&height=200&quality=80&resize=cover`}
-                          data-full-src={image.url}
+                          src={image.url}
                           alt={image.alt_text || image.name}
                           className={`w-full h-full object-cover ${(image as any).is_linked ? 'opacity-60' : ''}`}
-                          onError={(e) => {
-                            // 썸네일 실패 시 원본으로 폴백
-                            const target = e.target as HTMLImageElement;
-                            if (target.dataset.fullSrc && target.src !== target.dataset.fullSrc) {
-                              target.src = target.dataset.fullSrc;
-                            }
-                          }}
                         />
                       </div>
                       
@@ -4477,6 +4444,103 @@ export default function GalleryAdmin() {
                           </div>
                         </div>
                         
+                        {/* 🔗 사용 위치 상세 정보 (새로 추가) */}
+                        {image.used_in && image.used_in.length > 0 && (
+                          <div className="mt-2 p-2 bg-gray-50 rounded text-xs border border-gray-200">
+                            <div className="font-semibold mb-1 text-gray-700">
+                              🔗 {image.usage_count || 0}회 사용 ({image.used_in.length}개 위치)
+                            </div>
+                            {/* 폴더 경로 표시 */}
+                            {image.folder_path && (
+                              <div className="text-xs text-gray-500 mb-2 pb-2 border-b border-gray-200">
+                                📁 {formatFolderPath(image.folder_path)}
+                              </div>
+                            )}
+                            <div className="space-y-1 max-h-24 overflow-y-auto">
+                              {image.used_in.slice(0, 3).map((usage, idx) => {
+                                // 🔧 배포되지 않은 블로그 판단: status가 명시적으로 draft/archived이거나, isPublished가 false인 경우만
+                                const isUnpublishedBlog = usage.type === 'blog' && 
+                                  (usage.status === 'draft' || usage.status === 'archived' || 
+                                   (usage.isPublished === false && usage.status !== 'published'));
+                                
+                                // 🔧 id가 없거나 유효하지 않으면 slug 사용, 둘 다 없으면 링크 생성 안 함
+                                const getEditId = () => {
+                                  if (usage.id && usage.id !== 'undefined' && usage.id !== 'null' && String(usage.id).trim() !== '') {
+                                    return usage.id;
+                                  }
+                                  if (usage.slug && usage.slug !== 'undefined' && usage.slug !== 'null' && String(usage.slug).trim() !== '') {
+                                    return usage.slug;
+                                  }
+                                  return null;
+                                };
+                                
+                                const editId = getEditId();
+                                
+                                // 🔧 링크 URL 생성: 배포된 블로그는 usage.url 또는 slug로, 미배포는 editId로
+                                let linkUrl = '#';
+                                if (isUnpublishedBlog) {
+                                  linkUrl = editId ? `/admin/blog?edit=${editId}` : '#';
+                                } else {
+                                  // 배포된 블로그
+                                  if (usage.url) {
+                                    linkUrl = usage.url.startsWith('http') ? usage.url : `http://localhost:3000${usage.url}`;
+                                  } else if (usage.slug) {
+                                    // url이 없으면 slug로 블로그 페이지 링크 생성
+                                    linkUrl = `http://localhost:3000/blog/${usage.slug}`;
+                                  } else {
+                                    linkUrl = '#';
+                                  }
+                                }
+                                
+                                return (
+                                  <div key={idx} className="text-gray-600 flex items-start">
+                                    <span className="mr-1">
+                                      {usage.type === 'blog' && '📰'}
+                                      {usage.type === 'funnel' && '🎯'}
+                                      {usage.type === 'homepage' && '🏠'}
+                                      {usage.type === 'muziik' && '🎵'}
+                                      {usage.type === 'static_page' && '📄'}
+                                    </span>
+                                    <span className="flex-1 truncate">
+                                      {linkUrl !== '#' ? (
+                                        <a 
+                                          href={linkUrl}
+                                          target={isUnpublishedBlog ? undefined : "_blank"}
+                                          rel={isUnpublishedBlog ? undefined : "noopener noreferrer"}
+                                          className={`${isUnpublishedBlog ? 'text-orange-600 hover:text-orange-800' : 'text-blue-600 hover:text-blue-800'} underline`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            // 🔧 배포되지 않은 블로그는 새 탭에서 열지 않음
+                                            if (isUnpublishedBlog) {
+                                              e.preventDefault();
+                                              if (linkUrl !== '#') {
+                                                window.location.href = linkUrl;
+                                              }
+                                            }
+                                            // 🔧 배포된 블로그는 기본 링크 동작 사용 (target="_blank"로 새 탭에서 열림)
+                                          }}
+                                          title={isUnpublishedBlog ? `초안/미배포: ${usage.title}` : (usage.url || linkUrl)}
+                                        >
+                                          {usage.title}
+                                          {isUnpublishedBlog && ' (초안)'}
+                                        </a>
+                                      ) : (
+                                        <span className="text-gray-500">{usage.title} (링크 없음)</span>
+                                      )}
+                                      {usage.isFeatured && <span className="text-yellow-600 ml-1">(대표)</span>}
+                                      {usage.isInContent && !usage.isFeatured && <span className="text-blue-600 ml-1">(본문)</span>}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                              {image.used_in.length > 3 && (
+                                <div className="text-gray-500 text-xs">
+                                  +{image.used_in.length - 3}개 위치 더...
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                       
                       {/* 퀵 액션 버튼들: 확대 / 편집 / 삭제만 표시 */}
@@ -5141,116 +5205,15 @@ export default function GalleryAdmin() {
                     </div>
                   )}
                 </div>
+                {/* 변형 (FAL) 버튼 */}
                 <div className="flex items-center gap-1">
                   <button
                     onClick={async () => {
                       if (!selectedImageForZoom) return;
                       if (isGeneratingExistingVariation) return;
                       
-                      // 바로 변형 시작
-                      setIsGeneratingExistingVariation(true);
-                      setImageGenerationStep('FAL AI로 이미지 변형 중...');
-                      setImageGenerationModel('FAL AI (기존 이미지 변형)');
-                      setShowGenerationProcess(true);
-                      
-                      try {
-                        // 1. 기존 프롬프트 확인 또는 생성
-                        let prompt = '';
-                        try {
-                          const promptResponse = await fetch('/api/get-image-prompt', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ imageUrl: selectedImageForZoom.url })
-                          });
-                          
-                          if (promptResponse.ok) {
-                            const promptData = await promptResponse.json();
-                            prompt = promptData.prompt || '';
-                          }
-                        } catch (error) {
-                          console.warn('기존 프롬프트 조회 실패, AI로 생성:', error);
-                        }
-                        
-                        // 프롬프트가 없으면 AI로 생성
-                        if (!prompt) {
-                          setImageGenerationStep('이미지 분석 및 프롬프트 생성 중...');
-                          
-                          const isGolfImage = selectedImageForZoom.url.includes('golf') || 
-                                             selectedImageForZoom.url.includes('골프') ||
-                                             selectedImageForZoom.url.includes('driver') ||
-                                             selectedImageForZoom.url.includes('club');
-                          
-                          const analysisEndpoint = isGolfImage 
-                            ? '/api/analyze-image-prompt'
-                            : '/api/analyze-image-general';
-                          
-                          const analysisResponse = await fetch(analysisEndpoint, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
-                              imageUrl: selectedImageForZoom.url,
-                              title: '갤러리 이미지 변형',
-                              excerpt: '갤러리에서 변형된 이미지'
-                            })
-                          });
-                          
-                          if (analysisResponse.ok) {
-                            const analysisData = await analysisResponse.json();
-                            prompt = analysisData.prompt || analysisData.englishPrompt || '';
-                          }
-                        }
-                        
-                        // 2. 바로 FAL AI 변형 시작
-                        setImageGenerationStep('FAL AI로 이미지 변형 중...');
-                        
-                        const response = await fetch('/api/vary-existing-image', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            imageUrl: selectedImageForZoom.url,
-                            prompt: prompt || 'high quality image variation',
-                            title: '갤러리 이미지 변형',
-                            excerpt: '갤러리에서 변형된 이미지',
-                            contentType: 'gallery',
-                            brandStrategy: 'professional',
-                            preset: variationPreset || 'creative',
-                            originalImageFolder: selectedImageForZoom.folder_path || null
-                          })
-                        });
-                        
-                        if (response.ok) {
-                          const result = await response.json();
-                          
-                          if (result.imageUrl) {
-                            // selectedImageForZoom을 변형된 이미지로 업데이트 (모달 유지)
-                            setSelectedImageForZoom({
-                              ...selectedImageForZoom,
-                              url: result.imageUrl,
-                              name: result.fileName || selectedImageForZoom.name,
-                              folder_path: selectedImageForZoom.folder_path
-                            });
-                            
-                            // 이미지 목록 새로고침
-                            fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
-                            
-                            alert('✅ 이미지 변형이 완료되었습니다!');
-                          } else {
-                            throw new Error('변형된 이미지가 생성되지 않았습니다.');
-                          }
-                        } else {
-                          const error = await response.json();
-                          throw new Error(error.message || '이미지 변형에 실패했습니다.');
-                        }
-                      } catch (error: any) {
-                        console.error('이미지 변형 오류:', error);
-                        alert('이미지 변형 중 오류가 발생했습니다: ' + error.message);
-                      } finally {
-                        setIsGeneratingExistingVariation(false);
-                        setTimeout(() => {
-                          setShowGenerationProcess(false);
-                          setImageGenerationStep('');
-                        }, 2000);
-                      }
+                      // 바로 변형 시작 (프롬프트 자동 생성)
+                      await handleFALVariation(selectedImageForZoom.url, undefined);
                     }}
                     disabled={isGeneratingExistingVariation}
                     className={`px-3 py-1.5 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 transition-colors ${
@@ -5262,6 +5225,7 @@ export default function GalleryAdmin() {
                   </button>
                   <button
                     onClick={() => {
+                      if (!selectedImageForZoom) return;
                       setPromptModalType('fal');
                       setCustomPrompt('');
                       setShowPromptModal(true);
@@ -5275,6 +5239,8 @@ export default function GalleryAdmin() {
                     ✏️
                   </button>
                 </div>
+                
+                {/* 변형 (Replicate) 버튼 */}
                 <div className="flex items-center gap-1">
                   <button
                     onClick={async () => {
@@ -5294,6 +5260,7 @@ export default function GalleryAdmin() {
                   </button>
                   <button
                     onClick={() => {
+                      if (!selectedImageForZoom) return;
                       setPromptModalType('replicate');
                       setCustomPrompt('');
                       setShowPromptModal(true);
@@ -5302,11 +5269,13 @@ export default function GalleryAdmin() {
                     className={`px-1.5 py-1.5 bg-purple-400 text-white text-xs rounded hover:bg-purple-500 transition-colors ${
                       isGeneratingReplicateVariation ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
-                    title="프롬프트 입력 후 변형 (Replicate는 프롬프트 지원 안 함)"
+                    title="프롬프트 입력 후 변형"
                   >
                     ✏️
                   </button>
                 </div>
+                
+                {/* 변형 (Nanobanana) 버튼 */}
                 <div className="flex items-center gap-1">
                   <button
                     onClick={async () => {
@@ -5315,10 +5284,8 @@ export default function GalleryAdmin() {
                       await generateNanobananaVariation(selectedImageForZoom.url, selectedImageForZoom.name, selectedImageForZoom.folder_path);
                     }}
                     disabled={isGeneratingNanobananaVariation}
-                    className={`px-3 py-1.5 text-sm rounded transition-colors ${
-                      isGeneratingNanobananaVariation
-                        ? 'bg-green-300 text-white cursor-not-allowed'
-                        : 'bg-green-500 text-white hover:bg-green-600'
+                    className={`px-3 py-1.5 bg-green-500 text-white text-sm rounded hover:bg-green-600 transition-colors ${
+                      isGeneratingNanobananaVariation ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                     title="변형 (Nanobanana - 원본 스타일 유지)"
                   >
@@ -5326,6 +5293,7 @@ export default function GalleryAdmin() {
                   </button>
                   <button
                     onClick={() => {
+                      if (!selectedImageForZoom) return;
                       setPromptModalType('nanobanana');
                       setCustomPrompt('');
                       setShowPromptModal(true);
@@ -5847,9 +5815,9 @@ export default function GalleryAdmin() {
       )}
 
       {/* 프롬프트 입력 모달 */}
-      {showPromptModal && promptModalType && (
+      {showPromptModal && promptModalType && selectedImageForZoom && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-medium text-gray-900">
@@ -5861,139 +5829,64 @@ export default function GalleryAdmin() {
                     setPromptModalType(null);
                     setCustomPrompt('');
                   }}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 text-2xl"
                 >
-                  ✕
+                  ×
                 </button>
               </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    변형 프롬프트 {promptModalType === 'replicate' && '(Replicate는 프롬프트 지원 안 함)'}
-                  </label>
-                  <textarea
-                    value={customPrompt}
-                    onChange={(e) => setCustomPrompt(e.target.value)}
-                    placeholder="예: Korean golfer, professional golf course, high quality, natural lighting"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-32 resize-none"
-                    disabled={promptModalType === 'replicate'}
-                  />
-                  {promptModalType === 'replicate' && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      Replicate는 프롬프트 입력을 지원하지 않습니다. FAL 또는 Nanobanana를 사용해주세요.
-                    </p>
-                  )}
-                  {promptModalType === 'nanobanana' && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      원본 스타일 유지가 자동으로 적용됩니다. 프롬프트는 추가 변형 지시사항으로 사용됩니다.
-                    </p>
-                  )}
-                </div>
-                <div className="flex gap-3 justify-end">
-                  <button
-                    onClick={() => {
-                      setShowPromptModal(false);
-                      setPromptModalType(null);
-                      setCustomPrompt('');
-                    }}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                  >
-                    취소
-                  </button>
-                  <button
-                    onClick={async () => {
-                      if (!selectedImageForZoom) {
-                        alert('이미지를 선택해주세요.');
-                        return;
-                      }
-
-                      if (promptModalType === 'replicate') {
-                        alert('Replicate는 프롬프트 입력을 지원하지 않습니다.');
-                        setShowPromptModal(false);
-                        setPromptModalType(null);
-                        setCustomPrompt('');
-                        return;
-                      }
-
-                      setShowPromptModal(false);
-                      
-                      if (promptModalType === 'fal') {
-                        setIsGeneratingExistingVariation(true);
-                        setImageGenerationStep('FAL AI로 이미지 변형 중...');
-                        setImageGenerationModel('FAL AI (프롬프트 입력)');
-                        setShowGenerationProcess(true);
-                        
-                        try {
-                          const response = await fetch('/api/vary-existing-image', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
-                              imageUrl: selectedImageForZoom.url,
-                              prompt: customPrompt || 'high quality image variation',
-                              title: '갤러리 이미지 변형',
-                              excerpt: '갤러리에서 변형된 이미지',
-                              contentType: 'gallery',
-                              brandStrategy: 'professional',
-                              preset: variationPreset || 'creative',
-                              originalImageFolder: selectedImageForZoom.folder_path || null
-                            })
-                          });
-                          
-                          if (response.ok) {
-                            const result = await response.json();
-                            
-                            if (result.imageUrl) {
-                              // selectedImageForZoom을 변형된 이미지로 업데이트 (모달 유지)
-                              setSelectedImageForZoom({
-                                ...selectedImageForZoom,
-                                url: result.imageUrl,
-                                name: result.fileName || selectedImageForZoom.name,
-                                folder_path: selectedImageForZoom.folder_path
-                              });
-                              
-                              fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
-                              alert('✅ 이미지 변형이 완료되었습니다!');
-                            } else {
-                              throw new Error('변형된 이미지가 생성되지 않았습니다.');
-                            }
-                          } else {
-                            const error = await response.json();
-                            throw new Error(error.message || '이미지 변형에 실패했습니다.');
-                          }
-                        } catch (error: any) {
-                          console.error('이미지 변형 오류:', error);
-                          alert('이미지 변형 중 오류가 발생했습니다: ' + error.message);
-                        } finally {
-                          setIsGeneratingExistingVariation(false);
-                          setTimeout(() => {
-                            setShowGenerationProcess(false);
-                            setImageGenerationStep('');
-                          }, 2000);
-                        }
-                      } else if (promptModalType === 'nanobanana') {
-                        await generateNanobananaVariation(
-                          selectedImageForZoom.url,
-                          selectedImageForZoom.name,
-                          selectedImageForZoom.folder_path,
-                          customPrompt
-                        );
-                      }
-                      
-                      setPromptModalType(null);
-                      setCustomPrompt('');
-                    }}
-                    disabled={promptModalType === 'replicate'}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
-                      promptModalType === 'replicate'
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : promptModalType === 'fal'
-                        ? 'bg-orange-500 text-white hover:bg-orange-600'
-                        : 'bg-green-500 text-white hover:bg-green-600'
-                    }`}
-                  >
-                    변형 시작
-                  </button>
-                </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  변형 프롬프트 ({promptModalType === 'fal' ? 'FAL' : promptModalType === 'replicate' ? 'Replicate' : 'Nanobanana'})
+                </label>
+                <textarea
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
+                  placeholder="예: Korean golfer, professional golf course, maintain original style, same character appearance"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={4}
+                />
+                <p className="mt-2 text-xs text-gray-500">
+                  프롬프트를 입력하지 않으면 자동으로 생성됩니다.
+                  <br />
+                  원본 스타일 유지를 원하면 "maintain original style", "preserve character appearance" 등을 포함하세요.
+                </p>
+              </div>
+              
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => {
+                    setShowPromptModal(false);
+                    setPromptModalType(null);
+                    setCustomPrompt('');
+                  }}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!selectedImageForZoom) return;
+                    
+                    const prompt = customPrompt.trim() || undefined;
+                    setShowPromptModal(false);
+                    const type = promptModalType;
+                    setPromptModalType(null);
+                    setCustomPrompt('');
+                    
+                    if (type === 'fal') {
+                      await handleFALVariation(selectedImageForZoom.url, prompt);
+                    } else if (type === 'replicate') {
+                      // Replicate는 프롬프트를 직접 지원하지 않지만, 향후 확장 가능
+                      await generateReplicateVariation(selectedImageForZoom.url, selectedImageForZoom.name, selectedImageForZoom.folder_path, prompt);
+                    } else if (type === 'nanobanana') {
+                      await generateNanobananaVariation(selectedImageForZoom.url, selectedImageForZoom.name, selectedImageForZoom.folder_path, prompt);
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  변형 시작
+                </button>
               </div>
             </div>
           </div>
@@ -7003,7 +6896,7 @@ export default function GalleryAdmin() {
                 }
 
                 return (
-                  <div key={img.id} className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6 shadow-lg">
+                  <div key={img.id || img.url || `compare-${img.name}-${img.folder_path || 'no-folder'}-${index}`} className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6 shadow-lg">
                     {/* 이미지 썸네일 - 원본 비율 유지 */}
                     <div 
                       className="bg-gray-100 rounded-lg mb-4 overflow-hidden shadow-inner flex items-center justify-center"
