@@ -44,9 +44,26 @@ export default function SurveyLanding() {
   // 파일 타입 감지 함수 (이미지/동영상)
   const getFileType = (url: string): 'image' | 'video' => {
     if (!url) return 'image';
-    const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.m4v'];
+    const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.m4v', '.3gp', '.wmv'];
     const urlLower = url.toLowerCase();
-    return videoExtensions.some(ext => urlLower.includes(ext)) ? 'video' : 'image';
+    
+    // URL에서 파일명 추출 (마지막 경로 세그먼트)
+    try {
+      const urlObj = new URL(url);
+      const pathname = urlObj.pathname;
+      const fileName = pathname.split('/').pop() || '';
+      
+      // 파일명에서 확장자 확인
+      const isVideo = videoExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
+      if (isVideo) return 'video';
+    } catch (e) {
+      // URL 파싱 실패 시 기존 방식 사용
+      if (videoExtensions.some(ext => urlLower.includes(ext))) {
+        return 'video';
+      }
+    }
+    
+    return 'image';
   };
 
   // 설문 이미지 로드 (데이터베이스에서)
@@ -85,6 +102,12 @@ export default function SurveyLanding() {
       const bucketData = await bucketRes.json();
       
       if (bucketData.success && bucketData.product?.gallery_images && bucketData.product.gallery_images.length > 0) {
+        // 디버깅: 동영상 파일 확인
+        const videoCount = bucketData.product.gallery_images.filter((url: string) => 
+          getFileType(url) === 'video'
+        ).length;
+        console.log(`[survey] 버킷햇 미디어: 총 ${bucketData.product.gallery_images.length}개 (동영상: ${videoCount}개)`);
+        
         const bucketImages = bucketData.product.gallery_images.map((img: string, index: number) => ({
           src: getProductImageUrl(img),
           alt: `MASSGOO X MUZIIK 버킷햇 ${index + 1}`
@@ -104,6 +127,12 @@ export default function SurveyLanding() {
       const golfData = await golfRes.json();
       
       if (golfData.success && golfData.product?.gallery_images && golfData.product.gallery_images.length > 0) {
+        // 디버깅: 동영상 파일 확인
+        const videoCount = golfData.product.gallery_images.filter((url: string) => 
+          getFileType(url) === 'video'
+        ).length;
+        console.log(`[survey] 골프모자 미디어: 총 ${golfData.product.gallery_images.length}개 (동영상: ${videoCount}개)`);
+        
         const golfImages = golfData.product.gallery_images.map((img: string, index: number) => ({
           src: getProductImageUrl(img),
           alt: `MASSGOO X MUZIIK 골프모자 ${index + 1}`
