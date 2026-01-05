@@ -804,10 +804,20 @@ export default function FeedManager({
                 <button
                   onClick={() => handleGenerateImage(true)}
                   disabled={isRegeneratingPrompt || isGeneratingImage || isGenerating || publishStatus === 'published'}
-                  className="text-xs px-2 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   title="프롬프트 재생성 + 이미지 재생성 (제품 합성 포함)"
                 >
-                  {isRegeneratingPrompt ? '🔄 재생성 중...' : '🔄 프롬프트 재생성'}
+                  {isRegeneratingPrompt ? (
+                    <>
+                      <Sparkles className="w-4 h-4 animate-spin" />
+                      재생성 중...
+                    </>
+                  ) : (
+                    <>
+                      <RotateCcw className="w-4 h-4" />
+                      프롬프트 이미지 재생성
+                    </>
+                  )}
                 </button>
               )}
               {feedData.imageUrl && (
