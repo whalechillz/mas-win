@@ -6,6 +6,7 @@ interface UploadOptions {
   enableHEICConversion?: boolean; // HEIC 파일 자동 변환
   enableEXIFBackfill?: boolean; // EXIF 메타데이터 백필
   uploadMode?: 'auto' | 'preserve-name' | 'preserve-original'; // 업로드 모드
+  onProgress?: (progress: number) => void; // 업로드 진행률 콜백 (0-100)
   // 하위 호환성: 기존 옵션들 (deprecated)
   preserveFilename?: boolean; // 원본 파일명 전체 유지 옵션 (deprecated, uploadMode 사용 권장)
   preserveExtension?: boolean; // 원본 확장자만 유지 옵션 (deprecated, uploadMode 사용 권장)
@@ -87,29 +88,81 @@ export async function uploadImageToSupabase(
       }
     }
 
-    // 업로드 API 호출
-    const response = await fetch('/api/upload-image-supabase', {
-      method: 'POST',
-      body: formData,
+    // 업로드 시작 로깅
+    console.log('📤 업로드 시작:', {
+      fileName: processedFile.name,
+      fileSize: `${(processedFile.size / 1024 / 1024).toFixed(2)}MB`,
+      fileType: processedFile.type,
+      targetFolder: options.targetFolder || '기본 폴더',
+      uploadMode: options.uploadMode || 'auto'
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      throw new Error(errorData.error || `업로드 실패: ${response.status} ${response.statusText}`);
-    }
+    // 진행률 추적을 위해 XMLHttpRequest 사용
+    return new Promise<UploadResult>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
 
-    const data = await response.json();
-    
-    if (!data.url) {
-      throw new Error('업로드 응답에 URL이 없습니다.');
-    }
+      // 진행률 이벤트 리스너
+      if (options.onProgress) {
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const progress = Math.round((e.loaded / e.total) * 100);
+            options.onProgress!(progress);
+          }
+        });
+      }
 
-    console.log('✅ 이미지 업로드 완료:', data.url);
-    
-    return {
-      url: data.url,
-      fileName: data.fileName || processedFile.name
-    };
+      // 완료 이벤트 리스너
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            
+            if (!data.url) {
+              throw new Error('업로드 응답에 URL이 없습니다.');
+            }
+
+            console.log('✅ 이미지 업로드 완료:', data.url);
+            
+            resolve({
+              url: data.url,
+              fileName: data.fileName || processedFile.name
+            });
+          } catch (parseError: any) {
+            console.error('❌ 응답 파싱 오류:', parseError);
+            reject(new Error('서버 응답을 파싱할 수 없습니다.'));
+          }
+        } else {
+          // 에러 응답 처리
+          let errorMessage = `업로드 실패: ${xhr.status} ${xhr.statusText}`;
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            errorMessage = errorData.details || errorData.error || errorMessage;
+            
+            // 개발 환경에서 상세 정보 표시
+            if (process.env.NODE_ENV === 'development' && errorData.stack) {
+              console.error('서버 오류 상세:', errorData);
+            }
+          } catch {
+            // JSON 파싱 실패 시 기본 메시지 사용
+          }
+          reject(new Error(errorMessage));
+        }
+      });
+
+      // 에러 이벤트 리스너
+      xhr.addEventListener('error', () => {
+        reject(new Error('네트워크 오류가 발생했습니다.'));
+      });
+
+      // 중단 이벤트 리스너
+      xhr.addEventListener('abort', () => {
+        reject(new Error('업로드가 취소되었습니다.'));
+      });
+
+      // 요청 시작
+      xhr.open('POST', '/api/upload-image-supabase');
+      xhr.send(formData);
+    });
   } catch (error: any) {
     console.error('❌ 이미지 업로드 오류:', error);
     throw new Error(error.message || '이미지 업로드에 실패했습니다.');

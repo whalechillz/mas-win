@@ -58,22 +58,24 @@ export default async function handler(req, res) {
         break; // 더 이상 파일이 없음
       }
 
-      // 이미지 파일만 필터링
-      const imageFiles = files.filter(file => {
+      // 이미지 및 동영상 파일 필터링
+      const mediaFiles = files.filter(file => {
         if (!file.id) return false; // 폴더 제외
 
-        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-        const isImage = imageExtensions.some(ext => 
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.heic', '.heif'];
+        const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
+        const mediaExtensions = [...imageExtensions, ...videoExtensions];
+        const isMedia = mediaExtensions.some(ext => 
           file.name.toLowerCase().endsWith(ext)
         );
 
         // .keep.png 마커 파일 제외
         const isKeepFile = file.name.toLowerCase() === '.keep.png';
 
-        return isImage && !isKeepFile;
+        return isMedia && !isKeepFile;
       });
 
-      allFiles = allFiles.concat(imageFiles);
+      allFiles = allFiles.concat(mediaFiles);
       offset += batchSize;
 
       // 마지막 배치면 종료
@@ -83,7 +85,7 @@ export default async function handler(req, res) {
     }
 
     // URL 생성 및 응답 데이터 구성
-    const images = allFiles.map(file => {
+    const media = allFiles.map(file => {
       const filePath = `${folderPath}/${file.name}`;
       const { data: { publicUrl } } = supabase.storage
         .from('blog-images')
@@ -97,11 +99,11 @@ export default async function handler(req, res) {
       };
     });
 
-    console.log(`✅ [folder-images] 폴더 이미지 조회 완료: "${folderPath}" - ${images.length}개 이미지`);
+    console.log(`✅ [folder-images] 폴더 미디어 조회 완료: "${folderPath}" - ${media.length}개 파일`);
 
     return res.status(200).json({
-      images,
-      count: images.length,
+      images: media,
+      count: media.length,
       folder: folderPath
     });
 

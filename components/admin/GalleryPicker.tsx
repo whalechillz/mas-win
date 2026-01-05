@@ -1199,7 +1199,7 @@ const GalleryPicker: React.FC<Props> = ({
                   {isDragging ? '여기에 이미지를 놓으세요' : '이미지 파일을 드래그하거나 클릭하여 업로드'}
                 </span>
                 <span className="mt-1 block text-sm text-gray-500">
-                  PNG, JPG, GIF, HEIC 파일 지원
+                  이미지: PNG, JPG, GIF, HEIC | 동영상: MP4, AVI, MOV, WEBM
                   {folderFilter && (
                     <span className="block mt-1 text-xs text-blue-600">
                       📁 업로드 위치: {folderFilter}
@@ -1210,7 +1210,7 @@ const GalleryPicker: React.FC<Props> = ({
               <input
                 id="gallery-picker-file-upload"
                 type="file"
-                accept="image/*,.heic,.heif"
+                accept="image/*,video/*,.heic,.heif"
                 className="hidden"
                 onChange={handleFileSelect}
               />

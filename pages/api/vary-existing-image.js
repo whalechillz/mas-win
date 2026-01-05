@@ -37,8 +37,7 @@ export default async function handler(req, res) {
       excerpt, 
       contentType, 
       brandStrategy,
-      preset = 'creative',
-      originalImageFolder = null // 원본 이미지가 있던 폴더 경로
+      preset = 'creative'
     } = req.body;
 
     console.log('🎨 기존 이미지 변형 시작...');
@@ -265,18 +264,7 @@ const PRESETS = {
       const dateStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
       const yearMonth = dateStr.slice(0, 7); // YYYY-MM
       const fileName = `existing-variation-${Date.now()}.png`;
-      
-      // 저장 경로 결정: 원본 이미지 폴더가 있으면 그곳에, 없으면 기본 경로에
-      let objectPath;
-      if (originalImageFolder && originalImageFolder.trim() !== '') {
-        // 원본 이미지 폴더에 저장
-        objectPath = `${originalImageFolder.trim()}/${fileName}`;
-        console.log('📁 원본 이미지 폴더에 저장:', objectPath);
-      } else {
-        // 기본 경로에 저장 (폴백)
-        objectPath = `uploaded/${yearMonth}/${dateStr}/${fileName}`;
-        console.log('📁 기본 경로에 저장:', objectPath);
-      }
+      const objectPath = `uploaded/${yearMonth}/${dateStr}/${fileName}`; // uploaded/YYYY-MM/YYYY-MM-DD/ 형식으로 변경
       
       // Supabase Storage에 업로드
       const { data: uploadData, error: uploadError } = await supabase.storage

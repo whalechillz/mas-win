@@ -1,6 +1,55 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
-## ✅ 최근 작업: 갤러리 동영상 썸네일 파란색 배경 문제 해결 (2026-01-29)
+## ✅ 최근 작업: 동영상 메타데이터 추출 및 AI 메타 생성 기능 구현 (2026-01-29)
+
+### 완료된 작업
+- **동영상 메타데이터 추출 API 생성** ✅:
+  - `pages/api/admin/extract-video-metadata.js`: ffprobe를 사용하여 동영상 메타데이터 추출
+  - 해상도, 길이, 코덱, 프레임레이트, 비트레이트 등 추출
+  - 동영상 썸네일 추출 옵션 지원 (선택적)
+  
+- **동영상 첫 프레임 추출 API 생성** ✅:
+  - `pages/api/admin/extract-video-thumbnail.js`: ffmpeg를 사용하여 동영상 첫 프레임 추출
+  - Base64 인코딩된 이미지로 반환하여 AI 분석에 사용
+  - JPEG 90% 품질로 최적화
+  
+- **AI 메타 생성에 동영상 지원 추가** ✅:
+  - `components/ImageMetadataModal/hooks/useAIGeneration.ts`: 동영상 감지 및 첫 프레임 추출 로직 추가
+  - 골프 AI 생성, 일반 메타 생성, 필드별 생성 모두 동영상 지원
+  - 동영상인 경우 자동으로 첫 프레임을 추출하여 OpenAI Vision API로 분석
+  
+- **ImageMetadataModal UI 개선** ✅:
+  - `components/ImageMetadataModal/index.tsx`: 동영상인 경우 버튼 텍스트 변경
+  - "EXIF 추출" → "비디오 메타 추출" (동영상인 경우)
+  - 모달 제목: "이미지 메타데이터 편집" → "동영상 메타데이터 편집" (동영상인 경우)
+  - EXIF 정보 표시 영역에 동영상 메타데이터 표시 (해상도, 길이, 코덱, 프레임레이트, 비트레이트)
+  
+- **갤러리 상세 정보 모달 제목 동적 변경** ✅:
+  - `pages/admin/gallery.tsx`: 파일 타입에 따라 모달 제목 및 아이콘 변경
+  - "이미지 상세 정보" → "동영상 상세 정보" (동영상인 경우)
+  - 아이콘: 📋 → 🎬 (동영상인 경우)
+
+### 변경된 파일
+- `pages/api/admin/extract-video-metadata.js` (신규 생성)
+- `pages/api/admin/extract-video-thumbnail.js` (신규 생성)
+- `components/ImageMetadataModal/index.tsx` (동영상 지원 추가)
+- `components/ImageMetadataModal/hooks/useAIGeneration.ts` (동영상 첫 프레임 추출 로직 추가)
+- `pages/admin/gallery.tsx` (모달 제목 동적 변경)
+
+### 예상 효과
+- 동영상 파일도 이미지와 동일하게 메타데이터 추출 및 AI 분석 가능
+- 동영상 메타데이터(해상도, 길이, 코덱 등)를 데이터베이스에 저장 가능
+- 동영상의 첫 프레임을 분석하여 SEO 최적화된 메타데이터 자동 생성
+- 사용자 경험 개선 (동영상과 이미지의 일관된 UI/UX)
+
+### 참고사항
+- **서버 환경 요구사항**: ffprobe와 ffmpeg가 서버에 설치되어 있어야 함
+- **Vercel 환경**: 서버리스 환경에서는 ffmpeg/ffprobe 사용이 제한적일 수 있음
+  - 대안: 클라이언트에서 Canvas로 첫 프레임 추출 또는 외부 서비스 활용 고려
+
+---
+
+## ✅ 이전 작업: 갤러리 동영상 썸네일 파란색 배경 문제 해결 (2026-01-29)
 
 ### 완료된 작업
 - **동영상 썸네일 파란색 배경 문제 해결** ✅:

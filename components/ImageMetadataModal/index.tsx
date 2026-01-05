@@ -82,6 +82,18 @@ const FIELD_CONFIGS: Partial<Record<keyof MetadataForm, FieldConfig>> = {
   }
 };
 
+// 파일 타입 감지 함수 (이미지/동영상)
+const getFileType = (fileName: string, url?: string): 'image' | 'video' => {
+  const name = (fileName || '').toLowerCase();
+  const urlPath = (url || '').toLowerCase();
+  const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
+  
+  const isVideoByName = videoExtensions.some(ext => name.endsWith(ext));
+  const isVideoByUrl = videoExtensions.some(ext => urlPath.includes(ext));
+  
+  return isVideoByName || isVideoByUrl ? 'video' : 'image';
+};
+
 export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
   isOpen,
   image,
@@ -112,9 +124,17 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     height?: number;
     camera?: string;
     orientation?: number;
+    // 동영상 메타데이터 추가
+    duration?: number;
+    codec?: string;
+    fps?: string;
+    bitrate?: number;
   } | null>(null);
 
   const { isGenerating, generateGolfMetadata, generateGeneralMetadata, generateField } = useAIGeneration();
+  
+  // 파일 타입 확인
+  const fileType = image ? getFileType(image.name, image.url) : 'image';
 
   // SEO 파일명 자동 생성 (하이브리드: 규칙 기반 + AI)
   const handleGenerateSEOFileName = useCallback(async () => {
@@ -511,78 +531,124 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     }
   }, [image, generateField]);
 
-  // EXIF 추출
+  // EXIF/비디오 메타데이터 추출
   const handleExtractEXIF = useCallback(async () => {
     if (!image) return;
 
     setIsExtractingEXIF(true);
     try {
-      const response = await fetch('/api/admin/extract-exif', {
+      const isVideo = fileType === 'video';
+      const apiEndpoint = isVideo ? '/api/admin/extract-video-metadata' : '/api/admin/extract-exif';
+      
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ publicUrl: image.url })
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'EXIF 추출 실패' }));
-        throw new Error(errorData.error || 'EXIF 추출 실패');
+        const errorData = await response.json().catch(() => ({ error: `${isVideo ? '비디오 메타데이터' : 'EXIF'} 추출 실패` }));
+        throw new Error(errorData.error || `${isVideo ? '비디오 메타데이터' : 'EXIF'} 추출 실패`);
       }
 
       const data = await response.json();
-      const extractedExif = data.meta || {};
-      const exifRaw = data.exif || {};
-
-      // EXIF 데이터를 별도 state에 저장 (description에 넣지 않음)
-      const exifInfo: {
-        taken_at?: string;
-        gps_lat?: number;
-        gps_lng?: number;
-        width?: number;
-        height?: number;
-        camera?: string;
-        orientation?: number;
-      } = {};
-
-      if (extractedExif.taken_at) {
-        exifInfo.taken_at = extractedExif.taken_at;
-      }
       
-      if (extractedExif.gps_lat && extractedExif.gps_lng) {
-        exifInfo.gps_lat = extractedExif.gps_lat;
-        exifInfo.gps_lng = extractedExif.gps_lng;
-      }
-      
-      if (extractedExif.width && extractedExif.height) {
-        exifInfo.width = extractedExif.width;
-        exifInfo.height = extractedExif.height;
-      }
+      if (isVideo) {
+        // 동영상 메타데이터 처리
+        const videoMeta = data.meta || {};
+        const videoInfo: {
+          width?: number;
+          height?: number;
+          duration?: number;
+          codec?: string;
+          fps?: string;
+          bitrate?: number;
+        } = {};
 
-      if (extractedExif.orientation) {
-        exifInfo.orientation = extractedExif.orientation;
-      }
+        if (videoMeta.width && videoMeta.height) {
+          videoInfo.width = videoMeta.width;
+          videoInfo.height = videoMeta.height;
+        }
+        
+        if (videoMeta.duration) {
+          videoInfo.duration = videoMeta.duration;
+        }
+        
+        if (videoMeta.codec) {
+          videoInfo.codec = videoMeta.codec;
+        }
+        
+        if (videoMeta.fps) {
+          videoInfo.fps = videoMeta.fps;
+        }
+        
+        if (videoMeta.bitrate) {
+          videoInfo.bitrate = videoMeta.bitrate;
+        }
 
-      // EXIF에서 카메라 정보 추출 (있는 경우)
-      if (exifRaw.Make || exifRaw.Model) {
-        exifInfo.camera = [exifRaw.Make, exifRaw.Model].filter(Boolean).join(' ');
-      }
+        setExifData(Object.keys(videoInfo).length > 0 ? videoInfo : null);
+        setHasChanges(true);
 
-      setExifData(Object.keys(exifInfo).length > 0 ? exifInfo : null);
-      setHasChanges(true);
-
-      // 성공 메시지
-      const infoCount = Object.keys(exifInfo).length;
-      if (infoCount > 0) {
-        alert(`✅ EXIF 정보 추출 완료!\n\n${infoCount}개의 정보를 추출했습니다.`);
+        const infoCount = Object.keys(videoInfo).length;
+        if (infoCount > 0) {
+          alert(`✅ 동영상 메타데이터 추출 완료!\n\n${infoCount}개의 정보를 추출했습니다.`);
+        } else {
+          alert('⚠️ 이 동영상에서 메타데이터를 추출할 수 없습니다.');
+        }
       } else {
-        alert('⚠️ 이 이미지에는 EXIF 정보가 없습니다.');
+        // 이미지 EXIF 처리 (기존 로직)
+        const extractedExif = data.meta || {};
+        const exifRaw = data.exif || {};
+
+        const exifInfo: {
+          taken_at?: string;
+          gps_lat?: number;
+          gps_lng?: number;
+          width?: number;
+          height?: number;
+          camera?: string;
+          orientation?: number;
+        } = {};
+
+        if (extractedExif.taken_at) {
+          exifInfo.taken_at = extractedExif.taken_at;
+        }
+        
+        if (extractedExif.gps_lat && extractedExif.gps_lng) {
+          exifInfo.gps_lat = extractedExif.gps_lat;
+          exifInfo.gps_lng = extractedExif.gps_lng;
+        }
+        
+        if (extractedExif.width && extractedExif.height) {
+          exifInfo.width = extractedExif.width;
+          exifInfo.height = extractedExif.height;
+        }
+
+        if (extractedExif.orientation) {
+          exifInfo.orientation = extractedExif.orientation;
+        }
+
+        if (exifRaw.Make || exifRaw.Model) {
+          exifInfo.camera = [exifRaw.Make, exifRaw.Model].filter(Boolean).join(' ');
+        }
+
+        setExifData(Object.keys(exifInfo).length > 0 ? exifInfo : null);
+        setHasChanges(true);
+
+        const infoCount = Object.keys(exifInfo).length;
+        if (infoCount > 0) {
+          alert(`✅ EXIF 정보 추출 완료!\n\n${infoCount}개의 정보를 추출했습니다.`);
+        } else {
+          alert('⚠️ 이 이미지에는 EXIF 정보가 없습니다.');
+        }
       }
     } catch (error: any) {
-      console.error('EXIF 추출 오류:', error);
-      alert(`EXIF 추출에 실패했습니다: ${error.message || '알 수 없는 오류'}`);
+      console.error(`${fileType === 'video' ? '동영상 메타데이터' : 'EXIF'} 추출 오류:`, error);
+      alert(`${fileType === 'video' ? '동영상 메타데이터' : 'EXIF'} 추출에 실패했습니다: ${error.message || '알 수 없는 오류'}`);
     } finally {
       setIsExtractingEXIF(false);
     }
-  }, [image]);
+  }, [image, fileType]);
 
   // 저장
   const handleSave = useCallback(async () => {
@@ -685,7 +751,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
         {/* 헤더 */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
           <div>
-            <h2 className="text-xl font-semibold text-gray-800">이미지 메타데이터 편집</h2>
+            <h2 className="text-xl font-semibold text-gray-800">{fileType === 'video' ? '동영상 메타데이터 편집' : '이미지 메타데이터 편집'}</h2>
             <p className="text-sm text-gray-500 mt-1">{image.name}</p>
           </div>
           
@@ -712,7 +778,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
               disabled={isGenerating || isExtractingEXIF}
               className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {isExtractingEXIF ? '⏳' : '📷'} EXIF 추출
+              {isExtractingEXIF ? '⏳' : fileType === 'video' ? '🎬' : '📷'} {fileType === 'video' ? '비디오 메타 추출' : 'EXIF 추출'}
             </button>
             
             <button
@@ -756,60 +822,105 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
                 );
               })}
               
-              {/* EXIF 정보 표시 영역 */}
+              {/* EXIF/비디오 메타데이터 정보 표시 영역 */}
               {exifData && (
                 <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded">
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">EXIF 정보</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">{fileType === 'video' ? '동영상 메타데이터' : 'EXIF 정보'}</h3>
                   <div className="grid grid-cols-2 gap-1.5 text-sm">
-                    {exifData.taken_at && (
-                      <div>
-                        <span className="text-gray-500">촬영일:</span>
-                        <span className="ml-1.5 text-gray-900">
-                          {new Date(exifData.taken_at).toLocaleString('ko-KR')}
-                        </span>
-                      </div>
-                    )}
-                    {exifData.width && exifData.height && (
-                      <div>
-                        <span className="text-gray-500">크기:</span>
-                        <span className="ml-1.5 text-gray-900">
-                          {exifData.width} × {exifData.height}px
-                        </span>
-                      </div>
-                    )}
-                    {exifData.gps_lat && exifData.gps_lng && (
-                      <div className="col-span-2">
-                        <span className="text-gray-500">위치:</span>
-                        <span className="ml-1.5 text-gray-900">
-                          {exifData.gps_lat.toFixed(6)}, {exifData.gps_lng.toFixed(6)}
-                        </span>
-                        <a
-                          href={`https://www.google.com/maps?q=${exifData.gps_lat},${exifData.gps_lng}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="ml-1.5 text-blue-600 hover:text-blue-800 underline text-xs"
-                        >
-                          지도 보기
-                        </a>
-                      </div>
-                    )}
-                    {exifData.camera && (
-                      <div className="col-span-2">
-                        <span className="text-gray-500">카메라:</span>
-                        <span className="ml-1.5 text-gray-900">{exifData.camera}</span>
-                      </div>
-                    )}
-                    {exifData.orientation && (
-                      <div>
-                        <span className="text-gray-500">회전:</span>
-                        <span className="ml-1.5 text-gray-900">
-                          {exifData.orientation === 1 ? '정상' : 
-                           exifData.orientation === 3 ? '180°' :
-                           exifData.orientation === 6 ? '90° 시계방향' :
-                           exifData.orientation === 8 ? '90° 반시계방향' :
-                           `${exifData.orientation}`}
-                        </span>
-                      </div>
+                    {fileType === 'video' ? (
+                      // 동영상 메타데이터 표시
+                      <>
+                        {exifData.width && exifData.height && (
+                          <div>
+                            <span className="text-gray-500">해상도:</span>
+                            <span className="ml-1.5 text-gray-900">
+                              {exifData.width} × {exifData.height}px
+                            </span>
+                          </div>
+                        )}
+                        {exifData.duration && (
+                          <div>
+                            <span className="text-gray-500">길이:</span>
+                            <span className="ml-1.5 text-gray-900">
+                              {Math.floor(exifData.duration / 60)}:{(exifData.duration % 60).toFixed(0).padStart(2, '0')}
+                            </span>
+                          </div>
+                        )}
+                        {exifData.codec && (
+                          <div>
+                            <span className="text-gray-500">코덱:</span>
+                            <span className="ml-1.5 text-gray-900">{exifData.codec}</span>
+                          </div>
+                        )}
+                        {exifData.fps && (
+                          <div>
+                            <span className="text-gray-500">프레임레이트:</span>
+                            <span className="ml-1.5 text-gray-900">{exifData.fps} fps</span>
+                          </div>
+                        )}
+                        {exifData.bitrate && (
+                          <div className="col-span-2">
+                            <span className="text-gray-500">비트레이트:</span>
+                            <span className="ml-1.5 text-gray-900">
+                              {(exifData.bitrate / 1000).toFixed(0)} kbps
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      // 이미지 EXIF 정보 표시
+                      <>
+                        {exifData.taken_at && (
+                          <div>
+                            <span className="text-gray-500">촬영일:</span>
+                            <span className="ml-1.5 text-gray-900">
+                              {new Date(exifData.taken_at).toLocaleString('ko-KR')}
+                            </span>
+                          </div>
+                        )}
+                        {exifData.width && exifData.height && (
+                          <div>
+                            <span className="text-gray-500">크기:</span>
+                            <span className="ml-1.5 text-gray-900">
+                              {exifData.width} × {exifData.height}px
+                            </span>
+                          </div>
+                        )}
+                        {exifData.gps_lat && exifData.gps_lng && (
+                          <div className="col-span-2">
+                            <span className="text-gray-500">위치:</span>
+                            <span className="ml-1.5 text-gray-900">
+                              {exifData.gps_lat.toFixed(6)}, {exifData.gps_lng.toFixed(6)}
+                            </span>
+                            <a
+                              href={`https://www.google.com/maps?q=${exifData.gps_lat},${exifData.gps_lng}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-1.5 text-blue-600 hover:text-blue-800 underline text-xs"
+                            >
+                              지도 보기
+                            </a>
+                          </div>
+                        )}
+                        {exifData.camera && (
+                          <div className="col-span-2">
+                            <span className="text-gray-500">카메라:</span>
+                            <span className="ml-1.5 text-gray-900">{exifData.camera}</span>
+                          </div>
+                        )}
+                        {exifData.orientation && (
+                          <div>
+                            <span className="text-gray-500">회전:</span>
+                            <span className="ml-1.5 text-gray-900">
+                              {exifData.orientation === 1 ? '정상' : 
+                               exifData.orientation === 3 ? '180°' :
+                               exifData.orientation === 6 ? '90° 시계방향' :
+                               exifData.orientation === 8 ? '90° 반시계방향' :
+                               `${exifData.orientation}`}
+                            </span>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

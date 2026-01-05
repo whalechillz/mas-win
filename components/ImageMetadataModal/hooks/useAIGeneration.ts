@@ -36,6 +36,34 @@ export const useAIGeneration = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationHistory, setGenerationHistory] = useState<AIGenerationResult[]>([]);
 
+  // 동영상인지 확인하는 함수
+  const isVideoFile = (url: string): boolean => {
+    const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
+    const urlLower = url.toLowerCase();
+    return videoExtensions.some(ext => urlLower.includes(ext));
+  };
+
+  // 동영상 첫 프레임 추출
+  const extractVideoThumbnail = async (videoUrl: string): Promise<string> => {
+    try {
+      const response = await fetch('/api/admin/extract-video-thumbnail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publicUrl: videoUrl })
+      });
+
+      if (!response.ok) {
+        throw new Error('동영상 썸네일 추출 실패');
+      }
+
+      const data = await response.json();
+      return data.thumbnail; // Base64 인코딩된 이미지 (data:image/jpeg;base64,...)
+    } catch (error) {
+      console.error('동영상 썸네일 추출 오류:', error);
+      throw error;
+    }
+  };
+
   // 골프 메타데이터 AI 생성 (기존 generateAllMetadata 리네임)
   const generateGolfMetadata = useCallback(async (
     imageUrl: string,
@@ -49,12 +77,19 @@ export const useAIGeneration = () => {
       const isEnglish = options.language === 'english';
       const language = isEnglish ? 'English' : 'Korean';
       
+      // 동영상인 경우 첫 프레임 추출
+      let finalImageUrl = imageUrl;
+      if (isVideoFile(imageUrl)) {
+        console.log('🎬 동영상 감지, 첫 프레임 추출 중...');
+        finalImageUrl = await extractVideoThumbnail(imageUrl);
+      }
+      
       // 골프 모드: 하나의 API 호출로 모든 메타데이터 생성 (1개 API 호출)
       const metadataResponse = await fetch('/api/analyze-image-prompt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          imageUrl,
+          imageUrl: finalImageUrl, // 동영상인 경우 추출한 썸네일 사용
           title: isEnglish ? 'Golf image metadata' : '골프 이미지 메타데이터',
           excerpt: isEnglish ? 'Generate all metadata for this golf image in JSON format.' : '골프 이미지의 모든 메타데이터를 JSON 형식으로 생성해주세요.'
         })
@@ -215,12 +250,19 @@ export const useAIGeneration = () => {
       const isEnglish = options.language === 'english';
       const language = isEnglish ? 'English' : 'Korean';
       
+      // 동영상인 경우 첫 프레임 추출
+      let finalImageUrl = imageUrl;
+      if (isVideoFile(imageUrl)) {
+        console.log('🎬 동영상 감지, 첫 프레임 추출 중...');
+        finalImageUrl = await extractVideoThumbnail(imageUrl);
+      }
+      
       // 범용 모드: 하나의 API 호출로 모든 메타데이터 생성 (1개 API 호출)
       const metadataResponse = await fetch('/api/analyze-image-general', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          imageUrl,
+          imageUrl: finalImageUrl, // 동영상인 경우 추출한 썸네일 사용
           title: isEnglish ? 'Image metadata' : '이미지 메타데이터',
           excerpt: isEnglish ? 'Generate all metadata for this image in JSON format.' : '이미지의 모든 메타데이터를 JSON 형식으로 생성해주세요.'
         })
@@ -360,11 +402,18 @@ export const useAIGeneration = () => {
       const isEnglish = language === 'english';
       const prompts = getFieldPrompts(field, isEnglish);
       
+      // 동영상인 경우 첫 프레임 추출
+      let finalImageUrl = imageUrl;
+      if (isVideoFile(imageUrl)) {
+        console.log('🎬 동영상 감지, 첫 프레임 추출 중...');
+        finalImageUrl = await extractVideoThumbnail(imageUrl);
+      }
+      
       const response = await fetch('/api/analyze-image-prompt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          imageUrl,
+          imageUrl: finalImageUrl, // 동영상인 경우 추출한 썸네일 사용
           title: prompts.title,
           excerpt: prompts.excerpt
         })

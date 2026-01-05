@@ -8,6 +8,30 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 /**
+ * 동영상 파일인지 확인
+ * @param {string} mimetype - MIME type
+ * @param {string} filename - 파일명
+ * @returns {boolean} 동영상 파일 여부
+ */
+function isVideoFile(mimetype, filename) {
+  const videoMimeTypes = [
+    'video/mp4', 
+    'video/quicktime', 
+    'video/x-msvideo', 
+    'video/webm', 
+    'video/x-matroska', 
+    'video/x-flv', 
+    'video/3gpp',
+    'video/x-ms-wmv'
+  ];
+  const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
+  
+  const name = (filename || '').toLowerCase();
+  return videoMimeTypes.includes(mimetype?.toLowerCase()) || 
+         videoExtensions.some(ext => name.endsWith(ext));
+}
+
+/**
  * 폴더 경로에서 폴더명 추출 (영어로)
  * @param {string} targetFolder - 폴더 경로 (예: 'originals/blog/2025-12/487')
  * @returns {string} 폴더명 prefix (예: 'blog', 'goods', 'product')
@@ -53,7 +77,7 @@ export default async function handler(req, res) {
     // FormData에서 파일 추출
     const formidable = (await import('formidable')).default;
     const form = formidable({
-      maxFileSize: 10 * 1024 * 1024, // 10MB 제한
+      maxFileSize: 50 * 1024 * 1024, // 50MB 제한 (Supabase 버킷 제한에 맞춤)
     });
 
     // Promise 래퍼로 변환 (formidable 버전 호환성)
@@ -80,169 +104,239 @@ export default async function handler(req, res) {
     }
 
     if (!file) {
-      return res.status(400).json({ error: '이미지 파일이 필요합니다.' });
+      return res.status(400).json({ error: '파일이 필요합니다.' });
     }
+
+    // 업로드 시작 로깅
+    console.log('📤 업로드 시작:', {
+      fileName: file.originalFilename || 'unknown',
+      fileSize: `${((file.size || 0) / 1024 / 1024).toFixed(2)}MB`,
+      fileType: file.mimetype || 'unknown',
+      targetFolder: targetFolder || '기본 폴더',
+      uploadMode: effectiveUploadMode
+    });
 
     // 파일을 Buffer로 읽기
     const fs = require('fs');
-    const imageBuffer = fs.readFileSync(file.filepath);
+    const fileBuffer = fs.readFileSync(file.filepath);
 
     // 원본 파일 확장자 추출
     const originalExtension = (file.originalFilename || '').split('.').pop()?.toLowerCase() || 'jpg';
 
-    let processedBuffer = imageBuffer;
-    let finalFileName = file.originalFilename || `image-${Date.now()}.jpg`;
+    // 동영상 파일인지 확인
+    const isVideo = isVideoFile(file.mimetype, file.originalFilename);
+
+    let processedBuffer = fileBuffer;
+    let finalFileName = file.originalFilename || (isVideo ? `video-${Date.now()}.mp4` : `image-${Date.now()}.jpg`);
     let imageMetadata = null;
+    let contentType = file.mimetype || (isVideo ? 'video/mp4' : 'image/jpeg');
 
-    // 이미지 메타데이터 추출
-    try {
-      // Sharp 동적 import (Vercel 환경 호환성)
-      const sharp = (await import('sharp')).default;
-      const sharpImage = sharp(imageBuffer);
-      imageMetadata = await sharpImage.metadata();
-      
-      console.log(`📸 원본 이미지 메타데이터:`, {
-        width: imageMetadata.width,
-        height: imageMetadata.height,
-        orientation: imageMetadata.orientation,
-        format: imageMetadata.format,
-        size: imageBuffer.length
+    // 동영상 파일 처리
+    if (isVideo) {
+      console.log('🎬 동영상 파일 감지:', {
+        filename: file.originalFilename,
+        mimetype: file.mimetype,
+        size: fileBuffer.length,
+        uploadMode: effectiveUploadMode
       });
-    } catch (metadataError) {
-      console.warn('⚠️ 메타데이터 추출 실패:', metadataError.message);
-    }
-
-    // 업로드 모드에 따른 처리
-    const originalFormat = imageMetadata?.format || originalExtension;
-    let outputFormat = 'jpeg';
-    let outputExtension = 'jpg';
-    let contentType = 'image/jpeg';
-
-    if (effectiveUploadMode === 'preserve-original') {
-      // 원본 파일 그대로 업로드 (최적화 건너뛰기)
-      processedBuffer = imageBuffer;
-      finalFileName = file.originalFilename || `image-${Date.now()}.${originalExtension}`;
       
-      // 원본 포맷에 맞는 Content-Type 설정
-      if (originalFormat === 'webp' || originalExtension === 'webp') {
-        contentType = 'image/webp';
-      } else if (originalFormat === 'png' || originalExtension === 'png') {
-        contentType = 'image/png';
-      } else if (originalFormat === 'gif' || originalExtension === 'gif') {
-        contentType = 'image/gif';
-      }
+      // 동영상은 원본 그대로 업로드 (최적화 없음)
+      processedBuffer = fileBuffer;
       
-      console.log(`✅ 원본 파일 그대로 업로드: ${finalFileName} (${contentType})`);
-    } else {
-      // 최적화 적용
-      // 출력 포맷 결정
-      if (effectiveUploadMode === 'preserve-name') {
-        // 파일명 유지 모드: 원본 확장자 유지
-        outputExtension = originalExtension;
-        
-        // 포맷 매핑
-        if (originalExtension === 'webp' || originalFormat === 'webp') {
-          outputFormat = 'webp';
-        } else if (originalExtension === 'png' || originalFormat === 'png') {
-          outputFormat = 'png';
-        } else {
-          outputFormat = 'jpeg';
-        }
+      // 파일명 처리
+      if (effectiveUploadMode === 'preserve-original') {
+        // 옵션 1: 원본 파일명과 확장자 그대로
+        finalFileName = file.originalFilename || `video-${Date.now()}.${originalExtension}`;
       } else {
-        // auto 모드: JPEG로 변환
-        outputFormat = 'jpeg';
-        outputExtension = 'jpg';
+        // 옵션 2: 파일명만 폴더에 맞게 최적화하고 확장자 유지
+        const folderPrefix = extractFolderPrefix(targetFolder);
+        const timestamp = Date.now();
+        const randomString = Math.random().toString(36).substring(2, 8);
+        finalFileName = `${folderPrefix}-${timestamp}-${randomString}.${originalExtension}`;
       }
-
-      // 이미지 최적화
+      
+      // 동영상 Content-Type 설정
+      if (file.mimetype) {
+        contentType = file.mimetype;
+      } else {
+        // 확장자 기반 Content-Type
+        const extension = originalExtension.toLowerCase();
+        const mimeMap = {
+          'mp4': 'video/mp4',
+          'avi': 'video/x-msvideo',
+          'mov': 'video/quicktime',
+          'webm': 'video/webm',
+          'mkv': 'video/x-matroska',
+          'flv': 'video/x-flv',
+          'm4v': 'video/mp4',
+          '3gp': 'video/3gpp',
+          'wmv': 'video/x-ms-wmv'
+        };
+        contentType = mimeMap[extension] || 'video/mp4';
+      }
+      
+      console.log(`✅ 동영상 파일 준비 완료: ${finalFileName} (${contentType})`);
+    } else {
+      // 이미지 파일 처리
+      // 이미지 메타데이터 추출
       try {
-        if (imageMetadata) {
-          const sharp = (await import('sharp')).default;
-          
-          // 이미지 최적화 설정 (EXIF 회전 정보 자동 적용)
-          let optimizedImage = sharp(imageBuffer)
-            .rotate() // EXIF 회전 정보 자동 적용
-            .resize(1200, 800, { // 최대 크기 제한
-              fit: 'inside',
-              withoutEnlargement: true
-            });
-
-          // 포맷별 최적화 옵션 적용
-          if (outputFormat === 'webp') {
-            optimizedImage = optimizedImage.webp({ quality: 85 });
-            contentType = 'image/webp';
-          } else if (outputFormat === 'png') {
-            optimizedImage = optimizedImage.png({ quality: 85, compressionLevel: 9 });
-            contentType = 'image/png';
-          } else {
-            optimizedImage = optimizedImage.jpeg({ 
-              quality: 85, // 품질 85%
-              progressive: true,
-              mozjpeg: true // 더 나은 JPEG 압축
-            });
-            contentType = 'image/jpeg';
-          }
-
-          processedBuffer = await optimizedImage.toBuffer();
-          
-          // 최적화된 이미지 메타데이터 확인
-          const optimizedMetadata = await sharp(processedBuffer).metadata();
-          console.log(`🔄 최적화된 이미지 메타데이터:`, {
-            width: optimizedMetadata.width,
-            height: optimizedMetadata.height,
-            orientation: optimizedMetadata.orientation,
-            format: optimizedMetadata.format,
-            size: processedBuffer.length
-          });
-          
-          // 파일명 확장자 업데이트
-          if (effectiveUploadMode === 'preserve-name') {
-            // 원본 확장자 유지
-            const baseName = finalFileName.replace(/\.[^/.]+$/, '');
-            finalFileName = `${baseName}.${outputExtension}`;
-          } else {
-            // 기본: JPEG로 변환
-            finalFileName = finalFileName.replace(/\.[^/.]+$/, `.${outputExtension}`);
-          }
-          
-          console.log(`✅ 이미지 최적화 완료: ${imageMetadata.width}x${imageMetadata.height} -> ${optimizedMetadata.width}x${optimizedMetadata.height} (포맷: ${outputFormat})`);
-          
-          // 최적화된 메타데이터로 업데이트
-          imageMetadata = optimizedMetadata;
-          imageMetadata.size = processedBuffer.length;
-        }
-      } catch (optimizeError) {
-        console.warn('⚠️ 이미지 최적화 실패, 원본 사용:', optimizeError.message);
-        // 최적화 실패 시 원본 사용
+        // Sharp 동적 import (Vercel 환경 호환성)
+        const sharp = (await import('sharp')).default;
+        const sharpImage = sharp(fileBuffer);
+        imageMetadata = await sharpImage.metadata();
+        
+        console.log(`📸 원본 이미지 메타데이터:`, {
+          width: imageMetadata.width,
+          height: imageMetadata.height,
+          orientation: imageMetadata.orientation,
+          format: imageMetadata.format,
+          size: fileBuffer.length
+        });
+      } catch (metadataError) {
+        console.warn('⚠️ 메타데이터 추출 실패:', metadataError.message);
       }
-    }
+
+      // 이미지 파일만 최적화 처리 (동영상은 이미 위에서 처리됨)
+      let outputFormat = 'jpeg';
+      let outputExtension = 'jpg';
+      // 업로드 모드에 따른 처리
+      const originalFormat = imageMetadata?.format || originalExtension;
+      outputFormat = 'jpeg';
+      outputExtension = 'jpg';
+      contentType = 'image/jpeg';
+
+      if (effectiveUploadMode === 'preserve-original') {
+        // 원본 파일 그대로 업로드 (최적화 건너뛰기)
+        processedBuffer = fileBuffer;
+        finalFileName = file.originalFilename || `image-${Date.now()}.${originalExtension}`;
+        
+        // 원본 포맷에 맞는 Content-Type 설정
+        if (originalFormat === 'webp' || originalExtension === 'webp') {
+          contentType = 'image/webp';
+        } else if (originalFormat === 'png' || originalExtension === 'png') {
+          contentType = 'image/png';
+        } else if (originalFormat === 'gif' || originalExtension === 'gif') {
+          contentType = 'image/gif';
+        }
+        
+        console.log(`✅ 원본 파일 그대로 업로드: ${finalFileName} (${contentType})`);
+      } else {
+        // 최적화 적용
+        // 출력 포맷 결정
+        if (effectiveUploadMode === 'preserve-name') {
+          // 파일명 유지 모드: 원본 확장자 유지
+          outputExtension = originalExtension;
+          
+          // 포맷 매핑
+          if (originalExtension === 'webp' || originalFormat === 'webp') {
+            outputFormat = 'webp';
+          } else if (originalExtension === 'png' || originalFormat === 'png') {
+            outputFormat = 'png';
+          } else {
+            outputFormat = 'jpeg';
+          }
+        } else {
+          // auto 모드: JPEG로 변환
+          outputFormat = 'jpeg';
+          outputExtension = 'jpg';
+        }
+
+        // 이미지 최적화
+        try {
+          if (imageMetadata) {
+            const sharp = (await import('sharp')).default;
+            
+            // 이미지 최적화 설정 (EXIF 회전 정보 자동 적용)
+            let optimizedImage = sharp(fileBuffer)
+              .rotate() // EXIF 회전 정보 자동 적용
+              .resize(1200, 800, { // 최대 크기 제한
+                fit: 'inside',
+                withoutEnlargement: true
+              });
+
+            // 포맷별 최적화 옵션 적용
+            if (outputFormat === 'webp') {
+              optimizedImage = optimizedImage.webp({ quality: 85 });
+              contentType = 'image/webp';
+            } else if (outputFormat === 'png') {
+              optimizedImage = optimizedImage.png({ quality: 85, compressionLevel: 9 });
+              contentType = 'image/png';
+            } else {
+              optimizedImage = optimizedImage.jpeg({ 
+                quality: 85, // 품질 85%
+                progressive: true,
+                mozjpeg: true // 더 나은 JPEG 압축
+              });
+              contentType = 'image/jpeg';
+            }
+
+            processedBuffer = await optimizedImage.toBuffer();
+            
+            // 최적화된 이미지 메타데이터 확인
+            const optimizedMetadata = await sharp(processedBuffer).metadata();
+            console.log(`🔄 최적화된 이미지 메타데이터:`, {
+              width: optimizedMetadata.width,
+              height: optimizedMetadata.height,
+              orientation: optimizedMetadata.orientation,
+              format: optimizedMetadata.format,
+              size: processedBuffer.length
+            });
+            
+            // 파일명 확장자 업데이트
+            if (effectiveUploadMode === 'preserve-name') {
+              // 원본 확장자 유지
+              const baseName = finalFileName.replace(/\.[^/.]+$/, '');
+              finalFileName = `${baseName}.${outputExtension}`;
+            } else {
+              // 기본: JPEG로 변환
+              finalFileName = finalFileName.replace(/\.[^/.]+$/, `.${outputExtension}`);
+            }
+            
+            console.log(`✅ 이미지 최적화 완료: ${imageMetadata.width}x${imageMetadata.height} -> ${optimizedMetadata.width}x${optimizedMetadata.height} (포맷: ${outputFormat})`);
+            
+            // 최적화된 메타데이터로 업데이트
+            imageMetadata = optimizedMetadata;
+            imageMetadata.size = processedBuffer.length;
+          }
+        } catch (optimizeError) {
+          console.warn('⚠️ 이미지 최적화 실패, 원본 사용:', optimizeError.message);
+          // 최적화 실패 시 원본 사용
+        }
+      } // 이미지 처리 종료
+    } // else 블록 닫기
 
     // 파일명 생성
     let uniqueFileName;
-    if (effectiveUploadMode === 'preserve-original' || effectiveUploadMode === 'preserve-name') {
-      // 원본 파일명 전체 유지 (한글 파일명도 그대로)
-      uniqueFileName = file.originalFilename || `image-${Date.now()}.${outputExtension}`;
-      
-      // 확장자가 이미 올바른지 확인
-      if (effectiveUploadMode === 'preserve-original') {
-        // 원본 그대로 모드: 원본 확장자 그대로
-        if (!uniqueFileName.endsWith(`.${originalExtension}`)) {
-          const baseName = uniqueFileName.replace(/\.[^/.]+$/, '');
-          uniqueFileName = `${baseName}.${originalExtension}`;
+    if (isVideo) {
+      // 동영상은 이미 finalFileName이 설정됨
+      uniqueFileName = finalFileName;
+    } else {
+      // 이미지 파일명 처리
+      if (effectiveUploadMode === 'preserve-original' || effectiveUploadMode === 'preserve-name') {
+        // 원본 파일명 전체 유지 (한글 파일명도 그대로)
+        uniqueFileName = file.originalFilename || `image-${Date.now()}.${outputExtension}`;
+        
+        // 확장자가 이미 올바른지 확인
+        if (effectiveUploadMode === 'preserve-original') {
+          // 원본 그대로 모드: 원본 확장자 그대로
+          if (!uniqueFileName.endsWith(`.${originalExtension}`)) {
+            const baseName = uniqueFileName.replace(/\.[^/.]+$/, '');
+            uniqueFileName = `${baseName}.${originalExtension}`;
+          }
+        } else {
+          // 파일명 유지 모드: 최적화된 확장자
+          if (!uniqueFileName.endsWith(`.${outputExtension}`)) {
+            const baseName = uniqueFileName.replace(/\.[^/.]+$/, '');
+            uniqueFileName = `${baseName}.${outputExtension}`;
+          }
         }
       } else {
-        // 파일명 유지 모드: 최적화된 확장자
-        if (!uniqueFileName.endsWith(`.${outputExtension}`)) {
-          const baseName = uniqueFileName.replace(/\.[^/.]+$/, '');
-          uniqueFileName = `${baseName}.${outputExtension}`;
-        }
+        // auto 모드: 폴더명 + 타임스탬프 + 랜덤 문자열 (JPEG로 변환)
+        const folderPrefix = extractFolderPrefix(targetFolder);
+        const timestamp = Date.now();
+        const randomString = Math.random().toString(36).substring(2, 8);
+        uniqueFileName = `${folderPrefix}-${timestamp}-${randomString}.${outputExtension}`;
       }
-    } else {
-      // auto 모드: 폴더명 + 타임스탬프 + 랜덤 문자열 (JPEG로 변환)
-      const folderPrefix = extractFolderPrefix(targetFolder);
-      const timestamp = Date.now();
-      const randomString = Math.random().toString(36).substring(2, 8);
-      uniqueFileName = `${folderPrefix}-${timestamp}-${randomString}.${outputExtension}`;
     }
     
     // targetFolder가 있으면 경로에 포함
@@ -285,7 +379,12 @@ export default async function handler(req, res) {
     }
 
     // Supabase Storage에 업로드
-    // (contentType은 이미 위에서 설정되었으므로 여기서는 사용만 함)
+    console.log('🔄 Supabase Storage 업로드 중...', {
+      uploadPath,
+      contentType,
+      bufferSize: `${(processedBuffer.length / 1024 / 1024).toFixed(2)}MB`
+    });
+    
     const { data, error } = await supabase.storage
       .from('blog-images') // 버킷 이름
       .upload(uploadPath, processedBuffer, {
@@ -295,12 +394,19 @@ export default async function handler(req, res) {
       });
 
     if (error) {
-      console.error('Supabase Storage 업로드 오류:', error);
+      console.error('❌ Supabase Storage 업로드 오류:', {
+        error: error.message,
+        code: error.statusCode,
+        uploadPath,
+        fileSize: processedBuffer.length
+      });
       return res.status(500).json({ 
         error: '이미지 업로드에 실패했습니다.',
         details: error.message 
       });
     }
+    
+    console.log('✅ Supabase Storage 업로드 완료:', uploadPath);
 
     // 공개 URL 생성
     const { data: publicUrlData } = supabase.storage
@@ -409,15 +515,35 @@ export default async function handler(req, res) {
     }, 1000); // 1초 후 비동기 실행
 
     // 메타데이터를 image_metadata 테이블에 저장
+    console.log('🔄 메타데이터 저장 중...');
     try {
+      // 동영상 파일의 경우 포맷을 확장자 기반으로 설정
+      let fileFormat = imageMetadata?.format || 'jpeg';
+      if (isVideo) {
+        // 동영상 포맷 매핑
+        const extension = originalExtension.toLowerCase();
+        const formatMap = {
+          'mp4': 'mp4',
+          'avi': 'avi',
+          'mov': 'mov',
+          'webm': 'webm',
+          'mkv': 'mkv',
+          'flv': 'flv',
+          'm4v': 'mp4',
+          '3gp': '3gp',
+          'wmv': 'wmv'
+        };
+        fileFormat = formatMap[extension] || 'mp4';
+      }
+      
       const metadataRecord = {
         image_url: imageUrl,
         title: finalFileName.replace(/\.[^/.]+$/, ''), // 확장자 제거한 파일명
         file_size: imageMetadata?.size || processedBuffer.length,
         width: imageMetadata?.width || null,
         height: imageMetadata?.height || null,
-        format: imageMetadata?.format || 'jpeg',
-        upload_source: 'file_upload',
+        format: fileFormat,
+        upload_source: isVideo ? 'video_upload' : 'file_upload',
         status: 'active',
         hash_md5: hashMd5,
         hash_sha256: hashSha256,
@@ -469,12 +595,7 @@ export default async function handler(req, res) {
         console.log('✅ 새 메타데이터 생성 완료');
       }
 
-      if (metadataError) {
-        console.error('❌ 메타데이터 저장 실패:', metadataError);
-        // 메타데이터 저장 실패해도 업로드는 성공으로 처리
-      } else {
-        console.log('✅ 메타데이터 저장 성공:', metadataData?.[0]?.id);
-      }
+      console.log('✅ 메타데이터 저장 성공:', metadataData?.[0]?.id);
     } catch (metadataSaveError) {
       console.error('❌ 메타데이터 저장 중 오류:', metadataSaveError);
       // 메타데이터 저장 실패해도 업로드는 성공으로 처리
@@ -486,26 +607,43 @@ export default async function handler(req, res) {
       fileName: uniqueFileName,
       path: data.path,
       metadata: {
-        width: imageMetadata?.width,
-        height: imageMetadata?.height,
-        format: imageMetadata?.format,
-        file_size: imageMetadata?.size || processedBuffer.length
+        width: imageMetadata?.width || null,
+        height: imageMetadata?.height || null,
+        format: isVideo ? (originalExtension.toLowerCase() === 'mp4' ? 'mp4' : originalExtension.toLowerCase()) : (imageMetadata?.format || 'jpeg'),
+        file_size: imageMetadata?.size || processedBuffer.length,
+        is_video: isVideo
       },
       productSync: productSyncResult
     });
 
   } catch (error) {
-    console.error('❌ 이미지 업로드 오류:', error);
-    console.error('에러 스택:', error.stack);
-    console.error('에러 상세:', {
+    // 파일 정보 추출 (에러 발생 시점에 file이 정의되어 있을 수 있음)
+    const fileInfo = {
+      fileName: file?.originalFilename || 'unknown',
+      fileSize: file?.size || 0,
+      fileType: file?.mimetype || 'unknown',
+      targetFolder: targetFolder || 'unknown',
+      uploadMode: effectiveUploadMode || 'unknown'
+    };
+
+    console.error('❌ 이미지 업로드 오류:', {
+      error: error.message,
+      stack: error.stack,
       name: error.name,
-      message: error.message,
-      code: error.code
+      code: error.code,
+      fileInfo
     });
+
     res.status(500).json({ 
       error: '이미지 업로드에 실패했습니다.',
       details: error.message,
-      ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+      // 개발 환경에서만 상세 정보 제공
+      ...(process.env.NODE_ENV === 'development' && { 
+        stack: error.stack,
+        errorType: error.name,
+        errorCode: error.code,
+        fileInfo
+      })
     });
   }
 }

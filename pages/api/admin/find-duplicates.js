@@ -154,11 +154,13 @@ export default async function handler(req, res) {
               const subFolderPath = folderPath ? `${folderPath}/${file.name}` : file.name;
               await getAllImagesRecursively(subFolderPath);
             } else {
-              // 이미지 파일인 경우
-              const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-              const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+              // 이미지 및 동영상 파일인 경우
+              const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.heic', '.heif'];
+              const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
+              const mediaExtensions = [...imageExtensions, ...videoExtensions];
+              const isMedia = mediaExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
               
-              if (isImage) {
+              if (isMedia) {
                 const fullPath = folderPath ? `${folderPath}/${file.name}` : file.name;
                 allFiles.push({
                   ...file,

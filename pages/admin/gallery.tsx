@@ -5045,8 +5045,8 @@ export default function GalleryAdmin() {
             {/* 헤더 */}
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
               <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-                <span className="text-blue-600">📋</span>
-                이미지 상세 정보
+                <span className="text-blue-600">{selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' ? '🎬' : '📋'}</span>
+                {selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' ? '동영상 상세 정보' : '이미지 상세 정보'}
               </h2>
               <button
                 onClick={() => setSelectedImageForZoom(null)}
