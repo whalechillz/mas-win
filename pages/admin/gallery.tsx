@@ -1191,7 +1191,7 @@ export default function GalleryAdmin() {
   const [uploadProgress, setUploadProgress] = useState(0); // 업로드 진행률 (0-100)
   const [addUrl, setAddUrl] = useState('');
   const [selectedUploadFolder, setSelectedUploadFolder] = useState<string>('');
-  const [uploadMode, setUploadMode] = useState<'preserve-original' | 'preserve-original-optimized-name'>('preserve-original'); // 업로드 모드 (기본값: preserve-original)
+  const [uploadMode, setUploadMode] = useState<'optimize-filename' | 'preserve-filename'>('optimize-filename'); // 업로드 모드
   const [aiBrandTone, setAiBrandTone] = useState<'senior_emotional' | 'high_tech_innovative'>('senior_emotional');
   
   // 모달 열 때 현재 폴더 자동 설정
@@ -6616,38 +6616,42 @@ export default function GalleryAdmin() {
                       업로드 모드
                     </label>
                     
-                    {/* 원본 유지, 파일명 유지, 확장자 유지 (기본) */}
+                    {/* 파일명 최적화 (기본) */}
                     <label className="flex items-start cursor-pointer">
                       <input
                         type="radio"
                         name="uploadMode"
-                        value="preserve-original"
-                        checked={uploadMode === 'preserve-original'}
-                        onChange={(e) => setUploadMode('preserve-original')}
+                        value="optimize-filename"
+                        checked={uploadMode === 'optimize-filename'}
+                        onChange={(e) => setUploadMode('optimize-filename')}
                         className="mt-1 mr-2 w-4 h-4 text-blue-600"
                       />
                       <div className="flex-1">
-                        <span className="text-sm text-gray-700 font-medium">원본 유지, 파일명 유지, 확장자 유지 (기본)</span>
+                        <span className="text-sm text-gray-700 font-medium">파일명 최적화 (기본)</span>
                         <p className="text-xs text-gray-500 mt-1">
-                          이미지/동영상: 원본 파일 그대로 + 원본 파일명 그대로 + 원본 확장자 그대로
+                          파일명: 폴더 기반 최적화 + 타임스탬프 + 중복방지<br/>
+                          확장자: 원본 유지<br/>
+                          최적화: 없음 (원본 그대로)
                         </p>
                       </div>
                     </label>
                     
-                    {/* 원본 유지, 파일명 최적화, 확장자 유지 */}
+                    {/* 파일명 유지 */}
                     <label className="flex items-start cursor-pointer">
                       <input
                         type="radio"
                         name="uploadMode"
-                        value="preserve-original-optimized-name"
-                        checked={uploadMode === 'preserve-original-optimized-name'}
-                        onChange={(e) => setUploadMode('preserve-original-optimized-name')}
+                        value="preserve-filename"
+                        checked={uploadMode === 'preserve-filename'}
+                        onChange={(e) => setUploadMode('preserve-filename')}
                         className="mt-1 mr-2 w-4 h-4 text-blue-600"
                       />
                       <div className="flex-1">
-                        <span className="text-sm text-gray-700 font-medium">원본 유지, 파일명 최적화, 확장자 유지</span>
+                        <span className="text-sm text-gray-700 font-medium">파일명 유지</span>
                         <p className="text-xs text-gray-500 mt-1">
-                          이미지/동영상: 원본 파일 그대로 + 파일명 최적화 ({selectedUploadFolder ? (selectedUploadFolder.match(/originals\/([^\/]+)/)?.[1] || 'blog') : 'blog'}-{'{타임스탬프}'}-{'{랜덤}'}.{'{원본확장자}'}) + 원본 확장자 유지
+                          파일명: 원본 그대로<br/>
+                          확장자: 원본 유지<br/>
+                          최적화: 없음 (원본 그대로)
                         </p>
                       </div>
                     </label>
@@ -6685,7 +6689,7 @@ export default function GalleryAdmin() {
                             targetFolder: selectedUploadFolder || undefined,
                             enableHEICConversion: true,
                             enableEXIFBackfill: true,
-                            uploadMode: uploadMode,
+                            uploadMode: uploadMode as any, // 새로운 모드 지원
                             onProgress: (progress) => {
                               setUploadProgress(progress);
                             },
@@ -6745,7 +6749,7 @@ export default function GalleryAdmin() {
                                 targetFolder: selectedUploadFolder || undefined,
                                 enableHEICConversion: true,
                                 enableEXIFBackfill: true,
-                                uploadMode: uploadMode,
+                                uploadMode: uploadMode as any, // 새로운 모드 지원
                                 onProgress: (progress) => {
                                   setUploadProgress(progress);
                                 },

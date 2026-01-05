@@ -5,7 +5,7 @@ interface UploadOptions {
   targetFolder?: string; // 업로드할 폴더 경로 (예: 'originals/daily-branding/kakao/2025-11-16/account1/feed')
   enableHEICConversion?: boolean; // HEIC 파일 자동 변환
   enableEXIFBackfill?: boolean; // EXIF 메타데이터 백필
-  uploadMode?: 'preserve-original' | 'preserve-original-optimized-name'; // 업로드 모드 (기본값: preserve-original)
+  uploadMode?: 'optimize-filename' | 'preserve-filename' | 'auto' | 'preserve-name' | 'preserve-original'; // 업로드 모드 (새 모드: optimize-filename, preserve-filename | 기존 모드: 하위 호환)
   onProgress?: (progress: number) => void; // 업로드 진행률 콜백 (0-100)
   // 하위 호환성: 기존 옵션들 (deprecated)
   preserveFilename?: boolean; // 원본 파일명 전체 유지 옵션 (deprecated, uploadMode 사용 권장)
@@ -28,13 +28,25 @@ export async function uploadImageToSupabase(
   options: UploadOptions = {}
 ): Promise<UploadResult> {
   try {
-    // 한글 파일명 감지 및 자동 모드 전환
+    // 한글 파일명 감지 및 경고
     const hasKoreanInFileName = /[가-힣]/.test(file.name);
-    let finalUploadMode = options.uploadMode || 'preserve-original';
-    
-    if (hasKoreanInFileName && finalUploadMode === 'preserve-original') {
-      console.log('🔄 한글 파일명 감지, 자동으로 파일명 최적화 모드로 전환:', file.name);
-      finalUploadMode = 'preserve-original-optimized-name';
+    if (hasKoreanInFileName && options.uploadMode === 'preserve-original') {
+      const userConfirmed = confirm(
+        `⚠️ 한글 파일명 감지: "${file.name}"\n\n` +
+        `한글 파일명은 Supabase Storage에서 문제가 발생할 수 있습니다.\n\n` +
+        `파일명을 최적화하여 업로드하시겠습니까?\n` +
+        `(예: ${file.name.split('.')[0]}-{타임스탬프}-{랜덤}.${file.name.split('.').pop()})\n\n` +
+        `[확인] = 파일명 최적화하여 업로드\n` +
+        `[취소] = 원본 파일명 그대로 업로드 시도 (오류 가능)`
+      );
+      
+      if (userConfirmed) {
+        // 파일명 최적화 모드로 자동 전환
+        options.uploadMode = 'preserve-original-optimized-name';
+        console.log('🔄 한글 파일명 감지, 파일명 최적화 모드로 자동 전환');
+      } else {
+        console.warn('⚠️ 사용자가 한글 파일명 그대로 업로드를 선택했습니다. 오류가 발생할 수 있습니다.');
+      }
     }
     
     // HEIC 파일 변환 처리
@@ -82,9 +94,9 @@ export async function uploadImageToSupabase(
       formData.append('targetFolder', options.targetFolder);
     }
     
-    // uploadMode 옵션 추가 (한글 감지 시 자동 변경된 모드 사용)
-    if (finalUploadMode) {
-      formData.append('uploadMode', finalUploadMode);
+    // uploadMode 옵션 추가 (우선순위)
+    if (options.uploadMode) {
+      formData.append('uploadMode', options.uploadMode);
     }
     
     // 하위 호환성: 기존 옵션들 (uploadMode가 없을 때만 사용)
@@ -103,8 +115,7 @@ export async function uploadImageToSupabase(
       fileSize: `${(processedFile.size / 1024 / 1024).toFixed(2)}MB`,
       fileType: processedFile.type,
       targetFolder: options.targetFolder || '기본 폴더',
-      uploadMode: finalUploadMode,
-      hasKorean: hasKoreanInFileName
+      uploadMode: options.uploadMode || 'auto'
     });
 
     // 진행률 추적을 위해 XMLHttpRequest 사용
@@ -168,7 +179,19 @@ export async function uploadImageToSupabase(
           let errorMessage = `업로드 실패: ${xhr.status} ${xhr.statusText}`;
           try {
             const errorData = JSON.parse(xhr.responseText);
-            errorMessage = errorData.details || errorData.error || errorMessage;
+            
+            // 한글 파일명 관련 에러 메시지 개선
+            if (errorData.error && errorData.error.includes('한글 파일명')) {
+              errorMessage = `⚠️ ${errorData.error}`;
+              if (errorData.details) {
+                errorMessage += `\n\n${errorData.details}`;
+              }
+              if (errorData.suggestion) {
+                errorMessage += `\n\n💡 해결 방법: ${errorData.suggestion}`;
+              }
+            } else {
+              errorMessage = errorData.details || errorData.error || errorMessage;
+            }
             
             // 개발 환경에서 상세 정보 표시
             if (process.env.NODE_ENV === 'development' && errorData.stack) {

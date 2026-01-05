@@ -129,37 +129,46 @@ export default async function handler(req, res) {
     // file 또는 image 필드명 지원 (하위 호환성)
     const file = files.file?.[0] || files.image?.[0];
     const targetFolder = fields.targetFolder?.[0] || ''; // targetFolder 파라미터 읽기
-    const uploadMode = fields.uploadMode?.[0] || 'preserve-original'; // 업로드 모드: 'preserve-original' | 'preserve-original-optimized-name' (기본값: preserve-original)
-    const originalFilename = file?.originalFilename || '';
+    const uploadMode = fields.uploadMode?.[0] || 'optimize-filename'; // 업로드 모드: 'optimize-filename' | 'preserve-filename' | 'auto' | 'preserve-name' | 'preserve-original' (하위 호환)
     
-    // 하위 호환성: 기존 파라미터 지원 (deprecated)
+    // 하위 호환성: 기존 preserveFilename, preserveExtension 파라미터 지원
     const preserveFilename = fields.preserveFilename?.[0] === 'true';
     const preserveExtension = fields.preserveExtension?.[0] === 'true';
     
-    // 기존 파라미터가 있으면 uploadMode로 변환 (하위 호환성)
+    // 기존 파라미터가 있으면 uploadMode로 변환
     let effectiveUploadMode = uploadMode;
-    if (preserveFilename && !uploadMode) {
-      effectiveUploadMode = 'preserve-original';
-    } else if (preserveExtension && !uploadMode) {
-      effectiveUploadMode = 'preserve-original';
+    if (preserveFilename && uploadMode === 'auto') {
+      effectiveUploadMode = 'preserve-name';
+    } else if (preserveExtension && uploadMode === 'auto') {
+      effectiveUploadMode = 'preserve-name';
     }
     
-    // 한글 파일명 감지 및 자동 모드 전환 (서버 측 이중 안전장치)
-    const hasKoreanInFileName = /[가-힣]/.test(originalFilename);
-    if (hasKoreanInFileName && effectiveUploadMode === 'preserve-original') {
-      console.log('🔄 서버 측 한글 파일명 감지, 자동으로 파일명 최적화 모드로 전환:', originalFilename);
-      effectiveUploadMode = 'preserve-original-optimized-name';
-    }
-    
-    // 유효하지 않은 모드는 기본값으로 변경
-    if (effectiveUploadMode !== 'preserve-original' && effectiveUploadMode !== 'preserve-original-optimized-name') {
-      console.warn(`⚠️ 유효하지 않은 uploadMode: ${effectiveUploadMode}, 기본값(preserve-original) 사용`);
-      effectiveUploadMode = 'preserve-original';
+    // 새로운 모드 매핑 (하위 호환성 유지)
+    if (effectiveUploadMode === 'optimize-filename' || effectiveUploadMode === 'preserve-filename') {
+      // 새로운 모드: 최적화 없이 원본 그대로 업로드
+      // 파일명만 다르게 처리
+    } else if (effectiveUploadMode === 'preserve-original' || effectiveUploadMode === 'preserve-name') {
+      // 기존 모드: 하위 호환성 유지
+    } else {
+      // auto 모드: 기존 로직 유지
     }
 
     if (!file) {
       console.error('❌ 파일이 없습니다:', { files, fields });
       return res.status(400).json({ error: '파일이 필요합니다.' });
+    }
+
+    // 한글 파일명 감지 및 경고
+    const originalFilename = file.originalFilename || '';
+    const hasKoreanInFileName = /[가-힣]/.test(originalFilename);
+    
+    if (hasKoreanInFileName && (effectiveUploadMode === 'preserve-filename' || effectiveUploadMode === 'preserve-original')) {
+      console.warn('⚠️ 한글 파일명 감지:', originalFilename);
+      return res.status(400).json({ 
+        error: '한글 파일명은 지원되지 않습니다.',
+        details: `파일명 "${originalFilename}"에 한글이 포함되어 있습니다. Supabase Storage에서는 한글 파일명을 key로 사용할 수 없습니다.`,
+        suggestion: '업로드 모드를 "파일명 최적화"로 변경하거나 파일명을 영문으로 변경해주세요.'
+      });
     }
 
     // filepath 확인 (formidable 버전 호환성)
@@ -213,18 +222,21 @@ export default async function handler(req, res) {
       processedBuffer = fileBuffer;
       
       // 파일명 처리
-      if (effectiveUploadMode === 'preserve-original') {
-        // 원본 파일명과 확장자 그대로
-        finalFileName = file.originalFilename || `video-${Date.now()}.${originalExtension}`;
-      } else if (effectiveUploadMode === 'preserve-original-optimized-name') {
-        // 파일명만 폴더에 맞게 최적화하고 확장자 유지
+      if (effectiveUploadMode === 'optimize-filename') {
+        // 파일명 최적화: 폴더 기반 + 타임스탬프 + 랜덤, 확장자 유지
         const folderPrefix = extractFolderPrefix(targetFolder);
         const timestamp = Date.now();
         const randomString = Math.random().toString(36).substring(2, 8);
         finalFileName = `${folderPrefix}-${timestamp}-${randomString}.${originalExtension}`;
-      } else {
-        // 기본값: preserve-original과 동일
+      } else if (effectiveUploadMode === 'preserve-filename' || effectiveUploadMode === 'preserve-original') {
+        // 파일명 유지: 원본 파일명과 확장자 그대로
         finalFileName = file.originalFilename || `video-${Date.now()}.${originalExtension}`;
+      } else {
+        // 기존 모드 (auto, preserve-name): 파일명 최적화
+        const folderPrefix = extractFolderPrefix(targetFolder);
+        const timestamp = Date.now();
+        const randomString = Math.random().toString(36).substring(2, 8);
+        finalFileName = `${folderPrefix}-${timestamp}-${randomString}.${originalExtension}`;
       }
       
       // 동영상 Content-Type 설정
@@ -304,20 +316,23 @@ export default async function handler(req, res) {
       outputExtension = 'jpg';
       contentType = 'image/jpeg';
 
-      if (effectiveUploadMode === 'preserve-original' || effectiveUploadMode === 'preserve-original-optimized-name') {
+      // 새로운 모드 또는 preserve-original 모드: 최적화 없이 원본 그대로 업로드
+      if (effectiveUploadMode === 'optimize-filename' || 
+          effectiveUploadMode === 'preserve-filename' || 
+          effectiveUploadMode === 'preserve-original') {
         // 원본 파일 그대로 업로드 (최적화 건너뛰기)
         processedBuffer = fileBuffer;
         
         // 파일명 처리
-        if (effectiveUploadMode === 'preserve-original') {
-          // 원본 파일명 그대로
-          finalFileName = file.originalFilename || `image-${Date.now()}.${originalExtension}`;
-        } else {
-          // 파일명만 최적화 (확장자 유지)
+        if (effectiveUploadMode === 'optimize-filename') {
+          // 파일명 최적화: 폴더 기반 + 타임스탬프 + 랜덤
           const folderPrefix = extractFolderPrefix(targetFolder);
           const timestamp = Date.now();
           const randomString = Math.random().toString(36).substring(2, 8);
           finalFileName = `${folderPrefix}-${timestamp}-${randomString}.${originalExtension}`;
+        } else {
+          // preserve-filename 또는 preserve-original: 원본 파일명 유지
+          finalFileName = file.originalFilename || `image-${Date.now()}.${originalExtension}`;
         }
         
         // 원본 포맷에 맞는 Content-Type 설정
@@ -327,12 +342,12 @@ export default async function handler(req, res) {
           contentType = 'image/png';
         } else if (originalFormat === 'gif' || originalExtension === 'gif') {
           contentType = 'image/gif';
+        } else {
+          contentType = 'image/jpeg';
         }
         
         console.log(`✅ 원본 파일 그대로 업로드: ${finalFileName} (${contentType})`);
       } else {
-        // 이제 사용하지 않는 최적화 모드 (하위 호환성을 위해 유지)
-        console.warn('⚠️ 사용되지 않는 최적화 모드입니다. preserve-original 또는 preserve-original-optimized-name을 사용하세요.');
         // 최적화 적용
         // 출력 포맷 결정
         if (effectiveUploadMode === 'preserve-name') {
@@ -458,33 +473,32 @@ export default async function handler(req, res) {
       uniqueFileName = finalFileName;
     } else {
       // 이미지 파일명 처리
-      if (effectiveUploadMode === 'preserve-original') {
-        // 원본 파일명 전체 유지 (한글 파일명도 그대로)
+      if (effectiveUploadMode === 'optimize-filename') {
+        // 파일명 최적화 모드: 이미 finalFileName이 설정됨 (위에서 처리)
+        uniqueFileName = finalFileName;
+      } else if (effectiveUploadMode === 'preserve-filename' || 
+                 effectiveUploadMode === 'preserve-original') {
+        // 파일명 유지 모드: 원본 파일명 그대로
         uniqueFileName = file.originalFilename || `image-${Date.now()}.${originalExtension}`;
         
-        // 원본 확장자 그대로
+        // 확장자가 이미 올바른지 확인
         if (!uniqueFileName.endsWith(`.${originalExtension}`)) {
           const baseName = uniqueFileName.replace(/\.[^/.]+$/, '');
           uniqueFileName = `${baseName}.${originalExtension}`;
         }
-      } else if (effectiveUploadMode === 'preserve-original-optimized-name') {
-        // 파일명만 최적화 (확장자 유지) - 이미 finalFileName에 설정됨
-        uniqueFileName = finalFileName;
-      } else {
-        // 하위 호환성: 기존 모드 지원 (deprecated)
-        if (effectiveUploadMode === 'preserve-name') {
-          uniqueFileName = file.originalFilename || `image-${Date.now()}.${originalExtension}`;
-          if (!uniqueFileName.endsWith(`.${originalExtension}`)) {
-            const baseName = uniqueFileName.replace(/\.[^/.]+$/, '');
-            uniqueFileName = `${baseName}.${originalExtension}`;
-          }
-        } else {
-          // auto 모드 (deprecated): 폴더명 + 타임스탬프 + 랜덤 문자열
-          const folderPrefix = extractFolderPrefix(targetFolder);
-          const timestamp = Date.now();
-          const randomString = Math.random().toString(36).substring(2, 8);
-          uniqueFileName = `${folderPrefix}-${timestamp}-${randomString}.jpg`;
+      } else if (effectiveUploadMode === 'preserve-name') {
+        // 기존 preserve-name 모드: 원본 파일명 유지, 확장자는 최적화된 것 사용
+        uniqueFileName = file.originalFilename || `image-${Date.now()}.${outputExtension}`;
+        if (!uniqueFileName.endsWith(`.${outputExtension}`)) {
+          const baseName = uniqueFileName.replace(/\.[^/.]+$/, '');
+          uniqueFileName = `${baseName}.${outputExtension}`;
         }
+      } else {
+        // auto 모드: 폴더명 + 타임스탬프 + 랜덤 문자열 (JPEG로 변환)
+        const folderPrefix = extractFolderPrefix(targetFolder);
+        const timestamp = Date.now();
+        const randomString = Math.random().toString(36).substring(2, 8);
+        uniqueFileName = `${folderPrefix}-${timestamp}-${randomString}.${outputExtension}`;
       }
     }
     
@@ -494,7 +508,9 @@ export default async function handler(req, res) {
       : uniqueFileName;
     
     // 원본 파일명 유지 옵션일 때 중복 체크
-    if (effectiveUploadMode === 'preserve-original' || effectiveUploadMode === 'preserve-original-optimized-name') {
+    if (effectiveUploadMode === 'preserve-filename' || 
+        effectiveUploadMode === 'preserve-original' || 
+        effectiveUploadMode === 'preserve-name') {
       const baseFileName = uniqueFileName;
       let counter = 0;
       let finalPath = uploadPath;
