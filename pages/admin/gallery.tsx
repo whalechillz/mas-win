@@ -1188,6 +1188,7 @@ export default function GalleryAdmin() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeAddTab, setActiveAddTab] = useState<'upload' | 'url' | 'ai'>('upload');
   const [pending, setPending] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0); // 업로드 진행률 (0-100)
   const [addUrl, setAddUrl] = useState('');
   const [selectedUploadFolder, setSelectedUploadFolder] = useState<string>('');
   const [uploadMode, setUploadMode] = useState<'auto' | 'preserve-name' | 'preserve-original'>('auto'); // 업로드 모드
@@ -1308,6 +1309,35 @@ export default function GalleryAdmin() {
   // 이미지의 고유 식별자 생성 (id가 있으면 사용, 없으면 name만 사용)
   const getImageUniqueId = (image: ImageMetadata) => {
     return image.id || image.name;
+  };
+
+  // 파일 타입 감지 (이미지/동영상)
+  const getFileType = (fileName: string, url?: string): 'image' | 'video' => {
+    const name = (fileName || '').toLowerCase();
+    const urlPath = (url || '').toLowerCase();
+    const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
+    
+    // 파일명에서 확인
+    const isVideoByName = videoExtensions.some(ext => name.endsWith(ext));
+    // URL에서도 확인
+    const isVideoByUrl = videoExtensions.some(ext => urlPath.includes(ext));
+    
+    const result = isVideoByName || isVideoByUrl ? 'video' : 'image';
+    
+    // 디버깅: 동영상 파일 감지 로그
+    if (result === 'video') {
+      console.log('🎬 동영상 파일 감지:', {
+        fileName,
+        url,
+        name,
+        urlPath,
+        isVideoByName,
+        isVideoByUrl,
+        result
+      });
+    }
+    
+    return result;
   };
 
   // 메뉴 외부 클릭 시 닫기
@@ -1593,6 +1623,34 @@ export default function GalleryAdmin() {
       if (response.ok) {
         const list = data.images || [];
         
+        // 디버깅: 동영상 파일 확인
+        const videoFiles = list.filter((img: any) => {
+          const name = (img.name || '').toLowerCase();
+          const url = (img.url || '').toLowerCase();
+          const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
+          return videoExtensions.some(ext => name.endsWith(ext) || url.includes(ext));
+        });
+        
+        if (videoFiles.length > 0) {
+          console.log('🎬 API 응답 - 동영상 파일 발견:', {
+            total: list.length,
+            videoCount: videoFiles.length,
+            videoFiles: videoFiles.map((img: any) => ({
+              name: img.name,
+              url: img.url,
+              folder_path: img.folder_path
+            }))
+          });
+        } else {
+          console.log('📸 API 응답 - 동영상 파일 없음:', {
+            total: list.length,
+            sampleFiles: list.slice(0, 5).map((img: any) => ({
+              name: img.name,
+              url: img.url
+            }))
+          });
+        }
+        
         // 더 이상 로드할 이미지가 없는지 확인
         if (list.length < imagesPerPage) {
           setHasMoreImages(false);
@@ -1715,6 +1773,30 @@ export default function GalleryAdmin() {
         }
         setTotalCount(data.total || 0);
         setCurrentPage(page);
+        
+        // 디버깅: 최종 이미지 목록에서 동영상 파일 확인
+        setTimeout(() => {
+          const allImages = reset ? uniqueImages : [...images, ...uniqueImages];
+          const videoFiles = allImages.filter((img: any) => {
+            const name = (img.name || '').toLowerCase();
+            const url = (img.url || '').toLowerCase();
+            const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
+            return videoExtensions.some(ext => name.endsWith(ext) || url.includes(ext));
+          });
+          
+          if (videoFiles.length > 0) {
+            console.log('🎬 최종 이미지 목록 - 동영상 파일:', {
+              total: allImages.length,
+              videoCount: videoFiles.length,
+              videoFiles: videoFiles.map((img: any) => ({
+                name: img.name,
+                url: img.url,
+                folder_path: img.folder_path,
+                fileType: getFileType(img.name, img.url)
+              }))
+            });
+          }
+        }, 100);
       }
     } catch (error) {
       console.error('❌ 이미지 로드 에러:', error);
@@ -3025,10 +3107,55 @@ export default function GalleryAdmin() {
       setShowPasteModal(false);
       setPasteTargetFolder(null);
       
-      // 갤러리 새로고침
+      // ✅ 즉시 로컬 상태에 새 이미지 추가
+      if (result.copiedImages && result.copiedImages.length > 0) {
+        const newImages = result.copiedImages.map((copied: any) => ({
+          id: `temp-${Date.now()}-${Math.random()}`,
+          name: copied.newName,
+          url: copied.newUrl,
+          folder_path: targetFolder,
+          size: copied.size,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          alt_text: '',
+          keywords: [],
+          usage_count: 0,
+          used_in: [],
+          file_path: copied.newPath,
+          cdn_url: copied.newUrl
+        }));
+        
+        // 현재 폴더에 붙여넣은 경우에만 즉시 추가
+        const isCurrentFolder = folderFilter === targetFolder || 
+          (folderFilter === 'all' && includeChildren) ||
+          (folderFilter !== 'all' && targetFolder.startsWith(folderFilter));
+        
+        if (isCurrentFolder) {
+          setImages((prev) => [...newImages, ...prev]);
+          setTotalCount((prev) => prev + newImages.length);
+        } else {
+          // 다른 폴더면 totalCount만 업데이트
+          setTotalCount((prev) => prev + newImages.length);
+        }
+      }
+      
+      // ✅ 조건부 즉시 새로고침:
+      // - 전체 폴더('all')일 경우: 즉시 새로고침 안 함 (이미 로컬 상태에 추가됨)
+      // - 특정 폴더일 경우: 현재 폴더면 현재 페이지만 다시 로드
+      if (folderFilter !== 'all' && folderFilter === targetFolder) {
+        // 현재 보고 있는 폴더에 붙여넣은 경우: 현재 페이지만 다시 로드
+        setTimeout(() => {
+          fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery, false);
+        }, 300);
+      }
+
+      // ✅ 백그라운드 점진적 새로고침 (모든 경우)
       setTimeout(() => {
-        fetchImages(1, true);
-      }, 500);
+        fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery, false)
+          .catch(err => {
+            console.warn('⚠️ 백그라운드 새로고침 실패 (무시):', err);
+          });
+      }, 2000);
       
       alert(`붙여넣기 완료: ${result.copiedCount}개 이미지가 "${targetFolder}" 폴더에 복사되었습니다.`);
       
@@ -4246,6 +4373,18 @@ export default function GalleryAdmin() {
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {filteredImages.map((image, index) => {
                     // 렌더링 중
+                    const fileType = getFileType(image.name, image.url);
+                    
+                    // 디버깅: 동영상 파일 확인
+                    if (fileType === 'video') {
+                      console.log('🎬 갤러리 그리드 - 동영상 파일 렌더링:', {
+                        index,
+                        name: image.name,
+                        url: image.url,
+                        fileType,
+                        fullImage: image
+                      });
+                    }
                     
                     return (
                     <div 
@@ -4290,8 +4429,9 @@ export default function GalleryAdmin() {
                             ctx.fillStyle = '#ffffff';
                             ctx.fillRect(0, 0, 64, 64);
                             
-                            // ⭐ 화면에 렌더링된 이미지 요소 찾기
+                            // ⭐ 화면에 렌더링된 미디어 요소 찾기 (이미지 또는 동영상)
                             const imgElement = e.currentTarget.querySelector('img') as HTMLImageElement;
+                            const videoElement = e.currentTarget.querySelector('video') as HTMLVideoElement;
                             
                             // 이미지가 로드되어 있고 CORS 문제가 없으면 그리기
                             if (imgElement && imgElement.complete && imgElement.naturalWidth > 0) {
@@ -4321,8 +4461,38 @@ export default function GalleryAdmin() {
                                 ctx.fillStyle = '#f3f4f6';
                                 ctx.fillRect(0, 0, 64, 64);
                               }
+                            } else if (videoElement && videoElement.readyState >= 2) {
+                              // 동영상인 경우 첫 프레임 그리기
+                              try {
+                                const videoAspect = videoElement.videoWidth / videoElement.videoHeight;
+                                let drawWidth = 64;
+                                let drawHeight = 64;
+                                let offsetX = 0;
+                                let offsetY = 0;
+                                
+                                if (videoAspect > 1) {
+                                  drawHeight = 64 / videoAspect;
+                                  offsetY = (64 - drawHeight) / 2;
+                                } else {
+                                  drawWidth = 64 * videoAspect;
+                                  offsetX = (64 - drawWidth) / 2;
+                                }
+                                
+                                ctx.drawImage(videoElement, offsetX, offsetY, drawWidth, drawHeight);
+                              } catch (drawError) {
+                                // 동영상 그리기 실패 시 배경만 표시
+                                console.warn('동영상 그리기 실패:', drawError);
+                                ctx.fillStyle = '#1f2937';
+                                ctx.fillRect(0, 0, 64, 64);
+                                // 동영상 아이콘 표시
+                                ctx.fillStyle = '#ffffff';
+                                ctx.font = 'bold 24px Arial';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText('🎬', 32, 32);
+                              }
                             } else {
-                              // 이미지가 로드되지 않았으면 회색 배경만
+                              // 미디어가 로드되지 않았으면 회색 배경만
                               ctx.fillStyle = '#f3f4f6';
                               ctx.fillRect(0, 0, 64, 64);
                             }
@@ -4360,13 +4530,52 @@ export default function GalleryAdmin() {
                         </span>
                       )}
                       
-                      {/* 이미지 */}
-                      <div className="aspect-square bg-gray-100">
-                        <LazyImage
-                          src={image.url}
-                          alt={image.alt_text || image.name}
-                          className={`w-full h-full object-cover ${(image as any).is_linked ? 'opacity-60' : ''}`}
-                        />
+                      {/* 이미지 또는 동영상 */}
+                      <div className="aspect-square bg-gray-100 relative">
+                        {getFileType(image.name, image.url) === 'video' ? (
+                          <video
+                            src={image.url}
+                            className={`w-full h-full object-cover ${(image as any).is_linked ? 'opacity-60' : ''}`}
+                            muted
+                            playsInline
+                            preload="metadata"
+                            onLoadedData={(e) => {
+                              // 첫 프레임 로드 완료 시 파란색 배경 제거
+                              const video = e.currentTarget;
+                              video.style.backgroundColor = 'transparent';
+                            }}
+                            onError={(e) => {
+                              // 동영상 로드 실패 시 처리
+                              console.error('동영상 로드 실패:', image.url);
+                              const video = e.currentTarget;
+                              video.style.display = 'none';
+                            }}
+                            onMouseEnter={(e) => {
+                              const video = e.currentTarget;
+                              video.play().catch(() => {}); // 자동 재생 실패 시 무시
+                            }}
+                            onMouseLeave={(e) => {
+                              const video = e.currentTarget;
+                              video.pause();
+                              video.currentTime = 0;
+                            }}
+                          >
+                            <source src={image.url} type="video/mp4" />
+                            동영상을 재생할 수 없습니다.
+                          </video>
+                        ) : (
+                          <LazyImage
+                            src={image.url}
+                            alt={image.alt_text || image.name}
+                            className={`w-full h-full object-cover ${(image as any).is_linked ? 'opacity-60' : ''}`}
+                          />
+                        )}
+                        {/* 동영상 배지 */}
+                        {getFileType(image.name, image.url) === 'video' && (
+                          <div className="absolute top-2 left-2 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs font-semibold">
+                            🎬 동영상
+                          </div>
+                        )}
                       </div>
                       
                       {/* 이미지 정보 */}
@@ -4903,17 +5112,17 @@ export default function GalleryAdmin() {
                   <button
                     data-rotate-button
                     onClick={() => setShowRotateMenu(!showRotateMenu)}
-                    disabled={isRotating}
+                    disabled={isRotating || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')}
                     className={`px-3 py-1 text-sm rounded transition-colors ${
-                      isRotating
-                        ? 'bg-blue-300 text-white cursor-not-allowed'
+                      isRotating || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')
+                        ? 'bg-blue-300 text-white cursor-not-allowed opacity-50'
                         : 'bg-blue-500 text-white hover:bg-blue-600'
                     }`}
-                    title="회전"
+                    title={selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' ? '동영상은 회전할 수 없습니다' : '회전'}
                   >
                     {isRotating ? '회전 중...' : '회전'}
                   </button>
-                  {showRotateMenu && !isRotating && (
+                  {showRotateMenu && !isRotating && selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) !== 'video' && (
                     <div data-rotate-menu className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-10 min-w-[220px]">
                       <div className="px-3 py-2 text-xs text-gray-500 border-b">회전 방향</div>
                       <button
@@ -5042,17 +5251,17 @@ export default function GalleryAdmin() {
                   <button
                     data-convert-button
                     onClick={() => setShowConvertMenu(!showConvertMenu)}
-                    disabled={isConverting}
+                    disabled={isConverting || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')}
                     className={`px-3 py-1 text-sm rounded transition-colors ${
-                      isConverting
+                      isConverting || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')
                         ? 'bg-green-300 text-white cursor-not-allowed'
                         : 'bg-green-500 text-white hover:bg-green-600'
                     }`}
-                    title="변환"
+                    title={selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' ? '동영상은 변환할 수 없습니다' : '변환'}
                   >
                     {isConverting ? '변환 중...' : '변환'}
                   </button>
-                  {showConvertMenu && !isConverting && (
+                  {showConvertMenu && !isConverting && selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) !== 'video' && (
                     <div data-convert-menu className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-10 min-w-[200px]">
                       <div className="px-3 py-2 text-xs text-gray-500 border-b">포맷 선택</div>
                       <button
@@ -5247,11 +5456,11 @@ export default function GalleryAdmin() {
                       // 바로 변형 시작 (프롬프트 자동 생성)
                       await handleFALVariation(selectedImageForZoom.url, undefined);
                     }}
-                    disabled={isGeneratingExistingVariation}
+                    disabled={isGeneratingExistingVariation || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')}
                     className={`px-3 py-1.5 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 transition-colors ${
-                      isGeneratingExistingVariation ? 'opacity-50 cursor-not-allowed' : ''
+                      isGeneratingExistingVariation || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video') ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
-                    title="변형 (FAL AI - 바로 변형 시작)"
+                    title={selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' ? '동영상은 변형할 수 없습니다' : '변형 (FAL AI - 바로 변형 시작)'}
                   >
                     {isGeneratingExistingVariation ? '변형 중...' : '변형 (FAL)'}
                   </button>
@@ -5262,11 +5471,11 @@ export default function GalleryAdmin() {
                       setCustomPrompt('');
                       setShowPromptModal(true);
                     }}
-                    disabled={isGeneratingExistingVariation}
+                    disabled={isGeneratingExistingVariation || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')}
                     className={`px-1.5 py-1.5 bg-orange-400 text-white text-xs rounded hover:bg-orange-500 transition-colors ${
-                      isGeneratingExistingVariation ? 'opacity-50 cursor-not-allowed' : ''
+                      isGeneratingExistingVariation || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video') ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
-                    title="프롬프트 입력 후 변형"
+                    title={selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' ? '동영상은 변형할 수 없습니다' : '프롬프트 입력 후 변형'}
                   >
                     ✏️
                   </button>
@@ -5280,13 +5489,13 @@ export default function GalleryAdmin() {
                       if (isGeneratingReplicateVariation) return;
                       await generateReplicateVariation(selectedImageForZoom.url, selectedImageForZoom.name, selectedImageForZoom.folder_path);
                     }}
-                    disabled={isGeneratingReplicateVariation}
+                    disabled={isGeneratingReplicateVariation || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')}
                     className={`px-3 py-1.5 text-sm rounded transition-colors ${
-                      isGeneratingReplicateVariation
+                      isGeneratingReplicateVariation || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')
                         ? 'bg-purple-300 text-white cursor-not-allowed'
                         : 'bg-purple-500 text-white hover:bg-purple-600'
                     }`}
-                    title="변형 (Replicate - 빠르고 간단)"
+                    title={selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' ? '동영상은 변형할 수 없습니다' : '변형 (Replicate - 빠르고 간단)'}
                   >
                     {isGeneratingReplicateVariation ? '변형 중...' : '변형 (Replicate)'}
                   </button>
@@ -5297,11 +5506,11 @@ export default function GalleryAdmin() {
                       setCustomPrompt('');
                       setShowPromptModal(true);
                     }}
-                    disabled={isGeneratingReplicateVariation}
+                    disabled={isGeneratingReplicateVariation || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')}
                     className={`px-1.5 py-1.5 bg-purple-400 text-white text-xs rounded hover:bg-purple-500 transition-colors ${
-                      isGeneratingReplicateVariation ? 'opacity-50 cursor-not-allowed' : ''
+                      isGeneratingReplicateVariation || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video') ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
-                    title="프롬프트 입력 후 변형"
+                    title={selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' ? '동영상은 변형할 수 없습니다' : '프롬프트 입력 후 변형'}
                   >
                     ✏️
                   </button>
@@ -5315,11 +5524,11 @@ export default function GalleryAdmin() {
                       if (isGeneratingNanobananaVariation) return;
                       await generateNanobananaVariation(selectedImageForZoom.url, selectedImageForZoom.name, selectedImageForZoom.folder_path);
                     }}
-                    disabled={isGeneratingNanobananaVariation}
+                    disabled={isGeneratingNanobananaVariation || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')}
                     className={`px-3 py-1.5 bg-green-500 text-white text-sm rounded hover:bg-green-600 transition-colors ${
-                      isGeneratingNanobananaVariation ? 'opacity-50 cursor-not-allowed' : ''
+                      isGeneratingNanobananaVariation || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video') ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
-                    title="변형 (Nanobanana - 원본 스타일 유지)"
+                    title={selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' ? '동영상은 변형할 수 없습니다' : '변형 (Nanobanana - 원본 스타일 유지)'}
                   >
                     {isGeneratingNanobananaVariation ? '변형 중...' : '변형 (Nanobanana)'}
                   </button>
@@ -5330,11 +5539,11 @@ export default function GalleryAdmin() {
                       setCustomPrompt('');
                       setShowPromptModal(true);
                     }}
-                    disabled={isGeneratingNanobananaVariation}
+                    disabled={isGeneratingNanobananaVariation || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')}
                     className={`px-1.5 py-1.5 bg-green-400 text-white text-xs rounded hover:bg-green-500 transition-colors ${
-                      isGeneratingNanobananaVariation ? 'opacity-50 cursor-not-allowed' : ''
+                      isGeneratingNanobananaVariation || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video') ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
-                    title="프롬프트 입력 후 변형"
+                    title={selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' ? '동영상은 변형할 수 없습니다' : '프롬프트 입력 후 변형'}
                   >
                     ✏️
                   </button>
@@ -5388,9 +5597,9 @@ export default function GalleryAdmin() {
                       setIsUpscaling(false);
                     }
                   }}
-                  disabled={isUpscaling}
+                  disabled={isUpscaling || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')}
                   className="px-3 py-1.5 bg-indigo-500 text-white text-sm rounded hover:bg-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="업스케일"
+                  title={selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' ? '동영상은 업스케일할 수 없습니다' : '업스케일'}
                 >
                   {isUpscaling ? '업스케일링 중...' : '업스케일'}
                 </button>
@@ -5410,11 +5619,24 @@ export default function GalleryAdmin() {
                     margin: '0 auto'
                   }}
                 >
-                  <img
-                    src={selectedImageForZoom.url}
-                    alt={selectedImageForZoom.alt_text || selectedImageForZoom.name}
-                    className="max-w-full max-h-full object-contain"
-                  />
+                  {getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' ? (
+                    <video
+                      src={selectedImageForZoom.url}
+                      className="max-w-full max-h-full object-contain"
+                      controls
+                      autoPlay
+                      loop
+                    >
+                      <source src={selectedImageForZoom.url} type="video/mp4" />
+                      동영상을 재생할 수 없습니다.
+                    </video>
+                  ) : (
+                    <img
+                      src={selectedImageForZoom.url}
+                      alt={selectedImageForZoom.alt_text || selectedImageForZoom.name}
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  )}
                   
                   {/* 좌우 네비게이션 버튼 */}
                   <button
@@ -5538,11 +5760,34 @@ export default function GalleryAdmin() {
                       }`}
                       onClick={() => setSelectedImageForZoom(img)}
                     >
-                      <img
-                        src={img.url}
-                        alt={img.alt_text || img.name}
-                        className="w-16 h-16 object-cover"
-                      />
+                      {getFileType(img.name, img.url) === 'video' ? (
+                        <video
+                          src={img.url}
+                          className="w-16 h-16 object-cover"
+                          muted
+                          playsInline
+                          preload="metadata"
+                          onLoadedData={(e) => {
+                            // 첫 프레임 로드 완료 시 파란색 배경 제거
+                            const video = e.currentTarget;
+                            video.style.backgroundColor = 'transparent';
+                          }}
+                          onError={(e) => {
+                            // 동영상 로드 실패 시 처리
+                            console.error('썸네일 동영상 로드 실패:', img.url);
+                            const video = e.currentTarget;
+                            video.style.display = 'none';
+                          }}
+                        >
+                          <source src={img.url} type="video/mp4" />
+                        </video>
+                      ) : (
+                        <img
+                          src={img.url}
+                          alt={img.alt_text || img.name}
+                          className="w-16 h-16 object-cover"
+                        />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -6098,8 +6343,44 @@ export default function GalleryAdmin() {
                                 if (result.success) {
                                   alert(`폴더 삭제 완료!\n\n${result.deletedFiles}개 파일과 ${result.metadataDeleted}개 메타데이터가 삭제되었습니다.`);
                                   setFolderModalOpen(false);
-                                  // 갤러리 새로고침
-                                  fetchImages(1, true);
+                                  
+                                  // ✅ 즉시 로컬 상태에서 폴더 제거
+                                  setAvailableFolders((prev) => 
+                                    prev.filter(f => f !== folder && !f.startsWith(`${folder}/`))
+                                  );
+                                  
+                                  // ✅ 현재 폴더가 삭제된 폴더면 'all'로 변경
+                                  if (folderFilter === folder || folderFilter.startsWith(`${folder}/`)) {
+                                    setFolderFilter('all');
+                                    setCurrentPage(1);
+                                  }
+                                  
+                                  // ✅ 조건부 즉시 새로고침:
+                                  // - 전체 폴더('all')일 경우: 즉시 새로고침 안 함
+                                  // - 특정 폴더일 경우: 현재 페이지만 다시 로드
+                                  if (folderFilter !== 'all' && folderFilter !== folder && !folderFilter.startsWith(`${folder}/`)) {
+                                    setTimeout(() => {
+                                      fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery, false);
+                                    }, 300);
+                                  }
+                                  
+                                  // ✅ 백그라운드 점진적 새로고침 (폴더 목록 동기화)
+                                  setTimeout(async () => {
+                                    try {
+                                      const folderResponse = await fetch('/api/admin/folders-list');
+                                      const folderData = await folderResponse.json();
+                                      if (folderResponse.ok && folderData.folders) {
+                                        setAvailableFolders(folderData.folders);
+                                      }
+                                      // 이미지 목록도 백그라운드에서 동기화
+                                      fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery, false)
+                                        .catch(err => {
+                                          console.warn('⚠️ 백그라운드 새로고침 실패 (무시):', err);
+                                        });
+                                    } catch (err) {
+                                      console.warn('⚠️ 폴더 목록 새로고침 실패 (무시):', err);
+                                    }
+                                  }, 2000);
                                 } else {
                                   alert(`폴더 삭제 실패: ${result.error}`);
                                 }
@@ -6214,10 +6495,28 @@ export default function GalleryAdmin() {
                         if (response.ok && result.success) {
                           alert(`✅ 폴더가 생성되었습니다: ${folderName}`);
                           setNewFolderName('');
-                          // 폴더 트리 새로고침
-                          if (typeof fetchFolders === 'function') {
-                            fetchFolders();
-                          }
+                          
+                          // ✅ 폴더 트리 즉시 업데이트 (onFoldersChanged 콜백 호출)
+                          // 폴더 생성 모달이 FolderTree 내부에 있으므로, 
+                          // 부모 컴포넌트에서 폴더 목록을 새로고침하도록 트리거
+                          // (FolderTree의 onFoldersChanged prop을 통해 처리됨)
+                          
+                          // ✅ 백그라운드 점진적 새로고침 (폴더 목록 동기화)
+                          setTimeout(() => {
+                            // 폴더 목록은 백그라운드에서 조용히 동기화
+                            // 이미지 목록은 현재 폴더가 생성된 폴더면 현재 페이지만 새로고침
+                            const createdFolderPath = folderName;
+                            const isCurrentFolder = folderFilter === createdFolderPath || 
+                              (folderFilter === 'all' && includeChildren) ||
+                              (folderFilter !== 'all' && createdFolderPath.startsWith(folderFilter));
+                            
+                            if (isCurrentFolder) {
+                              fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery, false)
+                                .catch(err => {
+                                  console.warn('⚠️ 백그라운드 새로고침 실패 (무시):', err);
+                                });
+                            }
+                          }, 2000);
                         } else {
                           throw new Error(result.error || '폴더 생성 실패');
                         }
@@ -6330,7 +6629,8 @@ export default function GalleryAdmin() {
                       <div className="flex-1">
                         <span className="text-sm text-gray-700 font-medium">자동 (기본)</span>
                         <p className="text-xs text-gray-500 mt-1">
-                          최적화 + 파일명 변경: {selectedUploadFolder ? (selectedUploadFolder.match(/originals\/([^\/]+)/)?.[1] || 'blog') : 'blog'}-{'{타임스탬프}'}-{'{랜덤}'}.jpg
+                          이미지: 최적화 + 파일명 변경 → {selectedUploadFolder ? (selectedUploadFolder.match(/originals\/([^\/]+)/)?.[1] || 'blog') : 'blog'}-{'{타임스탬프}'}-{'{랜덤}'}.jpg<br/>
+                          동영상: 파일명만 최적화 + 확장자 유지 → {selectedUploadFolder ? (selectedUploadFolder.match(/originals\/([^\/]+)/)?.[1] || 'blog') : 'blog'}-{'{타임스탬프}'}-{'{랜덤}'}.mp4
                         </p>
                       </div>
                     </label>
@@ -6348,7 +6648,8 @@ export default function GalleryAdmin() {
                       <div className="flex-1">
                         <span className="text-sm text-gray-700 font-medium">파일명 유지</span>
                         <p className="text-xs text-gray-500 mt-1">
-                          최적화 적용 + 파일명/확장자 원본 그대로: golf-hat-muziik-4.webp
+                          이미지: 최적화 적용 + 파일명/확장자 원본 그대로<br/>
+                          동영상: 원본 파일명/확장자 그대로 (최적화 없음)
                         </p>
                       </div>
                     </label>
@@ -6366,7 +6667,7 @@ export default function GalleryAdmin() {
                       <div className="flex-1">
                         <span className="text-sm text-gray-700 font-medium">원본 그대로</span>
                         <p className="text-xs text-gray-500 mt-1">
-                          최적화 없음 + 파일명/확장자 원본 그대로: golf-hat-muziik-4.webp (원본 파일 그대로)
+                          이미지/동영상: 최적화 없음 + 파일명/확장자 원본 그대로
                         </p>
                       </div>
                     </label>
@@ -6397,6 +6698,7 @@ export default function GalleryAdmin() {
                         if (!file) return;
                         try {
                           setPending(true);
+                          setUploadProgress(0);
                           
                           // 공통 업로드 함수 사용
                           const { url } = await uploadImageToSupabase(file, {
@@ -6404,6 +6706,9 @@ export default function GalleryAdmin() {
                             enableHEICConversion: true,
                             enableEXIFBackfill: true,
                             uploadMode: uploadMode,
+                            onProgress: (progress) => {
+                              setUploadProgress(progress);
+                            },
                           });
                           
                           // ✅ 업로드한 폴더로 자동 이동
@@ -6420,6 +6725,7 @@ export default function GalleryAdmin() {
                           alert(`업로드 실패: ${e.message}`);
                         } finally {
                           setPending(false);
+                          setUploadProgress(0);
                         }
                       }
                     }}
@@ -6438,7 +6744,7 @@ export default function GalleryAdmin() {
                               파일 선택 또는 드래그
                           </span>
                             <span className="mt-1 block text-xs text-gray-500">
-                              PNG, JPG, GIF, HEIC
+                              이미지: PNG, JPG, GIF, HEIC | 동영상: MP4, AVI, MOV, WEBM
                           </span>
                         </label>
                         <input
@@ -6446,20 +6752,23 @@ export default function GalleryAdmin() {
                           name="gallery-file-upload"
                           type="file"
                           className="sr-only"
-                          accept="image/*,.heic,.heif"
+                          accept="image/*,video/*,.heic,.heif"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
                             try {
                               setPending(true);
+                              setUploadProgress(0);
                               
                               // 공통 업로드 함수 사용
                               const { url } = await uploadImageToSupabase(file, {
                                 targetFolder: selectedUploadFolder || undefined,
                                 enableHEICConversion: true,
                                 enableEXIFBackfill: true,
-                                preserveFilename: preserveFilename,
-                                preserveExtension: preserveExtension,
+                                uploadMode: uploadMode,
+                                onProgress: (progress) => {
+                                  setUploadProgress(progress);
+                                },
                               });
                               
                               setShowAddModal(false);
@@ -6479,10 +6788,39 @@ export default function GalleryAdmin() {
                               alert(`업로드 실패: ${e.message}`);
                             } finally {
                               setPending(false);
+                              setUploadProgress(0);
                             }
                           }}
                         />
                       </div>
+                      
+                      {/* 업로드 진행률 표시 */}
+                      {uploadProgress > 0 && uploadProgress < 100 && (
+                        <div className="mt-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-medium text-gray-700">업로드 중...</span>
+                            <span className="text-xs text-gray-500">{uploadProgress}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${uploadProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      
+                      {pending && uploadProgress === 0 && (
+                        <div className="mt-3 text-center">
+                          <div className="inline-flex items-center text-sm text-gray-600">
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            처리 중...
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                     <p className="text-xs text-gray-500">업로드 후 자동으로 메타데이터가 보강됩니다.</p>
@@ -6941,15 +7279,30 @@ export default function GalleryAdmin() {
                         aspectRatio: img.width && img.height ? `${img.width} / ${img.height}` : undefined
                       }}
                     >
-                      <img
-                        src={img.cdnUrl}
-                        alt={img.altText || img.filename}
-                        className="max-w-full max-h-full object-contain"
-                        style={{
-                          width: img.width && img.height ? 'auto' : '100%',
-                          height: img.width && img.height ? 'auto' : '100%'
-                        }}
-                      />
+                      {getFileType(img.filename, img.cdnUrl) === 'video' ? (
+                        <video
+                          src={img.cdnUrl}
+                          className="max-w-full max-h-full object-contain"
+                          controls
+                          style={{
+                            width: img.width && img.height ? 'auto' : '100%',
+                            height: img.width && img.height ? 'auto' : '100%'
+                          }}
+                        >
+                          <source src={img.cdnUrl} type="video/mp4" />
+                          동영상을 재생할 수 없습니다.
+                        </video>
+                      ) : (
+                        <img
+                          src={img.cdnUrl}
+                          alt={img.altText || img.filename}
+                          className="max-w-full max-h-full object-contain"
+                          style={{
+                            width: img.width && img.height ? 'auto' : '100%',
+                            height: img.width && img.height ? 'auto' : '100%'
+                          }}
+                        />
+                      )}
                     </div>
                     
                     {/* 이미지 정보 (개선된 디자인) */}
