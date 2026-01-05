@@ -12,19 +12,15 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// 전체 개수 캐싱 (15분간 유효)
+// 전체 개수 캐싱 (10분간 유효)
 let totalCountCache = null;
 let cacheTimestamp = 0;
-const CACHE_DURATION = 15 * 60 * 1000; // 15분
+const CACHE_DURATION = 10 * 60 * 1000; // 10분
 
-// 이미지 목록 캐싱 (10분간 유효) - 폴더별 캐싱
+// 이미지 목록 캐싱 (5분간 유효)
 let imagesCache = new Map();
 let imagesCacheTimestamp = 0;
-const IMAGES_CACHE_DURATION = 10 * 60 * 1000; // 10분
-
-// 폴더별 캐싱 추가
-const folderCache = new Map(); // 폴더별 캐시
-const folderCacheTimestamps = new Map(); // 폴더별 캐시 타임스탬프
+const IMAGES_CACHE_DURATION = 5 * 60 * 1000; // 5분
 
 // 캐시 무효화 함수 (외부에서 호출 가능)
 export function invalidateCache() {
@@ -32,10 +28,7 @@ export function invalidateCache() {
   cacheTimestamp = 0;
   imagesCache.clear();
   imagesCacheTimestamp = 0;
-  // 🔧 폴더별 캐시도 무효화
-  folderCache.clear();
-  folderCacheTimestamps.clear();
-  console.log('🗑️ 이미지 목록 캐시 무효화 완료 (폴더별 캐시 포함)');
+  console.log('🗑️ 이미지 목록 캐시 무효화 완료');
 }
 
 // ✅ 메타데이터 품질 검증 함수
@@ -348,8 +341,8 @@ export default async function handler(req, res) {
         }
         
         if (req.method === 'GET') {
-      // 기본 limit을 12로 줄여서 빠른 응답 (갤러리에서 사용)
-      const { limit = 12, offset = 0, page = 1, prefix = '', includeChildren = 'true', searchQuery = '', source, channel, includeUsageInfo = 'false' } = req.query;
+      // 기본 limit을 24로 줄여서 빠른 응답 (갤러리에서 사용)
+      const { limit = 24, offset = 0, page = 1, prefix = '', includeChildren = 'true', searchQuery = '', source, channel } = req.query;
       const pageSize = parseInt(limit);
       const currentPage = parseInt(page);
       const currentOffset = parseInt(offset) || (currentPage - 1) * pageSize;
@@ -506,11 +499,14 @@ export default async function handler(req, res) {
                 const subFolderPath = folderPath ? `${folderPath}/${file.name}` : file.name;
                 await getAllFilesForSearch(subFolderPath);
               } else {
-                const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-                const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+                // 이미지 및 동영상 확장자
+                const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.heic', '.heif'];
+                const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
+                const mediaExtensions = [...imageExtensions, ...videoExtensions];
+                const isMedia = mediaExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
                 // .keep.png 마커 파일 제외
                 const isKeepFile = file.name.toLowerCase() === '.keep.png';
-              if (isImage && !isKeepFile) {
+              if (isMedia && !isKeepFile) {
                 // temp 폴더 제외
                 const fullPath = folderPath ? `${folderPath}/${file.name}` : file.name;
                 const isTempFile = fullPath.startsWith('temp/');
@@ -550,11 +546,14 @@ export default async function handler(req, res) {
               
               for (const file of files) {
                 if (file.id) {
-                  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-                  const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+                  // 이미지 및 동영상 확장자
+                  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.heic', '.heif'];
+                  const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
+                  const mediaExtensions = [...imageExtensions, ...videoExtensions];
+                  const isMedia = mediaExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
                   // .keep.png 마커 파일 제외
                   const isKeepFile = file.name.toLowerCase() === '.keep.png';
-                  if (isImage && !isKeepFile) {
+                  if (isMedia && !isKeepFile) {
                     const fullPath = searchPrefix ? `${searchPrefix}/${file.name}` : file.name;
                     // temp 폴더 제외
                     const isTempFile = fullPath.startsWith('temp/');
@@ -605,6 +604,21 @@ export default async function handler(req, res) {
             searchAssets.forEach(asset => {
               searchAssetsMap.set(asset.cdn_url, asset);
             });
+          }
+          
+          // 카테고리 매핑
+          const categoryIdMap = new Map();
+          const categoryIds = [...new Set(metadataResults.map(m => m.category_id).filter(Boolean))];
+          if (categoryIds.length > 0) {
+            const { data: categories } = await supabase
+              .from('image_categories')
+              .select('id, name')
+              .in('id', categoryIds);
+            if (categories) {
+              categories.forEach(cat => {
+                categoryIdMap.set(cat.id, cat.name);
+              });
+            }
           }
           
           // 6. 최종 이미지 데이터 생성 (사용 횟수 실시간 계산)
@@ -850,12 +864,15 @@ export default async function handler(req, res) {
           
           // 이미지 파일 처리
           for (const file of files) {
-              const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-              const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-              // .keep.png 마커 파일 제외
-              const isKeepFile = file.name.toLowerCase() === '.keep.png';
+                // 이미지 및 동영상 확장자
+                const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.heic', '.heif'];
+                const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
+                const mediaExtensions = [...imageExtensions, ...videoExtensions];
+                const isMedia = mediaExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+                // .keep.png 마커 파일 제외
+                const isKeepFile = file.name.toLowerCase() === '.keep.png';
               
-              if (isImage && !isKeepFile) {
+              if (isMedia && !isKeepFile) {
                 // temp 폴더 제외
                 const fullPath = folderPath ? `${folderPath}/${file.name}` : file.name;
                 const isTempFile = fullPath.startsWith('temp/');
@@ -888,21 +905,14 @@ export default async function handler(req, res) {
       // allFilesForPagination은 아직 조회되지 않았을 수 있으므로, 일단 totalCount 사용 (나중에 실제 조회 후 업데이트)
       const totalPages = Math.ceil(totalCount / pageSize);
       
-      // 🔧 캐시 키 생성 (폴더 + 필터 조합)
-      const getCacheKey = (prefix, includeChildren, searchQuery, includeUsageInfo) => {
-        return `${prefix || 'all'}_${includeChildren}_${searchQuery || ''}_${includeUsageInfo || 'false'}`;
-      };
-      
-      const cacheKey = getCacheKey(prefix, includeChildren, searchTerm, includeUsageInfo);
+      // 캐시된 이미지 목록 확인
+      const cacheKey = `${prefix || 'root'}_${includeChildren}`;
       const currentTime = Date.now();
       let allFilesForPagination = [];
       
-      // 🔧 폴더별 캐시 확인
-      if (folderCache.has(cacheKey) && 
-          folderCacheTimestamps.has(cacheKey) &&
-          (currentTime - folderCacheTimestamps.get(cacheKey)) < IMAGES_CACHE_DURATION) {
-        console.log('📊 폴더별 캐시 사용:', cacheKey);
-        allFilesForPagination = folderCache.get(cacheKey);
+      if (imagesCache.has(cacheKey) && (currentTime - imagesCacheTimestamp) < IMAGES_CACHE_DURATION) {
+        console.log('📊 캐시된 이미지 목록 사용:', cacheKey);
+        allFilesForPagination = imagesCache.get(cacheKey);
       } else {
         console.log('📊 이미지 목록 새로 조회:', cacheKey);
         
@@ -1011,12 +1021,15 @@ export default async function handler(req, res) {
           // 이미지 파일 처리
           let imageCount = 0;
           for (const file of files) {
-              const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-              const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-              // .keep.png 마커 파일 제외
-              const isKeepFile = file.name.toLowerCase() === '.keep.png';
+                // 이미지 및 동영상 확장자
+                const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.heic', '.heif'];
+                const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
+                const mediaExtensions = [...imageExtensions, ...videoExtensions];
+                const isMedia = mediaExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+                // .keep.png 마커 파일 제외
+                const isKeepFile = file.name.toLowerCase() === '.keep.png';
               
-              if (isImage && !isKeepFile) {
+              if (isMedia && !isKeepFile) {
                 imageCount++;
                 allFilesForPagination.push({
                   ...file,
@@ -1062,11 +1075,14 @@ export default async function handler(req, res) {
             
             for (const file of files) {
               if (file.id) {
-                const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-                const isImage = imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+                // 이미지 및 동영상 확장자
+                const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.heic', '.heif'];
+                const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
+                const mediaExtensions = [...imageExtensions, ...videoExtensions];
+                const isMedia = mediaExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
                 // .keep.png 마커 파일 제외
                 const isKeepFile = file.name.toLowerCase() === '.keep.png';
-                if (isImage && !isKeepFile) {
+                if (isMedia && !isKeepFile) {
                   // temp 폴더 제외
                   const fullPath = prefix ? `${prefix}/${file.name}` : file.name;
                   const isTempFile = fullPath.startsWith('temp/');
@@ -1090,13 +1106,9 @@ export default async function handler(req, res) {
         allFilesForPagination.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         
         // 캐시에 저장
-        // 🔧 폴더별 캐시 저장
-        folderCache.set(cacheKey, allFilesForPagination);
-        folderCacheTimestamps.set(cacheKey, currentTime);
-        // 기존 캐시도 유지 (하위 호환성)
         imagesCache.set(cacheKey, allFilesForPagination);
         imagesCacheTimestamp = currentTime;
-        console.log('✅ 이미지 목록 캐시 저장:', allFilesForPagination.length, '개 (캐시 키:', cacheKey, ')');
+        console.log('✅ 이미지 목록 캐시 저장:', allFilesForPagination.length, '개');
       }
       
       // 페이지네이션 적용
@@ -1431,22 +1443,16 @@ export default async function handler(req, res) {
       // 모든 URL을 한 번에 조회하여 메타데이터 가져오기
       // 주의: image_metadata 테이블 스키마에 맞춰 컬럼 조회
       const urls = imageUrls.map(item => item.url);
-      
-      // 🔧 병렬 처리로 성능 개선: 메타데이터와 assets를 동시에 조회
-      // 🔧 메타데이터 필드 최소화: 리스트용 필드만 조회 (description, tags 제거)
-      const [metadataResult, assetsResult] = await Promise.all([
-        supabase
-          .from('image_metadata')
-          .select('id, alt_text, title, image_url, usage_count, upload_source, status')
-          .in('image_url', urls),
-        supabase
-          .from('image_assets')
-          .select('id, cdn_url, file_path, alt_text, title, description, ai_tags')
-          .in('cdn_url', urls)
-      ]);
+      const { data: allMetadata } = await supabase
+        .from('image_metadata')
+        .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status')
+        .in('image_url', urls);
 
-      const { data: allMetadata } = metadataResult;
-      const { data: allAssets } = assetsResult;
+      // image_assets 테이블에서 id 및 메타데이터 조회 (비교 기능용 + 메타데이터 fallback)
+      const { data: allAssets } = await supabase
+        .from('image_assets')
+        .select('id, cdn_url, file_path, alt_text, title, description, ai_tags')
+        .in('cdn_url', urls);
 
       // image_assets를 URL 기준으로 매핑
       const assetsMap = new Map();
@@ -1454,6 +1460,23 @@ export default async function handler(req, res) {
         allAssets.forEach(asset => {
           assetsMap.set(asset.cdn_url, asset);
         });
+      }
+
+      // 카테고리 매핑 (category_id -> 카테고리 이름)
+      const categoryIdMap = new Map();
+      if (allMetadata && allMetadata.length > 0) {
+        const categoryIds = [...new Set(allMetadata.map(m => m.category_id).filter(Boolean))];
+        if (categoryIds.length > 0) {
+          const { data: categories } = await supabase
+            .from('image_categories')
+            .select('id, name')
+            .in('id', categoryIds);
+          if (categories) {
+            categories.forEach(cat => {
+              categoryIdMap.set(cat.id, cat.name);
+            });
+          }
+        }
       }
 
       // 메타데이터를 URL 기준으로 매핑
@@ -1464,33 +1487,30 @@ export default async function handler(req, res) {
         });
       }
 
-      // 🔧 배치 사용 위치 조회: 사용 위치가 필요한 이미지 URL 수집 (includeUsageInfo가 true일 때만)
+      // 🔧 배치 사용 위치 조회: 사용 위치가 필요한 이미지 URL 수집
       const urlsNeedingUsageInfo = [];
       const imageUrlToIndexMap = new Map();
-      const shouldIncludeUsageInfo = includeUsageInfo === 'true' || includeUsageInfo === true;
       
-      if (shouldIncludeUsageInfo) {
-        imageUrls.forEach(({ file, url, fullPath }, index) => {
-          const metadata = metadataMap.get(url);
-          let usageCount = metadata?.usage_count || 0;
-          
-          // 모든 폴더를 배치 조회로 통일 (정확도 향상)
-          // campaigns 폴더도 배치 조회로 처리하여 모든 사용 위치 확인
-          if (fullPath) {
-            // 모든 이미지를 배치 조회 대상에 포함 (usage_count와 관계없이)
-            urlsNeedingUsageInfo.push(url);
-            imageUrlToIndexMap.set(url, index);
-          } else if (usageCount > 0) {
-            // fullPath가 없어도 usage_count > 0이면 배치 조회 대상
-            urlsNeedingUsageInfo.push(url);
-            imageUrlToIndexMap.set(url, index);
-          }
-        });
-      }
+      imageUrls.forEach(({ file, url, fullPath }, index) => {
+        const metadata = metadataMap.get(url);
+        let usageCount = metadata?.usage_count || 0;
+        
+        // 모든 폴더를 배치 조회로 통일 (정확도 향상)
+        // campaigns 폴더도 배치 조회로 처리하여 모든 사용 위치 확인
+        if (fullPath) {
+          // 모든 이미지를 배치 조회 대상에 포함 (usage_count와 관계없이)
+          urlsNeedingUsageInfo.push(url);
+          imageUrlToIndexMap.set(url, index);
+        } else if (usageCount > 0) {
+          // fullPath가 없어도 usage_count > 0이면 배치 조회 대상
+          urlsNeedingUsageInfo.push(url);
+          imageUrlToIndexMap.set(url, index);
+        }
+      });
       
-      // 🔧 배치로 사용 위치 정보 조회 (한 번의 API 호출) - includeUsageInfo가 true일 때만
+      // 🔧 배치로 사용 위치 정보 조회 (한 번의 API 호출)
       const usageInfoMap = new Map();
-      if (shouldIncludeUsageInfo && urlsNeedingUsageInfo.length > 0) {
+      if (urlsNeedingUsageInfo.length > 0) {
         try {
           const batchStartTime = Date.now();
           const usageResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/image-usage-tracker`, {
@@ -1619,8 +1639,8 @@ export default async function handler(req, res) {
         let usedIn = [];
         let lastUsedAt = null;
         
-        if (shouldIncludeUsageInfo && fullPath) {
-          // 🔧 배치로 조회한 사용 위치 정보 사용 (모든 폴더 통일) - includeUsageInfo가 true일 때만
+        if (fullPath) {
+          // 🔧 배치로 조회한 사용 위치 정보 사용 (모든 폴더 통일)
           const usageInfo = usageInfoMap.get(url);
           if (usageInfo) {
             usedIn = usageInfo.usedIn;
@@ -1711,10 +1731,11 @@ export default async function handler(req, res) {
             }
             return [];
           })(),
-          // category는 제거됨 (메타태그로 대체)
-          category: '',
-          // categories는 빈 배열로 반환 (카테고리 기능 제거)
-          categories: [],
+          // category는 category_id를 기반으로 카테고리 이름 반환 (하위 호환성)
+          // 실제로는 카테고리 체크박스에서 categories 배열을 사용하므로, category_id가 있으면 해당 카테고리 이름을 배열로 반환
+          category: metadata?.category_id ? categoryIdMap.get(metadata.category_id) || '' : '',
+          // categories는 배열 형태로 반환 (카테고리 체크박스용)
+          categories: metadata?.category_id ? [categoryIdMap.get(metadata.category_id)].filter(Boolean) : [],
           usage_count: usageCount,
           used_in: usedIn,
           last_used_at: lastUsedAt,
