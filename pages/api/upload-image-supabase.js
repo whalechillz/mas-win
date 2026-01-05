@@ -158,17 +158,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: '파일이 필요합니다.' });
     }
 
-    // 한글 파일명 감지 및 경고
+    // 한글 파일명 감지 및 자동 변환
     const originalFilename = file.originalFilename || '';
     const hasKoreanInFileName = /[가-힣]/.test(originalFilename);
     
     if (hasKoreanInFileName && (effectiveUploadMode === 'preserve-filename' || effectiveUploadMode === 'preserve-original')) {
-      console.warn('⚠️ 한글 파일명 감지:', originalFilename);
-      return res.status(400).json({ 
-        error: '한글 파일명은 지원되지 않습니다.',
-        details: `파일명 "${originalFilename}"에 한글이 포함되어 있습니다. Supabase Storage에서는 한글 파일명을 key로 사용할 수 없습니다.`,
-        suggestion: '업로드 모드를 "파일명 최적화"로 변경하거나 파일명을 영문으로 변경해주세요.'
-      });
+      console.warn('⚠️ 한글 파일명 감지, 자동으로 최적화 모드로 전환:', originalFilename);
+      // preserve-filename 모드에서도 한글 파일명이면 자동으로 optimize-filename으로 전환
+      effectiveUploadMode = 'optimize-filename';
+      console.log('✅ 업로드 모드 자동 변경: preserve-filename → optimize-filename');
     }
 
     // filepath 확인 (formidable 버전 호환성)
