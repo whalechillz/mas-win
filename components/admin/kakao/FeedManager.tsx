@@ -285,69 +285,8 @@ export default function FeedManager({
   };
 
 
-  // 프롬프트 재생성 (basePrompt 기반)
-  const handleRegeneratePrompt = async () => {
-    // ✅ 배포 완료 상태면 차단
-    if (publishStatus === 'published') {
-      alert('배포 완료 상태에서는 이미지를 재생성할 수 없습니다. 배포 대기로 변경해주세요.');
-      return;
-    }
-
-    try {
-      setIsRegeneratingPrompt(true);
-      
-      let basePrompt: string | undefined = getBasePrompt();
-      
-      if (!basePrompt) {
-        alert('basePrompt를 먼저 설정해주세요.');
-        return;
-      }
-
-      // 프롬프트 재생성 API 호출
-      const promptResponse = await fetch('/api/kakao-content/generate-prompt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: basePrompt,
-          accountType: accountKey || (account.tone === 'gold' ? 'account1' : 'account2'),
-          type: 'feed',
-          brandStrategy: {
-            customerpersona: account.tone === 'gold' ? 'senior_fitting' : 'tech_enthusiast',
-            customerChannel: 'local_customers',
-            brandWeight: account.tone === 'gold' ? '높음' : '중간',
-            audienceTemperature: 'warm'
-          },
-          weeklyTheme: calendarData?.profileContent?.[accountKey || 'account1']?.weeklyThemes?.week1 || 
-                      '비거리의 감성 – 스윙과 마음의 연결',
-          date: selectedDate || new Date().toISOString().split('T')[0]
-        })
-      });
-
-      const promptData = await promptResponse.json();
-      if (!promptData.success) {
-        throw new Error(promptData.message || '프롬프트 재생성 실패');
-      }
-
-      const newPrompt = promptData.prompt;
-
-      // 새 프롬프트로 이미지 재생성
-      const result = await onGenerateImage(newPrompt);
-      if (result.imageUrls.length > 0) {
-        onUpdate({
-          ...feedData,
-          imagePrompt: newPrompt,
-          imageUrl: result.imageUrls[0]
-        });
-        alert('✅ 프롬프트와 이미지가 재생성되었습니다.');
-      }
-    } catch (error: any) {
-      alert(`프롬프트 재생성 실패: ${error.message}`);
-    } finally {
-      setIsRegeneratingPrompt(false);
-    }
-  };
-
-  const handleGenerateImage = async () => {
+  // 통합 이미지 생성/재생성 함수 (프롬프트 재생성 옵션 포함)
+  const handleGenerateImage = async (regeneratePrompt: boolean = false) => {
     // ✅ 배포 완료 상태면 차단
     if (publishStatus === 'published') {
       alert('배포 완료 상태에서는 이미지를 재생성할 수 없습니다. 배포 대기로 변경해주세요.');
@@ -357,8 +296,59 @@ export default function FeedManager({
     try {
       setIsGeneratingImage(true);
       
-      // ✅ 기존 이미지가 있고 제품 합성이 활성화된 경우: 제품 합성만 수행
-      if (feedData.imageUrl && enableProductComposition && selectedProductId) {
+      let promptToUse = feedData.imagePrompt;
+      
+      // 프롬프트 재생성 옵션
+      if (regeneratePrompt) {
+        setIsRegeneratingPrompt(true);
+        try {
+          let basePrompt: string | undefined = getBasePrompt();
+          
+          if (!basePrompt) {
+            alert('basePrompt를 먼저 설정해주세요.');
+            setIsRegeneratingPrompt(false);
+            setIsGeneratingImage(false);
+            return;
+          }
+
+          // 프롬프트 재생성 API 호출
+          const promptResponse = await fetch('/api/kakao-content/generate-prompt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt: basePrompt,
+              accountType: accountKey || (account.tone === 'gold' ? 'account1' : 'account2'),
+              type: 'feed',
+              brandStrategy: {
+                customerpersona: account.tone === 'gold' ? 'senior_fitting' : 'tech_enthusiast',
+                customerChannel: 'local_customers',
+                brandWeight: account.tone === 'gold' ? '높음' : '중간',
+                audienceTemperature: 'warm'
+              },
+              weeklyTheme: calendarData?.profileContent?.[accountKey || 'account1']?.weeklyThemes?.week1 || 
+                          '비거리의 감성 – 스윙과 마음의 연결',
+              date: selectedDate || new Date().toISOString().split('T')[0]
+            })
+          });
+
+          const promptData = await promptResponse.json();
+          if (!promptData.success) {
+            throw new Error(promptData.message || '프롬프트 재생성 실패');
+          }
+
+          promptToUse = promptData.prompt;
+        } catch (error: any) {
+          alert(`프롬프트 재생성 실패: ${error.message}`);
+          setIsRegeneratingPrompt(false);
+          setIsGeneratingImage(false);
+          return;
+        } finally {
+          setIsRegeneratingPrompt(false);
+        }
+      }
+      
+      // ✅ 기존 이미지가 있고 제품 합성이 활성화된 경우: 제품 합성만 수행 (프롬프트 재생성 제외)
+      if (feedData.imageUrl && enableProductComposition && selectedProductId && !regeneratePrompt) {
         setIsComposingProduct(true);
         try {
           const selectedProduct = products.find(p => p.id === selectedProductId);
@@ -433,7 +423,7 @@ export default function FeedManager({
       }
       
       // ✅ 기존 로직: 새 이미지 생성 → 제품 합성 (필요한 경우)
-      const result = await onGenerateImage(feedData.imagePrompt);
+      const result = await onGenerateImage(promptToUse);
       if (result.imageUrls.length > 0) {
         let finalImageUrl = result.imageUrls[0];
         
@@ -511,10 +501,14 @@ export default function FeedManager({
         const updateData: FeedData = {
           ...feedData,
           imageUrl: finalImageUrl,
-          imagePrompt: result.generatedPrompt || feedData.imagePrompt
+          imagePrompt: result.generatedPrompt || promptToUse
         };
         
         onUpdate(updateData);
+        
+        alert(regeneratePrompt 
+          ? '✅ 프롬프트와 이미지가 재생성되었습니다.' 
+          : '✅ 이미지가 생성되었습니다.');
       }
     } catch (error: any) {
       alert(`피드 이미지 생성 실패: ${error.message}`);
@@ -644,7 +638,7 @@ export default function FeedManager({
           </div>
           
           {/* 프롬프트 토글 */}
-          <div className="text-xs text-gray-500 flex items-start justify-between gap-2 mt-2">
+          <div className="text-xs text-gray-500 flex items-start gap-2 mt-2">
             <div className="flex-1">
               <button
                 onClick={() => setIsPromptExpanded(!isPromptExpanded)}
@@ -661,14 +655,6 @@ export default function FeedManager({
                 <div className="mt-1 pl-5 break-words max-h-40 overflow-y-auto">{feedData.imagePrompt}</div>
               )}
             </div>
-            <button
-              onClick={handleRegeneratePrompt}
-              disabled={isRegeneratingPrompt || isGeneratingImage || isGenerating}
-              className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-              title="프롬프트 재생성 (새로운 로직 적용) + 이미지 자동 재생성"
-            >
-              {isRegeneratingPrompt ? '🔄 재생성 중...' : '🔄 재생성'}
-            </button>
           </div>
           <div className="text-xs text-gray-500">
             <strong>생성 사이즈:</strong> 1080x1350 (4:5 세로형, 카카오톡 피드 최적화)
@@ -788,10 +774,16 @@ export default function FeedManager({
             </button>
             <div className="flex items-center gap-1">
               <button
-                onClick={handleGenerateImage}
+                onClick={() => handleGenerateImage(false)}
                 disabled={isGeneratingImage || isGenerating || publishStatus === 'published' || isComposingProduct}
                 className="flex items-center gap-2 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm disabled:opacity-50"
-                title={publishStatus === 'published' ? '배포 완료 상태에서는 이미지를 재생성할 수 없습니다.' : '이미지 재생성'}
+                title={publishStatus === 'published' 
+                  ? '배포 완료 상태에서는 이미지를 재생성할 수 없습니다.' 
+                  : feedData.imageUrl 
+                    ? (enableProductComposition && selectedProductId 
+                        ? '기존 이미지에 제품 합성' 
+                        : '이미지 재생성')
+                    : '⚡ 피드 이미지 생성'}
               >
                 {isGeneratingImage || isComposingProduct ? (
                   <>
@@ -801,10 +793,23 @@ export default function FeedManager({
                 ) : (
                   <>
                     <RotateCcw className="w-4 h-4" />
-                    {feedData.imageUrl ? '이미지 재생성' : '⚡ 피드 이미지 생성'}
+                    {feedData.imageUrl 
+                      ? (enableProductComposition && selectedProductId ? '제품 합성' : '이미지 재생성')
+                      : '⚡ 피드 이미지 생성'}
                   </>
                 )}
               </button>
+              {/* 프롬프트 재생성 옵션 (이미지가 있을 때만 표시) */}
+              {feedData.imageUrl && feedData.imagePrompt && (
+                <button
+                  onClick={() => handleGenerateImage(true)}
+                  disabled={isRegeneratingPrompt || isGeneratingImage || isGenerating || publishStatus === 'published'}
+                  className="text-xs px-2 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                  title="프롬프트 재생성 + 이미지 재생성 (제품 합성 포함)"
+                >
+                  {isRegeneratingPrompt ? '🔄 재생성 중...' : '🔄 프롬프트 재생성'}
+                </button>
+              )}
               {feedData.imageUrl && (
                 <>
                   <button

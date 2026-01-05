@@ -83,11 +83,17 @@ export default async function handler(req, res) {
     // Promise 래퍼로 변환 (formidable 버전 호환성)
     const [fields, files] = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
-        if (err) reject(err);
-        else resolve([fields, files]);
+        if (err) {
+          console.error('❌ FormData 파싱 오류:', err);
+          reject(err);
+        } else {
+          resolve([fields, files]);
+        }
       });
     });
-    const file = files.file?.[0];
+    
+    // file 또는 image 필드명 지원 (하위 호환성)
+    const file = files.file?.[0] || files.image?.[0];
     const targetFolder = fields.targetFolder?.[0] || ''; // targetFolder 파라미터 읽기
     const uploadMode = fields.uploadMode?.[0] || 'auto'; // 업로드 모드: 'auto' | 'preserve-name' | 'preserve-original'
     
@@ -104,7 +110,22 @@ export default async function handler(req, res) {
     }
 
     if (!file) {
+      console.error('❌ 파일이 없습니다:', { files, fields });
       return res.status(400).json({ error: '파일이 필요합니다.' });
+    }
+
+    // filepath 확인 (formidable 버전 호환성)
+    const filePath = file.filepath || file.path || file.tempFilePath;
+    if (!filePath) {
+      console.error('❌ 파일 경로가 없습니다:', file);
+      return res.status(400).json({ error: '파일 경로를 찾을 수 없습니다.' });
+    }
+
+    // 파일 존재 확인
+    const fs = require('fs');
+    if (!fs.existsSync(filePath)) {
+      console.error('❌ 파일이 존재하지 않습니다:', filePath);
+      return res.status(400).json({ error: '업로드된 파일을 찾을 수 없습니다.' });
     }
 
     // 업로드 시작 로깅
@@ -112,13 +133,13 @@ export default async function handler(req, res) {
       fileName: file.originalFilename || 'unknown',
       fileSize: `${((file.size || 0) / 1024 / 1024).toFixed(2)}MB`,
       fileType: file.mimetype || 'unknown',
+      filePath: filePath,
       targetFolder: targetFolder || '기본 폴더',
       uploadMode: effectiveUploadMode
     });
 
     // 파일을 Buffer로 읽기
-    const fs = require('fs');
-    const fileBuffer = fs.readFileSync(file.filepath);
+    const fileBuffer = fs.readFileSync(filePath);
 
     // 원본 파일 확장자 추출
     const originalExtension = (file.originalFilename || '').split('.').pop()?.toLowerCase() || 'jpg';
