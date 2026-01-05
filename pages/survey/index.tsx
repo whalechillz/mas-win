@@ -36,8 +36,8 @@ export default function SurveyLanding() {
   const [bucketHatIndex, setBucketHatIndex] = useState(0);
   const [golfCapIndex, setGolfCapIndex] = useState(0);
   const [isHovering, setIsHovering] = useState({ bucket: false, golf: false });
-  const [bucketHatImages, setBucketHatImages] = useState<Array<{ src: string; alt: string }>>([]);
-  const [golfCapImages, setGolfCapImages] = useState<Array<{ src: string; alt: string }>>([]);
+  const [bucketHatImages, setBucketHatImages] = useState<Array<{ src: string; originalUrl?: string; alt: string }>>([]);
+  const [golfCapImages, setGolfCapImages] = useState<Array<{ src: string; originalUrl?: string; alt: string }>>([]);
   const [imagesLoading, setImagesLoading] = useState(true);
   const [pro3MuziikImage, setPro3MuziikImage] = useState<string>(getProductImageUrl('originals/products/pro3-muziik/detail/secret-force-pro-3-muziik-00.webp')); // Fallback
 
@@ -110,6 +110,7 @@ export default function SurveyLanding() {
         
         const bucketImages = bucketData.product.gallery_images.map((img: string, index: number) => ({
           src: getProductImageUrl(img),
+          originalUrl: img, // 원본 URL 저장 (동영상 타입 감지용)
           alt: `MASSGOO X MUZIIK 버킷햇 ${index + 1}`
         }));
         setBucketHatImages(bucketImages);
@@ -117,6 +118,7 @@ export default function SurveyLanding() {
         // Fallback: 기본 이미지 사용
         const fallbackImages = defaultBucketHatImages.map((img, index) => ({
           src: getProductImageUrl(img),
+          originalUrl: img,
           alt: `MASSGOO X MUZIIK 버킷햇 ${index + 1}`
         }));
         setBucketHatImages(fallbackImages);
@@ -135,6 +137,7 @@ export default function SurveyLanding() {
         
         const golfImages = golfData.product.gallery_images.map((img: string, index: number) => ({
           src: getProductImageUrl(img),
+          originalUrl: img, // 원본 URL 저장 (동영상 타입 감지용)
           alt: `MASSGOO X MUZIIK 골프모자 ${index + 1}`
         }));
         setGolfCapImages(golfImages);
@@ -142,6 +145,7 @@ export default function SurveyLanding() {
         // Fallback: 기본 이미지 사용
         const fallbackImages = defaultGolfCapImages.map((img, index) => ({
           src: getProductImageUrl(img),
+          originalUrl: img,
           alt: `MASSGOO X MUZIIK 골프모자 ${index + 1}`
         }));
         setGolfCapImages(fallbackImages);
@@ -151,10 +155,12 @@ export default function SurveyLanding() {
       // Fallback: 기본 이미지 사용
       setBucketHatImages(defaultBucketHatImages.map((img, index) => ({
         src: getProductImageUrl(img),
+        originalUrl: img,
         alt: `MASSGOO X MUZIIK 버킷햇 ${index + 1}`
       })));
       setGolfCapImages(defaultGolfCapImages.map((img, index) => ({
         src: getProductImageUrl(img),
+        originalUrl: img,
         alt: `MASSGOO X MUZIIK 골프모자 ${index + 1}`
       })));
     } finally {
@@ -355,7 +361,7 @@ export default function SurveyLanding() {
                         <span className="text-gray-400 text-sm">이미지 로딩 중...</span>
                       </div>
                     ) : bucketHatImages.length > 0 ? (
-                      getFileType(bucketHatImages[bucketHatIndex]?.src || bucketHatImages[0]?.src) === 'video' ? (
+                      getFileType(bucketHatImages[bucketHatIndex]?.originalUrl || bucketHatImages[bucketHatIndex]?.src || bucketHatImages[0]?.originalUrl || bucketHatImages[0]?.src) === 'video' ? (
                         <video
                           src={bucketHatImages[bucketHatIndex]?.src || bucketHatImages[0]?.src}
                           className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110"
@@ -438,7 +444,7 @@ export default function SurveyLanding() {
                         <span className="text-gray-400 text-sm">이미지 로딩 중...</span>
                       </div>
                     ) : golfCapImages.length > 0 ? (
-                      getFileType(golfCapImages[golfCapIndex]?.src || golfCapImages[0]?.src) === 'video' ? (
+                      getFileType(golfCapImages[golfCapIndex]?.originalUrl || golfCapImages[golfCapIndex]?.src || golfCapImages[0]?.originalUrl || golfCapImages[0]?.src) === 'video' ? (
                         <video
                           src={golfCapImages[golfCapIndex]?.src || golfCapImages[0]?.src}
                           className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110"
