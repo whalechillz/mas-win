@@ -13,6 +13,42 @@ const STORE_LNG = 127.0498;
 // 카카오맵 API 키
 const KAKAO_MAP_API_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY;
 
+// 주소 정규화 함수: 공백 제거 및 null 처리
+function normalizeAddress(address: string | null | undefined): string | null {
+  // null, undefined, 빈 문자열 체크
+  if (!address) return null;
+  
+  // 모든 공백 제거 (앞뒤 공백, 줄바꿈, 탭 등)
+  const trimmed = address.trim().replace(/\s+/g, ' ').trim();
+  
+  // 공백만 있는 경우 null 반환
+  if (!trimmed || trimmed.length === 0) return null;
+  
+  // 이미 표준 플레이스홀더인 경우 그대로 사용
+  const placeholders = ['[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'];
+  if (placeholders.includes(trimmed)) {
+    return trimmed;
+  }
+  
+  // "직접방문", "직접 방문" 등 다양한 표현을 표준화
+  const lowerTrimmed = trimmed.toLowerCase();
+  if ((lowerTrimmed.includes('직접') && lowerTrimmed.includes('방문')) ||
+      lowerTrimmed === '직접방문' ||
+      lowerTrimmed === '직접 방문') {
+    return '[직접방문]';
+  }
+  
+  return trimmed;
+}
+
+// 주소가 지오코딩 가능한지 확인 (플레이스홀더 및 공백 제외)
+function isGeocodableAddress(address: string | null | undefined): boolean {
+  const normalized = normalizeAddress(address);
+  if (!normalized) return false;
+  if (normalized.startsWith('[') || normalized === 'N/A') return false;
+  return normalized.length > 0;
+}
+
 // 하버사인 공식을 사용한 거리 계산 (km)
 function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371; // 지구 반지름 (km)
@@ -68,13 +104,14 @@ async function getCoordinatesFromAddress(address: string): Promise<{ lat: number
 
 // 위치 정보 캐싱: 캐시에서 먼저 확인하고, 없으면 API 호출 후 저장
 async function getCachedOrCalculateDistance(
-  address: string,
+  address: string | null | undefined,
   customerId?: number,
   surveyId?: string,
   phone?: string,
 ): Promise<{ distance: number; lat: number; lng: number; cached: boolean } | null> {
-  // 플레이스홀더 주소는 거리 계산 불가
-  if (address && (address.startsWith('[') || address === 'N/A')) {
+  // 주소 정규화 및 유효성 검사
+  const normalizedAddress = normalizeAddress(address);
+  if (!normalizedAddress || !isGeocodableAddress(normalizedAddress)) {
     return null;
   }
 
@@ -86,7 +123,7 @@ async function getCachedOrCalculateDistance(
       .from('customer_address_cache')
       .select('*')
       .eq('customer_id', customerId)
-      .eq('address', address)
+      .eq('address', normalizedAddress)
       .eq('geocoding_status', 'success')
       .maybeSingle();
     cached = data;
@@ -98,7 +135,7 @@ async function getCachedOrCalculateDistance(
       .from('customer_address_cache')
       .select('*')
       .eq('survey_id', surveyId)
-      .eq('address', address)
+      .eq('address', normalizedAddress)
       .eq('geocoding_status', 'success')
       .maybeSingle();
     cached = data;
@@ -123,7 +160,7 @@ async function getCachedOrCalculateDistance(
             .from('customer_address_cache')
             .select('*')
             .eq('customer_id', customer.id)
-            .eq('address', address)
+            .eq('address', normalizedAddress)
             .eq('geocoding_status', 'success')
             .order('updated_at', { ascending: false })
             .limit(1)
@@ -147,7 +184,7 @@ async function getCachedOrCalculateDistance(
   }
 
   // 캐시에 없으면 API 호출
-  const coords = await getCoordinatesFromAddress(address);
+  const coords = await getCoordinatesFromAddress(normalizedAddress);
   if (coords) {
     const distance = calculateDistance(STORE_LAT, STORE_LNG, coords.lat, coords.lng);
 
@@ -157,7 +194,7 @@ async function getCachedOrCalculateDistance(
         {
           customer_id: customerId,
           survey_id: surveyId || null,
-          address: address,
+          address: normalizedAddress,
           latitude: coords.lat,
           longitude: coords.lng,
           distance_km: distance,
@@ -178,7 +215,7 @@ async function getCachedOrCalculateDistance(
       {
         customer_id: customerId,
         survey_id: surveyId || null,
-        address: address,
+        address: normalizedAddress,
         geocoding_status: 'failed',
         geocoding_error: '주소 변환 실패',
         updated_at: new Date().toISOString(),
@@ -621,7 +658,7 @@ function generateHTMLReport(data: any): string {
       </thead>
       <tbody>`;
 
-  allCustomers.forEach((customer: any, index: number) => {
+  allCustomers.forEach((customer: any) => {
     const category = customer.is_purchased
       ? customer.is_over_2_years
         ? '구매(2년+)'
@@ -657,7 +694,7 @@ function generateHTMLReport(data: any): string {
       : '-';
 
     html += `<tr>
-      <td>${index + 1}</td>
+      <td>${customer.rank || '-'}</td>
       <td>${escapeHtml(customer.name || '-')}</td>
       <td>${escapeHtml(customer.phone || '-')}</td>
       <td>${customer.is_purchased ? '구매' : '비구매'}</td>
@@ -950,6 +987,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               (Date.now() - new Date(survey.created_at).getTime()) / (1000 * 60 * 60 * 24),
             );
 
+            // 주소 정규화
+            const normalizedAddress = normalizeAddress(survey.address);
+            
+            // 정규화된 주소가 유효하지 않으면 null 반환
+            if (!normalizedAddress || !isGeocodableAddress(normalizedAddress)) {
+              return null;
+            }
+
             // 최근 선물 횟수 확인 (이번 경품 추천 기간: 최근 3개월)
             let giftCount = 0;
             if (customer.id) {
@@ -960,18 +1005,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             let distance: number | null = null;
             let latitude: number | null = null;
             let longitude: number | null = null;
-            if (survey.address) {
-              const cachedResult = await getCachedOrCalculateDistance(
-                survey.address,
-                customer.id,
-                String(survey.id),
-                survey.phone,
-              );
-              if (cachedResult) {
-                distance = cachedResult.distance;
-                latitude = cachedResult.lat;
-                longitude = cachedResult.lng;
-              }
+            const cachedResult = await getCachedOrCalculateDistance(
+              normalizedAddress,
+              customer.id,
+              String(survey.id),
+              survey.phone,
+            );
+            if (cachedResult) {
+              distance = cachedResult.distance;
+              latitude = cachedResult.lat;
+              longitude = cachedResult.lng;
             }
 
             // 선물 받은 고객은 점수에 가중치 추가 (선물 1회당 +5점)
@@ -989,7 +1032,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               customer_id: customer.id || null,
               name: survey.name,
               phone: survey.phone,
-              address: survey.address,
+              address: normalizedAddress,
               selected_model: survey.selected_model,
               important_factors: survey.important_factors,
               survey_quality_score: surveyQuality,
@@ -1004,7 +1047,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }),
       );
 
-      // 거리 계산이 완료된 후 점수 순으로 정렬하고 상위 10명 선택
+      // null 제거 및 거리 계산이 완료된 후 점수 순으로 정렬하고 상위 10명 선택
+      nonPurchasedCustomersData = nonPurchasedCustomersData.filter((c) => c !== null);
       nonPurchasedCustomersData.sort((a, b) => (b.total_score || 0) - (a.total_score || 0));
     }
 
@@ -1014,8 +1058,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: allSurveys } = await supabase
       .from('surveys')
       .select('*')
-      .order('created_at', { ascending: false })
-      .limit(200);
+      .order('created_at', { ascending: false });
+      // 제한 제거 - 모든 설문 조회
 
     const allCustomersData: any[] = [];
     const processedPhones = new Set<string>(); // 중복 제거용
@@ -1027,6 +1071,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           continue;
         }
         processedPhones.add(survey.phone);
+
+        // 주소 정규화
+        const normalizedAddress = normalizeAddress(survey.address);
 
         const { data: customer } = await supabase
           .from('customers')
@@ -1085,10 +1132,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 )
               : 999,
           });
-        } else if (!isPurchased && survey.address) {
+        } else if (!isPurchased && normalizedAddress && isGeocodableAddress(normalizedAddress)) {
           // 비구매 고객 점수 (거리 계산, 캐싱 사용)
           const cachedResult = await getCachedOrCalculateDistance(
-            survey.address,
+            normalizedAddress,
             customer?.id,
             String(survey.id),
             survey.phone,
@@ -1114,8 +1161,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           );
           // 선물 받은 고객은 점수에 가중치 추가 (선물 1회당 +5점)
           score = baseScore + gift_count * 5;
-        } else if (!isPurchased && !survey.address) {
-          // 주소가 없는 비구매 고객 (거리 점수 없음)
+        } else if (!isPurchased && (!normalizedAddress || !isGeocodableAddress(normalizedAddress))) {
+          // 주소가 없거나 플레이스홀더인 비구매 고객 (거리 점수 없음)
           // 최근 선물 받은 횟수 확인 (선물 받은 고객도 포함)
           if (customer && customer.id) {
             gift_count = await getRecentGiftCount(customer.id);
@@ -1140,7 +1187,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           customer_id: customer?.id || null,
           name: survey.name,
           phone: survey.phone,
-          address: survey.address || null, // 주소 저장
+          address: normalizedAddress, // 정규화된 주소 저장
           selected_model: survey.selected_model,
           important_factors: survey.important_factors,
           is_purchased: isPurchased,
@@ -1156,8 +1203,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // 전체 고객 점수 순으로 정렬
-    allCustomersData.sort((a, b) => (b.total_score || 0) - (a.total_score || 0));
+    // 전체 고객 점수 순으로 정렬 (점수 → 거리 → 이름)
+    allCustomersData.sort((a, b) => {
+      // 1차: 점수 (내림차순)
+      const scoreDiff = (b.total_score || 0) - (a.total_score || 0);
+      if (scoreDiff !== 0) return scoreDiff;
+      
+      // 2차: 거리 (가까운 순, null은 뒤로)
+      if (a.distance_km !== null && b.distance_km !== null) {
+        return a.distance_km - b.distance_km;
+      }
+      if (a.distance_km === null && b.distance_km !== null) return 1;
+      if (a.distance_km !== null && b.distance_km === null) return -1;
+      
+      // 3차: 이름 (가나다 순)
+      const nameA = (a.name || '').trim();
+      const nameB = (b.name || '').trim();
+      return nameA.localeCompare(nameB, 'ko');
+    });
+
+    // 순위 필드 추가
+    allCustomersData.forEach((customer, index) => {
+      customer.rank = index + 1;
+    });
+
+    // 로깅
+    console.log(`[경품 추천] 전체 설문 수: ${allSurveys?.length || 0}`);
+    console.log(`[경품 추천] 중복 제거 후 고객 수: ${allCustomersData.length}`);
+    console.log(`[경품 추천] 거리 정보 있는 고객: ${allCustomersData.filter(c => c.distance_km !== null).length}`);
+    console.log(`[경품 추천] 주소 없는 고객: ${allCustomersData.filter(c => !c.address || !isGeocodableAddress(c.address)).length}`);
 
     const result = {
       purchasedCustomers: topPurchasedCustomers,
