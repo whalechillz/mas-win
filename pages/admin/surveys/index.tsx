@@ -573,7 +573,11 @@ export default function SurveysPage() {
       const json = await res.json();
 
       if (json.success) {
-        alert(`위치 정보가 업데이트되었습니다.\n거리: ${json.data.distance_km.toFixed(2)}km`);
+        if (json.data.distance_km !== null && json.data.distance_km !== undefined) {
+          alert(`위치 정보가 업데이트되었습니다.\n거리: ${json.data.distance_km.toFixed(2)}km`);
+        } else {
+          alert(json.message || '주소가 저장되었습니다.');
+        }
         setEditingGeocoding(null);
         fetchGeocodingCustomers();
       } else {
@@ -1573,6 +1577,10 @@ export default function SurveysPage() {
                         <span className="text-blue-600 font-medium">
                           ※ 주소 수정 시 설문과 고객 정보의 주소도 자동으로 동기화됩니다.
                         </span>
+                        <br />
+                        <span className="text-gray-600">
+                          ※ 주소가 없으면 <code className="bg-gray-100 px-1 rounded">[직접방문]</code> 또는 <code className="bg-gray-100 px-1 rounded">[주소 미제공]</code>을 입력하세요.
+                        </span>
                       </p>
                     </div>
 
@@ -1613,7 +1621,7 @@ export default function SurveysPage() {
                       </button>
                       <button
                         onClick={handleUpdateGeocoding}
-                        disabled={updatingGeocoding || !editingGeocoding.address.trim()}
+                        disabled={updatingGeocoding || (!editingGeocoding.address || !editingGeocoding.address.trim())}
                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                       >
                         {updatingGeocoding ? '업데이트 중...' : '거리 업데이트'}

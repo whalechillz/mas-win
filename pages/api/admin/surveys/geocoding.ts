@@ -282,10 +282,62 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // 주소 정규화
       const normalizedAddress = normalizeAddress(address);
-      if (!normalizedAddress || !isGeocodableAddress(normalizedAddress)) {
+      if (!normalizedAddress) {
+        return res.status(400).json({ success: false, message: '주소를 입력해주세요.' });
+      }
+
+      // 플레이스홀더 주소인 경우 지오코딩 없이 저장만
+      const placeholders = ['[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'];
+      const isPlaceholder = placeholders.includes(normalizedAddress);
+      
+      if (isPlaceholder) {
+        // 플레이스홀더 주소는 지오코딩 없이 저장만
+        // 기존 캐시 삭제
+        await supabase
+          .from('customer_address_cache')
+          .delete()
+          .or(`customer_id.eq.${customerId || -1},survey_id.eq.${surveyId || 'null'}`);
+
+        // 설문 주소도 동기화
+        if (surveyId) {
+          try {
+            await supabase
+              .from('surveys')
+              .update({ address: normalizedAddress })
+              .eq('id', surveyId);
+          } catch (surveyError) {
+            console.error('설문 주소 동기화 오류:', surveyError);
+          }
+        }
+
+        // 고객 주소도 동기화
+        if (customerId) {
+          try {
+            await supabase
+              .from('customers')
+              .update({ address: normalizedAddress })
+              .eq('id', customerId);
+          } catch (customerError) {
+            console.error('고객 주소 동기화 오류:', customerError);
+          }
+        }
+
+        return res.status(200).json({
+          success: true,
+          data: {
+            latitude: null,
+            longitude: null,
+            distance_km: null,
+          },
+          message: '플레이스홀더 주소로 저장되었습니다. (지오코딩 없음)',
+        });
+      }
+
+      // 실제 주소인 경우 지오코딩 수행
+      if (!isGeocodableAddress(normalizedAddress)) {
         return res.status(400).json({ 
           success: false, 
-          message: '지오코딩 가능한 주소를 입력해주세요. (플레이스홀더는 사용할 수 없습니다.)' 
+          message: '지오코딩 가능한 주소를 입력해주세요.' 
         });
       }
 
