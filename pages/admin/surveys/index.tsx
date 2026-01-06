@@ -480,8 +480,23 @@ export default function SurveysPage() {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        const json = await res.json();
-        alert(json.message || '경품 추천 조회에 실패했습니다.');
+        // 에러 응답 처리 (HTML 에러 페이지일 수 있음)
+        let errorMessage = '경품 추천 조회에 실패했습니다.';
+        try {
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const json = await res.json();
+            errorMessage = json.message || errorMessage;
+          } else {
+            const text = await res.text();
+            // HTML 에러 페이지인 경우 간단한 메시지 표시
+            errorMessage = `서버 오류 (${res.status}): 경품 추천 생성 중 문제가 발생했습니다.`;
+            console.error('경품 추천 API 오류 응답:', text.substring(0, 500));
+          }
+        } catch (parseError) {
+          console.error('에러 응답 파싱 실패:', parseError);
+        }
+        alert(errorMessage);
       }
     } catch (error: any) {
       console.error('경품 추천 오류:', error);

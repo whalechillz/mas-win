@@ -106,24 +106,34 @@ async function getCachedOrCalculateDistance(
   
   // phone으로도 시도 (최신 위치 정보 관리에서 업데이트한 경우)
   if (!cached && phone) {
-    // phone으로 customer 찾기
-    const { data: customer } = await supabase
-      .from('customers')
-      .select('id')
-      .eq('phone', phone)
-      .maybeSingle();
-    
-    if (customer?.id) {
-      const { data } = await supabase
-        .from('customer_address_cache')
-        .select('*')
-        .eq('customer_id', customer.id)
-        .eq('address', address)
-        .eq('geocoding_status', 'success')
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      cached = data;
+    try {
+      // phone 정규화 (숫자만 추출)
+      const normalizedPhone = phone.replace(/[^0-9]/g, '');
+      if (normalizedPhone.length >= 10) {
+        // phone으로 customer 찾기 (LIKE 검색으로 유연하게)
+        const { data: customer } = await supabase
+          .from('customers')
+          .select('id')
+          .ilike('phone', `%${normalizedPhone}%`)
+          .limit(1)
+          .maybeSingle();
+        
+        if (customer?.id) {
+          const { data } = await supabase
+            .from('customer_address_cache')
+            .select('*')
+            .eq('customer_id', customer.id)
+            .eq('address', address)
+            .eq('geocoding_status', 'success')
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          cached = data;
+        }
+      }
+    } catch (phoneError) {
+      console.error('phone으로 customer 찾기 오류:', phoneError);
+      // phone 검색 실패해도 계속 진행
     }
   }
 
@@ -954,7 +964,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               const cachedResult = await getCachedOrCalculateDistance(
                 survey.address,
                 customer.id,
-                survey.id,
+                String(survey.id),
                 survey.phone,
               );
               if (cachedResult) {
@@ -1080,7 +1090,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const cachedResult = await getCachedOrCalculateDistance(
             survey.address,
             customer?.id,
-            survey.id,
+            String(survey.id),
             survey.phone,
           );
           if (cachedResult) {
@@ -1195,9 +1205,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error: any) {
     console.error('[admin/surveys/recommend-prizes] 오류:', error);
+    console.error('[admin/surveys/recommend-prizes] 오류 스택:', error.stack);
     return res.status(500).json({
       success: false,
       message: error.message || '경품 추천 조회 중 오류가 발생했습니다.',
+      error: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
 }
