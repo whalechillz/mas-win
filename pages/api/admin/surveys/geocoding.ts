@@ -155,7 +155,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           -- 설문 주소가 플레이스홀더가 아니거나
           (s.address NOT LIKE '[%' AND s.address NOT IN ('[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'))
           -- 설문 주소가 플레이스홀더지만 고객 정보에 실제 주소가 있는 경우
-          OR (c.address IS NOT NULL AND c.address != '' AND c.address NOT LIKE '[%')
+          OR (c.address IS NOT NULL AND c.address != '' AND c.address NOT LIKE '[%' AND c.address NOT IN ('[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'))
+          -- 설문 주소가 플레이스홀더이고 고객 정보 주소도 없거나 플레이스홀더인 경우도 포함 (미확인 상태로 표시)
+          OR (s.address LIKE '[%' OR s.address IN ('[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'))
         )
       `;
 
@@ -174,21 +176,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (error) {
         // RPC가 없으면 직접 쿼리
+        // 모든 설문 조회 (플레이스홀더 포함)
         const { data: surveys } = await supabase
           .from('surveys')
           .select('id, name, phone, address, created_at')
           .not('address', 'is', null)
           .neq('address', '')
-          .not('address', 'like', '[%')
           .order('created_at', { ascending: false })
           .limit(Number(limit))
           .range(Number(offset), Number(offset) + Number(limit) - 1);
         
-        // 플레이스홀더 필터링 (Supabase 쿼리로는 완벽하게 필터링이 안되므로 추가 필터링)
-        const filteredSurveys = surveys?.filter((s) => {
-          const placeholders = ['[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'];
-          return s.address && !placeholders.includes(s.address);
-        }) || [];
+        // 플레이스홀더도 포함 (모든 설문 포함)
+        const filteredSurveys = surveys || [];
 
         if (!filteredSurveys || filteredSurveys.length === 0) {
           return res.status(200).json({ success: true, data: { customers: [], total: 0 } });
