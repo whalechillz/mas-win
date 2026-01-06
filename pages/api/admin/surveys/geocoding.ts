@@ -247,6 +247,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).json({ success: false, message: '위치 정보 저장에 실패했습니다.' });
       }
 
+      // 설문 주소도 동기화
+      if (surveyId) {
+        try {
+          await supabase
+            .from('surveys')
+            .update({ address: address })
+            .eq('id', surveyId);
+        } catch (surveyError) {
+          console.error('설문 주소 동기화 오류:', surveyError);
+          // 설문 업데이트 실패해도 위치 정보 저장은 성공으로 처리
+        }
+      }
+
+      // 고객 주소도 동기화
+      if (customerId) {
+        try {
+          await supabase
+            .from('customers')
+            .update({ address: address })
+            .eq('id', customerId);
+        } catch (customerError) {
+          console.error('고객 주소 동기화 오류:', customerError);
+          // 고객 업데이트 실패해도 위치 정보 저장은 성공으로 처리
+        }
+      }
+
       return res.status(200).json({
         success: true,
         data: {

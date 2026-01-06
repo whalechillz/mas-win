@@ -107,6 +107,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    // 주소가 변경된 경우 위치 정보 캐시 무효화
+    if (address !== undefined && updatedSurvey) {
+      try {
+        // 기존 위치 정보 캐시 삭제 (주소가 변경되었으므로)
+        await supabase
+          .from('customer_address_cache')
+          .delete()
+          .eq('survey_id', id);
+
+        // 고객 ID가 있으면 고객별 캐시도 삭제
+        const normalizedPhone = (updateData.phone || phone || '').replace(/[^0-9]/g, '');
+        if (normalizedPhone) {
+          const { data: customer } = await supabase
+            .from('customers')
+            .select('id')
+            .ilike('phone', `%${normalizedPhone}%`)
+            .limit(1)
+            .maybeSingle();
+
+          if (customer?.id) {
+            // 같은 주소를 가진 고객의 캐시도 삭제 (주소가 변경되었으므로)
+            await supabase
+              .from('customer_address_cache')
+              .delete()
+              .eq('customer_id', customer.id)
+              .eq('address', updatedSurvey.address || '');
+          }
+        }
+      } catch (cacheError) {
+        console.error('위치 정보 캐시 무효화 오류:', cacheError);
+        // 캐시 무효화 실패해도 설문 업데이트는 성공으로 처리
+      }
+    }
+
     // 선물 지급 완료가 체크되었고, 사은품 정보가 있으면 customer_gifts 처리
     if (gift_delivered && (gift_product_id || gift_text)) {
       try {
