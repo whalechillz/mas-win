@@ -5,6 +5,43 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// 주소 정규화 함수: 주소 미제공 고객을 표준 플레이스홀더로 변환
+function normalizeAddress(address: string | null | undefined): string | null {
+  if (!address || !address.trim()) {
+    return null;
+  }
+  
+  const trimmed = address.trim();
+  
+  // 이미 표준 플레이스홀더인 경우 그대로 사용
+  const placeholders = ['[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'];
+  if (placeholders.includes(trimmed)) {
+    return trimmed;
+  }
+  
+  // "직접방문", "직접 방문" 등 다양한 표현을 표준화
+  const lowerTrimmed = trimmed.toLowerCase();
+  if ((lowerTrimmed.includes('직접') && lowerTrimmed.includes('방문')) ||
+      lowerTrimmed === '직접방문' ||
+      lowerTrimmed === '직접 방문') {
+    return '[직접방문]';
+  }
+  
+  return trimmed;
+}
+
+// 주소가 지오코딩 가능한지 확인 (플레이스홀더 제외)
+function isGeocodableAddress(address: string | null | undefined): boolean {
+  if (!address || !address.trim()) return false;
+  
+  const normalized = normalizeAddress(address);
+  if (!normalized) return false;
+  
+  // 플레이스홀더는 지오코딩 불가
+  const placeholders = ['[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'];
+  return !placeholders.includes(normalized);
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'PUT') {
     return res.status(405).json({ success: false, message: 'Method Not Allowed' });
@@ -73,7 +110,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (selected_model !== undefined) updateData.selected_model = selected_model;
     if (important_factors !== undefined) updateData.important_factors = important_factors;
     if (additional_feedback !== undefined) updateData.additional_feedback = additional_feedback;
-    if (address !== undefined) updateData.address = address;
+    if (address !== undefined) updateData.address = normalizeAddress(address);
     if (gift_product_id !== undefined) {
       updateData.gift_product_id = gift_product_id === null ? null : gift_product_id;
     }

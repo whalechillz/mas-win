@@ -27,10 +27,52 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
   return R * c;
 }
 
+// 주소 정규화 함수: 주소 미제공 고객을 표준 플레이스홀더로 변환
+function normalizeAddress(address: string | null | undefined): string | null {
+  if (!address || !address.trim()) {
+    return null;
+  }
+  
+  const trimmed = address.trim();
+  
+  // 이미 표준 플레이스홀더인 경우 그대로 사용
+  const placeholders = ['[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'];
+  if (placeholders.includes(trimmed)) {
+    return trimmed;
+  }
+  
+  // "직접방문", "직접 방문" 등 다양한 표현을 표준화
+  const lowerTrimmed = trimmed.toLowerCase();
+  if ((lowerTrimmed.includes('직접') && lowerTrimmed.includes('방문')) ||
+      lowerTrimmed === '직접방문' ||
+      lowerTrimmed === '직접 방문') {
+    return '[직접방문]';
+  }
+  
+  return trimmed;
+}
+
+// 주소가 지오코딩 가능한지 확인 (플레이스홀더 제외)
+function isGeocodableAddress(address: string | null | undefined): boolean {
+  if (!address || !address.trim()) return false;
+  
+  const normalized = normalizeAddress(address);
+  if (!normalized) return false;
+  
+  // 플레이스홀더는 지오코딩 불가
+  const placeholders = ['[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'];
+  return !placeholders.includes(normalized);
+}
+
 // 카카오맵 API를 사용한 주소 → 좌표 변환
 async function getCoordinatesFromAddress(address: string): Promise<{ lat: number; lng: number } | null> {
   if (!KAKAO_MAP_API_KEY) {
     console.warn('카카오맵 API 키가 설정되지 않았습니다.');
+    return null;
+  }
+  
+  // 플레이스홀더는 지오코딩 불가
+  if (!isGeocodableAddress(address)) {
     return null;
   }
 
@@ -73,15 +115,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // 주소는 있지만 위치 정보가 없는 고객 조회
       // 1. surveys 테이블에서 주소가 있는 설문
-      // 2. customer_address_cache에 없거나 실패한 경우
+      // 2. 설문 주소가 플레이스홀더면 고객 정보의 주소를 우선 사용
+      // 3. customer_address_cache에 없거나 실패한 경우
       let query = `
         SELECT DISTINCT
           s.id as survey_id,
           s.name,
           s.phone,
-          s.address,
+          s.address as survey_address,
           c.id as customer_id,
           c.name as customer_name,
+          c.address as customer_address,
+          CASE 
+            WHEN s.address LIKE '[%' OR s.address IN ('[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A')
+            THEN COALESCE(NULLIF(c.address, ''), s.address)
+            ELSE s.address
+          END as effective_address,
           cache.geocoding_status,
           cache.geocoding_error,
           cache.latitude,
@@ -92,10 +141,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         LEFT JOIN customers c ON c.phone = s.phone
         LEFT JOIN customer_address_cache cache ON (
           (cache.customer_id = c.id OR cache.survey_id = s.id)
-          AND cache.address = s.address
+          AND cache.address = CASE 
+            WHEN s.address LIKE '[%' OR s.address IN ('[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A')
+            THEN COALESCE(NULLIF(c.address, ''), s.address)
+            ELSE s.address
+          END
         )
-        WHERE s.address IS NOT NULL 
-          AND s.address != ''
+        WHERE (s.address IS NOT NULL AND s.address != '')
+           OR (c.address IS NOT NULL AND c.address != '')
       `;
 
       // 상태 필터
@@ -118,39 +171,55 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .select('id, name, phone, address, created_at')
           .not('address', 'is', null)
           .neq('address', '')
+          .not('address', 'like', '[%')
           .order('created_at', { ascending: false })
           .limit(Number(limit))
           .range(Number(offset), Number(offset) + Number(limit) - 1);
+        
+        // 플레이스홀더 필터링 (Supabase 쿼리로는 완벽하게 필터링이 안되므로 추가 필터링)
+        const filteredSurveys = surveys?.filter((s) => {
+          const placeholders = ['[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'];
+          return s.address && !placeholders.includes(s.address);
+        }) || [];
 
-        if (!surveys) {
+        if (!filteredSurveys || filteredSurveys.length === 0) {
           return res.status(200).json({ success: true, data: { customers: [], total: 0 } });
         }
 
         // 각 설문에 대해 캐시 정보 조회
         const customers = await Promise.all(
-          surveys.map(async (survey) => {
-            // 고객 정보 조회
+          filteredSurveys.map(async (survey) => {
+            // 고객 정보 조회 (주소 포함)
             const { data: customer } = await supabase
               .from('customers')
-              .select('id, name')
+              .select('id, name, address')
               .eq('phone', survey.phone)
               .maybeSingle();
 
-            // 캐시 정보 조회
+            // 설문 주소가 플레이스홀더면 고객 정보의 주소를 우선 사용
+            const placeholders = ['[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'];
+            const isSurveyPlaceholder = survey.address && placeholders.includes(survey.address);
+            const effectiveAddress = (isSurveyPlaceholder && customer?.address && isGeocodableAddress(customer.address))
+              ? customer.address
+              : survey.address;
+
+            // 캐시 정보 조회 (효과적인 주소로)
             const { data: cache } = await supabase
               .from('customer_address_cache')
               .select('*')
               .or(
                 `customer_id.eq.${customer?.id || -1},survey_id.eq.${survey.id}`,
               )
-              .eq('address', survey.address)
+              .eq('address', effectiveAddress)
               .maybeSingle();
 
             return {
               survey_id: survey.id,
               name: survey.name,
               phone: survey.phone,
-              address: survey.address,
+              address: effectiveAddress, // 효과적인 주소 사용
+              original_survey_address: survey.address, // 원본 설문 주소 보존
+              customer_address: customer?.address || null, // 고객 주소 정보
               customer_id: customer?.id || null,
               customer_name: customer?.name || null,
               geocoding_status: cache?.geocoding_status || null,
@@ -200,19 +269,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const { customerId, surveyId, address } = req.body;
 
-      if (!address) {
+      if (!address || !address.trim()) {
         return res.status(400).json({ success: false, message: '주소를 입력해주세요.' });
       }
 
+      // 주소 정규화
+      const normalizedAddress = normalizeAddress(address);
+      if (!normalizedAddress || !isGeocodableAddress(normalizedAddress)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: '지오코딩 가능한 주소를 입력해주세요. (플레이스홀더는 사용할 수 없습니다.)' 
+        });
+      }
+
       // 주소를 좌표로 변환
-      const coords = await getCoordinatesFromAddress(address);
+      const coords = await getCoordinatesFromAddress(normalizedAddress);
       if (!coords) {
         // 실패한 경우 캐시에 실패 상태 저장
         await supabase.from('customer_address_cache').upsert(
           {
             customer_id: customerId || null,
             survey_id: surveyId || null,
-            address: address,
+            address: normalizedAddress,
             geocoding_status: 'failed',
             geocoding_error: '주소 변환 실패',
             updated_at: new Date().toISOString(),
@@ -231,7 +309,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         {
           customer_id: customerId || null,
           survey_id: surveyId || null,
-          address: address,
+          address: normalizedAddress,
           latitude: coords.lat,
           longitude: coords.lng,
           distance_km: distance,
@@ -252,7 +330,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
           await supabase
             .from('surveys')
-            .update({ address: address })
+            .update({ address: normalizedAddress })
             .eq('id', surveyId);
         } catch (surveyError) {
           console.error('설문 주소 동기화 오류:', surveyError);
@@ -265,7 +343,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
           await supabase
             .from('customers')
-            .update({ address: address })
+            .update({ address: normalizedAddress })
             .eq('id', customerId);
         } catch (customerError) {
           console.error('고객 주소 동기화 오류:', customerError);

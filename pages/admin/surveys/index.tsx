@@ -1458,7 +1458,28 @@ export default function SurveysPage() {
                           <tr key={idx} className="hover:bg-gray-50">
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{customer.name}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.phone}</td>
-                            <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{customer.address}</td>
+                            <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                              <div className="truncate">
+                                {customer.address && (customer.address.startsWith('[') || customer.address === 'N/A') ? (
+                                  <span className="text-gray-400 italic">{customer.address}</span>
+                                ) : (
+                                  <span>{customer.address}</span>
+                                )}
+                              </div>
+                              {customer.original_survey_address && 
+                               customer.original_survey_address !== customer.address &&
+                               (customer.original_survey_address.startsWith('[') || customer.original_survey_address === 'N/A') && (
+                                <div className="text-xs text-gray-400 mt-1">
+                                  설문: {customer.original_survey_address}
+                                </div>
+                              )}
+                              {customer.customer_address && 
+                               customer.customer_address !== customer.address && (
+                                <div className="text-xs text-blue-600 mt-1">
+                                  고객정보: {customer.customer_address}
+                                </div>
+                              )}
+                            </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               {customer.geocoding_status === 'success' ? (
                                 <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -1548,6 +1569,10 @@ export default function SurveysPage() {
                       />
                       <p className="mt-1 text-sm text-gray-500">
                         주소를 입력하면 자동으로 좌표로 변환하고 매장과의 거리를 계산합니다.
+                        <br />
+                        <span className="text-blue-600 font-medium">
+                          ※ 주소 수정 시 설문과 고객 정보의 주소도 자동으로 동기화됩니다.
+                        </span>
                       </p>
                     </div>
 
@@ -1591,7 +1616,7 @@ export default function SurveysPage() {
                         disabled={updatingGeocoding || !editingGeocoding.address.trim()}
                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                       >
-                        {updatingGeocoding ? '업데이트 중...' : '위치 정보 업데이트'}
+                        {updatingGeocoding ? '업데이트 중...' : '거리 업데이트'}
                       </button>
                     </div>
                   </div>
