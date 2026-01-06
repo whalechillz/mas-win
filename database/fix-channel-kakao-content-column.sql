@@ -27,3 +27,4 @@ WHERE content IS NULL AND message_text IS NOT NULL;
 
 
 
+

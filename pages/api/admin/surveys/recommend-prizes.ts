@@ -71,25 +71,69 @@ async function getCachedOrCalculateDistance(
   address: string,
   customerId?: number,
   surveyId?: string,
+  phone?: string,
 ): Promise<{ distance: number; lat: number; lng: number; cached: boolean } | null> {
-  // 캐시에서 먼저 확인
+  // 플레이스홀더 주소는 거리 계산 불가
+  if (address && (address.startsWith('[') || address === 'N/A')) {
+    return null;
+  }
+
+  // 캐시에서 먼저 확인 (customer_id 우선, 없으면 survey_id 또는 phone으로)
+  let cached = null;
+  
   if (customerId) {
-    const { data: cached } = await supabase
+    const { data } = await supabase
       .from('customer_address_cache')
       .select('*')
       .eq('customer_id', customerId)
       .eq('address', address)
       .eq('geocoding_status', 'success')
       .maybeSingle();
-
-    if (cached && cached.distance_km !== null && cached.latitude !== null && cached.longitude !== null) {
-      return {
-        distance: cached.distance_km,
-        lat: cached.latitude,
-        lng: cached.longitude,
-        cached: true,
-      };
+    cached = data;
+  }
+  
+  // customer_id로 못 찾았으면 survey_id로 시도
+  if (!cached && surveyId) {
+    const { data } = await supabase
+      .from('customer_address_cache')
+      .select('*')
+      .eq('survey_id', surveyId)
+      .eq('address', address)
+      .eq('geocoding_status', 'success')
+      .maybeSingle();
+    cached = data;
+  }
+  
+  // phone으로도 시도 (최신 위치 정보 관리에서 업데이트한 경우)
+  if (!cached && phone) {
+    // phone으로 customer 찾기
+    const { data: customer } = await supabase
+      .from('customers')
+      .select('id')
+      .eq('phone', phone)
+      .maybeSingle();
+    
+    if (customer?.id) {
+      const { data } = await supabase
+        .from('customer_address_cache')
+        .select('*')
+        .eq('customer_id', customer.id)
+        .eq('address', address)
+        .eq('geocoding_status', 'success')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      cached = data;
     }
+  }
+
+  if (cached && cached.distance_km !== null && cached.latitude !== null && cached.longitude !== null) {
+    return {
+      distance: cached.distance_km,
+      lat: cached.latitude,
+      lng: cached.longitude,
+      cached: true,
+    };
   }
 
   // 캐시에 없으면 API 호출
@@ -229,9 +273,13 @@ async function savePrizeRecommendation(
     });
   });
 
-  // DB에 저장 (에러는 무시하고 계속 진행)
+  // DB에 저장 (같은 날짜의 기존 데이터 삭제 후 저장)
   if (recommendations.length > 0) {
     try {
+      // 같은 날짜의 기존 데이터 삭제 (중복 방지)
+      await supabase.from('prize_recommendations').delete().eq('recommendation_date', recommendationDate);
+      
+      // 새 데이터 저장
       await supabase.from('prize_recommendations').insert(recommendations);
     } catch (error) {
       console.error('경품 추천 결과 저장 오류:', error);
@@ -903,7 +951,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             let latitude: number | null = null;
             let longitude: number | null = null;
             if (survey.address) {
-              const cachedResult = await getCachedOrCalculateDistance(survey.address, customer.id, survey.id);
+              const cachedResult = await getCachedOrCalculateDistance(
+                survey.address,
+                customer.id,
+                survey.id,
+                survey.phone,
+              );
               if (cachedResult) {
                 distance = cachedResult.distance;
                 latitude = cachedResult.lat;
@@ -1028,6 +1081,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             survey.address,
             customer?.id,
             survey.id,
+            survey.phone,
           );
           if (cachedResult) {
             distance_km = cachedResult.distance;

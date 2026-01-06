@@ -61,6 +61,7 @@ export default function SurveysPage() {
   } | null>(null);
   const [updatingGeocoding, setUpdatingGeocoding] = useState(false);
   const [syncingAddresses, setSyncingAddresses] = useState(false);
+  const [selectedCustomerIds, setSelectedCustomerIds] = useState<number[]>([]);
   const [messageModal, setMessageModal] = useState<{
     open: boolean;
     survey: Survey | null;
@@ -490,6 +491,82 @@ export default function SurveysPage() {
     }
   };
 
+  // 특정 날짜의 경품 추천 데이터 삭제
+  const handleDeletePrizeHistory = async (date: string) => {
+    if (!confirm(`${date} 날짜의 경품 추천 데이터를 삭제하시겠습니까?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/admin/surveys/prize-history?date=${date}`, {
+        method: 'DELETE',
+      });
+
+      const json = await res.json();
+
+      if (json.success) {
+        alert(json.message || '데이터가 삭제되었습니다.');
+        // 이력 목록 새로고침
+        fetchPrizeHistory();
+      } else {
+        alert(json.message || '데이터 삭제에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('데이터 삭제 오류:', error);
+      alert('데이터 삭제 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 저장된 경품 추천 이력 다운로드 (HTML)
+  const handleDownloadPrizeHistory = async () => {
+    if (!selectedHistoryDate) {
+      alert('날짜를 선택해주세요.');
+      return;
+    }
+
+    setRecommendingPrizes(true);
+    try {
+      const params = new URLSearchParams();
+      params.append('date', selectedHistoryDate);
+      params.append('format', 'html');
+      if (historySection) {
+        params.append('section', historySection);
+      }
+
+      const res = await fetch(`/api/admin/surveys/prize-history?${params.toString()}`);
+      if (res.ok) {
+        const html = await res.text();
+        
+        // 새 창에서 HTML 표시
+        const newWindow = window.open('', '_blank');
+        if (newWindow) {
+          newWindow.document.write(html);
+          newWindow.document.close();
+          newWindow.focus();
+        }
+        
+        // 동시에 다운로드도 제공 (선택적)
+        const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `prize-recommendation-history-${selectedHistoryDate}.html`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        const json = await res.json();
+        alert(json.message || '저장된 이력 다운로드에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('이력 다운로드 오류:', error);
+      alert(error.message || '이력 다운로드 중 오류가 발생했습니다.');
+    } finally {
+      setRecommendingPrizes(false);
+    }
+  };
+
   // 경품 추천 이력 조회
   const fetchPrizeHistory = async () => {
     setLoadingPrizeHistory(true);
@@ -594,9 +671,12 @@ export default function SurveysPage() {
 
   // 일괄 주소 동기화 함수
   const handleSyncAddresses = async () => {
+    const customerIds = selectedCustomerIds.length > 0 ? selectedCustomerIds : undefined;
+    const count = customerIds ? customerIds.length : geocodingCustomers.length;
+    
     if (
       !confirm(
-        '고객관리 주소가 없고 설문 주소가 있는 고객의 주소를 일괄 동기화하시겠습니까?\n\n- 고객관리 주소가 없거나 플레이스홀더인 경우만\n- 설문 주소가 실제 주소인 경우만 동기화됩니다.',
+        `${count}명의 고객 주소를 일괄 동기화하시겠습니까?\n\n- 고객관리 주소가 없거나 플레이스홀더인 경우만\n- 설문 주소가 실제 주소인 경우만 동기화됩니다.`,
       )
     ) {
       return;
@@ -607,12 +687,13 @@ export default function SurveysPage() {
       const res = await fetch('/api/admin/surveys/sync-addresses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
+        body: JSON.stringify(customerIds ? { customerIds } : {}),
       });
 
       const json = await res.json();
       if (json.success) {
         alert(json.message);
+        setSelectedCustomerIds([]);
         fetchGeocodingCustomers();
       } else {
         alert(json.message || '동기화에 실패했습니다.');
@@ -623,6 +704,57 @@ export default function SurveysPage() {
     } finally {
       setSyncingAddresses(false);
     }
+  };
+
+  // 체크박스 관련 함수들
+  const handleSelectCustomer = (customerId: number) => {
+    setSelectedCustomerIds((prev) =>
+      prev.includes(customerId) ? prev.filter((id) => id !== customerId) : [...prev, customerId],
+    );
+  };
+
+  const handleSelectAllCustomers = () => {
+    const customersWithId = geocodingCustomers.filter((c: any) => c.customer_id);
+    const allSelected = selectedCustomerIds.length === customersWithId.length && customersWithId.length > 0;
+    
+    if (allSelected) {
+      setSelectedCustomerIds([]);
+    } else {
+      setSelectedCustomerIds(customersWithId.map((c: any) => c.customer_id));
+    }
+  };
+
+  // 동기화 가능 여부 확인 함수
+  const canSync = (customer: any) => {
+    // 주소 정규화 함수 (공백 제거 및 정규화)
+    const normalizeForCompare = (addr: string | null | undefined): string => {
+      if (!addr) return '';
+      return addr.trim().replace(/\s+/g, ' '); // 앞뒤 공백 제거, 중간 공백 정규화
+    };
+
+    const customerAddr = normalizeForCompare(customer.customer_address);
+    const surveyAddr = normalizeForCompare(customer.original_survey_address);
+
+    // 동기화 가능: 고객관리 주소가 없거나 플레이스홀더 + 설문 주소가 실제 주소
+    const canInitialSync =
+      (!customerAddr ||
+        customerAddr.startsWith('[') ||
+        customerAddr === 'N/A') &&
+      surveyAddr &&
+      !surveyAddr.startsWith('[') &&
+      surveyAddr !== 'N/A';
+
+    // 재동기화 가능: 주소가 다름 (정규화 후 비교)
+    const canResync =
+      customerAddr &&
+      !customerAddr.startsWith('[') &&
+      customerAddr !== 'N/A' &&
+      surveyAddr &&
+      !surveyAddr.startsWith('[') &&
+      surveyAddr !== 'N/A' &&
+      customerAddr !== surveyAddr; // 정규화된 주소로 비교
+
+    return { canInitialSync, canResync };
   };
 
   // 개별 주소 동기화 함수
@@ -1243,13 +1375,24 @@ export default function SurveysPage() {
                     <h2 className="text-xl font-bold text-gray-900">경품 추천 이력</h2>
                     <p className="text-gray-600 mt-1">저장된 경품 추천 결과를 조회하고 비교 분석할 수 있습니다.</p>
                   </div>
-                  <button
-                    onClick={handleRecommendPrizes}
-                    disabled={recommendingPrizes}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {recommendingPrizes ? '생성 중...' : '🎁 경품 추천 목록 다운로드'}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleDownloadPrizeHistory}
+                      disabled={recommendingPrizes || !selectedHistoryDate}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                      title={!selectedHistoryDate ? '날짜를 선택해주세요' : '저장된 경품 추천 이력을 다운로드합니다'}
+                    >
+                      {recommendingPrizes ? '다운로드 중...' : '🎁 저장된 이력 다운로드'}
+                    </button>
+                    <button
+                      onClick={handleRecommendPrizes}
+                      disabled={recommendingPrizes}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                      title="새로운 경품 추천을 생성하고 다운로드합니다"
+                    >
+                      {recommendingPrizes ? '생성 중...' : '🆕 새 경품 추천 생성'}
+                    </button>
+                  </div>
                 </div>
 
                 {/* 필터 */}
@@ -1313,13 +1456,12 @@ export default function SurveysPage() {
                             <div className="flex justify-between items-start mb-2">
                               <div>
                                 <div className="text-sm text-gray-600">추천일</div>
-                                <div className="text-lg font-bold text-gray-900">
-                                  {new Date(stat.date).toLocaleDateString('ko-KR')}
-                                </div>
+                                {/* 날짜 제거 - "추천일"만 표시 */}
                               </div>
                               <div className="text-right">
                                 <div className="text-sm text-gray-600">총 고객</div>
-                                <div className="text-lg font-bold text-blue-600">{stat.total}명</div>
+                                {/* stat.total 대신 stat.all 사용 (중복 제거된 실제 고객 수) */}
+                                <div className="text-lg font-bold text-blue-600">{stat.all}명</div>
                               </div>
                             </div>
                             <div className="grid grid-cols-3 gap-2 mt-3 text-sm">
@@ -1345,6 +1487,15 @@ export default function SurveysPage() {
                                 <span className="text-gray-600">평균 점수</span>
                                 <span className="font-medium">{stat.avgScore.toFixed(1)}</span>
                               </div>
+                            </div>
+                            {/* 삭제 버튼 추가 */}
+                            <div className="mt-3 pt-3 border-t border-gray-200">
+                              <button
+                                onClick={() => handleDeletePrizeHistory(stat.date)}
+                                className="w-full px-3 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition-colors"
+                              >
+                                🗑️ 이 날짜 데이터 삭제
+                              </button>
                             </div>
                           </div>
                         ))}
@@ -1485,7 +1636,11 @@ export default function SurveysPage() {
                     disabled={syncingAddresses || loadingGeocoding}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                   >
-                    {syncingAddresses ? '동기화 중...' : '📋 설문 주소 → 고객 주소 일괄 동기화'}
+                    {syncingAddresses
+                      ? '동기화 중...'
+                      : selectedCustomerIds.length > 0
+                        ? `주소 동기화 (${selectedCustomerIds.length}개)`
+                        : '주소 동기화 (전체)'}
                   </button>
                 </div>
               </div>
@@ -1504,6 +1659,18 @@ export default function SurveysPage() {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                            <input
+                              type="checkbox"
+                              checked={
+                                geocodingCustomers.length > 0 &&
+                                selectedCustomerIds.length === geocodingCustomers.filter((c: any) => c.customer_id).length &&
+                                geocodingCustomers.filter((c: any) => c.customer_id).length > 0
+                              }
+                              onChange={handleSelectAllCustomers}
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                          </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             이름
                           </th>
@@ -1525,60 +1692,91 @@ export default function SurveysPage() {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {geocodingCustomers.map((customer: any, idx: number) => (
-                          <tr key={idx} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{customer.name}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.phone}</td>
-                            <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
-                              <div className="space-y-1">
-                                {/* 거리 계산 주소 (메인 표시) */}
-                                <div>
-                                  <span className="text-xs font-medium text-gray-600">📍 거리 계산 주소:</span>
-                                  <div className="truncate mt-0.5">
-                                    {customer.address && (customer.address.startsWith('[') || customer.address === 'N/A') ? (
-                                      <span className="text-gray-400 italic">{customer.address}</span>
-                                    ) : (
-                                      <span className="text-gray-900 font-medium">{customer.address}</span>
-                                    )}
+                        {geocodingCustomers.map((customer: any, idx: number) => {
+                          const { canInitialSync, canResync } = canSync(customer);
+                          const isSelected = customer.customer_id && selectedCustomerIds.includes(customer.customer_id);
+                          
+                          return (
+                            <tr key={idx} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                {customer.customer_id && (
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => handleSelectCustomer(customer.customer_id)}
+                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                  />
+                                )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-gray-900">{customer.name}</span>
+                                  {!customer.customer_id && (
+                                    <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">
+                                      고객정보 없음
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.phone}</td>
+                              <td className="px-6 py-4 text-sm">
+                                <div className="space-y-2">
+                                  {/* 지오코딩 주소 */}
+                                  <div>
+                                    <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700 mb-1">
+                                      지오코딩(카카오맵)
+                                    </span>
+                                    <div className="text-sm mt-0.5">
+                                      {!customer.address ? (
+                                        <span className="text-red-500 italic">주소 없음</span>
+                                      ) : customer.address.startsWith('[') || customer.address === 'N/A' ? (
+                                        <span className="text-gray-400 italic">{customer.address}</span>
+                                      ) : (
+                                        <span className="text-gray-700">{customer.address}</span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* 설문 주소 */}
+                                  <div>
+                                    <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 mb-1">
+                                      설문주소
+                                    </span>
+                                    <div className="text-sm mt-0.5">
+                                      {!customer.original_survey_address ? (
+                                        <span className="text-red-500 italic">없음</span>
+                                      ) : customer.original_survey_address.startsWith('[') ||
+                                        customer.original_survey_address === 'N/A' ? (
+                                        <span className="text-gray-400 italic">{customer.original_survey_address}</span>
+                                      ) : (
+                                        <span className="text-gray-700">{customer.original_survey_address}</span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* 고객관리 주소 */}
+                                  <div>
+                                    <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 mb-1">
+                                      고객관리주소
+                                    </span>
+                                    <div className="text-sm mt-0.5">
+                                      {!customer.customer_address ? (
+                                        <span className="text-red-500 italic">없음</span>
+                                      ) : customer.customer_address.startsWith('[') || customer.customer_address === 'N/A' ? (
+                                        <span className="text-gray-400 italic">{customer.customer_address}</span>
+                                      ) : (
+                                        <span className="text-gray-700">{customer.customer_address}</span>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-
-                                {/* 설문 주소 */}
-                                {customer.original_survey_address && (
-                                  <div className="text-xs">
-                                    <span className="font-medium text-gray-500">📝 설문 주소:</span>
-                                    <span
-                                      className={`ml-1 ${
-                                        customer.original_survey_address.startsWith('[') ||
-                                        customer.original_survey_address === 'N/A'
-                                          ? 'text-gray-400 italic'
-                                          : 'text-gray-600'
-                                      }`}
-                                    >
-                                      {customer.original_survey_address}
-                                    </span>
-                                  </div>
-                                )}
-
-                                {/* 고객관리 주소 */}
-                                {customer.customer_address && (
-                                  <div className="text-xs">
-                                    <span className="font-medium text-blue-600">👤 고객관리 주소:</span>
-                                    <span
-                                      className={`ml-1 ${
-                                        customer.customer_address.startsWith('[') || customer.customer_address === 'N/A'
-                                          ? 'text-gray-400 italic'
-                                          : 'text-blue-600'
-                                      }`}
-                                    >
-                                      {customer.customer_address}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </td>
+                              </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              {customer.geocoding_status === 'success' ? (
+                              {!customer.address ? (
+                                <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                  주소 없음
+                                </span>
+                              ) : customer.geocoding_status === 'success' ? (
                                 <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                   성공
                                 </span>
@@ -1593,7 +1791,13 @@ export default function SurveysPage() {
                               )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {customer.distance_km ? `${customer.distance_km.toFixed(2)}km` : '-'}
+                              {!customer.address ? (
+                                <span className="text-yellow-600 italic">계산 불가</span>
+                              ) : customer.distance_km ? (
+                                `${customer.distance_km.toFixed(2)}km`
+                              ) : (
+                                '-'
+                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <div className="flex gap-2">
@@ -1608,24 +1812,20 @@ export default function SurveysPage() {
                                 >
                                   수정
                                 </button>
-                                {(!customer.customer_address ||
-                                  customer.customer_address.startsWith('[') ||
-                                  customer.customer_address === 'N/A') &&
-                                  customer.original_survey_address &&
-                                  !customer.original_survey_address.startsWith('[') &&
-                                  customer.original_survey_address !== 'N/A' && (
-                                    <button
-                                      onClick={() => handleSyncSingleAddress(customer.customer_id, customer.name)}
-                                      className="text-green-600 hover:text-green-900 font-medium text-xs"
-                                      title="설문 주소를 고객관리 주소로 동기화"
-                                    >
-                                      동기화
-                                    </button>
-                                  )}
+                                {(canInitialSync || canResync) && (
+                                  <button
+                                    onClick={() => handleSyncSingleAddress(customer.customer_id, customer.name)}
+                                    className="text-green-600 hover:text-green-900 font-medium text-xs"
+                                    title="설문 주소를 고객관리 주소로 동기화"
+                                  >
+                                    동기화
+                                  </button>
+                                )}
                               </div>
                             </td>
                           </tr>
-                        ))}
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>

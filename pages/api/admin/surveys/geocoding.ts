@@ -113,8 +113,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const { status, limit = 100, offset = 0 } = req.query;
 
-      // 주소는 있지만 위치 정보가 없는 고객 조회
-      // 1. surveys 테이블에서 주소가 있는 설문
+      // 위치 정보 관리: 주소가 있는 고객과 주소가 없는 고객 모두 조회
+      // 1. surveys 테이블의 모든 설문 (주소 유무와 관계없이)
       // 2. 설문 주소가 플레이스홀더면 고객 정보의 주소를 우선 사용
       // 3. customer_address_cache에 없거나 실패한 경우
       let query = `
@@ -127,8 +127,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           c.name as customer_name,
           c.address as customer_address,
           CASE 
-            WHEN s.address LIKE '[%' OR s.address IN ('[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A')
-            THEN COALESCE(NULLIF(c.address, ''), s.address)
+            WHEN s.address IS NULL OR s.address = '' THEN
+              COALESCE(NULLIF(c.address, ''), NULL)
+            WHEN s.address LIKE '[%' OR s.address IN ('[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A') THEN
+              COALESCE(NULLIF(c.address, ''), s.address)
             ELSE s.address
           END as effective_address,
           cache.geocoding_status,
@@ -142,23 +144,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         LEFT JOIN customer_address_cache cache ON (
           (cache.customer_id = c.id OR cache.survey_id = s.id)
           AND cache.address = CASE 
-            WHEN s.address LIKE '[%' OR s.address IN ('[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A')
-            THEN COALESCE(NULLIF(c.address, ''), s.address)
+            WHEN s.address IS NULL OR s.address = '' THEN
+              COALESCE(NULLIF(c.address, ''), NULL)
+            WHEN s.address LIKE '[%' OR s.address IN ('[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A') THEN
+              COALESCE(NULLIF(c.address, ''), s.address)
             ELSE s.address
           END
         )
-        WHERE (
-          (s.address IS NOT NULL AND s.address != '')
-          OR (c.address IS NOT NULL AND c.address != '')
-        )
-        AND (
-          -- 설문 주소가 플레이스홀더가 아니거나
-          (s.address NOT LIKE '[%' AND s.address NOT IN ('[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'))
-          -- 설문 주소가 플레이스홀더지만 고객 정보에 실제 주소가 있는 경우
-          OR (c.address IS NOT NULL AND c.address != '' AND c.address NOT LIKE '[%' AND c.address NOT IN ('[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'))
-          -- 설문 주소가 플레이스홀더이고 고객 정보 주소도 없거나 플레이스홀더인 경우도 포함 (미확인 상태로 표시)
-          OR (s.address LIKE '[%' OR s.address IN ('[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'))
-        )
+        WHERE 1=1
       `;
 
       // 상태 필터
@@ -180,8 +173,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const { data: surveys } = await supabase
           .from('surveys')
           .select('id, name, phone, address, created_at')
-          .not('address', 'is', null)
-          .neq('address', '')
           .order('created_at', { ascending: false })
           .limit(Number(limit))
           .range(Number(offset), Number(offset) + Number(limit) - 1);
@@ -206,9 +197,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // 설문 주소가 플레이스홀더면 고객 정보의 주소를 우선 사용
             const placeholders = ['[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'];
             const isSurveyPlaceholder = survey.address && placeholders.includes(survey.address);
-            const effectiveAddress = (isSurveyPlaceholder && customer?.address && isGeocodableAddress(customer.address))
-              ? customer.address
-              : survey.address;
+            const isSurveyEmpty = !survey.address || survey.address.trim() === '';
+            
+            let effectiveAddress: string | null = null;
+            if (isSurveyEmpty) {
+              // 설문 주소가 없으면 고객 주소 사용
+              effectiveAddress = customer?.address || null;
+            } else if (isSurveyPlaceholder && customer?.address && isGeocodableAddress(customer.address)) {
+              // 설문 주소가 플레이스홀더이고 고객 주소가 실제 주소면 고객 주소 사용
+              effectiveAddress = customer.address;
+            } else {
+              // 그 외에는 설문 주소 사용
+              effectiveAddress = survey.address;
+            }
 
             // 캐시 정보 조회 (효과적인 주소로)
             const { data: cache } = await supabase
