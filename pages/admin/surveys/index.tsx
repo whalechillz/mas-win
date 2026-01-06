@@ -60,6 +60,7 @@ export default function SurveysPage() {
     address: string;
   } | null>(null);
   const [updatingGeocoding, setUpdatingGeocoding] = useState(false);
+  const [syncingAddresses, setSyncingAddresses] = useState(false);
   const [messageModal, setMessageModal] = useState<{
     open: boolean;
     survey: Survey | null;
@@ -588,6 +589,65 @@ export default function SurveysPage() {
       alert(error.message || '업데이트 중 오류가 발생했습니다.');
     } finally {
       setUpdatingGeocoding(false);
+    }
+  };
+
+  // 일괄 주소 동기화 함수
+  const handleSyncAddresses = async () => {
+    if (
+      !confirm(
+        '고객관리 주소가 없고 설문 주소가 있는 고객의 주소를 일괄 동기화하시겠습니까?\n\n- 고객관리 주소가 없거나 플레이스홀더인 경우만\n- 설문 주소가 실제 주소인 경우만 동기화됩니다.',
+      )
+    ) {
+      return;
+    }
+
+    setSyncingAddresses(true);
+    try {
+      const res = await fetch('/api/admin/surveys/sync-addresses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        alert(json.message);
+        fetchGeocodingCustomers();
+      } else {
+        alert(json.message || '동기화에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('주소 동기화 오류:', error);
+      alert('동기화 중 오류가 발생했습니다.');
+    } finally {
+      setSyncingAddresses(false);
+    }
+  };
+
+  // 개별 주소 동기화 함수
+  const handleSyncSingleAddress = async (customerId: number, customerName: string) => {
+    if (!confirm(`${customerName} 고객의 설문 주소를 고객관리 주소로 동기화하시겠습니까?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/admin/surveys/sync-addresses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerIds: [customerId] }),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        alert(json.message);
+        fetchGeocodingCustomers();
+      } else {
+        alert(json.message || '동기화에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('주소 동기화 오류:', error);
+      alert('동기화 중 오류가 발생했습니다.');
     }
   };
 
@@ -1420,6 +1480,13 @@ export default function SurveysPage() {
                   >
                     {loadingGeocoding ? '조회 중...' : '조회'}
                   </button>
+                  <button
+                    onClick={handleSyncAddresses}
+                    disabled={syncingAddresses || loadingGeocoding}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {syncingAddresses ? '동기화 중...' : '📋 설문 주소 → 고객 주소 일괄 동기화'}
+                  </button>
                 </div>
               </div>
 
@@ -1463,26 +1530,52 @@ export default function SurveysPage() {
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{customer.name}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.phone}</td>
                             <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
-                              <div className="truncate">
-                                {customer.address && (customer.address.startsWith('[') || customer.address === 'N/A') ? (
-                                  <span className="text-gray-400 italic">{customer.address}</span>
-                                ) : (
-                                  <span>{customer.address}</span>
+                              <div className="space-y-1">
+                                {/* 거리 계산 주소 (메인 표시) */}
+                                <div>
+                                  <span className="text-xs font-medium text-gray-600">📍 거리 계산 주소:</span>
+                                  <div className="truncate mt-0.5">
+                                    {customer.address && (customer.address.startsWith('[') || customer.address === 'N/A') ? (
+                                      <span className="text-gray-400 italic">{customer.address}</span>
+                                    ) : (
+                                      <span className="text-gray-900 font-medium">{customer.address}</span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* 설문 주소 */}
+                                {customer.original_survey_address && (
+                                  <div className="text-xs">
+                                    <span className="font-medium text-gray-500">📝 설문 주소:</span>
+                                    <span
+                                      className={`ml-1 ${
+                                        customer.original_survey_address.startsWith('[') ||
+                                        customer.original_survey_address === 'N/A'
+                                          ? 'text-gray-400 italic'
+                                          : 'text-gray-600'
+                                      }`}
+                                    >
+                                      {customer.original_survey_address}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {/* 고객관리 주소 */}
+                                {customer.customer_address && (
+                                  <div className="text-xs">
+                                    <span className="font-medium text-blue-600">👤 고객관리 주소:</span>
+                                    <span
+                                      className={`ml-1 ${
+                                        customer.customer_address.startsWith('[') || customer.customer_address === 'N/A'
+                                          ? 'text-gray-400 italic'
+                                          : 'text-blue-600'
+                                      }`}
+                                    >
+                                      {customer.customer_address}
+                                    </span>
+                                  </div>
                                 )}
                               </div>
-                              {customer.original_survey_address && 
-                               customer.original_survey_address !== customer.address &&
-                               (customer.original_survey_address.startsWith('[') || customer.original_survey_address === 'N/A') && (
-                                <div className="text-xs text-gray-400 mt-1">
-                                  설문: {customer.original_survey_address}
-                                </div>
-                              )}
-                              {customer.customer_address && 
-                               customer.customer_address !== customer.address && (
-                                <div className="text-xs text-blue-600 mt-1">
-                                  고객정보: {customer.customer_address}
-                                </div>
-                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               {customer.geocoding_status === 'success' ? (
@@ -1503,17 +1596,33 @@ export default function SurveysPage() {
                               {customer.distance_km ? `${customer.distance_km.toFixed(2)}km` : '-'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <button
-                                onClick={() =>
-                                  setEditingGeocoding({
-                                    customer,
-                                    address: customer.address || '',
-                                  })
-                                }
-                                className="text-blue-600 hover:text-blue-900 font-medium"
-                              >
-                                수정
-                              </button>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() =>
+                                    setEditingGeocoding({
+                                      customer,
+                                      address: customer.address || '',
+                                    })
+                                  }
+                                  className="text-blue-600 hover:text-blue-900 font-medium"
+                                >
+                                  수정
+                                </button>
+                                {(!customer.customer_address ||
+                                  customer.customer_address.startsWith('[') ||
+                                  customer.customer_address === 'N/A') &&
+                                  customer.original_survey_address &&
+                                  !customer.original_survey_address.startsWith('[') &&
+                                  customer.original_survey_address !== 'N/A' && (
+                                    <button
+                                      onClick={() => handleSyncSingleAddress(customer.customer_id, customer.name)}
+                                      className="text-green-600 hover:text-green-900 font-medium text-xs"
+                                      title="설문 주소를 고객관리 주소로 동기화"
+                                    >
+                                      동기화
+                                    </button>
+                                  )}
+                              </div>
                             </td>
                           </tr>
                         ))}
