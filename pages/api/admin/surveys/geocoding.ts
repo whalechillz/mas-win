@@ -147,8 +147,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ELSE s.address
           END
         )
-        WHERE (s.address IS NOT NULL AND s.address != '')
-           OR (c.address IS NOT NULL AND c.address != '')
+        WHERE (
+          (s.address IS NOT NULL AND s.address != '')
+          OR (c.address IS NOT NULL AND c.address != '')
+        )
+        AND (
+          -- 설문 주소가 플레이스홀더가 아니거나
+          (s.address NOT LIKE '[%' AND s.address NOT IN ('[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'))
+          -- 설문 주소가 플레이스홀더지만 고객 정보에 실제 주소가 있는 경우
+          OR (c.address IS NOT NULL AND c.address != '' AND c.address NOT LIKE '[%')
+        )
       `;
 
       // 상태 필터

@@ -147,29 +147,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 주소가 변경된 경우 위치 정보 캐시 무효화
     if (address !== undefined && updatedSurvey) {
       try {
-        // 기존 위치 정보 캐시 삭제 (주소가 변경되었으므로)
+        const normalizedAddress = normalizeAddress(address);
+        const normalizedPhone = (updateData.phone || phone || '').replace(/[^0-9]/g, '');
+        
+        // 설문 ID로 연결된 모든 위치 정보 캐시 삭제
         await supabase
           .from('customer_address_cache')
           .delete()
           .eq('survey_id', id);
 
-        // 고객 ID가 있으면 고객별 캐시도 삭제
-        const normalizedPhone = (updateData.phone || phone || '').replace(/[^0-9]/g, '');
+        // 고객 ID가 있으면 고객별 캐시도 삭제 (주소 변경 시 모든 캐시 무효화)
         if (normalizedPhone) {
           const { data: customer } = await supabase
             .from('customers')
-            .select('id')
+            .select('id, address')
             .ilike('phone', `%${normalizedPhone}%`)
             .limit(1)
             .maybeSingle();
 
           if (customer?.id) {
-            // 같은 주소를 가진 고객의 캐시도 삭제 (주소가 변경되었으므로)
+            // 고객의 모든 위치 정보 캐시 삭제 (주소가 변경되었으므로)
+            // 다음 조회 시 고객 주소가 있으면 자동으로 다시 생성됨
             await supabase
               .from('customer_address_cache')
               .delete()
-              .eq('customer_id', customer.id)
-              .eq('address', updatedSurvey.address || '');
+              .eq('customer_id', customer.id);
           }
         }
       } catch (cacheError) {
