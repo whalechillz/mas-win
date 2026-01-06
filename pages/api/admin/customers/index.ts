@@ -38,7 +38,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const to = from + sizeNum - 1;
 
       // 정렬 컬럼 검증
-      const allowedSortColumns = ['name', 'phone', 'updated_at', 'created_at', 'last_contact_date', 'last_purchase_date', 'first_purchase_date', 'last_service_date', 'vip_level'];
+      const allowedSortColumns = [
+        'name', 'phone', 'updated_at', 'created_at', 
+        'last_contact_date', 'last_purchase_date', 'first_purchase_date', 
+        'last_service_date', 'vip_level',
+        'latest_survey_date', 'latest_booking_date', 
+        'survey_count', 'booking_count'
+      ];
       const sortColumn = allowedSortColumns.includes(sortBy) ? sortBy : 'updated_at';
       const ascending = sortOrder === 'asc';
 
@@ -309,6 +315,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (bookingUpdateError) {
             console.error('예약 이름 동기화 오류:', bookingUpdateError);
             // 예약 업데이트 실패해도 고객 업데이트는 계속 진행
+          }
+        }
+      }
+
+      // 주소가 변경된 경우, 같은 전화번호를 가진 설문의 주소도 자동 업데이트
+      if (update.address !== undefined) {
+        // 먼저 현재 고객 정보 조회 (전화번호 확인용)
+        const { data: currentCustomer } = await supabase
+          .from('customers')
+          .select('phone')
+          .eq('id', id)
+          .single();
+        
+        if (currentCustomer && currentCustomer.phone) {
+          // 같은 전화번호를 가진 모든 설문의 주소 업데이트
+          const { error: surveyUpdateError } = await supabase
+            .from('surveys')
+            .update({ address: update.address || null })
+            .eq('phone', currentCustomer.phone);
+          
+          if (surveyUpdateError) {
+            console.error('설문 주소 동기화 오류:', surveyUpdateError);
+            // 설문 업데이트 실패해도 고객 업데이트는 계속 진행
           }
         }
       }

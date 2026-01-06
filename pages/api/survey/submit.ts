@@ -196,6 +196,52 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    // 고객 정보 업데이트: 최신 설문 정보 반영
+    if (customerId && survey) {
+      try {
+        // 기존 설문 수 조회
+        const { count: surveyCount } = await supabase
+          .from('surveys')
+          .select('*', { count: 'exact', head: true })
+          .eq('customer_id', customerId);
+
+        // 고객 테이블 업데이트
+        await supabase
+          .from('customers')
+          .update({
+            latest_survey_date: survey.created_at,
+            latest_selected_model: survey.selected_model,
+            latest_important_factors: survey.important_factors || [],
+            latest_additional_feedback: survey.additional_feedback || null,
+            survey_count: surveyCount || 0,
+            last_contact_date: survey.created_at,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', customerId);
+
+        // 상담 이력 자동 생성
+        try {
+          await supabase.from('customer_consultations').insert({
+            customer_id: customerId,
+            consultation_type: 'survey',
+            consultation_date: survey.created_at,
+            consultant_name: '시스템',
+            topic: '설문 참여',
+            content: `설문 참여: ${survey.selected_model} 선택${survey.important_factors?.length ? `, 중요 요소: ${survey.important_factors.join(', ')}` : ''}${survey.additional_feedback ? `, 피드백: ${survey.additional_feedback.substring(0, 100)}` : ''}`,
+            related_survey_id: survey.id,
+            tags: ['설문', survey.selected_model, ...(survey.important_factors || [])],
+            follow_up_required: false,
+          });
+        } catch (consultationError) {
+          // 상담 이력 생성 실패해도 설문 저장은 유지
+          console.error('상담 이력 생성 오류 (무시):', consultationError);
+        }
+      } catch (updateError) {
+        // 고객 정보 업데이트 실패해도 설문 저장은 유지
+        console.error('고객 정보 업데이트 오류 (무시):', updateError);
+      }
+    }
+
     // 슬랙 알림 (실패해도 설문 저장은 유지)
     try {
       const formattedDate = new Date(survey.created_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });

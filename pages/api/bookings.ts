@@ -217,6 +217,86 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (insertError) throw insertError;
 
+        // 고객 정보 업데이트: 최신 시타 예약 정보 반영
+        if (matchedCustomerId && newBooking) {
+          try {
+            // 기존 예약 수 조회
+            const { count: bookingCount } = await supabase
+              .from('bookings')
+              .select('*', { count: 'exact', head: true })
+              .or(`customer_id.eq.${matchedCustomerId},phone.eq.${finalPhone || normalizedPhone}`);
+
+            // 고객 테이블 업데이트
+            const customerUpdate: any = {
+              latest_booking_date: date,
+              booking_count: bookingCount || 0,
+              last_contact_date: date,
+              updated_at: new Date().toISOString(),
+            };
+
+            // 클럽 정보 업데이트
+            if (club_brand) customerUpdate.latest_club_brand = club_brand;
+            if (club_loft) customerUpdate.latest_club_loft = parseFloat(club_loft);
+            if (club_shaft) customerUpdate.latest_club_shaft = club_shaft;
+            if (trajectory) {
+              customerUpdate.latest_trajectory = trajectory;
+              customerUpdate.preferred_trajectory = trajectory; // 통합 프로필에도 반영
+            }
+            if (shot_shape) {
+              customerUpdate.latest_shot_shape = shot_shape;
+              customerUpdate.typical_shot_shape = shot_shape; // 통합 프로필에도 반영
+            }
+            if (current_distance) {
+              const distanceNum = parseInt(current_distance);
+              customerUpdate.latest_current_distance = distanceNum;
+              // 평균 비거리 업데이트 (기존 값이 없거나 새 값이 더 크면 업데이트)
+              const { data: existingCustomer } = await supabase
+                .from('customers')
+                .select('avg_distance')
+                .eq('id', matchedCustomerId)
+                .single();
+              
+              if (!existingCustomer?.avg_distance || distanceNum > existingCustomer.avg_distance) {
+                customerUpdate.avg_distance = distanceNum;
+              }
+            }
+
+            await supabase
+              .from('customers')
+              .update(customerUpdate)
+              .eq('id', matchedCustomerId);
+
+            // 상담 이력 자동 생성
+            try {
+              const consultationContent = [
+                `시타 예약: ${date} ${time}`,
+                club_brand ? `현재 클럽: ${club_brand}${club_loft ? ` ${club_loft}°` : ''}${club_shaft ? ` ${club_shaft}` : ''}` : '',
+                current_distance ? `현재 비거리: ${current_distance}m` : '',
+                trajectory ? `탄도: ${trajectory}` : '',
+                shot_shape ? `구질: ${shot_shape}` : '',
+              ].filter(Boolean).join(', ');
+
+              await supabase.from('customer_consultations').insert({
+                customer_id: matchedCustomerId,
+                consultation_type: 'booking',
+                consultation_date: new Date(`${date} ${time}`).toISOString(),
+                consultant_name: '시스템',
+                topic: '시타 예약',
+                content: consultationContent,
+                related_booking_id: newBooking.id,
+                tags: ['시타예약', ...(club_brand ? [club_brand] : [])],
+                follow_up_required: false,
+              });
+            } catch (consultationError) {
+              // 상담 이력 생성 실패해도 예약은 유지
+              console.error('상담 이력 생성 오류 (무시):', consultationError);
+            }
+          } catch (updateError) {
+            // 고객 정보 업데이트 실패해도 예약은 유지
+            console.error('고객 정보 업데이트 오류 (무시):', updateError);
+          }
+        }
+
         // 예약 생성 후 알림 발송 (비동기, 실패해도 예약은 성공 처리)
         try {
           // ⭐ 수정: baseUrl을 더 안정적으로 설정

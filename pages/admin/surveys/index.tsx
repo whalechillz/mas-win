@@ -47,6 +47,19 @@ export default function SurveysPage() {
   const [autoSaveGift, setAutoSaveGift] = useState(false);
   const [updatingEventCandidates, setUpdatingEventCandidates] = useState(false);
   const [recommendingPrizes, setRecommendingPrizes] = useState(false);
+  const [activeTab, setActiveTab] = useState<'surveys' | 'prize' | 'geocoding'>('surveys');
+  const [prizeHistory, setPrizeHistory] = useState<any>(null);
+  const [loadingPrizeHistory, setLoadingPrizeHistory] = useState(false);
+  const [selectedHistoryDate, setSelectedHistoryDate] = useState<string | null>(null);
+  const [historySection, setHistorySection] = useState<'purchased' | 'non_purchased' | 'all' | ''>('');
+  const [geocodingCustomers, setGeocodingCustomers] = useState<any[]>([]);
+  const [loadingGeocoding, setLoadingGeocoding] = useState(false);
+  const [geocodingStatus, setGeocodingStatus] = useState<'all' | 'missing' | 'failed' | 'success'>('all');
+  const [editingGeocoding, setEditingGeocoding] = useState<{
+    customer: any;
+    address: string;
+  } | null>(null);
+  const [updatingGeocoding, setUpdatingGeocoding] = useState(false);
   const [messageModal, setMessageModal] = useState<{
     open: boolean;
     survey: Survey | null;
@@ -439,19 +452,31 @@ export default function SurveysPage() {
   const handleRecommendPrizes = async () => {
     setRecommendingPrizes(true);
     try {
-      // MD 파일 다운로드
-      const res = await fetch('/api/admin/surveys/recommend-prizes?format=md');
+      // HTML 파일 다운로드 (A4 최적화)
+      const res = await fetch('/api/admin/surveys/recommend-prizes?format=html');
       if (res.ok) {
-        const blob = await res.blob();
+        const html = await res.text();
+        
+        // 새 창에서 HTML 표시
+        const newWindow = window.open('', '_blank');
+        if (newWindow) {
+          newWindow.document.write(html);
+          newWindow.document.close();
+          
+          // 새 창이 열린 후 포커스
+          newWindow.focus();
+        }
+        
+        // 동시에 다운로드도 제공 (선택적)
+        const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `prize-recommendation-${new Date().toISOString().split('T')[0]}.md`;
+        a.download = `prize-recommendation-${new Date().toISOString().split('T')[0]}.html`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        alert('경품 추천 목록이 다운로드되었습니다.');
       } else {
         const json = await res.json();
         alert(json.message || '경품 추천 조회에 실패했습니다.');
@@ -463,6 +488,111 @@ export default function SurveysPage() {
       setRecommendingPrizes(false);
     }
   };
+
+  // 경품 추천 이력 조회
+  const fetchPrizeHistory = async () => {
+    setLoadingPrizeHistory(true);
+    try {
+      const params = new URLSearchParams();
+      if (selectedHistoryDate) {
+        params.append('date', selectedHistoryDate);
+      }
+      if (historySection) {
+        params.append('section', historySection);
+      }
+      params.append('limit', '1000');
+
+      const res = await fetch(`/api/admin/surveys/prize-history?${params.toString()}`);
+      const json = await res.json();
+
+      if (json.success) {
+        setPrizeHistory(json.data);
+      } else {
+        alert(json.message || '이력 조회에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('이력 조회 오류:', error);
+      alert(error.message || '이력 조회 중 오류가 발생했습니다.');
+    } finally {
+      setLoadingPrizeHistory(false);
+    }
+  };
+
+  // 탭 변경 시 이력 자동 조회
+  useEffect(() => {
+    if (activeTab === 'prize' && !prizeHistory) {
+      fetchPrizeHistory();
+    }
+  }, [activeTab]);
+
+  // 위치 미확인 고객 조회
+  const fetchGeocodingCustomers = async () => {
+    setLoadingGeocoding(true);
+    try {
+      const params = new URLSearchParams();
+      if (geocodingStatus !== 'all') {
+        params.append('status', geocodingStatus);
+      }
+      params.append('limit', '100');
+
+      const res = await fetch(`/api/admin/surveys/geocoding?${params.toString()}`);
+      const json = await res.json();
+
+      if (json.success) {
+        setGeocodingCustomers(json.data.customers || []);
+      } else {
+        alert(json.message || '조회에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('위치 정보 조회 오류:', error);
+      alert(error.message || '조회 중 오류가 발생했습니다.');
+    } finally {
+      setLoadingGeocoding(false);
+    }
+  };
+
+  // 위치 정보 수동 업데이트
+  const handleUpdateGeocoding = async () => {
+    if (!editingGeocoding || !editingGeocoding.address.trim()) {
+      alert('주소를 입력해주세요.');
+      return;
+    }
+
+    setUpdatingGeocoding(true);
+    try {
+      const res = await fetch('/api/admin/surveys/geocoding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId: editingGeocoding.customer.customer_id,
+          surveyId: editingGeocoding.customer.survey_id,
+          address: editingGeocoding.address.trim(),
+        }),
+      });
+
+      const json = await res.json();
+
+      if (json.success) {
+        alert(`위치 정보가 업데이트되었습니다.\n거리: ${json.data.distance_km.toFixed(2)}km`);
+        setEditingGeocoding(null);
+        fetchGeocodingCustomers();
+      } else {
+        alert(json.message || '업데이트에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('위치 정보 업데이트 오류:', error);
+      alert(error.message || '업데이트 중 오류가 발생했습니다.');
+    } finally {
+      setUpdatingGeocoding(false);
+    }
+  };
+
+  // 탭 변경 시 위치 정보 자동 조회
+  useEffect(() => {
+    if (activeTab === 'geocoding' && geocodingCustomers.length === 0) {
+      fetchGeocodingCustomers();
+    }
+  }, [activeTab]);
 
   // 선물 지급 완료된 설문을 일괄 업데이트 (설문 연결 + 체크박스 업데이트)
   const handleBulkUpdateEventCandidates = async () => {
@@ -668,6 +798,46 @@ export default function SurveysPage() {
             <h1 className="text-3xl font-bold text-gray-900">설문 조사 관리</h1>
             <p className="text-gray-600 mt-2">MASSGOO X MUZIIK 설문 조사 결과를 관리합니다.</p>
           </div>
+
+          {/* 탭 네비게이션 */}
+          <div className="border-b border-gray-200 mb-6">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('surveys')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'surveys'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                설문 목록
+              </button>
+              <button
+                onClick={() => setActiveTab('prize')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'prize'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                경품 추천 이력
+              </button>
+              <button
+                onClick={() => setActiveTab('geocoding')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'geocoding'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                위치 정보 관리
+              </button>
+            </nav>
+          </div>
+
+          {/* 탭별 콘텐츠 */}
+          {activeTab === 'surveys' && (
+            <>
 
           {/* 통계 카드 */}
           {stats && (
@@ -996,6 +1166,439 @@ export default function SurveysPage() {
               </>
             )}
           </div>
+            </>
+          )}
+
+          {/* 경품 추천 이력 탭 */}
+          {activeTab === 'prize' && (
+            <div className="space-y-6">
+              {/* 헤더 및 액션 */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">경품 추천 이력</h2>
+                    <p className="text-gray-600 mt-1">저장된 경품 추천 결과를 조회하고 비교 분석할 수 있습니다.</p>
+                  </div>
+                  <button
+                    onClick={handleRecommendPrizes}
+                    disabled={recommendingPrizes}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {recommendingPrizes ? '생성 중...' : '🎁 경품 추천 목록 다운로드'}
+                  </button>
+                </div>
+
+                {/* 필터 */}
+                <div className="flex gap-4 items-end">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">날짜 필터</label>
+                    <input
+                      type="date"
+                      value={selectedHistoryDate || ''}
+                      onChange={(e) => setSelectedHistoryDate(e.target.value || null)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">섹션 필터</label>
+                    <select
+                      value={historySection}
+                      onChange={(e) => setHistorySection(e.target.value as any)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">전체</option>
+                      <option value="purchased">구매 고객</option>
+                      <option value="non_purchased">비구매 고객</option>
+                      <option value="all">전체 고객</option>
+                    </select>
+                  </div>
+                  <button
+                    onClick={fetchPrizeHistory}
+                    disabled={loadingPrizeHistory}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                  >
+                    {loadingPrizeHistory ? '조회 중...' : '조회'}
+                  </button>
+                  {selectedHistoryDate && (
+                    <button
+                      onClick={() => {
+                        setSelectedHistoryDate(null);
+                        setHistorySection('');
+                        fetchPrizeHistory();
+                      }}
+                      className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                    >
+                      필터 초기화
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* 이력 목록 */}
+              {loadingPrizeHistory ? (
+                <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">로딩 중...</div>
+              ) : prizeHistory ? (
+                <>
+                  {/* 날짜별 통계 */}
+                  {prizeHistory.dateStats && prizeHistory.dateStats.length > 0 && (
+                    <div className="bg-white rounded-lg shadow p-6">
+                      <h3 className="text-lg font-bold text-gray-900 mb-4">날짜별 통계</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {prizeHistory.dateStats.map((stat: any) => (
+                          <div key={stat.date} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <div className="text-sm text-gray-600">추천일</div>
+                                <div className="text-lg font-bold text-gray-900">
+                                  {new Date(stat.date).toLocaleDateString('ko-KR')}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-sm text-gray-600">총 고객</div>
+                                <div className="text-lg font-bold text-blue-600">{stat.total}명</div>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2 mt-3 text-sm">
+                              <div>
+                                <div className="text-gray-600">구매</div>
+                                <div className="font-medium text-green-600">{stat.purchased}명</div>
+                              </div>
+                              <div>
+                                <div className="text-gray-600">비구매</div>
+                                <div className="font-medium text-orange-600">{stat.nonPurchased}명</div>
+                              </div>
+                              <div>
+                                <div className="text-gray-600">전체</div>
+                                <div className="font-medium text-blue-600">{stat.all}명</div>
+                              </div>
+                            </div>
+                            <div className="mt-3 pt-3 border-t border-gray-200">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">최고 점수</span>
+                                <span className="font-medium">{stat.topScore.toFixed(1)}</span>
+                              </div>
+                              <div className="flex justify-between text-sm mt-1">
+                                <span className="text-gray-600">평균 점수</span>
+                                <span className="font-medium">{stat.avgScore.toFixed(1)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 상세 이력 테이블 */}
+                  {prizeHistory.recommendations && prizeHistory.recommendations.length > 0 ? (
+                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                      <div className="px-6 py-4 border-b border-gray-200">
+                        <h3 className="text-lg font-bold text-gray-900">
+                          상세 이력 ({prizeHistory.total}건)
+                        </h3>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                날짜
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                섹션
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                순위
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                이름
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                전화번호
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                점수
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                선물
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                시타방문
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                거리(km)
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {prizeHistory.recommendations.map((item: any, idx: number) => (
+                              <tr key={idx} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {new Date(item.recommendation_date).toLocaleDateString('ko-KR')}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <span
+                                    className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                                      item.section === 'purchased'
+                                        ? 'bg-green-100 text-green-800'
+                                        : item.section === 'non_purchased'
+                                        ? 'bg-orange-100 text-orange-800'
+                                        : 'bg-blue-100 text-blue-800'
+                                    }`}
+                                  >
+                                    {item.category || item.section}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                  {item.rank}위
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.name}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.phone}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <span className="font-medium text-blue-600">{item.total_score?.toFixed(1) || 0}</span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {item.gift_count || 0}회
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {item.visit_count || 0}회
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {item.distance_km ? `${item.distance_km.toFixed(2)}km` : '-'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+                      조회된 이력이 없습니다.
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+                  조회 버튼을 클릭하여 경품 추천 이력을 확인하세요.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 위치 정보 관리 탭 */}
+          {activeTab === 'geocoding' && (
+            <div className="space-y-6">
+              {/* 헤더 및 필터 */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold text-gray-900">위치 정보 관리</h2>
+                  <p className="text-gray-600 mt-1">위치 API로 변환되지 않은 고객 주소를 관리하고 수동으로 업데이트할 수 있습니다.</p>
+                </div>
+
+                <div className="flex gap-4 items-end">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">상태 필터</label>
+                    <select
+                      value={geocodingStatus}
+                      onChange={(e) => setGeocodingStatus(e.target.value as any)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="all">전체</option>
+                      <option value="missing">위치 정보 없음</option>
+                      <option value="failed">변환 실패</option>
+                      <option value="success">변환 성공</option>
+                    </select>
+                  </div>
+                  <button
+                    onClick={fetchGeocodingCustomers}
+                    disabled={loadingGeocoding}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                  >
+                    {loadingGeocoding ? '조회 중...' : '조회'}
+                  </button>
+                </div>
+              </div>
+
+              {/* 위치 미확인 고객 목록 */}
+              {loadingGeocoding ? (
+                <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">로딩 중...</div>
+              ) : geocodingCustomers.length > 0 ? (
+                <div className="bg-white rounded-lg shadow overflow-hidden">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-900">
+                      위치 정보 고객 목록 ({geocodingCustomers.length}건)
+                    </h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            이름
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            전화번호
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            주소
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            상태
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            거리(km)
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            액션
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {geocodingCustomers.map((customer: any, idx: number) => (
+                          <tr key={idx} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{customer.name}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.phone}</td>
+                            <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{customer.address}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              {customer.geocoding_status === 'success' ? (
+                                <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  성공
+                                </span>
+                              ) : customer.geocoding_status === 'failed' ? (
+                                <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                  실패
+                                </span>
+                              ) : (
+                                <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                  미확인
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {customer.distance_km ? `${customer.distance_km.toFixed(2)}km` : '-'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <button
+                                onClick={() =>
+                                  setEditingGeocoding({
+                                    customer,
+                                    address: customer.address || '',
+                                  })
+                                }
+                                className="text-blue-600 hover:text-blue-900 font-medium"
+                              >
+                                수정
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+                  조회된 고객이 없습니다.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 위치 정보 수정 모달 */}
+          {editingGeocoding && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">위치 정보 수정</h2>
+                    <button
+                      onClick={() => setEditingGeocoding(null)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">고객 정보</label>
+                      <div className="bg-gray-50 p-3 rounded-md">
+                        <div className="text-sm">
+                          <div className="font-medium text-gray-900">{editingGeocoding.customer.name}</div>
+                          <div className="text-gray-600 mt-1">{editingGeocoding.customer.phone}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">주소</label>
+                      <textarea
+                        value={editingGeocoding.address}
+                        onChange={(e) =>
+                          setEditingGeocoding({
+                            ...editingGeocoding,
+                            address: e.target.value,
+                          })
+                        }
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="주소를 입력하세요"
+                      />
+                      <p className="mt-1 text-sm text-gray-500">
+                        주소를 입력하면 자동으로 좌표로 변환하고 매장과의 거리를 계산합니다.
+                      </p>
+                    </div>
+
+                    {editingGeocoding.customer.geocoding_status === 'success' && (
+                      <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                        <div className="text-sm text-green-800">
+                          <div className="font-medium">현재 위치 정보</div>
+                          <div className="mt-1">
+                            거리: {editingGeocoding.customer.distance_km?.toFixed(2)}km
+                          </div>
+                          {editingGeocoding.customer.latitude && editingGeocoding.customer.longitude && (
+                            <div className="mt-1 text-xs">
+                              좌표: {editingGeocoding.customer.latitude.toFixed(6)},{' '}
+                              {editingGeocoding.customer.longitude.toFixed(6)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {editingGeocoding.customer.geocoding_status === 'failed' && (
+                      <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                        <div className="text-sm text-red-800">
+                          <div className="font-medium">이전 변환 실패</div>
+                          {editingGeocoding.customer.geocoding_error && (
+                            <div className="mt-1 text-xs">{editingGeocoding.customer.geocoding_error}</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex justify-end gap-3 pt-4 border-t">
+                      <button
+                        onClick={() => setEditingGeocoding(null)}
+                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                      >
+                        취소
+                      </button>
+                      <button
+                        onClick={handleUpdateGeocoding}
+                        disabled={updatingGeocoding || !editingGeocoding.address.trim()}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {updatingGeocoding ? '업데이트 중...' : '위치 정보 업데이트'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1266,7 +1869,7 @@ export default function SurveysPage() {
 
               <div className="flex justify-between items-center gap-3 mt-6">
                 <button
-                  onClick={handleSaveGiftToCustomer}
+                  onClick={() => handleSaveGiftToCustomer(false)}
                   disabled={savingGiftRecord}
                   className="px-3 py-2 text-sm border border-yellow-400 text-yellow-700 rounded-md hover:bg-yellow-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >

@@ -17,6 +17,28 @@ type Customer = {
   last_contact_date?: string | null;
   vip_level?: string | null;
   updated_at?: string | null;
+  // 최신 설문 정보
+  latest_survey_date?: string | null;
+  latest_selected_model?: string | null;
+  latest_important_factors?: string[] | null;
+  latest_additional_feedback?: string | null;
+  survey_count?: number | null;
+  // 최신 시타 예약 정보
+  latest_booking_date?: string | null;
+  latest_club_brand?: string | null;
+  latest_club_loft?: number | null;
+  latest_club_shaft?: string | null;
+  latest_trajectory?: string | null;
+  latest_shot_shape?: string | null;
+  latest_current_distance?: number | null;
+  booking_count?: number | null;
+  // 통합 프로필
+  preferred_trajectory?: string | null;
+  typical_shot_shape?: string | null;
+  avg_distance?: number | null;
+  // 이력 통계
+  last_consultation_date?: string | null;
+  last_service_date?: string | null;
 };
 
 export default function CustomersPage() {
@@ -420,6 +442,8 @@ export default function CustomersPage() {
                   <th className="p-2 text-left cursor-pointer hover:bg-gray-200" onClick={() => handleSort('last_contact_date')}>
                     최근 연락 {sortBy === 'last_contact_date' && (sortOrder === 'asc' ? '▲' : '▼')}
                   </th>
+                  <th className="p-2 text-left">설문</th>
+                  <th className="p-2 text-left">시타예약</th>
                   <th className="p-2 text-left">수신거부</th>
                   <th className="p-2 text-left">액션</th>
                 </tr>
@@ -444,6 +468,24 @@ export default function CustomersPage() {
                     <td className="p-2">{formatDate(c.last_purchase_date)}</td>
                     <td className="p-2">{formatDate((c as any).last_service_date)}</td>
                     <td className="p-2">{formatContactDate(c.last_contact_date)}</td>
+                    <td className="p-2">
+                      {c.latest_selected_model ? (
+                        <span className="text-xs" title={`${c.survey_count || 0}회, ${c.latest_survey_date ? new Date(c.latest_survey_date).toLocaleDateString('ko-KR') : ''}`}>
+                          📝 {c.latest_selected_model}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-xs">-</span>
+                      )}
+                    </td>
+                    <td className="p-2">
+                      {c.latest_booking_date ? (
+                        <span className="text-xs" title={`${c.booking_count || 0}회, ${c.latest_club_brand || ''} ${c.latest_club_loft ? c.latest_club_loft + '°' : ''} ${c.latest_club_shaft || ''}`}>
+                          🏌️ {new Date(c.latest_booking_date).toLocaleDateString('ko-KR')}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-xs">-</span>
+                      )}
+                    </td>
                     <td className="p-2">{c.opt_out ? '예' : '아니오'}</td>
                     <td className="p-2">
                       <div className="flex gap-1">
@@ -488,7 +530,7 @@ export default function CustomersPage() {
                   </tr>
                 ))}
                 {customers.length === 0 && (
-                  <tr><td className="p-4 text-center text-gray-500" colSpan={9}>{loading ? '로딩 중...' : '데이터 없음'}</td></tr>
+                  <tr><td className="p-4 text-center text-gray-500" colSpan={11}>{loading ? '로딩 중...' : '데이터 없음'}</td></tr>
                 )}
               </tbody>
             </table>
