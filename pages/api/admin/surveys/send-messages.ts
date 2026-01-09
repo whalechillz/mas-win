@@ -119,6 +119,15 @@ function generateThankYouMessage(
     }
   }
 
+  // 고객님의 특별한 요구사항 반영 (솔루션 리스트에 포함)
+  const additionalFeedback = survey?.additional_feedback || '';
+  if (additionalFeedback && additionalFeedback.trim()) {
+    const feedbackPreview = additionalFeedback.length > 30 
+      ? `${additionalFeedback.substring(0, 30)}...` 
+      : additionalFeedback;
+    ctaPoints.push(`고객님의 특별한 요구사항 반영 - "${feedbackPreview}"`);
+  }
+
   // 메시지 생성
   let message = `[마쓰구골프] ${name}님, 안녕하세요!\n\n`;
   // ⭐ 수정: "설문 참여해 주셔서 감사합니다." 제거
@@ -148,15 +157,6 @@ function generateThankYouMessage(
       message += `• ${point}\n`;
     });
     message += `\n`;
-  }
-
-  // ⭐ 수정: "고객님의 특별한 요구사항 반영"을 솔루션 리스트 밖으로 분리
-  const additionalFeedback = survey?.additional_feedback || '';
-  if (additionalFeedback && additionalFeedback.trim()) {
-    const feedbackPreview = additionalFeedback.length > 30 
-      ? `${additionalFeedback.substring(0, 30)}...` 
-      : additionalFeedback;
-    message += `고객님의 특별한 요구사항 반영 - "${feedbackPreview}"\n\n`;
   }
 
   // 기본 CTA
@@ -229,6 +229,15 @@ function generateWinnerMessage(
         ctaPoints.push('80대 골퍼 맞춤 솔루션 - 힘 빼고 휘둘러도 충분한 비거리');
       }
     }
+  }
+
+  // 고객님의 특별한 요구사항 반영 (솔루션 리스트에 포함)
+  const additionalFeedback = survey?.additional_feedback || '';
+  if (additionalFeedback && additionalFeedback.trim()) {
+    const feedbackPreview = additionalFeedback.length > 30 
+      ? `${additionalFeedback.substring(0, 30)}...` 
+      : additionalFeedback;
+    ctaPoints.push(`고객님의 특별한 요구사항 반영 - "${feedbackPreview}"`);
   }
 
   const isFarDistance = distanceKm !== null && distanceKm >= DISTANCE_THRESHOLD_WINNER;
