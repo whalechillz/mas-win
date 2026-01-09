@@ -670,12 +670,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             // 성공 응답 확인 및 로깅
             const smsResult = await smsResponse.json();
-            console.log('[send-messages] SMS 발송 성공:', {
+            console.log('[send-messages] SMS 발송 응답:', {
               success: smsResult.success,
               groupIds: smsResult.result?.groupIds,
               sentCount: smsResult.result?.sentCount,
+              successCount: smsResult.result?.successCount,
+              failCount: smsResult.result?.failCount,
               surveyId: survey.id,
             });
+
+            // ⭐ 수정: smsResult.success가 false이거나 successCount가 0이면 실패로 처리
+            if (!smsResult.success || (smsResult.result?.successCount || 0) === 0) {
+              const errorMsg = smsResult.message || 'SMS 발송 실패';
+              console.error('[send-messages] SMS 발송 실패:', {
+                success: smsResult.success,
+                message: errorMsg,
+                result: smsResult.result,
+                surveyId: survey.id,
+              });
+              throw new Error(errorMsg);
+            }
 
             sentCount++;
           }
@@ -738,12 +752,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             // 성공 응답 확인 및 로깅
             const smsResult = await smsResponse.json();
-            console.log('[send-messages] SMS 발송 성공:', {
+            console.log('[send-messages] SMS 발송 응답:', {
               success: smsResult.success,
               groupIds: smsResult.result?.groupIds,
               sentCount: smsResult.result?.sentCount,
+              successCount: smsResult.result?.successCount,
+              failCount: smsResult.result?.failCount,
               surveyId: survey.id,
             });
+
+            // ⭐ 수정: smsResult.success가 false이거나 successCount가 0이면 실패로 처리
+            if (!smsResult.success || (smsResult.result?.successCount || 0) === 0) {
+              const errorMsg = smsResult.message || 'SMS 발송 실패';
+              console.error('[send-messages] SMS 발송 실패:', {
+                success: smsResult.success,
+                message: errorMsg,
+                result: smsResult.result,
+                surveyId: survey.id,
+              });
+              throw new Error(errorMsg);
+            }
 
             sentCount++;
           }
