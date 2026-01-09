@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { status = 'all', calendar_id, booking } = req.query;
+    const { status = 'all', calendar_id, booking, category } = req.query;
 
     let query = supabase
       .from('channel_sms')
@@ -30,10 +30,7 @@ export default async function handler(req, res) {
       query = query.eq('calendar_id', calendar_id);
     }
 
-    // 예약 관련 메시지 필터링 (note에 "예약"이 포함된 메시지)
-    if (booking === 'true') {
-      query = query.ilike('note', '%예약%');
-    }
+    // 예약 관련, 경품 관련 필터 제거됨 (사용자 요청)
 
     const { data: messages, error } = await query;
 

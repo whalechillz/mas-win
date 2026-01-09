@@ -23,7 +23,9 @@ export default async function handler(req, res) {
       imageUrl,
       recipientNumbers,
       shortLink,
-      honorific = '고객님' // 기본값: 고객님
+      honorific = '고객님', // 기본값: 고객님
+      messageCategory, // 메시지 카테고리: 'booking' | 'promotion' | 'prize' | 'order' | null
+      messageSubcategory // 메시지 서브 카테고리: 'prize_winner' | 'booking_received' | 등
     } = req.body;
 
     // 환경 변수 검증
@@ -322,7 +324,20 @@ export default async function handler(req, res) {
         }
         
         // 성공한 청크 처리
-        aggregated.groupIds.push(json.groupInfo?.groupId);
+        // 다양한 응답 형식에서 그룹 ID 추출
+        const groupId = json.groupInfo?.groupId || 
+                        json.groupId || 
+                        json.group_id || 
+                        json.data?.groupId ||
+                        null;
+        
+        if (groupId) {
+          aggregated.groupIds.push(groupId);
+          console.log(`✅ 청크 ${chunkIndex} 그룹 ID 추출 성공: ${groupId}`);
+        } else {
+          console.warn(`⚠️ 청크 ${chunkIndex} 그룹 ID를 찾을 수 없음. 응답 구조:`, JSON.stringify(json).substring(0, 300));
+        }
+        
         aggregated.messageResults.push(...(json.messages || []));
         
         // groupInfo의 카운트가 없으면 messages 배열의 개수로 추정
@@ -426,27 +441,45 @@ export default async function handler(req, res) {
       console.error('per-recipient 로깅 오류:', e);
     }
 
-    // 발송 결과를 데이터베이스에 업데이트 (부분 성공도 처리)
-    const finalStatus = allSuccess ? 'sent' : (hasPartialSuccess ? 'partial' : 'failed');
+    // 발송 결과를 데이터베이스에 저장/업데이트 (부분 성공도 처리)
+    // 그룹 ID가 있고 성공 건수가 있으면 성공으로 간주
+    const hasGroupIds = aggregated.groupIds.length > 0;
+    const finalStatus = hasGroupIds && aggregated.successCount > 0 
+      ? 'sent' 
+      : (hasPartialSuccess ? 'partial' : (hasGroupIds ? 'sent' : 'failed'));
     
-    // ⭐ 기존 그룹 ID 조회 (재전송 시 기존 그룹 ID 유지)
+    console.log('[send] 상태 결정:', {
+      allSuccess,
+      hasPartialSuccess,
+      hasGroupIds,
+      groupIdsCount: aggregated.groupIds.length,
+      successCount: aggregated.successCount,
+      failCount: aggregated.failCount,
+      finalStatus,
+    });
+    
+    // ⭐ 기존 레코드 조회 (재전송 시 기존 그룹 ID 유지)
+    let existingMessage = null;
     let existingGroupIds = [];
     try {
-      const { data: existingMessage } = await supabase
+      const { data: existing, error: checkError } = await supabase
         .from('channel_sms')
-        .select('solapi_group_id')
+        .select('id, solapi_group_id, created_at')
         .eq('id', channelPostId)
-        .single();
+        .maybeSingle();
       
-      if (existingMessage?.solapi_group_id) {
-        existingGroupIds = existingMessage.solapi_group_id
-          .split(',')
-          .map(g => g.trim())
-          .filter(Boolean);
-        console.log(`📋 기존 그룹 ID 발견: ${existingGroupIds.length}개`);
+      if (!checkError && existing) {
+        existingMessage = existing;
+        if (existing.solapi_group_id) {
+          existingGroupIds = existing.solapi_group_id
+            .split(',')
+            .map(g => g.trim())
+            .filter(Boolean);
+          console.log(`📋 기존 그룹 ID 발견: ${existingGroupIds.length}개`);
+        }
       }
     } catch (e) {
-      console.error('기존 그룹 ID 조회 오류 (무시하고 진행):', e);
+      console.error('기존 레코드 조회 오류 (무시하고 진행):', e);
     }
     
     // ⭐ 새 그룹 ID와 기존 그룹 ID 병합 (중복 제거)
@@ -479,22 +512,66 @@ export default async function handler(req, res) {
       });
     }
     
-    const { error: updateError } = await supabase
+    // ⭐ UPSERT 사용 (레코드가 없으면 INSERT, 있으면 UPDATE)
+    const now = new Date().toISOString();
+    const upsertData = {
+      id: channelPostId, // ID를 명시적으로 지정
+      message_type: solapiType || 'MMS',
+      message_text: messageContent,
+      recipient_numbers: uniqueToSend,
+      status: finalStatus,
+      solapi_group_id: groupIdsString, // 모든 그룹 ID 저장 (콤마 구분)
+      solapi_message_id: null,
+      sent_at: now,
+      sent_count: uniqueToSend.length,
+      success_count: aggregated.successCount,
+      fail_count: aggregated.failCount,
+      group_statuses: groupStatuses, // ⭐ 그룹별 상세 정보 저장 (초기값)
+      message_category: messageCategory || null, // 메시지 카테고리 저장
+      message_subcategory: messageSubcategory || null, // 메시지 서브 카테고리 저장
+      updated_at: now,
+    };
+    
+    // 새 레코드인 경우에만 created_at 설정
+    if (!existingMessage) {
+      upsertData.created_at = now;
+    }
+    
+    const { data: upsertResult, error: upsertError } = await supabase
       .from('channel_sms')
-      .update({
-        status: finalStatus,
-        solapi_group_id: groupIdsString, // 모든 그룹 ID 저장 (콤마 구분)
-        solapi_message_id: null,
-        sent_at: new Date().toISOString(),
-        sent_count: uniqueToSend.length,
-        success_count: aggregated.successCount,
-        fail_count: aggregated.failCount,
-        group_statuses: groupStatuses // ⭐ 그룹별 상세 정보 저장 (초기값)
-      })
-      .eq('id', channelPostId);
+      .upsert(upsertData, { onConflict: 'id' })
+      .select();
 
-    if (updateError) {
-      console.error('SMS 상태 업데이트 오류:', updateError);
+    if (upsertError) {
+      console.error('[send] channel_sms UPSERT 오류:', {
+        error: upsertError,
+        channelPostId,
+        upsertData: {
+          ...upsertData,
+          message_text: upsertData.message_text?.substring(0, 50) + '...',
+        },
+      });
+      
+      // 에러 응답에 포함 (발송은 성공했을 수 있으므로)
+      return res.status(500).json({
+        success: false,
+        message: '메시지 발송은 성공했지만 데이터베이스 저장에 실패했습니다.',
+        error: upsertError.message,
+        result: {
+          groupIds: aggregated.groupIds,
+          sentCount: uniqueToSend.length,
+          successCount: aggregated.successCount,
+          failCount: aggregated.failCount,
+        },
+      });
+    } else {
+      console.log(`✅ channel_sms ${existingMessage ? '업데이트' : '생성'} 완료:`, {
+        id: channelPostId,
+        status: finalStatus,
+        solapi_group_id: groupIdsString,
+        successCount: aggregated.successCount,
+        failCount: aggregated.failCount,
+      });
     }
 
     // 발송 후 자동 검증: 그룹 ID가 누락되었는지 확인 (비동기로 실행, 응답은 기다리지 않음)
@@ -589,19 +666,42 @@ export default async function handler(req, res) {
       }
     });
 
-    // 발송 실패 시 상태 업데이트
+    // 발송 실패 시 상태 저장/업데이트 (UPSERT 사용)
     if (req.body.channelPostId) {
       try {
+        const now = new Date().toISOString();
+        const failData = {
+          id: req.body.channelPostId,
+          message_type: req.body.messageType || 'MMS',
+          message_text: req.body.messageText || req.body.content || '',
+          recipient_numbers: req.body.recipientNumbers || [],
+          status: 'failed',
+          sent_at: now,
+          fail_count: req.body.recipientNumbers?.length || 0,
+          success_count: 0,
+          message_category: req.body.messageCategory || null,
+          message_subcategory: req.body.messageSubcategory || null,
+          updated_at: now,
+        };
+        
+        // 기존 레코드 확인
+        const { data: existing } = await supabase
+          .from('channel_sms')
+          .select('id, created_at')
+          .eq('id', req.body.channelPostId)
+          .maybeSingle();
+        
+        if (!existing) {
+          failData.created_at = now;
+        }
+        
         await supabase
           .from('channel_sms')
-          .update({
-            status: 'failed',
-            sent_at: new Date().toISOString(),
-            fail_count: req.body.recipientNumbers?.length || 0
-          })
-          .eq('id', req.body.channelPostId);
+          .upsert(failData, { onConflict: 'id' });
+        
+        console.log(`✅ channel_sms 실패 레코드 ${existing ? '업데이트' : '생성'} 완료: ${req.body.channelPostId}`);
       } catch (updateError) {
-        console.error('SMS 실패 상태 업데이트 오류:', updateError);
+        console.error('SMS 실패 상태 저장/업데이트 오류:', updateError);
       }
     }
 

@@ -118,6 +118,8 @@ export default function CustomersPage() {
     if (!router.isReady) return;
     const phoneParam = typeof router.query.phone === 'string' ? router.query.phone : undefined;
     const queryParam = typeof router.query.q === 'string' ? router.query.q : undefined;
+    const autoEditParam = router.query.autoEdit;
+    
     const searchValue = phoneParam || queryParam || '';
 
     if (searchValue && searchValue !== q) {
@@ -130,8 +132,22 @@ export default function CustomersPage() {
       fetchCustomers(1);
     }
 
-    if (router.query.autoEdit === 'true' && phoneParam) {
+    // autoEdit 파라미터 처리: 
+    // 1. autoEdit=true&phone=전화번호 형태 (기존 방식)
+    // 2. autoEdit=전화번호 형태 (설문 목록에서 사용)
+    if (autoEditParam) {
+      if (autoEditParam === 'true' && phoneParam) {
+        // 기존 방식: autoEdit=true&phone=전화번호
       setPendingAutoEditPhone(phoneParam);
+      } else if (typeof autoEditParam === 'string' && /^[0-9]+$/.test(autoEditParam)) {
+        // 새로운 방식: autoEdit=전화번호 (숫자만 있는 경우)
+        setPendingAutoEditPhone(autoEditParam);
+        // 검색에도 반영하여 해당 고객을 찾을 수 있도록 함
+        if (autoEditParam !== q) {
+          setQ(autoEditParam);
+          fetchCustomers(1, autoEditParam);
+        }
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.isReady, router.query.autoEdit, router.query.phone, router.query.q]);

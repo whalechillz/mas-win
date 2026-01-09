@@ -147,9 +147,22 @@ function generateCallToActionPoints(
     points.push('원플렉스 사파이어 모델 체험 - 최적의 플렉스로 비거리 극대화');
   }
 
-  // 연령대 기반 포인트
-  if (ageGroup.includes('60') || ageGroup.includes('70') || ageGroup.includes('80')) {
-    points.push('시니어 골퍼 맞춤 솔루션 - 힘 빼고 휘둘러도 충분한 비거리');
+  // 연령대 기반 포인트 (연령대별 표기)
+  if (ageGroup) {
+    const ageMatch = ageGroup.match(/(\d+)대/);
+    if (ageMatch) {
+      const ageDecade = ageMatch[1];
+      points.push(`${ageDecade}대 골퍼 맞춤 솔루션 - 힘 빼고 휘둘러도 충분한 비거리`);
+    } else if (ageGroup.includes('60') || ageGroup.includes('70') || ageGroup.includes('80')) {
+      // 연령대 형식이 다를 경우 대체 로직
+      if (ageGroup.includes('60')) {
+        points.push('60대 골퍼 맞춤 솔루션 - 힘 빼고 휘둘러도 충분한 비거리');
+      } else if (ageGroup.includes('70')) {
+        points.push('70대 골퍼 맞춤 솔루션 - 힘 빼고 휘둘러도 충분한 비거리');
+      } else if (ageGroup.includes('80')) {
+        points.push('80대 골퍼 맞춤 솔루션 - 힘 빼고 휘둘러도 충분한 비거리');
+      }
+    }
   }
 
   // 추가 의견 기반 포인트

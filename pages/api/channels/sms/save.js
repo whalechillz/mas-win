@@ -18,7 +18,9 @@ export default async function handler(req, res) {
       shortLink,
       imageUrl,
       recipientNumbers,
-      status = 'draft'
+      status = 'draft',
+      messageCategory, // 메시지 카테고리: 'booking' | 'promotion' | 'prize' | 'order' | null
+      messageSubcategory // 메시지 서브 카테고리: 'prize_winner' | 'booking_received' | 등
     } = req.body;
 
     // 필수 필드 검증
@@ -70,7 +72,9 @@ export default async function handler(req, res) {
         short_link: shortLink || null,
         image_url: imageUrl || null,
         recipient_numbers: recipientNumbers || [],
-        status: status
+        status: status,
+        message_category: messageCategory || null,
+        message_subcategory: messageSubcategory || null
       })
       .select()
       .single();

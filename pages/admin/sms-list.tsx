@@ -46,7 +46,7 @@ export default function SMSListAdmin() {
   const router = useRouter();
   const [messages, setMessages] = useState<SMSMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'draft' | 'sent' | 'booking'>('all');
+  const [filter, setFilter] = useState<'all' | 'draft' | 'sent'>('all');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [syncingIds, setSyncingIds] = useState<number[]>([]);
   const [sentAtSort, setSentAtSort] = useState<'desc' | 'asc'>('desc');
@@ -80,7 +80,7 @@ export default function SMSListAdmin() {
   const fetchMessages = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/channels/sms/list?status=${filter === 'booking' ? 'all' : filter}&booking=${filter === 'booking' ? 'true' : 'false'}`);
+      const response = await fetch(`/api/channels/sms/list?status=${filter === 'all' ? 'all' : filter}`);
       if (response.ok) {
         const data = await response.json();
         setMessages(data.messages || []);
@@ -892,16 +892,6 @@ export default function SMSListAdmin() {
                 }`}
               >
                 발송됨
-              </button>
-              <button
-                onClick={() => setFilter('booking')}
-                className={`px-4 py-2 rounded-lg ${
-                  filter === 'booking' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-white text-gray-700 border border-gray-300'
-                }`}
-              >
-                예약 관련
               </button>
             </div>
           </div>

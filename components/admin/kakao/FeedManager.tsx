@@ -448,6 +448,28 @@ export default function FeedManager({
               modelImageUrl: finalImageUrl
             });
             
+            // 🔍 디버깅: baseImageUrl 및 productId 검증
+            console.log('🔍 [디버깅] 제품 합성 요청 정보:', {
+              productId: selectedProductId,
+              productName: selectedProduct?.name,
+              productSlug: selectedProduct?.slug,
+              baseImageUrl: finalImageUrl,
+              baseImageUrlType: typeof finalImageUrl,
+              baseImageUrlLength: finalImageUrl?.length,
+              baseImageUrlIncludesKakao: finalImageUrl?.includes('daily-branding/kakao'),
+              baseImageUrlIncludesBlogImages: finalImageUrl?.includes('blog-images'),
+              compositionTarget: compositionTarget
+            });
+            
+            // baseImageUrl이 올바른 형식인지 검증
+            if (finalImageUrl && !finalImageUrl.includes('blog-images')) {
+              console.warn('⚠️ [디버깅] baseImageUrl에 blog-images 경로가 없습니다:', finalImageUrl);
+            }
+            
+            if (finalImageUrl && !finalImageUrl.includes('daily-branding/kakao')) {
+              console.warn('⚠️ [디버깅] baseImageUrl에 daily-branding/kakao 경로가 없습니다:', finalImageUrl);
+            }
+            
             const composeResponse = await fetch('/api/compose-product-image', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },

@@ -533,16 +533,38 @@ export default async function handler(req, res) {
     const aggregatedFailCount = aggregateCounts.fail || failCount || 0;
     const aggregatedSendingCount = aggregateCounts.sending || sendingCount || 0;
 
+    // ⭐ 솔라피 API 응답에서 발송일 추출
+    let sentAt = currentMessage.sent_at; // 기존 값 유지
+    const solapiDateSent = solapiData.dateSent || solapiData.dateCreated || groupInfo?.dateSent || groupInfo?.dateCreated;
+    if (solapiDateSent) {
+      try {
+        const parsedDate = new Date(solapiDateSent);
+        if (!isNaN(parsedDate.getTime())) {
+          sentAt = parsedDate.toISOString();
+          console.log(`📅 발송일 업데이트: ${sentAt} (솔라피: ${solapiDateSent})`);
+        }
+      } catch (dateError) {
+        console.warn(`⚠️ 발송일 파싱 실패: ${solapiDateSent}`, dateError);
+      }
+    }
+
+    const updateData = {
+      status: aggregatedFinalStatus,
+      sent_count: aggregatedTotalCount,
+      success_count: aggregatedSuccessCount,
+      fail_count: aggregatedFailCount,
+      group_statuses: uniqueStatuses, // ⭐ 그룹별 상세 정보 저장 (중복 제거 및 검증된 항목만)
+      updated_at: new Date().toISOString()
+    };
+
+    // ⭐ sent_at이 없거나 솔라피에서 가져온 날짜가 더 정확한 경우 업데이트
+    if (sentAt && (!currentMessage.sent_at || sentAt !== currentMessage.sent_at)) {
+      updateData.sent_at = sentAt;
+    }
+
     const { error: updateError } = await supabase
       .from('channel_sms')
-      .update({
-        status: aggregatedFinalStatus,
-        sent_count: aggregatedTotalCount,
-        success_count: aggregatedSuccessCount,
-        fail_count: aggregatedFailCount,
-        group_statuses: uniqueStatuses, // ⭐ 그룹별 상세 정보 저장 (중복 제거 및 검증된 항목만)
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', messageId);
 
     if (updateError) {

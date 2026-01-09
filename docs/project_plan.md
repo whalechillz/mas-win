@@ -1,6 +1,256 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
-## ✅ 최근 작업: 주소 없는 고객도 위치 정보 관리에 표시 (2026-01-30)
+## ✅ 최근 작업: 경품 추천 저장 타이밍 이슈 수정 (2026-01-30)
+
+### 완료된 작업
+- **경품 추천 저장 로직 개선** ✅:
+  - `pages/api/admin/surveys/recommend-prizes.ts`: 저장 함수 에러 처리 개선
+    - 삭제 및 저장 작업의 에러를 제대로 throw하도록 수정
+    - 저장 완료 로그 추가
+    - 저장 실패 시 에러를 호출자에게 전달하도록 수정
+
+- **비동기 저장 처리 개선** ✅:
+  - `pages/api/admin/surveys/recommend-prizes.ts`: 저장 함수를 await로 기다리도록 수정
+    - 기존: `.catch()`로 에러만 처리하고 계속 진행
+    - 수정: `await`로 저장 완료를 기다린 후 응답 반환
+    - 저장 실패해도 생성은 완료되었으므로 응답은 반환
+
+- **프론트엔드 대기 시간 증가** ✅:
+  - `pages/admin/surveys/index.tsx`: 저장 완료 대기 시간 증가
+    - 3초 → 5초로 증가하여 DB 커밋 완료를 확실히 기다림
+
+- **JSON 응답에 날짜 포함** ✅:
+  - `pages/api/admin/surveys/recommend-prizes.ts`: JSON 응답에 `recommendationDate` 포함
+    - 프론트엔드에서 생성된 날짜를 명확히 확인 가능
+
+### 변경된 파일
+- `pages/api/admin/surveys/recommend-prizes.ts` (저장 로직 개선)
+- `pages/admin/surveys/index.tsx` (대기 시간 증가)
+
+### 예상 효과
+- 경품 추천 생성 후 저장이 완료되기 전에 조회되는 문제 해결
+- 저장 실패 시 에러를 명확히 확인 가능
+- 데이터가 갑자기 사라지는 현상 방지
+
+---
+
+## ✅ 이전 작업: 경품 추천 시스템 개선 및 위치 정보 관리 중복 표시 (2026-01-30)
+
+### 완료된 작업
+- **구매 여부 판단 로직 개선** ✅:
+  - `pages/api/admin/surveys/recommend-prizes.ts`: 구매 여부 판단 로직 개선
+    - `last_purchase_date` 또는 `first_purchase_date`가 있으면 구매로 판단
+    - 기존 로직(`visit_count`, `booking`)도 유지하여 호환성 확보
+
+- **통계 계산 일관성 개선** ✅:
+  - `pages/api/admin/surveys/prize-history.ts`: 통계 계산 로직 개선
+    - `section` 필드 대신 `is_purchased` 필드를 기준으로 계산
+    - 목록과 상세의 구매/비구매 통계 일관성 확보
+
+- **점수 소수점 처리** ✅:
+  - `pages/api/admin/surveys/recommend-prizes.ts`: 비구매 고객 점수 계산 함수 개선
+    - 소수점 2자리로 반올림 처리
+    - 거리 점수 계산 시 발생하는 소수점 문제 해결
+
+- **최근 설문일 저장** ✅:
+  - `pages/api/admin/surveys/recommend-prizes.ts`: 경품 추천 저장 시 최근 설문일 추가
+    - `recent_survey_date` 필드에 `survey.created_at` 저장
+    - 구매/비구매/전체 고객 모두에 적용
+
+- **위치 정보 관리 중복 표시 추가** ✅:
+  - `pages/admin/surveys/index.tsx`: 위치 정보 관리에서 중복 표시 추가
+    - 전화번호별로 그룹화하여 중복 개수 계산
+    - 목록 제목에 "92명, 99건" 형태로 표시
+    - 각 행에 "중복(2)" 배지 표시
+
+### 변경된 파일
+- `pages/api/admin/surveys/recommend-prizes.ts` (구매 여부 판단, 점수 소수점, 최근 설문일)
+- `pages/api/admin/surveys/prize-history.ts` (통계 계산 일관성)
+- `pages/admin/surveys/index.tsx` (위치 정보 관리 중복 표시)
+
+### 예상 효과
+- 구매 여부 판단 정확도 향상 (구매일 기준)
+- 목록과 상세의 통계 일관성 확보
+- 점수 표시 정확도 향상 (소수점 처리)
+- 최근 설문일 정보 제공으로 고객 관리 효율성 향상
+- 위치 정보 관리에서 중복 참여자 명확히 표시
+
+---
+
+## ✅ 이전 작업: 설문 목록에 고객관리 버튼 추가 및 autoEdit 파라미터 처리 개선 (2026-01-30)
+
+### 완료된 작업
+- **설문 목록 작업 컬럼에 고객관리 버튼 추가** ✅:
+  - `pages/admin/surveys/index.tsx`: 작업 컬럼에 "고객관리" 버튼 추가
+    - 보라색 스타일 (`text-purple-600 hover:text-purple-900`)
+    - 클릭 시 고객관리 페이지로 이동
+    - `autoEdit` 파라미터로 해당 전화번호의 고객 수정 모달 자동 열림
+
+- **고객관리 페이지 이동 함수 추가** ✅:
+  - `pages/admin/surveys/index.tsx`: `handleGoToCustomerManagement` 함수 추가
+    - 전화번호를 정규화하여 숫자만 추출
+    - `/admin/customers?autoEdit={phone}` 경로로 이동
+    - `useRouter` hook 사용
+
+- **Next.js Router import 추가** ✅:
+  - `pages/admin/surveys/index.tsx`: `useRouter` import 추가
+    - `next/router`에서 import
+    - 컴포넌트 내부에서 router 인스턴스 생성
+
+- **고객관리 페이지 autoEdit 파라미터 처리 개선** ✅:
+  - `pages/admin/customers/index.tsx`: `autoEdit` 파라미터 처리 로직 개선
+    - 기존 방식: `autoEdit=true&phone=전화번호` 형태 지원
+    - 새로운 방식: `autoEdit=전화번호` 형태 지원 (설문 목록에서 사용)
+    - 전화번호가 숫자로만 구성된 경우 자동으로 인식하여 수정 모달 열림
+    - 검색에도 자동 반영하여 해당 고객을 찾을 수 있도록 함
+
+### 변경된 파일
+- `pages/admin/surveys/index.tsx` (고객관리 버튼 추가, 이동 함수 구현)
+- `pages/admin/customers/index.tsx` (autoEdit 파라미터 처리 로직 개선)
+
+### 예상 효과
+- 설문 목록에서 바로 고객관리 페이지로 이동 가능
+- 전화번호 기반 자동 수정 모달 열림으로 사용자 편의성 향상
+- 설문 데이터와 고객 데이터 간 연결성 강화
+- 다양한 URL 파라미터 형태 지원으로 유연성 향상
+
+---
+
+## ✅ 이전 작업: 전체 설문 기준 중복 감지 시스템 구현 (2026-01-30)
+
+### 완료된 작업
+- **전체 설문 기준 중복 감지 API 생성** ✅:
+  - `pages/api/admin/surveys/duplicate-phones.ts`: 전체 설문의 전화번호별 카운트 조회
+    - 전체 설문 수, 고유 전화번호 수, 중복 전화번호 개수 반환
+    - 전화번호별 카운트 맵 반환
+  - 페이지네이션과 무관하게 전체 설문 기준으로 중복 감지
+
+- **중복 정보 별도 조회 함수 추가** ✅:
+  - `pages/admin/surveys/index.tsx`: `fetchDuplicatePhones` 함수 추가
+    - 페이지 로드 시 전체 설문 기준 중복 정보 가져오기
+    - `useEffect`에서 자동 호출
+  - `duplicateMap`을 전체 설문 기준으로 업데이트
+
+- **대시보드 통계 카드 추가** ✅:
+  - `pages/admin/surveys/index.tsx`: 설문 통계 카드 추가
+    - 총 참여자 수 (고유 전화번호)
+    - 총 설문 수 (전체 응답)
+    - 중복 설문 (중복 전화번호 개수)
+  - 기존 통계 카드와 함께 5개 카드로 확장
+
+- **중복 감지 로직 개선** ✅:
+  - `pages/admin/surveys/index.tsx`: 중복 표시 로직을 전체 설문 기준으로 변경
+    - 현재 페이지의 설문만 확인하던 로직 제거
+    - `duplicateMap`을 사용하여 전체 설문 기준으로 중복 표시
+    - 중복 개수도 전체 설문 기준으로 표시
+  - 중복 설문 목록 보기에서도 전체 설문 기준 정보 표시
+
+### 변경된 파일
+- `pages/api/admin/surveys/duplicate-phones.ts` (신규 생성)
+- `pages/admin/surveys/index.tsx` (중복 감지 로직 개선, 통계 카드 추가)
+
+### 예상 효과
+- 페이지네이션과 무관하게 모든 중복 설문을 정확히 감지
+- 대시보드에서 한눈에 참여자 수와 중복 현황 파악 가능
+- 다른 페이지에 있는 중복 설문도 정확히 표시
+- 전체 설문 기준 통계로 데이터 관리 효율성 향상
+
+---
+
+## ✅ 이전 작업: 설문 중복 관리 시스템 구현 (2026-01-30)
+
+### 완료된 작업
+- **설문 목록에 중복 표시 기능 추가** ✅:
+  - `pages/admin/surveys/index.tsx`: 전화번호별로 설문 그룹화 및 중복 표시
+    - 같은 전화번호로 여러 설문이 있는 경우 "중복" 배지 표시
+    - 최신 설문만 기본 표시, 이전 설문은 접기/펼치기 기능
+    - 중복 설문은 회색 배경으로 구분
+  - `duplicateMap` state 추가: 전화번호별 중복 개수 추적
+  - `expandedPhones` state 추가: 펼쳐진 전화번호 관리
+
+- **중복 설문 관리 기능** ✅:
+  - `pages/admin/surveys/index.tsx`: `handleManageDuplicates` 함수 추가
+    - 중복 설문 목록 보기
+    - 최신 설문만 유지하고 이전 설문 일괄 삭제
+  - `pages/api/survey/delete.ts`: 개별 설문 삭제 API 생성
+
+- **설문 제출 시 중복 경고** ✅:
+  - `pages/api/survey/submit.ts`: 기존 설문 확인 후 경고 메시지 반환
+    - 중복 설문이 있는 경우 `warning` 필드에 경고 메시지 포함
+    - `isDuplicate`, `previousSurvey` 필드 추가
+
+- **설문 타입/카테고리 필드 추가** ✅:
+  - `database/add-survey-type-fields.sql`: DB 스키마 업데이트
+    - `survey_type`: 설문 타입 (기본값: 'product_survey')
+    - `survey_category`: 설문 카테고리 (기본값: 'muziik-2025')
+    - `is_active`: 활성 설문 여부 (기본값: true)
+  - `pages/api/survey/submit.ts`: 새 설문 저장 시 기본값 설정
+
+- **경품 추천 로직 개선** ✅:
+  - `pages/api/admin/surveys/recommend-prizes.ts`: 활성 설문만 사용
+    - 구매 고객 조회: `.eq('is_active', true)` 추가
+    - 비구매 고객 조회: `.eq('is_active', true)` 추가
+    - 전체 고객 조회: `.eq('is_active', true)` 추가
+
+### 변경된 파일
+- `pages/admin/surveys/index.tsx` (중복 표시, 중복 관리 기능)
+- `pages/api/survey/submit.ts` (중복 경고, 설문 타입 필드)
+- `pages/api/survey/delete.ts` (신규 생성)
+- `pages/api/admin/surveys/recommend-prizes.ts` (활성 설문 필터)
+- `database/add-survey-type-fields.sql` (신규 생성)
+
+### 예상 효과
+- 설문 중복을 쉽게 식별하고 관리 가능
+- 중복 설문으로 인한 데이터 혼란 방지
+- 경품 추천 시 활성 설문만 사용하여 정확성 향상
+- 추후 다른 설문 조사 진행 시 설문 타입별 관리 가능
+
+---
+
+## ✅ 이전 작업: 경품 추천 이력 개선 및 로직 단순화 (2026-01-30)
+
+### 완료된 작업
+- **순위 컬럼 수정** ✅:
+  - `pages/admin/surveys/index.tsx`: 순위 컬럼에 `recommendation_datetime` 대신 `rank` 표시
+  - 생성 시간 대신 실제 순위 숫자 표시로 변경
+
+- **구매 고객 거리 정보 추가** ✅:
+  - `pages/api/admin/surveys/recommend-prizes.ts`: 구매 고객도 거리 정보 가져오기
+    - `allCustomersData` 처리 시 구매 고객도 `getCachedOrCalculateDistance` 호출
+    - `purchasedCustomersData` 처리 시에도 거리 정보 가져오기
+    - 구매 고객도 `distance_km`, `latitude`, `longitude` 저장
+
+- **구매경과 로직 단순화** ✅:
+  - `pages/api/admin/surveys/recommend-prizes.ts`: 구매 고객만 `days_since_last_purchase` 계산
+    - 비구매 고객은 `null`로 저장
+  - `pages/admin/surveys/index.tsx`: 구매 고객만 구매경과 표시
+    - 비구매 고객은 "-" 표시
+
+- **불필요한 필드 제거** ✅:
+  - `pages/admin/surveys/index.tsx`: `purchaseInfo` 컬럼 제거 (1년이상/2년이상 정보)
+  - 점수 컬럼 추가로 변경
+  - `is_over_1_year`, `is_over_2_years` 필드 제거 (DB에는 유지하되 UI에서 사용 안 함)
+
+- **DB 저장 로직 개선** ✅:
+  - `pages/api/admin/surveys/recommend-prizes.ts`: 모든 고객에 `distance_km`, `latitude`, `longitude` 저장
+    - 구매 고객도 거리 정보 저장
+    - `days_since_last_purchase`는 구매 고객만 저장
+  - `recommendation_datetime` 필드 추가 (같은 날짜에 여러 번 생성 가능)
+
+### 변경된 파일
+- `pages/api/admin/surveys/recommend-prizes.ts` (구매 고객 거리 정보, 구매경과 로직, DB 저장 개선)
+- `pages/admin/surveys/index.tsx` (순위 컬럼, 구매경과 표시, purchaseInfo 제거)
+
+### 예상 효과
+- 순위 컬럼이 실제 순위를 표시하여 가독성 향상
+- 구매 고객도 거리 정보가 표시되어 일관성 확보
+- 구매경과는 구매 고객만 표시하여 혼란 방지
+- 불필요한 필드 제거로 UI 단순화
+- DB 저장 로직 개선으로 데이터 정확성 향상
+
+---
+
+## ✅ 이전 작업: 주소 없는 고객도 위치 정보 관리에 표시 (2026-01-30)
 
 ### 완료된 작업
 - **주소 없는 고객도 위치 정보 관리 탭에 표시** ✅:

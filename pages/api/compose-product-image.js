@@ -31,6 +31,15 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', bas
   try {
     console.log('💾 이미지 저장 시작:', { imageUrl, productId, baseImageUrl });
     
+    // 🔍 디버깅: 입력값 상세 로깅
+    console.log('🔍 [디버깅] saveImageToSupabase 입력값:', {
+      productId: productId,
+      productIdType: typeof productId,
+      baseImageUrl: baseImageUrl,
+      baseImageUrlType: typeof baseImageUrl,
+      prefix: prefix
+    });
+    
     // 1. 베이스 이미지 URL에서 소스 폴더 경로 추출
     let sourceFolder = null;
     let sourceFolderType = null; // 'blog', 'kakao', 'other'
@@ -38,12 +47,30 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', bas
     if (baseImageUrl) {
       try {
         const match = baseImageUrl.match(/blog-images\/([^?]+)/);
+        console.log('🔍 [디버깅] baseImageUrl 패턴 매칭:', {
+          match: match ? '성공' : '실패',
+          matchedPath: match ? match[1] : null
+        });
+        
         if (match) {
           const fullPath = decodeURIComponent(match[1]);
           const pathParts = fullPath.split('/');
           
+          console.log('🔍 [디버깅] 경로 파싱:', {
+            fullPath: fullPath,
+            pathParts: pathParts,
+            pathPartsLength: pathParts.length
+          });
+          
           if (pathParts.length > 1) {
             const baseFolder = pathParts.slice(0, -1).join('/');
+            
+            console.log('🔍 [디버깅] baseFolder 추출:', {
+              baseFolder: baseFolder,
+              startsWithOriginals: baseFolder.startsWith('originals/'),
+              startsWithKakao: baseFolder.startsWith('originals/daily-branding/kakao/'),
+              startsWithBlog: baseFolder.startsWith('originals/blog/')
+            });
             
             // 소스 폴더 타입 판단
             if (baseFolder.startsWith('originals/blog/')) {
@@ -59,32 +86,72 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', bas
               sourceFolder = baseFolder;
               sourceFolderType = 'other';
               console.log('📁 기타 originals 폴더 감지:', sourceFolder);
+            } else {
+              console.warn('⚠️ [디버깅] originals로 시작하지 않는 경로:', baseFolder);
             }
+          } else {
+            console.warn('⚠️ [디버깅] 경로 파트가 부족합니다:', pathParts);
           }
+        } else {
+          console.warn('⚠️ [디버깅] blog-images 패턴 매칭 실패:', baseImageUrl);
         }
       } catch (err) {
-        console.warn('⚠️ 베이스 이미지 폴더 경로 추출 실패:', err.message);
+        console.error('❌ [디버깅] 베이스 이미지 폴더 경로 추출 실패:', {
+          error: err.message,
+          stack: err.stack,
+          baseImageUrl: baseImageUrl
+        });
       }
+    } else {
+      console.warn('⚠️ [디버깅] baseImageUrl이 null 또는 undefined입니다');
     }
     
     // 2. 제품 정보 조회 (slug 가져오기)
     let productSlug = productId;
     let category = 'driver';
     
+    console.log('🔍 [디버깅] 제품 정보 조회 시작:', {
+      productId: productId,
+      productIdType: typeof productId
+    });
+    
     try {
       const { data: productData, error: productError } = await supabase
         .from('product_composition')
-        .select('slug, category')
+        .select('slug, category, id, name')
         .or(`id.eq.${productId},slug.eq.${productId}`)
         .limit(1)
         .maybeSingle();
       
+      console.log('🔍 [디버깅] 제품 정보 조회 결과:', {
+        found: !!productData,
+        productData: productData,
+        error: productError,
+        query: `id.eq.${productId},slug.eq.${productId}`
+      });
+      
       if (!productError && productData) {
         productSlug = productData.slug;
         category = productData.category;
+        console.log('✅ [디버깅] 제품 정보 조회 성공:', {
+          id: productData.id,
+          name: productData.name,
+          slug: productSlug,
+          category: category
+        });
+      } else {
+        console.warn('⚠️ [디버깅] 제품 정보 조회 실패:', {
+          error: productError,
+          productId: productId,
+          usingDefault: { productSlug, category }
+        });
       }
     } catch (err) {
-      console.warn('⚠️ 제품 정보 조회 실패, 기본값 사용:', err.message);
+      console.error('❌ [디버깅] 제품 정보 조회 중 예외:', {
+        error: err.message,
+        stack: err.stack,
+        productId: productId
+      });
     }
     
     // 3. 이미지 다운로드
@@ -102,6 +169,13 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', bas
     const productGalleryFolder = (category === 'cap' || category === 'hat' || category === 'accessory' || category === 'goods')
       ? `originals/goods/${productSlug}/gallery`
       : `originals/products/${productSlug}/gallery`;
+    
+    console.log('🔍 [디버깅] 제품 갤러리 폴더 결정:', {
+      category: category,
+      productSlug: productSlug,
+      productGalleryFolder: productGalleryFolder,
+      productId: productId
+    });
     
     const productFileName = `${productGalleryFolder}/${prefix}-${productId}-${timestamp}.${fileExtension}`;
     
@@ -272,8 +346,19 @@ async function saveImageMetadata(imageUrl, filePath, sourceFolderType, platform 
  * - 기타: PNG (기본값)
  */
 function determineOutputFormat(baseImageUrl, requestedFormat = null) {
+  // 🔍 디버깅: 입력값 로깅
+  console.log('🔍 [디버깅] determineOutputFormat 호출:', {
+    baseImageUrl: baseImageUrl,
+    baseImageUrlType: typeof baseImageUrl,
+    baseImageUrlLength: baseImageUrl?.length,
+    requestedFormat: requestedFormat,
+    baseImageUrlIncludesKakao: baseImageUrl?.includes('daily-branding/kakao'),
+    baseImageUrlIncludesBlogImages: baseImageUrl?.includes('blog-images')
+  });
+  
   // 명시적으로 요청된 포맷이 있으면 우선 사용
   if (requestedFormat && ['png', 'jpeg', 'webp'].includes(requestedFormat.toLowerCase())) {
+    console.log('📦 [디버깅] 명시적 포맷 요청 사용:', requestedFormat);
     return requestedFormat.toLowerCase();
   }
   
@@ -281,8 +366,19 @@ function determineOutputFormat(baseImageUrl, requestedFormat = null) {
   if (baseImageUrl) {
     try {
       const match = baseImageUrl.match(/blog-images\/([^?]+)/);
+      console.log('🔍 [디버깅] URL 패턴 매칭 결과:', {
+        match: match ? '성공' : '실패',
+        matchedPath: match ? match[1] : null
+      });
+      
       if (match) {
         const fullPath = decodeURIComponent(match[1]);
+        console.log('🔍 [디버깅] 디코딩된 경로:', {
+          fullPath: fullPath,
+          startsWithOriginals: fullPath.startsWith('originals/'),
+          startsWithKakao: fullPath.startsWith('originals/daily-branding/kakao/'),
+          startsWithBlog: fullPath.startsWith('originals/blog/')
+        });
         
         // 카카오 콘텐츠: WebP
         if (fullPath.startsWith('originals/daily-branding/kakao/')) {
@@ -308,6 +404,10 @@ function determineOutputFormat(baseImageUrl, requestedFormat = null) {
           console.log('📦 포맷 자동 결정: SMS/MMS → JPG 85%');
           return 'jpeg';
         }
+        
+        console.warn('⚠️ [디버깅] 알 수 없는 경로 패턴, 기본값 PNG 사용:', fullPath);
+      } else {
+        console.warn('⚠️ [디버깅] blog-images 패턴 매칭 실패:', baseImageUrl);
       }
       
       // URL에서 직접 판단 (Solapi 관련)
@@ -321,9 +421,21 @@ function determineOutputFormat(baseImageUrl, requestedFormat = null) {
         console.log('📦 포맷 자동 결정: AI 이미지 생성 (URL 기반) → JPG 85%');
         return 'jpeg';
       }
+      
+      // URL에서 직접 판단 (카카오 콘텐츠 관련)
+      if (baseImageUrl.includes('daily-branding/kakao')) {
+        console.log('📦 포맷 자동 결정: 카카오 콘텐츠 (URL 기반) → WebP');
+        return 'webp';
+      }
     } catch (err) {
-      console.warn('⚠️ 소스 타입 감지 실패, 기본값 사용:', err.message);
+      console.error('❌ [디버깅] 소스 타입 감지 중 오류:', {
+        error: err.message,
+        stack: err.stack,
+        baseImageUrl: baseImageUrl
+      });
     }
+  } else {
+    console.warn('⚠️ [디버깅] baseImageUrl이 null 또는 undefined입니다');
   }
   
   // 기본값: PNG (기존 호환성 유지)
@@ -418,6 +530,18 @@ export default async function handler(req, res) {
       productOnlyMode = false, // 제품컷 전용 모드
       baseImageUrl = null // 베이스 이미지 URL (저장 위치 결정용)
     } = req.body;
+
+    // 🔍 디버깅: 요청 파라미터 상세 로깅
+    console.log('🔍 [디버깅] compose-product-image 요청 파라미터:', {
+      productId: productId,
+      productIdType: typeof productId,
+      modelImageUrl: modelImageUrl,
+      baseImageUrl: baseImageUrl,
+      baseImageUrlType: typeof baseImageUrl,
+      baseImageUrlIncludesKakao: baseImageUrl?.includes('daily-branding/kakao'),
+      baseImageUrlIncludesBlogImages: baseImageUrl?.includes('blog-images'),
+      compositionTarget: compositionTarget
+    });
 
     // 소스 타입에 따라 포맷 자동 결정
     const outputFormat = determineOutputFormat(baseImageUrl || modelImageUrl, requestedFormat);

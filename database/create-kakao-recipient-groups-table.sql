@@ -32,3 +32,5 @@ COMMENT ON COLUMN kakao_recipient_groups.is_active IS '활성 여부';
 
 
 
+
+

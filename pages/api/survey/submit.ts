@@ -194,6 +194,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    // 기존 설문 확인 (중복 체크)
+    const { data: existingSurveys } = await supabase
+      .from('surveys')
+      .select('id, created_at, selected_model')
+      .eq('phone', normalizedPhone)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    const hasExistingSurvey = existingSurveys && existingSurveys.length > 0;
+    const existingSurvey = hasExistingSurvey ? existingSurveys[0] : null;
+
     // 연령대 계산
     const ageNum = age ? parseInt(String(age)) : null;
     const ageGroup = ageNum ? convertAgeToAgeGroup(ageNum) : '';
@@ -221,6 +232,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         additional_feedback: additional_feedback || null,
         customer_id: customerId,
         campaign_source: 'muziik-survey-2025',
+        survey_type: 'product_survey', // 기본값: 제품 설문
+        survey_category: 'muziik-2025', // 기본값: muziik-2025
+        is_active: true, // 기본값: 활성
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -333,6 +347,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       success: true,
       data: survey,
       message: '설문이 성공적으로 제출되었습니다.',
+      warning: hasExistingSurvey 
+        ? `이미 ${new Date(existingSurvey.created_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}에 설문을 제출하셨습니다. (이전 선택: ${existingSurvey.selected_model})`
+        : null,
+      isDuplicate: hasExistingSurvey,
+      previousSurvey: existingSurvey,
     });
   } catch (error: any) {
     console.error('설문 제출 오류:', error);

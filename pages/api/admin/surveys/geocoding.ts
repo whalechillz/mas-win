@@ -168,8 +168,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { data, error } = await supabase.rpc('exec_sql', { sql_query: query });
 
       if (error) {
-        // RPC가 없으면 직접 쿼리
-        // 모든 설문 조회 (플레이스홀더 포함)
+        // RPC가 없으면 최적화된 배치 쿼리 사용
+        // 1. 모든 설문 조회 (한 번에)
         const { data: surveys } = await supabase
           .from('surveys')
           .select('id, name, phone, address, created_at')
@@ -177,22 +177,87 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .limit(Number(limit))
           .range(Number(offset), Number(offset) + Number(limit) - 1);
         
-        // 플레이스홀더도 포함 (모든 설문 포함)
-        const filteredSurveys = surveys || [];
-
-        if (!filteredSurveys || filteredSurveys.length === 0) {
+        if (!surveys || surveys.length === 0) {
           return res.status(200).json({ success: true, data: { customers: [], total: 0 } });
         }
 
-        // 각 설문에 대해 캐시 정보 조회
-        const customers = await Promise.all(
-          filteredSurveys.map(async (survey) => {
-            // 고객 정보 조회 (주소 포함)
-            const { data: customer } = await supabase
+        // 2. 모든 고유 전화번호 추출
+        const uniquePhones = [...new Set(surveys.map(s => s.phone).filter(Boolean))];
+        
+        // 3. 모든 고객 정보를 한 번에 조회 (전화번호로)
+        let allCustomers: any[] = [];
+        if (uniquePhones.length > 0) {
+          const { data } = await supabase
               .from('customers')
-              .select('id, name, address')
-              .eq('phone', survey.phone)
-              .maybeSingle();
+            .select('id, name, address, phone')
+            .in('phone', uniquePhones);
+          allCustomers = data || [];
+        }
+
+        // 4. 고객 정보를 전화번호로 매핑
+        const customerMap = new Map<string, any>();
+        allCustomers?.forEach(c => {
+          const normalizedPhone = c.phone?.replace(/[^0-9]/g, '') || '';
+          if (!customerMap.has(normalizedPhone)) {
+            customerMap.set(normalizedPhone, c);
+          }
+        });
+
+        // 5. 모든 설문 ID와 고객 ID 수집
+        const surveyIds = surveys.map(s => s.id).filter(Boolean);
+        const customerIds = Array.from(customerMap.values()).map(c => c.id).filter(Boolean);
+
+        // 6. 모든 캐시 정보를 한 번에 조회
+        let allCaches: any[] = [];
+        if (customerIds.length > 0 || surveyIds.length > 0) {
+          // customer_id와 survey_id 모두 조회
+          const cacheQueries: Promise<any>[] = [];
+          
+          if (customerIds.length > 0) {
+            cacheQueries.push(
+              supabase
+                .from('customer_address_cache')
+                .select('*')
+                .in('customer_id', customerIds)
+                .then(({ data }) => data || [])
+            );
+          }
+          
+          if (surveyIds.length > 0) {
+            cacheQueries.push(
+              supabase
+                .from('customer_address_cache')
+                .select('*')
+                .in('survey_id', surveyIds)
+                .then(({ data }) => data || [])
+            );
+          }
+          
+          // 두 쿼리 결과를 합치고 중복 제거
+          const cacheResults = await Promise.all(cacheQueries);
+          const cacheSet = new Set<string>();
+          cacheResults.flat().forEach((cache: any) => {
+            const key = `${cache.customer_id || ''}_${cache.survey_id || ''}_${cache.address || ''}`;
+            if (!cacheSet.has(key)) {
+              cacheSet.add(key);
+              allCaches.push(cache);
+            }
+          });
+        }
+
+        // 7. 캐시 정보를 키로 매핑 (customer_id + address 또는 survey_id + address)
+        const cacheMap = new Map<string, any>();
+        allCaches?.forEach(cache => {
+          const key1 = cache.customer_id ? `c_${cache.customer_id}_${cache.address}` : null;
+          const key2 = cache.survey_id ? `s_${cache.survey_id}_${cache.address}` : null;
+          if (key1) cacheMap.set(key1, cache);
+          if (key2) cacheMap.set(key2, cache);
+        });
+
+        // 8. 메모리에서 JOIN 처리
+        const customers = surveys.map((survey) => {
+          const normalizedPhone = survey.phone?.replace(/[^0-9]/g, '') || '';
+          const customer = customerMap.get(normalizedPhone);
 
             // 설문 주소가 플레이스홀더면 고객 정보의 주소를 우선 사용
             const placeholders = ['[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'];
@@ -201,33 +266,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             
             let effectiveAddress: string | null = null;
             if (isSurveyEmpty) {
-              // 설문 주소가 없으면 고객 주소 사용
               effectiveAddress = customer?.address || null;
             } else if (isSurveyPlaceholder && customer?.address && isGeocodableAddress(customer.address)) {
-              // 설문 주소가 플레이스홀더이고 고객 주소가 실제 주소면 고객 주소 사용
               effectiveAddress = customer.address;
             } else {
-              // 그 외에는 설문 주소 사용
               effectiveAddress = survey.address;
             }
 
-            // 캐시 정보 조회 (효과적인 주소로)
-            const { data: cache } = await supabase
-              .from('customer_address_cache')
-              .select('*')
-              .or(
-                `customer_id.eq.${customer?.id || -1},survey_id.eq.${survey.id}`,
-              )
-              .eq('address', effectiveAddress)
-              .maybeSingle();
+          // 캐시 정보 찾기
+          const cacheKey1 = customer?.id ? `c_${customer.id}_${effectiveAddress}` : null;
+          const cacheKey2 = survey.id ? `s_${survey.id}_${effectiveAddress}` : null;
+          const cache = (cacheKey1 && cacheMap.get(cacheKey1)) || (cacheKey2 && cacheMap.get(cacheKey2)) || null;
 
             return {
               survey_id: survey.id,
               name: survey.name,
               phone: survey.phone,
-              address: effectiveAddress, // 효과적인 주소 사용
-              original_survey_address: survey.address, // 원본 설문 주소 보존
-              customer_address: customer?.address || null, // 고객 주소 정보
+            address: effectiveAddress,
+            original_survey_address: survey.address,
+            customer_address: customer?.address || null,
               customer_id: customer?.id || null,
               customer_name: customer?.name || null,
               geocoding_status: cache?.geocoding_status || null,
@@ -237,8 +294,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               distance_km: cache?.distance_km || null,
               cache_updated_at: cache?.updated_at || null,
             };
-          }),
-        );
+        });
 
         // 상태 필터 적용
         let filteredCustomers = customers;

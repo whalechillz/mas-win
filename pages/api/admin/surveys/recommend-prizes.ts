@@ -102,20 +102,20 @@ async function getCoordinatesFromAddress(address: string): Promise<{ lat: number
   }
 }
 
-// 위치 정보 캐싱: 캐시에서 먼저 확인하고, 없으면 API 호출 후 저장
+// 위치 정보 조회 및 계산: 캐시에서 먼저 조회하고, 없으면 API 호출하여 지오코딩 수행
 async function getCachedOrCalculateDistance(
   address: string | null | undefined,
   customerId?: number,
   surveyId?: string,
   phone?: string,
-): Promise<{ distance: number; lat: number; lng: number; cached: boolean } | null> {
+): Promise<{ distance: number; lat: number; lng: number } | null> {
   // 주소 정규화 및 유효성 검사
   const normalizedAddress = normalizeAddress(address);
   if (!normalizedAddress || !isGeocodableAddress(normalizedAddress)) {
     return null;
   }
 
-  // 캐시에서 먼저 확인 (customer_id 우선, 없으면 survey_id 또는 phone으로)
+  // 캐시에서만 조회 (API 호출 없음)
   let cached = null;
   
   if (customerId) {
@@ -167,6 +167,29 @@ async function getCachedOrCalculateDistance(
             .maybeSingle();
           cached = data;
         }
+        
+        // customer_id로 못 찾았으면 같은 전화번호의 다른 설문에서 찾기
+        if (!cached) {
+          const { data: surveys } = await supabase
+            .from('surveys')
+            .select('id')
+            .ilike('phone', `%${normalizedPhone}%`);
+          
+          // 각 설문의 지오코딩 정보 확인
+          for (const s of surveys || []) {
+            const { data } = await supabase
+              .from('customer_address_cache')
+              .select('*')
+              .eq('survey_id', s.id)
+              .eq('geocoding_status', 'success')
+              .maybeSingle();
+            
+            if (data) {
+              cached = data;
+              break;
+            }
+          }
+        }
       }
     } catch (phoneError) {
       console.error('phone으로 customer 찾기 오류:', phoneError);
@@ -174,26 +197,28 @@ async function getCachedOrCalculateDistance(
     }
   }
 
+  // 캐시에 있으면 반환
   if (cached && cached.distance_km !== null && cached.latitude !== null && cached.longitude !== null) {
     return {
       distance: cached.distance_km,
       lat: cached.latitude,
       lng: cached.longitude,
-      cached: true,
     };
   }
 
-  // 캐시에 없으면 API 호출
+  // 캐시에 없으면 API 호출하여 지오코딩 수행
+  if (!cached && normalizedAddress && isGeocodableAddress(normalizedAddress)) {
+    try {
+      console.log(`[지오코딩] API 호출: ${normalizedAddress.substring(0, 30)}...`);
+      
+      // 카카오맵 API를 사용한 주소 → 좌표 변환
   const coords = await getCoordinatesFromAddress(normalizedAddress);
   if (coords) {
+        // 거리 계산
     const distance = calculateDistance(STORE_LAT, STORE_LNG, coords.lat, coords.lng);
 
     // 캐시에 저장
-    if (customerId) {
-      await supabase.from('customer_address_cache').upsert(
-        {
-          customer_id: customerId,
-          survey_id: surveyId || null,
+        const cacheData: any = {
           address: normalizedAddress,
           latitude: coords.lat,
           longitude: coords.lng,
@@ -201,27 +226,55 @@ async function getCachedOrCalculateDistance(
           geocoding_status: 'success',
           last_verified_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'customer_id,address' },
-      );
-    }
-
-    return { distance, lat: coords.lat, lng: coords.lng, cached: false };
+        };
+        
+        if (customerId) {
+          cacheData.customer_id = customerId;
+        }
+        if (surveyId) {
+          cacheData.survey_id = surveyId;
   }
 
-  // 실패한 경우 캐시에 실패 상태 저장
-  if (customerId) {
-    await supabase.from('customer_address_cache').upsert(
-      {
-        customer_id: customerId,
-        survey_id: surveyId || null,
+        const { error: upsertError } = await supabase.from('customer_address_cache').upsert(cacheData, {
+          onConflict: customerId ? 'customer_id,address' : 'survey_id,address',
+        });
+        
+        if (upsertError) {
+          console.error('[지오코딩] 캐시 저장 오류:', upsertError);
+        } else {
+          console.log(`[지오코딩] 성공 및 저장: ${normalizedAddress.substring(0, 30)}... (거리: ${distance.toFixed(2)}km)`);
+        }
+        
+        return {
+          distance: distance,
+          lat: coords.lat,
+          lng: coords.lng,
+        };
+      } else {
+        // 지오코딩 실패 시 캐시에 실패 상태 저장
+        const cacheData: any = {
         address: normalizedAddress,
         geocoding_status: 'failed',
         geocoding_error: '주소 변환 실패',
         updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'customer_id,address' },
-    );
+        };
+        
+        if (customerId) {
+          cacheData.customer_id = customerId;
+        }
+        if (surveyId) {
+          cacheData.survey_id = surveyId;
+        }
+        
+        await supabase.from('customer_address_cache').upsert(cacheData, {
+          onConflict: customerId ? 'customer_id,address' : 'survey_id,address',
+        });
+        
+        console.warn(`[지오코딩] 실패: ${normalizedAddress.substring(0, 30)}...`);
+      }
+    } catch (error) {
+      console.error('[지오코딩] API 호출 오류:', error);
+    }
   }
 
   return null;
@@ -245,58 +298,40 @@ async function getRecentGiftCount(customerId: number, startDate?: string): Promi
 async function savePrizeRecommendation(
   result: any,
   recommendationDate: string,
-): Promise<void> {
+  recommendationDateTime: string,
+): Promise<boolean> {
   const recommendations: any[] = [];
 
-  // 구매 고객 저장
-  result.purchasedCustomers.forEach((customer: any, index: number) => {
-    recommendations.push({
-      recommendation_date: recommendationDate,
-      survey_id: customer.survey_id || null,
-      customer_id: customer.customer_id || null,
-      name: customer.name,
-      phone: customer.phone,
-      address: customer.address || null,
-      total_score: customer.total_score || 0,
-      category: '구매(2년+)',
-      is_purchased: true,
-      is_over_2_years: true,
-      gift_count: customer.gift_count || 0,
-      visit_count: customer.visit_count || 0, // 시타 방문
-      booking_count: customer.booking_count || 0,
-      survey_quality_score: customer.survey_quality_score || 0,
-      section: 'purchased',
-      rank: index + 1,
+  console.log(`[경품 추천 저장] 시작 - 날짜: ${recommendationDate}`);
+  console.log(`[경품 추천 저장] 구매 고객: ${result.purchasedCustomers?.length || 0}명`);
+  console.log(`[경품 추천 저장] 비구매 고객: ${result.nonPurchasedCustomers?.length || 0}명`);
+  console.log(`[경품 추천 저장] 전체 고객: ${result.allCustomers?.length || 0}명`);
+
+  // 전체 고객만 저장 (purchasedCustomers와 nonPurchasedCustomers는 allCustomers에 포함되어 있으므로 중복 저장 방지)
+  if (!result.allCustomers || result.allCustomers.length === 0) {
+    console.error('[경품 추천 저장] allCustomers가 비어있거나 없습니다.');
+    console.error('[경품 추천 저장] result 객체:', {
+      hasPurchasedCustomers: !!result.purchasedCustomers,
+      purchasedCustomersLength: result.purchasedCustomers?.length || 0,
+      hasNonPurchasedCustomers: !!result.nonPurchasedCustomers,
+      nonPurchasedCustomersLength: result.nonPurchasedCustomers?.length || 0,
+      hasAllCustomers: !!result.allCustomers,
+      allCustomersLength: result.allCustomers?.length || 0,
     });
+    return false;
+  }
+
+  // is_primary=true인 것만 순위 부여 (고유 고객 기준)
+  const primaryCustomers = result.allCustomers.filter((c: any) => c.is_primary === true);
+  primaryCustomers.forEach((customer: any, index: number) => {
+    customer.rank = index + 1;
   });
 
-  // 비구매 고객 저장
-  result.nonPurchasedCustomers.forEach((customer: any, index: number) => {
-    recommendations.push({
-      recommendation_date: recommendationDate,
-      survey_id: customer.survey_id || null,
-      customer_id: customer.customer_id || null,
-      name: customer.name,
-      phone: customer.phone,
-      address: customer.address || null,
-      total_score: customer.total_score || 0,
-      category: '비구매',
-      is_purchased: false,
-      distance_km: customer.distance_km || null,
-      latitude: customer.latitude || null,
-      longitude: customer.longitude || null,
-      geocoding_status: customer.distance_km ? 'success' : 'failed',
-      gift_count: customer.gift_count || 0,
-      survey_quality_score: customer.survey_quality_score || 0,
-      section: 'non_purchased',
-      rank: index + 1,
-    });
-  });
-
-  // 전체 고객 저장
+  // 모든 설문 저장 (중복 포함)
   result.allCustomers.forEach((customer: any, index: number) => {
     recommendations.push({
       recommendation_date: recommendationDate,
+      recommendation_datetime: recommendationDateTime,
       survey_id: customer.survey_id || null,
       customer_id: customer.customer_id || null,
       name: customer.name,
@@ -310,28 +345,76 @@ async function savePrizeRecommendation(
         : '비구매',
       is_purchased: customer.is_purchased || false,
       is_over_2_years: customer.is_over_2_years || false,
-      distance_km: customer.distance_km || null,
+      distance_km: customer.distance_km !== undefined && customer.distance_km !== null
+        ? Number(customer.distance_km.toFixed(2))
+        : null,
+      latitude: customer.latitude !== undefined && customer.latitude !== null
+        ? Number(customer.latitude.toFixed(6))
+        : null,
+      longitude: customer.longitude !== undefined && customer.longitude !== null
+        ? Number(customer.longitude.toFixed(6))
+        : null,
+      geocoding_status: (customer.distance_km !== undefined && customer.distance_km !== null && customer.distance_km > 0)
+        ? 'success'
+        : 'failed',
+      days_since_last_purchase: customer.days_since_last_purchase !== undefined && customer.days_since_last_purchase !== null
+        ? customer.days_since_last_purchase
+        : null,
       gift_count: customer.gift_count || 0,
       visit_count: customer.visit_count || 0, // 시타 방문
       booking_count: customer.booking_count || 0,
       survey_quality_score: customer.survey_quality_score || 0,
+      recent_survey_date: customer.recent_survey_date || customer.created_at || null, // 최근 설문일 추가
+      snapshot_last_purchase_date: customer.last_purchase_date || null,
+      snapshot_first_purchase_date: customer.first_purchase_date || null,
+      snapshot_first_inquiry_date: customer.first_inquiry_date || null,
+      snapshot_last_contact_date: customer.last_contact_date || null,
+      snapshot_created_at: recommendationDateTime,
       section: 'all',
-      rank: index + 1,
+      rank: customer.rank || null, // 고유 고객만 순위 부여
+      is_duplicate: customer.is_duplicate || false, // 중복 여부
+      is_primary: customer.is_primary || false, // 최신 설문 여부
+      duplicate_count: customer.duplicate_count || 1, // 중복 횟수
     });
   });
 
-  // DB에 저장 (같은 날짜의 기존 데이터 삭제 후 저장)
+  // DB에 저장 (같은 날짜에도 중복 생성 가능하도록 삭제하지 않음)
+  console.log(`[경품 추천 저장] 총 저장할 건수: ${recommendations.length}건`);
+  
   if (recommendations.length > 0) {
     try {
-      // 같은 날짜의 기존 데이터 삭제 (중복 방지)
-      await supabase.from('prize_recommendations').delete().eq('recommendation_date', recommendationDate);
+      // 같은 날짜 데이터 삭제하지 않음 (같은 날짜에 여러 번 생성 가능)
+      console.log(`[경품 추천 저장] 새 데이터 저장 시작 - 날짜: ${recommendationDate}, 시간: ${recommendationDateTime}`);
       
       // 새 데이터 저장
-      await supabase.from('prize_recommendations').insert(recommendations);
+      console.log(`[경품 추천 저장] 새 데이터 저장 시작 - ${recommendations.length}건`);
+      const { error: insertError, data: insertedData } = await supabase
+        .from('prize_recommendations')
+        .insert(recommendations)
+        .select();
+      
+      if (insertError) {
+        console.error('[경품 추천 저장] 새 데이터 저장 오류:', insertError);
+        console.error('[경품 추천 저장] 에러 코드:', insertError.code);
+        console.error('[경품 추천 저장] 에러 메시지:', insertError.message);
+        console.error('[경품 추천 저장] 에러 상세:', insertError.details);
+        console.error('[경품 추천 저장] 에러 힌트:', insertError.hint);
+        console.error('[경품 추천 저장] 저장 실패한 데이터 샘플 (첫 번째):', JSON.stringify(recommendations[0], null, 2));
+        console.error('[경품 추천 저장] 저장 실패한 데이터 샘플 (두 번째):', JSON.stringify(recommendations[1] || null, null, 2));
+        console.error('[경품 추천 저장] 저장할 데이터의 필드 목록:', Object.keys(recommendations[0] || {}));
+        throw insertError;
+      }
+      
+      console.log(`[경품 추천 저장] 완료: ${insertedData?.length || recommendations.length}건 저장됨`);
+      console.log(`[경품 추천 저장] 저장된 날짜: ${recommendationDate}`);
+      return true; // 저장 성공
     } catch (error) {
-      console.error('경품 추천 결과 저장 오류:', error);
-      // 저장 실패해도 계속 진행
+      console.error('[경품 추천 저장] 경품 추천 결과 저장 오류:', error);
+      throw error; // 에러를 다시 throw하여 호출자가 처리할 수 있도록
     }
+  } else {
+    console.warn('[경품 추천 저장] 저장할 데이터가 없습니다.');
+    return false; // 저장할 데이터 없음
   }
 }
 
@@ -346,7 +429,8 @@ function calculatePurchasedCustomerScore(customer: any): number {
   const activityScore =
     daysSinceActivity <= 30 ? 10 : daysSinceActivity <= 90 ? 5 : daysSinceActivity <= 180 ? 2 : 0;
 
-  return giftCount * 3 + visitCount * 2 + bookingCount * 2 + surveyQuality * 1 + activityScore;
+  // 소수점 2자리로 반올림하여 비구매 고객과 형식 통일
+  return Math.round((giftCount * 3 + visitCount * 2 + bookingCount * 2 + surveyQuality * 1 + activityScore) * 100) / 100;
 }
 
 // 비구매 고객 점수 계산 (거리 포함)
@@ -360,7 +444,8 @@ function calculateNonPurchasedCustomerScore(customer: any, distance: number | nu
   // 거리 점수 (가까울수록 높은 점수, 최대 50점)
   const distanceScore = distance && distance > 0 ? Math.min((100 / distance) * 5, 50) : 0;
 
-  return distanceScore + surveyQuality * 2 + activityScore;
+  // 소수점 2자리로 반올림
+  return Math.round((distanceScore + surveyQuality * 2 + activityScore) * 100) / 100;
 }
 
 // HTML 형식으로 A4 최적화 리포트 생성
@@ -854,10 +939,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             id,
             first_inquiry_date,
             last_contact_date,
+            last_purchase_date,
+            first_purchase_date,
             visit_count
           )
         `,
         )
+        .eq('is_active', true) // 활성 설문만
         .gte('created_at', new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000).toISOString())
         .limit(100);
 
@@ -905,12 +993,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               days_since_last_activity: daysSinceActivity,
             });
 
+            // 구매 고객도 거리 정보 가져오기
+            // 주소 결정: 설문 주소 → 고객 주소 (fallback)
+            let addressToUse = survey.address;
+            if (!addressToUse || !isGeocodableAddress(addressToUse)) {
+              if (customer?.address && isGeocodableAddress(customer.address)) {
+                addressToUse = customer.address;
+              } else {
+                addressToUse = null;
+              }
+            }
+            const normalizedAddress = normalizeAddress(addressToUse);
+            let distance_km = null;
+            let latitude = null;
+            let longitude = null;
+            if (normalizedAddress && isGeocodableAddress(normalizedAddress)) {
+              const cachedResult = await getCachedOrCalculateDistance(
+                normalizedAddress,
+                customer.id,
+                String(survey.id),
+                survey.phone,
+              );
+              if (cachedResult) {
+                distance_km = cachedResult.distance;
+                latitude = cachedResult.lat;
+                longitude = cachedResult.lng;
+              }
+            }
+
+            // 구매 후 경과 일수 계산
+            const daysSinceLastPurchase = customer.last_purchase_date
+              ? Math.floor(
+                  (Date.now() - new Date(customer.last_purchase_date).getTime()) / (1000 * 60 * 60 * 24),
+                )
+              : null;
+
             return {
               survey_id: survey.id,
               customer_id: customer.id || null,
               name: survey.name,
               phone: survey.phone,
-              address: survey.address,
+              address: normalizedAddress,
               selected_model: survey.selected_model,
               important_factors: survey.important_factors,
               gift_count: giftCount,
@@ -921,6 +1044,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               total_score: score,
               first_inquiry_date: customer.first_inquiry_date,
               last_contact_date: customer.last_contact_date,
+              last_purchase_date: customer.last_purchase_date, // 원본 날짜 추가
+              first_purchase_date: customer.first_purchase_date, // 원본 날짜 추가
+              distance_km: distance_km,
+              latitude: latitude,
+              longitude: longitude,
+              days_since_last_purchase: daysSinceLastPurchase,
+              recent_survey_date: survey.created_at, // 최근 설문일 추가
             };
           }),
         );
@@ -954,6 +1084,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         )
       `,
       )
+      .eq('is_active', true) // 활성 설문만
       .not('address', 'is', null)
       .neq('address', '')
       .limit(100);
@@ -987,8 +1118,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               (Date.now() - new Date(survey.created_at).getTime()) / (1000 * 60 * 60 * 24),
             );
 
+            // 주소 결정: 설문 주소 → 고객 주소 (fallback)
+            let addressToUse = survey.address;
+            if (!addressToUse || !isGeocodableAddress(addressToUse)) {
+              if (customer?.address && isGeocodableAddress(customer.address)) {
+                addressToUse = customer.address;
+              } else {
+                // 둘 다 없거나 플레이스홀더면 null 반환
+                return null;
+              }
+            }
+
             // 주소 정규화
-            const normalizedAddress = normalizeAddress(survey.address);
+            const normalizedAddress = normalizeAddress(addressToUse);
             
             // 정규화된 주소가 유효하지 않으면 null 반환
             if (!normalizedAddress || !isGeocodableAddress(normalizedAddress)) {
@@ -1025,7 +1167,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               },
               distance,
             );
-            const score = baseScore + (giftCount * 5); // 선물 받은 고객 가중치
+            // 선물 받은 고객 가중치 추가, 소수점 2자리로 반올림하여 형식 통일
+            const score = Math.round((baseScore + (giftCount * 5)) * 100) / 100;
 
             return {
               survey_id: survey.id,
@@ -1043,6 +1186,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               gift_count: giftCount, // 선물 횟수 추가
               total_score: score,
               first_inquiry_date: customer.first_inquiry_date,
+              recent_survey_date: survey.created_at, // 최근 설문일 추가
             };
           }),
       );
@@ -1055,31 +1199,82 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const topNonPurchasedCustomers = nonPurchasedCustomersData.slice(0, 10);
 
     // 3. 전체 고객 점수 계산 (중복 제거 및 주소 포함)
+    // 활성 설문만 조회 (is_active = true)
     const { data: allSurveys } = await supabase
       .from('surveys')
       .select('*')
+      .eq('is_active', true) // 활성 설문만
       .order('created_at', { ascending: false });
       // 제한 제거 - 모든 설문 조회
 
     const allCustomersData: any[] = [];
-    const processedPhones = new Set<string>(); // 중복 제거용
+    const processedPhones = new Map<string, { count: number; latestSurveyId: string }>(); // 중복 추적용
+    const skippedSurveys: any[] = []; // 건너뛴 설문 추적
 
     if (allSurveys) {
+      // 먼저 전화번호별로 그룹화하여 중복 정보 수집
+      const phoneGroups = new Map<string, any[]>();
+      allSurveys.forEach((survey: any) => {
+        if (survey.phone && survey.phone.trim() !== '') {
+          const normalizedPhone = survey.phone.replace(/[^0-9]/g, '');
+          if (!phoneGroups.has(normalizedPhone)) {
+            phoneGroups.set(normalizedPhone, []);
+          }
+          phoneGroups.get(normalizedPhone)!.push(survey);
+        }
+      });
+
+      // 전화번호별로 최신 설문 찾기
+      phoneGroups.forEach((surveys, phone) => {
+        surveys.sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        processedPhones.set(phone, {
+          count: surveys.length,
+          latestSurveyId: surveys[0].id,
+        });
+      });
+
+      let processedCount = 0;
+      let geocodingCount = 0;
+      let geocodingSuccessCount = 0;
+      let geocodingFailedCount = 0;
+      let noAddressCount = 0; // 주소가 없거나 플레이스홀더인 항목 수
+      
       for (const survey of allSurveys) {
-        // 전화번호로 중복 제거 (같은 전화번호는 가장 최근 설문만 사용)
-        if (processedPhones.has(survey.phone)) {
+        processedCount++;
+        // 전화번호가 없거나 빈 문자열인 경우 건너뛰기
+        if (!survey.phone || survey.phone.trim() === '') {
+          skippedSurveys.push({ reason: 'no_phone', survey });
           continue;
         }
-        processedPhones.add(survey.phone);
-
-        // 주소 정규화
-        const normalizedAddress = normalizeAddress(survey.address);
+        
+        const normalizedPhone = survey.phone.replace(/[^0-9]/g, '');
+        const phoneInfo = processedPhones.get(normalizedPhone);
+        const isPrimary = phoneInfo?.latestSurveyId === survey.id;
+        const duplicateCount = phoneInfo?.count || 1;
 
         const { data: customer } = await supabase
           .from('customers')
           .select('*')
           .eq('phone', survey.phone)
           .maybeSingle();
+
+        // 주소 결정: 설문 주소 → 고객 주소 (fallback)
+        let addressToUse = survey.address;
+        
+        // 설문 주소가 플레이스홀더이거나 지오코딩 불가능하면 고객 주소 확인
+        if (!addressToUse || !isGeocodableAddress(addressToUse)) {
+          if (customer?.address && isGeocodableAddress(customer.address)) {
+            addressToUse = customer.address;
+          } else {
+            // 둘 다 없거나 플레이스홀더면 null
+            addressToUse = null;
+          }
+        }
+        
+        // 주소 정규화
+        const normalizedAddress = normalizeAddress(addressToUse);
 
         // 예약 기록 확인
         let hasBooking = false;
@@ -1091,25 +1286,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           hasBooking = (bookingCount || 0) > 0;
         }
 
-        const isPurchased =
+        const isPurchased = !!(
           customer &&
-          ((customer.visit_count && customer.visit_count > 0) || hasBooking);
+          (
+            (customer.last_purchase_date) ||  // 마지막 구매일이 있으면 구매
+            (customer.first_purchase_date) || // 최초 구매일이 있으면 구매
+            ((customer.visit_count && customer.visit_count > 0) || hasBooking) // 기존 로직도 유지
+          )
+        );
 
-        const isOver2Years =
+        const isOver2Years = !!(
           (customer?.first_inquiry_date &&
             new Date(customer.first_inquiry_date) <=
               new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000)) ||
           (survey.created_at &&
-            new Date(survey.created_at) <= new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000));
+            new Date(survey.created_at) <= new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000))
+        );
 
         let score = 0;
         let distance_km: number | null = null;
+        let latitude: number | null = null;
+        let longitude: number | null = null;
         let gift_count = 0;
         let visit_count = 0;
         let booking_count = 0;
 
-        if (isPurchased && isOver2Years) {
-          // 구매 고객 점수
+        if (isPurchased) {
+          // 구매 고객 점수 (2년 이상 여부와 관계없이 모든 구매 고객 점수 계산)
           gift_count = customer.id ? await getRecentGiftCount(customer.id) : 0;
 
           const { count: bookingCount } = await supabase
@@ -1132,8 +1335,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 )
               : 999,
           });
+          
+          // 구매 고객도 거리 정보 가져오기
+          if (normalizedAddress && isGeocodableAddress(normalizedAddress)) {
+            geocodingCount++;
+            console.log(`[경품 추천 생성] 지오코딩 시도 ${geocodingCount}/${allSurveys.length}: ${survey.name} (${survey.phone}) - ${normalizedAddress.substring(0, 30)}...`);
+            const cachedResult = await getCachedOrCalculateDistance(
+              normalizedAddress,
+              customer.id,
+              String(survey.id),
+              survey.phone,
+            );
+            if (cachedResult) {
+              geocodingSuccessCount++;
+              console.log(`[경품 추천 생성] 지오코딩 성공 ${geocodingSuccessCount}: ${survey.name} - 거리: ${cachedResult.distance.toFixed(2)}km`);
+              distance_km = cachedResult.distance;
+              latitude = cachedResult.lat;
+              longitude = cachedResult.lng;
+            } else {
+              geocodingFailedCount++;
+              console.warn(`[경품 추천 생성] 지오코딩 실패 ${geocodingFailedCount}: ${survey.name} - 주소: ${normalizedAddress.substring(0, 30)}...`);
+            }
+          } else {
+            // 주소가 없거나 플레이스홀더인 경우
+            noAddressCount++;
+            console.log(`[경품 추천 생성] 주소 없음 ${noAddressCount}: ${survey.name} (${survey.phone}) - 설문주소: ${survey.address || '없음'}, 고객주소: ${customer?.address || '없음'}`);
+          }
         } else if (!isPurchased && normalizedAddress && isGeocodableAddress(normalizedAddress)) {
           // 비구매 고객 점수 (거리 계산, 캐싱 사용)
+          geocodingCount++;
+          console.log(`[경품 추천 생성] 지오코딩 시도 ${geocodingCount}/${allSurveys.length}: ${survey.name} (${survey.phone}) - ${normalizedAddress.substring(0, 30)}...`);
           const cachedResult = await getCachedOrCalculateDistance(
             normalizedAddress,
             customer?.id,
@@ -1141,7 +1372,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             survey.phone,
           );
           if (cachedResult) {
+            geocodingSuccessCount++;
+            console.log(`[경품 추천 생성] 지오코딩 성공 ${geocodingSuccessCount}: ${survey.name} - 거리: ${cachedResult.distance.toFixed(2)}km`);
             distance_km = cachedResult.distance;
+            latitude = cachedResult.lat;
+            longitude = cachedResult.lng;
+          } else {
+            geocodingFailedCount++;
+            console.warn(`[경품 추천 생성] 지오코딩 실패 ${geocodingFailedCount}: ${survey.name} - 주소: ${normalizedAddress.substring(0, 30)}...`);
           }
 
           // 최근 선물 받은 횟수 확인 (선물 받은 고객도 포함)
@@ -1160,9 +1398,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             distance_km,
           );
           // 선물 받은 고객은 점수에 가중치 추가 (선물 1회당 +5점)
-          score = baseScore + gift_count * 5;
+          // 소수점 2자리로 반올림하여 형식 통일
+          score = Math.round((baseScore + gift_count * 5) * 100) / 100;
         } else if (!isPurchased && (!normalizedAddress || !isGeocodableAddress(normalizedAddress))) {
           // 주소가 없거나 플레이스홀더인 비구매 고객 (거리 점수 없음)
+          noAddressCount++;
+          console.log(`[경품 추천 생성] 주소 없음 ${noAddressCount}: ${survey.name} (${survey.phone}) - 설문주소: ${survey.address || '없음'}, 고객주소: ${customer?.address || '없음'}`);
+          
           // 최근 선물 받은 횟수 확인 (선물 받은 고객도 포함)
           if (customer && customer.id) {
             gift_count = await getRecentGiftCount(customer.id);
@@ -1179,28 +1421,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             null,
           );
           // 선물 받은 고객은 점수에 가중치 추가 (선물 1회당 +5점)
-          score = baseScore + gift_count * 5;
+          // 소수점 2자리로 반올림하여 형식 통일
+          score = Math.round((baseScore + gift_count * 5) * 100) / 100;
         }
+
+        // 최종 구매 후 경과 일수 계산 (구매 고객만)
+        const daysSinceLastPurchase = isPurchased && customer?.last_purchase_date
+          ? Math.floor(
+              (Date.now() - new Date(customer.last_purchase_date).getTime()) / (1000 * 60 * 60 * 24),
+            )
+          : null;
 
         allCustomersData.push({
           survey_id: survey.id,
           customer_id: customer?.id || null,
           name: survey.name,
           phone: survey.phone,
-          address: normalizedAddress, // 정규화된 주소 저장
+          address: normalizedAddress || null, // 정규화된 주소 저장 (fallback 적용된 주소)
           selected_model: survey.selected_model,
           important_factors: survey.important_factors,
           is_purchased: isPurchased,
           is_over_2_years: isOver2Years,
           total_score: score,
-          distance_km: distance_km, // 거리 저장
+          distance_km: distance_km, // 거리 저장 (구매/비구매 모두)
+          latitude: latitude || null, // 위도 저장
+          longitude: longitude || null, // 경도 저장
           gift_count: gift_count, // 선물 횟수 저장
           visit_count: visit_count, // 시타 방문 횟수 저장
           booking_count: booking_count, // 예약 횟수 저장
           survey_quality_score:
             (survey.important_factors?.length || 0) + (survey.additional_feedback ? 1 : 0),
+          days_since_last_purchase: daysSinceLastPurchase, // 구매 고객만 값 있음
+          recent_survey_date: survey.created_at, // 최근 설문일 추가
+          last_purchase_date: customer?.last_purchase_date || null, // 원본 날짜 추가
+          first_purchase_date: customer?.first_purchase_date || null, // 원본 날짜 추가
+          first_inquiry_date: customer?.first_inquiry_date || null, // 원본 날짜 추가
+          last_contact_date: customer?.last_contact_date || null, // 원본 날짜 추가
+          is_duplicate: !isPrimary, // 중복 여부
+          is_primary: isPrimary, // 최신 설문 여부
+          duplicate_count: duplicateCount, // 중복 횟수
         });
       }
+      
+      console.log(`[경품 추천 생성] 전체 처리 완료: 총 ${processedCount}개 설문 처리`);
+      console.log(`[경품 추천 생성] 지오코딩 통계: 시도 ${geocodingCount}개, 성공 ${geocodingSuccessCount}개, 실패 ${geocodingFailedCount}개, 주소 없음 ${noAddressCount}개`);
+      console.log(`[경품 추천 생성] 지오코딩 완료율: ${geocodingCount > 0 ? ((geocodingSuccessCount / geocodingCount) * 100).toFixed(1) : 0}% (${geocodingSuccessCount}/${geocodingCount})`);
     }
 
     // 전체 고객 점수 순으로 정렬 (점수 → 거리 → 이름)
@@ -1232,23 +1497,152 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log(`[경품 추천] 중복 제거 후 고객 수: ${allCustomersData.length}`);
     console.log(`[경품 추천] 거리 정보 있는 고객: ${allCustomersData.filter(c => c.distance_km !== null).length}`);
     console.log(`[경품 추천] 주소 없는 고객: ${allCustomersData.filter(c => !c.address || !isGeocodableAddress(c.address)).length}`);
+    
+    // 누락된 고객 확인
+    console.log(`[경품 추천] 건너뛴 설문 수: ${skippedSurveys.length}`);
+    const noPhoneSurveys = skippedSurveys.filter(s => s.reason === 'no_phone');
+    const duplicatePhoneSurveys = skippedSurveys.filter(s => s.reason === 'duplicate_phone');
+    console.log(`[경품 추천] 전화번호 없는 설문: ${noPhoneSurveys.length}개`);
+    console.log(`[경품 추천] 중복 전화번호 설문: ${duplicatePhoneSurveys.length}개`);
+    
+    if (noPhoneSurveys.length > 0) {
+      console.log(`[경품 추천] 전화번호 없는 설문 목록:`, noPhoneSurveys.map(s => ({
+        id: s.survey.id,
+        name: s.survey.name,
+        phone: s.survey.phone,
+        address: s.survey.address,
+        created_at: s.survey.created_at
+      })));
+    }
+    
+    if (duplicatePhoneSurveys.length > 0) {
+      console.log(`[경품 추천] 중복 전화번호 설문 목록 (최근 설문 제외):`, duplicatePhoneSurveys.map(s => ({
+        id: s.survey.id,
+        name: s.survey.name,
+        phone: s.survey.phone,
+        address: s.survey.address,
+        created_at: s.survey.created_at
+      })));
+    }
+    
+    // 누락된 고객 정보 수집 (result 생성 전에)
+    const allSurveyPhones = new Set(allSurveys?.map((s: any) => s.phone).filter(Boolean) || []);
+    const includedPhones = new Set(allCustomersData.map((c: any) => c.phone).filter(Boolean));
+    const missingPhones = Array.from(allSurveyPhones).filter((phone: string) => !includedPhones.has(phone));
+    const missingSurveys = allSurveys?.filter((s: any) => missingPhones.includes(s.phone)) || [];
+    const missingCustomers = missingSurveys.map((s: any) => ({
+      id: s.id,
+      name: s.name,
+      phone: s.phone,
+      address: s.address,
+      created_at: s.created_at,
+      reason: skippedSurveys.find(sk => sk.survey.id === s.id)?.reason || 'unknown'
+    }));
+    
+    // 전화번호가 없는 설문 확인
+    const surveysWithoutPhone = allSurveys?.filter((s: any) => !s.phone || s.phone.trim() === '') || [];
+    if (surveysWithoutPhone.length > 0) {
+      console.log(`[경품 추천] 전화번호가 없는 설문 수: ${surveysWithoutPhone.length}`);
+      console.log(`[경품 추천] 전화번호가 없는 설문 정보:`, surveysWithoutPhone.map((s: any) => ({
+        id: s.id,
+        name: s.name,
+        phone: s.phone,
+        address: s.address,
+        created_at: s.created_at
+      })));
+    }
+
+    // 고유 고객 수 계산 (is_primary=true인 것만)
+    const uniqueCustomers = allCustomersData.filter(c => c.is_primary === true);
+    const duplicateSurveys = allCustomersData.filter(c => c.is_duplicate === true);
 
     const result = {
       purchasedCustomers: topPurchasedCustomers,
       nonPurchasedCustomers: topNonPurchasedCustomers,
-      allCustomers: allCustomersData,
+      allCustomers: allCustomersData, // 모든 설문 포함 (99개)
       summary: {
         totalPurchased: topPurchasedCustomers.length,
         totalNonPurchased: topNonPurchasedCustomers.length,
-        totalAll: allCustomersData.length,
+        totalAll: allCustomersData.length, // 전체 설문 수 (99개)
+        uniqueCustomers: uniqueCustomers.length, // 고유 고객 수 (92명)
+        duplicateSurveys: duplicateSurveys.length, // 중복 설문 수 (7개)
+      },
+      missingCustomers: missingCustomers, // 누락된 고객 정보
+      debug: {
+        totalSurveys: allSurveys?.length || 0,
+        totalUniquePhones: allSurveyPhones.size,
+        includedPhones: includedPhones.size,
+        missingCount: missingPhones.length,
+        skippedCount: skippedSurveys.length,
+        noPhoneCount: skippedSurveys.filter(s => s.reason === 'no_phone').length,
+        duplicateCount: duplicateSurveys.length, // 중복 설문 수
       },
     };
 
-    // 경품 추천 결과를 DB에 저장 (비동기로 실행, 에러는 무시)
-    const recommendationDate = new Date().toISOString().split('T')[0];
-    savePrizeRecommendation(result, recommendationDate).catch((error) => {
-      console.error('경품 추천 결과 저장 실패:', error);
-    });
+    // 경품 추천 결과를 DB에 저장
+    // 한국 시간대 기준으로 날짜/시간 생성
+    const now = new Date();
+    // 한국 시간대 (UTC+9)로 변환하여 날짜/시간 문자열 생성
+    const koreaTimeOffset = 9 * 60 * 60 * 1000; // 9시간을 밀리초로 변환
+    const utcTime = now.getTime() + (now.getTimezoneOffset() * 60 * 1000); // UTC 시간
+    const koreaTime = new Date(utcTime + koreaTimeOffset);
+    
+    // 한국 시간 기준으로 날짜 생성 (YYYY-MM-DD)
+    const year = koreaTime.getFullYear();
+    const month = String(koreaTime.getMonth() + 1).padStart(2, '0');
+    const day = String(koreaTime.getDate()).padStart(2, '0');
+    const recommendationDate = `${year}-${month}-${day}`;
+    
+    // 한국 시간 기준으로 날짜시간 생성 (ISO 형식이지만 한국 시간대 정보 포함)
+    // toISOString()은 UTC를 반환하므로, 한국 시간을 UTC로 변환한 값을 저장
+    // 프론트엔드에서 timeZone: 'Asia/Seoul'로 변환하면 올바른 시간이 표시됨
+    const recommendationDateTime = koreaTime.toISOString();
+    let saveSuccess = false;
+    let saveError: any = null;
+    try {
+      saveSuccess = await savePrizeRecommendation(result, recommendationDate, recommendationDateTime);
+      if (saveSuccess) {
+        console.log('[경품 추천] 저장 완료 - 날짜:', recommendationDate);
+        
+        // 저장 확인 (약간의 지연 후 DB에서 확인)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+          const { count, error: checkError } = await supabase
+            .from('prize_recommendations')
+            .select('*', { count: 'exact', head: true })
+            .eq('recommendation_date', recommendationDate);
+          
+          if (checkError) {
+            console.error('[경품 추천] 저장 확인 중 오류:', checkError);
+          } else if (count === 0) {
+            console.warn(`[경품 추천] 저장 확인 실패 - 날짜: ${recommendationDate}, 저장된 건수: ${count}`);
+            saveSuccess = false;
+            saveError = { message: '데이터가 저장되었지만 확인할 수 없습니다.' };
+          } else {
+            console.log(`[경품 추천] 저장 확인 성공 - 날짜: ${recommendationDate}, 저장된 건수: ${count}`);
+          }
+        } catch (checkError: any) {
+          console.error('[경품 추천] 저장 확인 중 오류:', checkError);
+          // 확인 실패해도 계속 진행
+        }
+      } else {
+        console.warn('[경품 추천] 저장할 데이터가 없음 - 날짜:', recommendationDate);
+        saveError = { message: '저장할 데이터가 없습니다.' };
+      }
+    } catch (error: any) {
+      console.error('[경품 추천] 저장 실패:', error);
+      console.error('[경품 추천] 저장 실패 상세:', error?.message || error);
+      console.error('[경품 추천] 저장 실패 스택:', error?.stack);
+      saveSuccess = false;
+      saveError = {
+        message: error?.message || '알 수 없는 오류가 발생했습니다.',
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+      };
+      // 저장 실패해도 응답은 반환 (이미 생성은 완료되었으므로)
+      // 하지만 사용자에게 알려야 함
+    }
 
     // HTML 형식으로 응답 (A4 최적화)
     if (format === 'html') {
@@ -1275,6 +1669,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // JSON 형식으로 응답 (기본)
     return res.status(200).json({
       success: true,
+      recommendationDate: recommendationDate,
+      saveSuccess: saveSuccess, // 저장 성공 여부
+      saveError: saveError, // 저장 에러 정보 (있는 경우)
       data: result,
     });
   } catch (error: any) {

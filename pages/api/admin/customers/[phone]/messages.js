@@ -53,11 +53,12 @@ export default async function handler(req, res) {
 
     // 2. channel_sms에서 직접 조회 (예약 관련 메시지 포함)
     // recipient_numbers 배열에 해당 전화번호가 포함된 레코드 조회
+    // 배열 필드 검색은 Supabase에서 직접 지원하지 않으므로 모든 레코드를 가져온 후 필터링
     const { data: channelSmsRecords, error: channelSmsError } = await supabase
       .from('channel_sms')
-      .select('id, message_text, message_type, status, note, solapi_group_id, sent_at, scheduled_at, success_count, fail_count, image_url, created_at, recipient_numbers, metadata')
+      .select('id, message_text, message_type, status, note, solapi_group_id, sent_at, scheduled_at, success_count, fail_count, image_url, created_at, recipient_numbers, metadata, message_category, message_subcategory')
       .order('created_at', { ascending: false })
-      .limit(limit * 2); // 충분히 가져온 후 필터링
+      .limit(limit * 10); // 충분히 가져온 후 필터링 (중복 제거를 위해 더 많이 가져옴)
 
     if (channelSmsError) {
       console.error('channel_sms 조회 오류:', channelSmsError);
@@ -92,7 +93,7 @@ export default async function handler(req, res) {
       const { data: smsDetails, error: smsError } = await supabase
         .from('channel_sms')
         .select(
-          'id, message_text, message_type, status, note, solapi_group_id, sent_at, success_count, fail_count, image_url, created_at, metadata'
+          'id, message_text, message_type, status, note, solapi_group_id, sent_at, success_count, fail_count, image_url, created_at, metadata, message_category, message_subcategory'
         )
         .in('id', messageIds);
 
@@ -148,10 +149,65 @@ export default async function handler(req, res) {
           isBookingMessage: isBookingMessage,
           bookingId: (metadata && metadata.booking_id) || null,
           notificationType: (metadata && metadata.notification_type) || null,
+          messageCategory: detail.message_category || null, // ⭐ 추가
+          messageSubcategory: detail.message_subcategory || null, // ⭐ 추가
         };
       } else {
         // detail이 null인 경우 (channel_sms에 없는 메시지)
-        // message_logs만 있는 경우는 일반적으로 홍보 메시지
+        // 같은 시간대에 channel_sms에 있는 메시지를 찾아서 매칭 시도
+        let matchedMessage = null;
+        if (log.sent_at) {
+          const logTime = new Date(log.sent_at).getTime();
+          matchedMessage = filteredChannelSms.find(record => {
+            const recordTime = new Date(record.sent_at || record.created_at || 0).getTime();
+            // 1분 이내의 메시지 찾기
+            return Math.abs(logTime - recordTime) < 60 * 1000;
+          });
+        }
+        
+        // 매칭된 메시지가 있으면 그 정보 사용
+        if (matchedMessage) {
+          let metadata = matchedMessage.metadata;
+          if (typeof metadata === 'string') {
+            try {
+              metadata = JSON.parse(metadata);
+            } catch (e) {
+              metadata = null;
+            }
+          }
+          
+          const isBookingMessage = !!(
+            (metadata && metadata.booking_id) ||
+            matchedMessage.note?.includes('예약') ||
+            matchedMessage.note?.includes('시타') ||
+            matchedMessage.message_text?.includes('예약') ||
+            matchedMessage.message_text?.includes('시타') ||
+            matchedMessage.note?.includes('스탭진 알림')
+          );
+          
+          return {
+            logId: log.id,
+            messageId: matchedMessage.id,
+            messageText: matchedMessage.message_text || null,
+            messageType: matchedMessage.message_type || log.message_type || null,
+            sentAt: log.sent_at || matchedMessage.sent_at || null,
+            createdAt: matchedMessage.created_at || null,
+            sendStatus: log.status || null,
+            messageStatus: matchedMessage.status || null,
+            note: matchedMessage.note || null,
+            solapiGroupId: matchedMessage.solapi_group_id || null,
+            successCount: matchedMessage.success_count !== undefined ? matchedMessage.success_count : null,
+            failCount: matchedMessage.fail_count !== undefined ? matchedMessage.fail_count : null,
+            imageUrl: matchedMessage.image_url || null,
+            isBookingMessage: isBookingMessage,
+            bookingId: (metadata && metadata.booking_id) || null,
+            notificationType: (metadata && metadata.notification_type) || null,
+            messageCategory: matchedMessage.message_category || null,
+            messageSubcategory: matchedMessage.message_subcategory || null,
+          };
+        }
+        
+        // 매칭되지 않은 경우 (message_logs만 있는 메시지)
         return {
           logId: log.id,
           messageId: Number.isNaN(contentIdNumber) ? null : contentIdNumber,
@@ -169,6 +225,8 @@ export default async function handler(req, res) {
           isBookingMessage: false, // detail이 없으면 홍보 메시지로 간주
           bookingId: null,
           notificationType: null,
+          messageCategory: null,
+          messageSubcategory: null,
         };
       }
     });
@@ -217,11 +275,80 @@ export default async function handler(req, res) {
           isBookingMessage: isBookingMessage,
           bookingId: (metadata && metadata.booking_id) || null,
           notificationType: (metadata && metadata.notification_type) || null,
+          messageCategory: record.message_category || null,
+          messageSubcategory: record.message_subcategory || null,
         };
       });
 
-    // 6. 두 결과 병합 및 정렬
-    const allMessages = [...messagesFromLogs, ...messagesFromChannelSms]
+    // 6. 두 결과 병합 및 중복 제거
+    // messageId를 우선 기준으로 중복 제거 (같은 메시지가 여러 번 나타나는 것 방지)
+    const messageMap = new Map();
+    
+    [...messagesFromLogs, ...messagesFromChannelSms].forEach(msg => {
+      // messageId가 있으면 그것을 키로 사용 (가장 정확)
+      // 없으면 solapiGroupId + sentAt 조합 사용
+      // 그것도 없으면 logId + sentAt 사용
+      let key;
+      if (msg.messageId) {
+        key = `id_${msg.messageId}`;
+      } else if (msg.solapiGroupId && msg.sentAt) {
+        // 그룹 ID와 발송 시간으로 중복 판단 (같은 그룹, 같은 시간 = 같은 메시지)
+        const groupId = msg.solapiGroupId.split(',')[0].trim(); // 여러 그룹 ID 중 첫 번째만 사용
+        const sentAtStr = new Date(msg.sentAt).toISOString().substring(0, 16); // 분 단위까지
+        key = `group_${groupId}_${sentAtStr}`;
+      } else if (msg.logId && msg.sentAt) {
+        const sentAtStr = new Date(msg.sentAt).toISOString().substring(0, 16);
+        key = `log_${msg.logId}_${sentAtStr}`;
+      } else {
+        // 키를 만들 수 없으면 건너뜀
+        return;
+      }
+      
+      // 이미 존재하는 메시지와 비교
+      const existing = messageMap.get(key);
+      if (!existing) {
+        // 새 메시지 추가
+        messageMap.set(key, msg);
+      } else {
+        // 기존 메시지와 병합 (더 많은 정보가 있는 것으로 선택)
+        // messageId가 있는 것이 우선
+        if (!existing.messageId && msg.messageId) {
+          messageMap.set(key, { ...existing, ...msg });
+        } else if (existing.messageId && !msg.messageId) {
+          // 기존 것이 더 나음, 유지
+        } else if (existing.messageId && msg.messageId && existing.messageId !== msg.messageId) {
+          // 둘 다 messageId가 있지만 다른 경우, 더 최근 것으로 선택
+          const existingDate = new Date(existing.sentAt || existing.createdAt || 0).getTime();
+          const msgDate = new Date(msg.sentAt || msg.createdAt || 0).getTime();
+          if (msgDate > existingDate) {
+            messageMap.set(key, msg);
+          }
+        } else {
+          // messageText가 있는 것이 우선
+          if (!existing.messageText && msg.messageText) {
+            // 새 메시지에 내용이 있으면 교체
+            messageMap.set(key, { ...existing, ...msg });
+          } else if (existing.messageText && !msg.messageText) {
+            // 기존 것이 더 나음, 유지
+          } else if (existing.messageText && msg.messageText) {
+            // 둘 다 있으면 더 긴 내용을 가진 것으로 선택
+            if (msg.messageText.length > existing.messageText.length) {
+              messageMap.set(key, { ...existing, ...msg });
+            }
+          } else {
+            // 둘 다 없으면 더 최근 것으로 선택
+            const existingDate = new Date(existing.sentAt || existing.createdAt || 0).getTime();
+            const msgDate = new Date(msg.sentAt || msg.createdAt || 0).getTime();
+            if (msgDate > existingDate) {
+              messageMap.set(key, msg);
+            }
+          }
+        }
+      }
+    });
+    
+    // 7. 정렬 및 페이지네이션
+    const allMessages = Array.from(messageMap.values())
       .sort((a, b) => {
         const dateA = new Date(a.sentAt || a.createdAt || 0).getTime();
         const dateB = new Date(b.sentAt || b.createdAt || 0).getTime();

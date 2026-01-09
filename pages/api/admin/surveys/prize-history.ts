@@ -353,31 +353,121 @@ function generateHTMLReportFromHistory(data: any[], recommendationDate: string):
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // DELETE 메서드: 특정 날짜의 경품 추천 데이터 삭제
-  if (req.method === 'DELETE') {
+  // PATCH 메서드: 경품 추천 이름 업데이트
+  if (req.method === 'PATCH') {
     try {
-      const { date } = req.query;
+      const { date, recommendation_datetime, recommendation_name } = req.body;
 
       if (!date) {
         return res.status(400).json({ success: false, message: '날짜(date) 파라미터가 필요합니다.' });
       }
 
-      // 특정 날짜의 모든 경품 추천 데이터 삭제
-      const { error, count } = await supabase
+      if (!recommendation_name || recommendation_name.trim() === '') {
+        return res.status(400).json({ success: false, message: '이름(recommendation_name)이 필요합니다.' });
+      }
+
+      // 업데이트할 레코드 필터링
+      let query = supabase
         .from('prize_recommendations')
-        .delete()
-        .eq('recommendation_date', date)
-        .select('*', { count: 'exact', head: true });
+        .update({ recommendation_name: recommendation_name.trim() })
+        .eq('recommendation_date', date);
+
+      // recommendation_datetime이 있으면 특정 시간의 추천만 업데이트
+      if (recommendation_datetime) {
+        query = query.eq('recommendation_datetime', recommendation_datetime);
+      }
+
+      const { error, count } = await query;
 
       if (error) {
-        console.error('경품 추천 데이터 삭제 오류:', error);
-        return res.status(500).json({ success: false, message: '데이터 삭제에 실패했습니다.' });
+        console.error('[이름 업데이트] 경품 추천 이름 업데이트 오류:', error);
+        return res.status(500).json({ success: false, message: '이름 업데이트에 실패했습니다.' });
       }
 
       return res.status(200).json({
         success: true,
-        message: `${date} 날짜의 경품 추천 데이터 ${count || 0}건이 삭제되었습니다.`,
-        deletedCount: count || 0,
+        message: `경품 추천 이름이 "${recommendation_name.trim()}"로 업데이트되었습니다.`,
+        updatedCount: count || 0,
+      });
+    } catch (error: any) {
+      console.error('경품 추천 이름 업데이트 오류:', error);
+      return res.status(500).json({ success: false, message: error.message || '이름 업데이트 중 오류가 발생했습니다.' });
+    }
+  }
+
+  // DELETE 메서드: 특정 날짜의 경품 추천 데이터 삭제
+  if (req.method === 'DELETE') {
+    try {
+      const { date, recommendation_datetime } = req.query;
+
+      if (!date) {
+        return res.status(400).json({ success: false, message: '날짜(date) 파라미터가 필요합니다.' });
+      }
+
+      // 삭제 전 개수 확인
+      let countQuery = supabase
+        .from('prize_recommendations')
+        .select('*', { count: 'exact', head: true })
+        .eq('recommendation_date', date);
+      
+      if (recommendation_datetime) {
+        countQuery = countQuery.eq('recommendation_datetime', decodeURIComponent(recommendation_datetime as string));
+      }
+      
+      const { count: beforeCount } = await countQuery;
+      
+      console.log(`[삭제] 삭제 전 개수 확인: ${beforeCount || 0}건 (날짜: ${date}, 시간: ${recommendation_datetime || '전체'})`);
+
+      // prize_selections도 함께 삭제 (먼저 삭제)
+      let deleteSelectionsQuery = supabase
+        .from('prize_selections')
+        .delete()
+        .eq('recommendation_date', date);
+      
+      if (recommendation_datetime) {
+        deleteSelectionsQuery = deleteSelectionsQuery.eq('recommendation_datetime', decodeURIComponent(recommendation_datetime as string));
+      }
+      
+      const { error: selectionsError } = await deleteSelectionsQuery;
+      
+      if (selectionsError) {
+        console.error('[삭제] prize_selections 삭제 오류:', selectionsError);
+        // prize_selections 삭제 실패해도 prize_recommendations 삭제는 계속 진행
+      } else {
+        console.log('[삭제] prize_selections 삭제 완료');
+      }
+
+      // prize_recommendations 삭제
+      let deleteRecommendationsQuery = supabase
+        .from('prize_recommendations')
+        .delete()
+        .eq('recommendation_date', date);
+      
+      if (recommendation_datetime) {
+        deleteRecommendationsQuery = deleteRecommendationsQuery.eq('recommendation_datetime', decodeURIComponent(recommendation_datetime as string));
+      }
+      
+      const { error } = await deleteRecommendationsQuery;
+
+      console.log(`[삭제] 삭제 결과: error=${error ? JSON.stringify(error) : 'null'}, beforeCount=${beforeCount || 0}`);
+
+      if (error) {
+        console.error('[삭제] 경품 추천 데이터 삭제 오류:', error);
+        return res.status(500).json({ success: false, message: '데이터 삭제에 실패했습니다.' });
+      }
+
+      const deletedCount = beforeCount || 0;
+      
+      console.log(`[삭제] 최종 삭제 건수: ${deletedCount}건`);
+
+      const message = recommendation_datetime
+        ? `${date} ${decodeURIComponent(recommendation_datetime as string)} 시간의 경품 추천 데이터 ${deletedCount}건이 삭제되었습니다.`
+        : `${date} 날짜의 경품 추천 데이터 ${deletedCount}건이 삭제되었습니다.`;
+
+      return res.status(200).json({
+        success: true,
+        message: message,
+        deletedCount: deletedCount,
       });
     } catch (error: any) {
       console.error('경품 추천 데이터 삭제 오류:', error);
@@ -391,7 +481,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { date, section, limit = 50, offset = 0, format } = req.query;
+    const { date, recommendation_datetime, section, limit = 50, offset = 0, format } = req.query;
 
     // 기본 쿼리
     let query = supabase
@@ -403,6 +493,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 날짜 필터
     if (date) {
       query = query.eq('recommendation_date', date);
+    }
+
+    // 추천 시간 필터 (같은 날짜에 여러 추천이 있을 때 특정 시간의 추천만 조회)
+    if (recommendation_datetime) {
+      query = query.eq('recommendation_datetime', recommendation_datetime);
     }
 
     // 섹션 필터 (purchased, non_purchased, all)
@@ -442,35 +537,84 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data, error, count } = await query;
 
     if (error) {
-      console.error('경품 추천 이력 조회 오류:', error);
+      console.error('[상세 API] 경품 추천 이력 조회 오류:', error);
       return res.status(500).json({ success: false, message: '이력 조회에 실패했습니다.' });
     }
 
-    // 날짜별 그룹화
-    const groupedByDate: Record<string, any[]> = {};
-    data?.forEach((item) => {
-      const date = item.recommendation_date;
-      if (!groupedByDate[date]) {
-        groupedByDate[date] = [];
+    // 상세 조회인 경우 로그 출력 (date 파라미터가 있고 section=all인 경우)
+    if (date && section === 'all') {
+      console.log(`[상세 API] 조회 요청: 날짜=${date}, 시간=${recommendation_datetime || '전체'}, section=${section}, limit=${limit}, offset=${offset}`);
+      console.log(`[상세 API] 조회 결과: ${data?.length || 0}건 (총 ${count || 0}건)`);
+      
+      if (data && data.length > 0) {
+        const geocodingStats = {
+          completed: data.filter((r: any) => r.latitude && r.longitude).length,
+          incomplete: data.filter((r: any) => {
+            const hasAddress = r.address && !['[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'].includes(r.address);
+            return (!r.latitude || !r.longitude) && hasAddress;
+          }).length,
+          noAddress: data.filter((r: any) => {
+            return !r.address || ['[주소 미제공]', '[직접방문]', '[온라인 전용]', 'N/A'].includes(r.address);
+          }).length,
+        };
+        console.log(`[상세 API] 지오코딩 통계: 완료 ${geocodingStats.completed}건, 미완료 ${geocodingStats.incomplete}건, 주소 없음 ${geocodingStats.noAddress}건`);
       }
-      groupedByDate[date].push(item);
+    }
+
+    // 날짜+시간별 그룹화 (같은 날짜에 여러 번 생성된 경우 각각 별도 행으로 표시)
+    const groupedByDateTime: Record<string, any[]> = {};
+    data?.forEach((item) => {
+      // 날짜와 시간을 조합한 키 생성 (같은 날짜에 여러 번 생성된 경우 구분)
+      const dateTimeKey = `${item.recommendation_date}_${item.recommendation_datetime || 'no-time'}`;
+      if (!groupedByDateTime[dateTimeKey]) {
+        groupedByDateTime[dateTimeKey] = [];
+      }
+      groupedByDateTime[dateTimeKey].push(item);
     });
 
-    // 날짜별 통계 계산
-    const dateStats = Object.keys(groupedByDate).map((date) => {
-      const items = groupedByDate[date];
-      const purchased = items.filter((i) => i.section === 'purchased').length;
-      const nonPurchased = items.filter((i) => i.section === 'non_purchased').length;
-      const all = items.filter((i) => i.section === 'all').length;
+    // 날짜+시간별 통계 계산 (구매경과가 있는 경우만 구매로 계산)
+    const dateStats = Object.keys(groupedByDateTime).map((dateTimeKey) => {
+      const items = groupedByDateTime[dateTimeKey];
+      
+      // dateTimeKey에서 날짜 부분 추출 (예: "2026-01-08_2026-01-08T06:42:00Z" -> "2026-01-08")
+      const date = dateTimeKey.split('_')[0];
+      
+      // 고유 고객만 필터링 (is_primary=true 또는 rank가 있는 것)
+      const primaryItems = items.filter((i) => i.is_primary === true || i.rank != null);
+      
+      // 구매경과(days_since_last_purchase)가 있는 경우만 구매로 계산 (고유 고객 기준)
+      const purchased = primaryItems.filter((i) => 
+        i.is_purchased === true && i.days_since_last_purchase != null
+      ).length;
+      const nonPurchased = primaryItems.filter((i) => 
+        !(i.is_purchased === true && i.days_since_last_purchase != null)
+      ).length;
+      
+      // 총 설문 수 (모든 설문 포함)
+      const totalSurveys = items.length;
+      
+      // 고유 고객 수
+      const uniqueCustomers = primaryItems.length;
+      
+      // 중복 설문 수
+      const duplicateSurveys = items.filter((i) => i.is_duplicate === true).length;
+
+      // 첫 번째 항목의 recommendation_datetime과 recommendation_name 가져오기
+      const firstItem = items[0];
+      const recommendation_datetime = firstItem?.recommendation_datetime || null;
+      const recommendation_name = firstItem?.recommendation_name || null;
 
       return {
-        date,
-        total: items.length,
+        date, // 날짜 추가
+        recommendation_datetime, // 추천 시간 추가
+        recommendation_name, // 추천 이름 추가
+        total: totalSurveys, // 전체 설문 수 (99개)
         purchased,
         nonPurchased,
-        all,
-        topScore: Math.max(...items.map((i) => i.total_score || 0)),
-        avgScore: items.reduce((sum, i) => sum + (i.total_score || 0), 0) / items.length,
+        all: uniqueCustomers, // 고유 고객 수 (92명)
+        duplicateCount: duplicateSurveys, // 중복 설문 수 (7개)
+        topScore: Math.max(...primaryItems.map((i) => i.total_score || 0)),
+        avgScore: primaryItems.reduce((sum, i) => sum + (i.total_score || 0), 0) / (primaryItems.length || 1),
       };
     });
 
@@ -479,11 +623,133 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       (a, b) => new Date(b).getTime() - new Date(a).getTime(),
     );
 
+    // customers 테이블에서 last_purchase_date 조회하여 경과 일수 계산
+    const customerIds = Array.from(new Set((data || []).map((item: any) => item.customer_id).filter(Boolean)));
+    let customersData: any[] = [];
+    if (customerIds.length > 0) {
+      const { data: customers, error: customersError } = await supabase
+        .from('customers')
+        .select('id, last_purchase_date')
+        .in('id', customerIds);
+      
+      if (customersError) {
+        console.error('[prize-history] customers 배치 조회 오류:', customersError);
+      } else {
+        customersData = customers || [];
+      }
+    }
+    
+    const customersMap = new Map(customersData.map((c: any) => [c.id, c]));
+    
+    // surveys 테이블에서 age 정보 조회
+    const surveyIdsForAge = Array.from(new Set((data || []).map((item: any) => item.survey_id).filter(Boolean)));
+    let surveysData: any[] = [];
+    if (surveyIdsForAge.length > 0) {
+      const { data: surveys, error: surveysError } = await supabase
+        .from('surveys')
+        .select('id, age, age_group')
+        .in('id', surveyIdsForAge);
+      
+      if (surveysError) {
+        console.error('[prize-history] surveys 배치 조회 오류:', surveysError);
+      } else {
+        surveysData = surveys || [];
+      }
+    }
+    
+    const surveysMap = new Map(surveysData.map((s: any) => [s.id, s]));
+    
+    // customer_address_cache에서 최신 지오코딩 정보 조회
+    const surveyIds = Array.from(new Set((data || []).map((item: any) => item.survey_id).filter(Boolean)));
+    const customerIdsForCache = Array.from(new Set((data || []).map((item: any) => item.customer_id).filter(Boolean)));
+    
+    let geocodingCache: any[] = [];
+    if (surveyIds.length > 0 || customerIdsForCache.length > 0) {
+      let cacheQuery = supabase
+        .from('customer_address_cache')
+        .select('*')
+        .eq('geocoding_status', 'success');
+      
+      if (surveyIds.length > 0 && customerIdsForCache.length > 0) {
+        cacheQuery = cacheQuery.or(`survey_id.in.(${surveyIds.join(',')}),customer_id.in.(${customerIdsForCache.join(',')})`);
+      } else if (surveyIds.length > 0) {
+        cacheQuery = cacheQuery.in('survey_id', surveyIds);
+      } else if (customerIdsForCache.length > 0) {
+        cacheQuery = cacheQuery.in('customer_id', customerIdsForCache);
+      }
+      
+      const { data: cacheData } = await cacheQuery;
+      geocodingCache = cacheData || [];
+    }
+    
+    // 캐시를 키로 매핑 (survey_id + address 또는 customer_id + address)
+    const cacheMap = new Map<string, any>();
+    geocodingCache.forEach(cache => {
+      if (cache.survey_id) {
+        const key = `s_${cache.survey_id}_${cache.address}`;
+        // 같은 키가 있으면 더 최신 것으로 업데이트
+        const existing = cacheMap.get(key);
+        if (!existing || new Date(cache.updated_at) > new Date(existing.updated_at)) {
+          cacheMap.set(key, cache);
+        }
+      }
+      if (cache.customer_id) {
+        const key = `c_${cache.customer_id}_${cache.address}`;
+        const existing = cacheMap.get(key);
+        if (!existing || new Date(cache.updated_at) > new Date(existing.updated_at)) {
+          cacheMap.set(key, cache);
+        }
+      }
+    });
+    
+    // recommendations 데이터에 days_since_last_purchase, age 정보 및 최신 지오코딩 정보 추가
+    const enrichedRecommendations = (data || []).map((item: any) => {
+      let daysSinceLastPurchase = null;
+      if (item.customer_id) {
+        const customer = customersMap.get(item.customer_id);
+        if (customer?.last_purchase_date) {
+          daysSinceLastPurchase = Math.floor(
+            (Date.now() - new Date(customer.last_purchase_date).getTime()) / (1000 * 60 * 60 * 24),
+          );
+        }
+      }
+      
+      // surveys 테이블에서 age 정보 조회
+      let age = null;
+      let age_group = null;
+      if (item.survey_id) {
+        const survey = surveysMap.get(item.survey_id);
+        if (survey) {
+          age = survey.age;
+          age_group = survey.age_group;
+        }
+      }
+      
+      // 최신 지오코딩 정보 조회 (캐시에서)
+      let latestGeocoding = null;
+      if (item.address) {
+        const key1 = item.survey_id ? `s_${item.survey_id}_${item.address}` : null;
+        const key2 = item.customer_id ? `c_${item.customer_id}_${item.address}` : null;
+        latestGeocoding = (key1 && cacheMap.get(key1)) || (key2 && cacheMap.get(key2)) || null;
+      }
+      
+      // 캐시에 최신 정보가 있으면 그것을 사용, 없으면 prize_recommendations의 정보 사용
+      return {
+        ...item,
+        days_since_last_purchase: daysSinceLastPurchase,
+        age: age,
+        age_group: age_group,
+        latitude: latestGeocoding?.latitude || item.latitude || null,
+        longitude: latestGeocoding?.longitude || item.longitude || null,
+        distance_km: latestGeocoding?.distance_km || item.distance_km || null,
+      };
+    });
+
     return res.status(200).json({
       success: true,
       data: {
-        recommendations: data || [],
-        groupedByDate,
+        recommendations: enrichedRecommendations,
+        groupedByDate: groupedByDateTime, // 날짜+시간별 그룹화 데이터 (호환성을 위해 groupedByDate로 반환)
         dateStats,
         uniqueDates,
         total: count || 0,

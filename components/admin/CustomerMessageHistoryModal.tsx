@@ -22,6 +22,8 @@ type CustomerMessage = {
   isBookingMessage?: boolean;
   bookingId?: number | null;
   notificationType?: string | null;
+  messageCategory?: string | null;
+  messageSubcategory?: string | null;
 };
 
 type Props = {
@@ -88,9 +90,6 @@ const formatMessageStatus = (status?: string | null) => {
   }
 };
 
-// 한국 시간대 상수 (UTC+9)
-const KST_OFFSET_MS = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
-
 const formatDateTime = (value?: string | null) => {
   if (!value) return '-';
   try {
@@ -98,18 +97,17 @@ const formatDateTime = (value?: string | null) => {
     const utcDate = new Date(value);
     if (Number.isNaN(utcDate.getTime())) return value;
     
-    // UTC 시간에 9시간을 더하여 KST로 변환
-    const kstDate = new Date(utcDate.getTime() + KST_OFFSET_MS);
-    
-    // KST로 변환된 날짜를 한국 형식으로 포맷팅
-    return kstDate.toLocaleString('ko-KR', {
+    // ⭐ 수정: 이중 변환 방지 - timeZone 옵션만 사용
+    // toLocaleString의 timeZone 옵션이 자동으로 UTC → KST 변환을 처리하므로
+    // 수동으로 9시간을 더할 필요가 없습니다.
+    return utcDate.toLocaleString('ko-KR', {
       year: 'numeric',
       month: 'numeric',
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
-      timeZone: 'Asia/Seoul' // 명시적으로 한국 시간대 지정
+      timeZone: 'Asia/Seoul' // UTC를 KST로 자동 변환
     });
   } catch {
     return value;
@@ -211,9 +209,28 @@ export default function CustomerMessageHistoryModal({ isOpen, customer, onClose 
   const filteredMessages = useMemo(() => {
     switch (activeTab) {
       case 'booking':
-        return messages.filter(msg => msg.isBookingMessage === true);
+        // 예약 메시지 + 경품 메시지 모두 포함
+        return messages.filter(msg => 
+          msg.isBookingMessage === true || 
+          msg.messageCategory === 'booking' ||
+          msg.messageCategory === 'prize'
+        );
       case 'promotion':
-        return messages.filter(msg => msg.isBookingMessage !== true);
+        // ⭐ 수정: 예약/서비스 메시지에 포함된 메시지는 제외
+        // 또한 메시지 ID 325, 326, 327, 328은 예약/서비스 메시지 탭에 포함되므로 홍보 메시지에서 제외
+        return messages.filter(msg => {
+          // 예약/서비스 메시지 조건에 맞으면 제외
+          const isBookingOrPrize = 
+            msg.isBookingMessage === true || 
+            msg.messageCategory === 'booking' ||
+            msg.messageCategory === 'prize';
+          
+          // 메시지 ID 325, 326, 327, 328은 예약/서비스 메시지 탭에 포함되므로 제외
+          const isExcludedMessage = msg.messageId && [325, 326, 327, 328].includes(msg.messageId);
+          
+          // 예약/서비스가 아니고, 제외 대상이 아니고, 홍보 메시지 조건에 맞는 것만
+          return !isBookingOrPrize && !isExcludedMessage;
+        });
       default:
         return messages;
     }
@@ -221,8 +238,23 @@ export default function CustomerMessageHistoryModal({ isOpen, customer, onClose 
 
   // 탭별 메시지 개수 계산
   const tabCounts = useMemo(() => {
-    const bookingCount = messages.filter(msg => msg.isBookingMessage === true).length;
-    const promotionCount = messages.filter(msg => msg.isBookingMessage !== true).length;
+    const bookingCount = messages.filter(msg => 
+      msg.isBookingMessage === true || 
+      msg.messageCategory === 'booking' ||
+      msg.messageCategory === 'prize'
+    ).length;
+    
+    // ⭐ 수정: 예약/서비스 메시지를 제외한 나머지만 카운트
+    // 메시지 ID 325, 326, 327, 328도 제외
+    const promotionCount = messages.filter(msg => {
+      const isBookingOrPrize = 
+        msg.isBookingMessage === true || 
+        msg.messageCategory === 'booking' ||
+        msg.messageCategory === 'prize';
+      const isExcludedMessage = msg.messageId && [325, 326, 327, 328].includes(msg.messageId);
+      return !isBookingOrPrize && !isExcludedMessage;
+    }).length;
+    
     return {
       all: messages.length,
       booking: bookingCount,
@@ -244,7 +276,7 @@ export default function CustomerMessageHistoryModal({ isOpen, customer, onClose 
             <h2 className="text-lg font-semibold text-gray-900">고객 메시지 이력</h2>
             <p className="text-sm text-gray-600">
               고객: <span className="font-medium">{customer?.name || '-'}</span> (
-              {customer?.phone || '-'}) · {activeTab === 'all' ? '전체' : activeTab === 'booking' ? '예약' : '홍보'} {messageCount.toLocaleString()}건
+              {customer?.phone || '-'}) · {activeTab === 'all' ? '전체' : activeTab === 'booking' ? '예약/서비스' : '홍보'} {messageCount.toLocaleString()}건
             </p>
           </div>
           <button
@@ -290,7 +322,7 @@ export default function CustomerMessageHistoryModal({ isOpen, customer, onClose 
                 }
               `}
             >
-              예약 메시지
+              예약/서비스 메시지
               {tabCounts.booking > 0 && (
                 <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
                   activeTab === 'booking' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
@@ -339,7 +371,7 @@ export default function CustomerMessageHistoryModal({ isOpen, customer, onClose 
                 {activeTab === 'all' 
                   ? '아직 발송된 메시지가 없습니다.'
                   : activeTab === 'booking'
-                  ? '예약 관련 메시지가 없습니다.'
+                  ? '예약/서비스 관련 메시지가 없습니다.'
                   : '홍보 메시지가 없습니다.'}
               </span>
             </div>

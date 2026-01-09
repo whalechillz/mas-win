@@ -256,7 +256,15 @@ export default function CustomerGroupedView({ bookings, customers, supabase, onU
                     <div className="flex items-center gap-4 text-sm">
                       <div className="text-center">
                         <p className="text-gray-600">방문</p>
-                        <p className="font-bold text-blue-600">{group.stats.visitCount}회</p>
+                        <p className="font-bold text-blue-600">
+                          {group.stats.visitCount}회
+                          {group.customer?.visit_count !== undefined && 
+                           group.customer.visit_count !== group.stats.visitCount && (
+                            <span className="ml-1 text-xs text-orange-600" title="customers 테이블의 visit_count 값">
+                              (DB: {group.customer.visit_count}회)
+                            </span>
+                          )}
+                        </p>
                       </div>
                       {group.stats.noShowCount > 0 && (
                         <div className="text-center">
