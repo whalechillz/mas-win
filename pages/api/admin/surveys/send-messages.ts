@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
-import { randomUUID } from 'crypto';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
@@ -627,12 +626,75 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // 당첨 메시지 생성 및 발송 (개인화된 메시지)
             const winnerMessage = generateWinnerMessage(survey.name || '고객', distanceKm, survey);
             
-            // UUID 생성 (channel_sms 테이블의 id 필드와 호환되도록)
-            const winnerChannelPostId = randomUUID();
-            
-            // 내부 API 호출 URL 구성 (환경 변수 우선, 없으면 origin 사용)
+            // ⭐ 수정: UUID 대신 먼저 메시지를 저장하여 integer ID 획득 (고객 관리와 동일한 방식)
             const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
                             (req.headers.origin || 'http://localhost:3000');
+            const saveApiUrl = `${baseUrl}/api/channels/sms/save`;
+            
+            // 1단계: 메시지를 DB에 먼저 저장
+            // 전화번호 정규화 (하이픈, 공백 제거)
+            const normalizedPhone = survey.phone ? survey.phone.replace(/[^0-9]/g, '') : null;
+            if (!normalizedPhone || normalizedPhone.length < 10) {
+              console.error('[send-messages] 당첨 메시지: 정규화된 전화번호가 유효하지 않습니다:', {
+                surveyId: survey.id,
+                surveyName: survey.name,
+                originalPhone: survey.phone,
+                normalizedPhone: normalizedPhone,
+              });
+              throw new Error('정규화된 전화번호가 유효하지 않습니다.');
+            }
+
+            const saveResponse = await fetch(saveApiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                messageType: 'MMS',
+                messageText: winnerMessage,
+                recipientNumbers: [normalizedPhone],
+                status: 'draft',
+                messageCategory: 'prize',
+                messageSubcategory: 'prize_winner',
+              }),
+            });
+
+            if (!saveResponse.ok) {
+              const errorText = await saveResponse.text();
+              let errorData;
+              try {
+                errorData = JSON.parse(errorText);
+              } catch {
+                errorData = { message: errorText };
+              }
+              console.error('[send-messages] 당첨 메시지 저장 API 오류:', {
+                surveyId: survey.id,
+                surveyName: survey.name,
+                phone: survey.phone,
+                status: saveResponse.status,
+                statusText: saveResponse.statusText,
+                error: errorData,
+              });
+              throw new Error(errorData.message || errorData.error || '메시지 저장 실패');
+            }
+
+            const saveResult = await saveResponse.json();
+            if (!saveResult.success || !saveResult.channelPostId) {
+              console.error('[send-messages] 당첨 메시지 저장 실패:', {
+                surveyId: survey.id,
+                surveyName: survey.name,
+                phone: survey.phone,
+                error: saveResult.message,
+                errorCode: saveResult.errorCode,
+                errorDetails: saveResult.errorDetails,
+                errorHint: saveResult.errorHint,
+                debugInfo: saveResult.debugInfo,
+                fullResponse: saveResult,
+              });
+              throw new Error(saveResult.message || '메시지 저장 실패');
+            }
+
+            const winnerChannelPostId = saveResult.channelPostId; // ⭐ integer ID 사용
+            
+            // 2단계: 저장된 메시지를 발송
             const smsApiUrl = `${baseUrl}/api/channels/sms/send`;
             
             console.log('[send-messages] 당첨 메시지 발송 시작:', {
@@ -753,12 +815,101 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               survey
             );
 
-            // UUID 생성 (channel_sms 테이블의 id 필드와 호환되도록)
-            const thankYouChannelPostId = randomUUID();
-            
-            // 내부 API 호출 URL 구성 (환경 변수 우선, 없으면 origin 사용)
+            // ⭐ 수정: UUID 대신 먼저 메시지를 저장하여 integer ID 획득 (고객 관리와 동일한 방식)
             const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
                             (req.headers.origin || 'http://localhost:3000');
+            const saveApiUrl = `${baseUrl}/api/channels/sms/save`;
+            
+            // 1단계: 메시지를 DB에 먼저 저장
+            // 전화번호 검증 및 정규화 (하이픈 제거)
+            if (!survey.phone || typeof survey.phone !== 'string' || survey.phone.trim() === '') {
+              console.error('[send-messages] 감사 메시지: 전화번호가 유효하지 않습니다:', {
+                surveyId: survey.id,
+                surveyName: survey.name,
+                phone: survey.phone,
+                phoneType: typeof survey.phone,
+              });
+              throw new Error('전화번호가 유효하지 않습니다.');
+            }
+
+            // 전화번호 정규화 (하이픈, 공백 제거)
+            const normalizedPhone = survey.phone.replace(/[^0-9]/g, '');
+            if (!normalizedPhone || normalizedPhone.length < 10) {
+              console.error('[send-messages] 감사 메시지: 정규화된 전화번호가 유효하지 않습니다:', {
+                surveyId: survey.id,
+                surveyName: survey.name,
+                originalPhone: survey.phone,
+                normalizedPhone: normalizedPhone,
+              });
+              throw new Error('정규화된 전화번호가 유효하지 않습니다.');
+            }
+
+            const saveRequestBody = {
+              messageType: 'MMS',
+              messageText: thankYouMessage,
+              recipientNumbers: [normalizedPhone],
+              status: 'draft',
+              messageCategory: 'prize',
+              messageSubcategory: 'prize_thank_you',
+            };
+
+            console.log('[send-messages] 감사 메시지 저장 요청:', {
+              surveyId: survey.id,
+              surveyName: survey.name,
+              originalPhone: survey.phone,
+              normalizedPhone: normalizedPhone,
+              messageType: saveRequestBody.messageType,
+              messageTextLength: saveRequestBody.messageText.length,
+              recipientNumbers: saveRequestBody.recipientNumbers,
+              recipientNumbersType: typeof saveRequestBody.recipientNumbers,
+              recipientNumbersIsArray: Array.isArray(saveRequestBody.recipientNumbers),
+              recipientNumbersLength: saveRequestBody.recipientNumbers?.length,
+            });
+
+            const saveResponse = await fetch(saveApiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(saveRequestBody),
+            });
+
+            if (!saveResponse.ok) {
+              const errorText = await saveResponse.text();
+              let errorData;
+              try {
+                errorData = JSON.parse(errorText);
+              } catch {
+                errorData = { message: errorText };
+              }
+              console.error('[send-messages] 감사 메시지 저장 API 오류:', {
+                surveyId: survey.id,
+                surveyName: survey.name,
+                phone: survey.phone,
+                status: saveResponse.status,
+                statusText: saveResponse.statusText,
+                error: errorData,
+              });
+              throw new Error(errorData.message || errorData.error || '메시지 저장 실패');
+            }
+
+            const saveResult = await saveResponse.json();
+            if (!saveResult.success || !saveResult.channelPostId) {
+              console.error('[send-messages] 감사 메시지 저장 실패:', {
+                surveyId: survey.id,
+                surveyName: survey.name,
+                phone: survey.phone,
+                error: saveResult.message,
+                errorCode: saveResult.errorCode,
+                errorDetails: saveResult.errorDetails,
+                errorHint: saveResult.errorHint,
+                debugInfo: saveResult.debugInfo,
+                fullResponse: saveResult,
+              });
+              throw new Error(saveResult.message || '메시지 저장 실패');
+            }
+
+            const thankYouChannelPostId = saveResult.channelPostId; // ⭐ integer ID 사용
+            
+            // 2단계: 저장된 메시지를 발송
             const smsApiUrl = `${baseUrl}/api/channels/sms/send`;
             
             console.log('[send-messages] 감사 메시지 발송 시작:', {

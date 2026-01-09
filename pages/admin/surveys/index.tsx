@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import AdminNav from '../../../components/admin/AdminNav';
 import DualRangeSlider from '../../../components/admin/DualRangeSlider';
+import { formatPhoneNumber } from '../../../lib/formatters';
 
 // 한국 시간대 상수 (UTC+9)
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
@@ -2636,7 +2637,7 @@ export default function SurveysPage() {
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {survey.phone}
+                                {formatPhoneNumber(survey.phone)}
                               </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {survey.age_group || '-'}
@@ -4910,7 +4911,7 @@ export default function SurveysPage() {
                       </div>
                       <div>
                         <span className="text-gray-600">전화번호:</span>
-                        <span className="ml-2 font-medium">{messagePreviewModal.survey.phone}</span>
+                        <span className="ml-2 font-medium">{formatPhoneNumber(messagePreviewModal.survey.phone)}</span>
                       </div>
                     </div>
                   </div>
@@ -4984,7 +4985,7 @@ export default function SurveysPage() {
                       </div>
                       <div>
                         <span className="text-gray-600">전화번호:</span>
-                        <span className="ml-2 font-medium">{messageModal.survey.phone}</span>
+                        <span className="ml-2 font-medium">{formatPhoneNumber(messageModal.survey.phone)}</span>
                       </div>
                       {messageModal.customerNeeds && (
                         <>

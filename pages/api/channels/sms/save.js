@@ -10,6 +10,13 @@ export default async function handler(req, res) {
   }
 
   try {
+    // 요청 본문 전체 로깅
+    console.log('[save.js] 요청 본문 전체:', {
+      body: req.body,
+      bodyKeys: Object.keys(req.body || {}),
+      bodyStringified: JSON.stringify(req.body, null, 2),
+    });
+
     const {
       calendarId,
       blogPostId,
@@ -28,6 +35,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ 
         success: false, 
         message: '메시지 타입과 내용은 필수입니다.' 
+      });
+    }
+
+    // recipientNumbers 검증 (배열이어야 하고, 최소 1개 이상 있어야 함)
+    if (!recipientNumbers || !Array.isArray(recipientNumbers) || recipientNumbers.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: '수신자 번호는 최소 1개 이상 필요합니다.' 
       });
     }
 
@@ -62,29 +77,65 @@ export default async function handler(req, res) {
     }
 
     // 데이터베이스에 저장
+    const insertData = {
+      calendar_id: calendarId || null,
+      blog_post_id: blogPostId || null,
+      message_type: messageType,
+      message_text: messageText,
+      short_link: shortLink || null,
+      image_url: imageUrl || null,
+      recipient_numbers: recipientNumbers || [],
+      status: status,
+      message_category: messageCategory || null,
+      message_subcategory: messageSubcategory || null
+    };
+
+    console.log('[save.js] 저장할 데이터:', {
+      messageType,
+      messageTextLength: messageText.length,
+      recipientNumbers: recipientNumbers,
+      recipientNumbersType: typeof recipientNumbers,
+      recipientNumbersIsArray: Array.isArray(recipientNumbers),
+      recipientNumbersCount: recipientNumbers?.length || 0,
+      messageCategory,
+      messageSubcategory,
+      status,
+      insertDataKeys: Object.keys(insertData),
+      insertDataRecipientNumbers: insertData.recipient_numbers,
+      insertDataRecipientNumbersType: typeof insertData.recipient_numbers,
+      insertDataRecipientNumbersIsArray: Array.isArray(insertData.recipient_numbers),
+    });
+
     const { data, error } = await supabase
       .from('channel_sms')
-      .insert({
-        calendar_id: calendarId || null,
-        blog_post_id: blogPostId || null,
-        message_type: messageType,
-        message_text: messageText,
-        short_link: shortLink || null,
-        image_url: imageUrl || null,
-        recipient_numbers: recipientNumbers || [],
-        status: status,
-        message_category: messageCategory || null,
-        message_subcategory: messageSubcategory || null
-      })
+      .insert(insertData)
       .select()
       .single();
 
     if (error) {
-      console.error('SMS 저장 오류:', error);
+      console.error('[save.js] SMS 저장 오류 상세:', {
+        error: error,
+        errorMessage: error.message,
+        errorCode: error.code,
+        errorDetails: error.details,
+        errorHint: error.hint,
+        insertData: insertData,
+        insertDataStringified: JSON.stringify(insertData, null, 2),
+        recipientNumbersValue: insertData.recipient_numbers,
+        recipientNumbersStringified: JSON.stringify(insertData.recipient_numbers),
+      });
       return res.status(500).json({ 
         success: false, 
         message: 'SMS 저장 중 오류가 발생했습니다.',
-        error: error.message 
+        error: error.message,
+        errorCode: error.code,
+        errorDetails: error.details,
+        errorHint: error.hint,
+        debugInfo: {
+          messageType,
+          messageTextLength: messageText.length,
+          recipientNumbersCount: recipientNumbers?.length || 0,
+        }
       });
     }
 
