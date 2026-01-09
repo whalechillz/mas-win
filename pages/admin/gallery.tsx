@@ -1885,7 +1885,7 @@ export default function GalleryAdmin() {
 
   // 이미지 선택/해제
   const toggleImageSelection = (image: ImageMetadata) => {
-    // 일반 선택 토글
+    // 일반 선택 토글 (비교 선택과 분리)
     const imageId = getImageUniqueId(image);
     const newSelected = new Set(selectedImages);
     
@@ -1895,23 +1895,6 @@ export default function GalleryAdmin() {
       newSelected.add(imageId);
     }
     setSelectedImages(newSelected);
-    
-    // 비교 선택도 함께 업데이트 (최대 3개까지)
-    if (image.id) {
-      const newCompareSelected = new Set(selectedForCompare);
-      if (newSelected.has(imageId)) {
-        if (newCompareSelected.size < 3) {
-          newCompareSelected.add(image.id);
-        } else {
-          // 3개 초과 시 알림
-          alert('비교는 최대 3개까지만 선택할 수 있습니다.');
-          return;
-        }
-      } else {
-        newCompareSelected.delete(image.id);
-      }
-      setSelectedForCompare(newCompareSelected);
-    }
   };
 
   // 전체 선택/해제
@@ -4264,13 +4247,32 @@ export default function GalleryAdmin() {
                 </button>
                 
                 {/* 상세 보기 버튼 (1-3개 선택 시) */}
-                {selectedForCompare.size >= 1 && selectedForCompare.size <= 3 && (
+                {selectedImages.size >= 1 && selectedImages.size <= 3 && (
                   <button
                     type="button"
-                    onClick={handleCompareImages}
+                    onClick={() => {
+                      // selectedImages에서 최대 3개를 selectedForCompare로 변환
+                      const selectedIds = Array.from(selectedImages).slice(0, 3)
+                        .map(id => {
+                          const img = images.find(i => getImageUniqueId(i) === id);
+                          return img?.id;
+                        })
+                        .filter(Boolean) as string[];
+                      
+                      if (selectedIds.length === 0) {
+                        alert('선택한 이미지를 찾을 수 없습니다.');
+                        return;
+                      }
+                      
+                      setSelectedForCompare(new Set(selectedIds));
+                      // handleCompareImages는 selectedForCompare를 사용하므로 약간의 지연 후 호출
+                      setTimeout(() => {
+                        handleCompareImages();
+                      }, 0);
+                    }}
                     className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
                   >
-                    {selectedForCompare.size === 1 ? '상세 보기' : `비교 (${selectedForCompare.size}개)`}
+                    {selectedImages.size === 1 ? '상세 보기' : `비교 (${selectedImages.size}개)`}
                   </button>
                 )}
               </div>
@@ -4390,9 +4392,7 @@ export default function GalleryAdmin() {
                     <div 
                       key={getImageUniqueId(image) || image.url || `image-${image.name}-${image.folder_path || 'no-folder'}-${index}`} 
                       className={`relative group border-2 rounded-lg overflow-hidden hover:shadow-md transition-all ${
-                        selectedForCompare.has(image.id || '')
-                          ? 'border-green-500 ring-2 ring-green-200'
-                          : selectedImages.has(getImageUniqueId(image)) 
+                        selectedImages.has(getImageUniqueId(image)) 
                           ? 'border-blue-500 ring-2 ring-blue-200' 
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
@@ -4402,12 +4402,8 @@ export default function GalleryAdmin() {
                             (e.target as HTMLElement).closest('button')) {
                           return;
                         }
-                        // 비교 선택이 있으면 비교 선택 우선, 없으면 일반 선택
-                        if (image.id && selectedForCompare.has(image.id)) {
-                          toggleImageForCompare(image.id);
-                        } else {
-                          toggleImageSelection(image);
-                        }
+                        // 일반 선택만 토글
+                        toggleImageSelection(image);
                       }}
                       draggable
                       onDragStart={(e) => {
