@@ -78,7 +78,7 @@ export default function SurveysPage() {
   const [recommendingPrizes, setRecommendingPrizes] = useState(false);
   const [activeTab, setActiveTab] = useState<'surveys' | 'prize' | 'geocoding'>('surveys');
   const [prizeHistoryList, setPrizeHistoryList] = useState<any[]>([]);
-  const [scoreCriteriaExpanded, setScoreCriteriaExpanded] = useState<boolean>(true);
+  const [scoreCriteriaExpanded, setScoreCriteriaExpanded] = useState<boolean>(false);
   const [loadingPrizeHistory, setLoadingPrizeHistory] = useState(false);
   const [selectedDetailDate, setSelectedDetailDate] = useState<string | null>(null);
   const [selectedDetailDateTime, setSelectedDetailDateTime] = useState<string | null>(null);
