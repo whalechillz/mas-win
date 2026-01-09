@@ -243,7 +243,7 @@ function generateWinnerMessage(
   const isFarDistance = distanceKm !== null && distanceKm >= DISTANCE_THRESHOLD_WINNER;
 
   // 메시지 생성
-  let message = `[마쓰구골프] 축하합니다, ${name}님! 🎉\n\n`;
+  let message = `[마쓰구골프] 축하합니다, ${name}님!\n\n`;
   message += `경품 당첨을 축하드립니다!\n`;
   message += `선물을 받으시고 기존 클럽 점검을 받으신 후\n`;
   message += `110만원 상당의 특별한 리샤프팅 혜택을 드립니다.\n\n`;
