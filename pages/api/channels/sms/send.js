@@ -458,28 +458,39 @@ export default async function handler(req, res) {
       finalStatus,
     });
     
+    // ⭐ 수정: channelPostId가 UUID인지 확인 (UUID 형식: 8-4-4-4-12)
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(channelPostId);
+    
     // ⭐ 기존 레코드 조회 (재전송 시 기존 그룹 ID 유지)
     let existingMessage = null;
     let existingGroupIds = [];
-    try {
-      const { data: existing, error: checkError } = await supabase
-        .from('channel_sms')
-        .select('id, solapi_group_id, created_at')
-        .eq('id', channelPostId)
-        .maybeSingle();
-      
-      if (!checkError && existing) {
-        existingMessage = existing;
-        if (existing.solapi_group_id) {
-          existingGroupIds = existing.solapi_group_id
-            .split(',')
-            .map(g => g.trim())
-            .filter(Boolean);
-          console.log(`📋 기존 그룹 ID 발견: ${existingGroupIds.length}개`);
+    
+    if (isUUID) {
+      // UUID인 경우: solapi_group_id로 기존 메시지 찾기 (나중에 그룹 ID가 연결되면)
+      // 또는 새로 생성 (id는 자동 생성)
+      console.log('[send] channelPostId가 UUID 형식입니다. 새 메시지로 생성합니다:', channelPostId);
+    } else {
+      // UUID가 아닌 경우: id로 기존 메시지 찾기
+      try {
+        const { data: existing, error: checkError } = await supabase
+          .from('channel_sms')
+          .select('id, solapi_group_id, created_at')
+          .eq('id', channelPostId)
+          .maybeSingle();
+        
+        if (!checkError && existing) {
+          existingMessage = existing;
+          if (existing.solapi_group_id) {
+            existingGroupIds = existing.solapi_group_id
+              .split(',')
+              .map(g => g.trim())
+              .filter(Boolean);
+            console.log(`📋 기존 그룹 ID 발견: ${existingGroupIds.length}개`);
+          }
         }
+      } catch (e) {
+        console.error('기존 레코드 조회 오류 (무시하고 진행):', e);
       }
-    } catch (e) {
-      console.error('기존 레코드 조회 오류 (무시하고 진행):', e);
     }
     
     // ⭐ 새 그룹 ID와 기존 그룹 ID 병합 (중복 제거)
