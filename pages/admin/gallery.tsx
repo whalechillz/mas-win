@@ -1580,6 +1580,7 @@ export default function GalleryAdmin() {
     try {
       if (reset || page === 1) {
         setIsLoading(true);
+        setIsLoadingMore(false); // reset 시 isLoadingMore를 false로 설정하여 중복 로딩창 방지
         // 새로고침 시 필터를 "전체"로 초기화 (단, 검색어는 보존)
         if (reset && customSearchQuery === undefined) {
           setFilterType('all');
@@ -3737,7 +3738,8 @@ export default function GalleryAdmin() {
       setSelectedImages(new Set());
       setShowBulkDeleteConfirm(false);
       
-      // 갤러리 새로고침
+      // 갤러리 새로고침 (isLoadingMore를 false로 설정하여 중복 로딩창 방지)
+      setIsLoadingMore(false);
       setTimeout(() => {
         fetchImages(1, true);
       }, 500);
