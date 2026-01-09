@@ -1313,6 +1313,49 @@ export default function SurveysPage() {
     return filtered;
   }, [prizeHistoryDetail, selectionCriteria]);
 
+  // 선정 조건 기본값
+  const getDefaultSelectionCriteria = () => ({
+    selectionType: 'auto' as 'auto' | 'manual',
+    totalCount: 20,
+    purchasedRatio: 50,
+    purchasePeriodRange: { min: 0, max: 600 },
+    purchasePeriodAll: true,
+    distanceRange: { min: 0, max: 500 },
+    distanceAll: true,
+    ageRange: { min: 0, max: 80 },
+    visitCountNoVisit: false,
+    visitCountAll: true,
+    visitCountRange: { min: 1, max: 10 },
+    qualityScoreAll: true,
+    qualityScoreRange: { min: 0, max: 10 },
+    reasonFactors: {
+      includeDistance: true,
+      includePurchasePeriod: true,
+      includeVisitCount: true,
+      includeQualityScore: true,
+      includeAgeGroup: false,
+    },
+  });
+
+  // 설정값 초기화
+  const handleResetCriteria = () => {
+    if (!prizeHistoryDetail?.recommendations) return;
+    
+    const purchased = prizeHistoryDetail.recommendations.filter((r: any) => 
+      r.is_primary === true && r.is_purchased === true && r.days_since_last_purchase != null
+    );
+    const nonPurchased = prizeHistoryDetail.recommendations.filter((r: any) => 
+      r.is_primary === true && !(r.is_purchased === true && r.days_since_last_purchase != null)
+    );
+    
+    const defaultCriteria = getDefaultSelectionCriteria();
+    setSelectionCriteria({
+      ...defaultCriteria,
+      totalCount: Math.min(defaultCriteria.totalCount, purchased.length + nonPurchased.length),
+    });
+    setManualSelectedCustomers([]);
+  };
+
   // 선정 조건 모달 열기
   const handleOpenSelectionModal = () => {
     if (!prizeHistoryDetail?.recommendations) {
@@ -1333,6 +1376,16 @@ export default function SurveysPage() {
       totalCount: Math.min(selectionCriteria.totalCount, purchased.length + nonPurchased.length),
     });
     
+    // 이미 선정된 고객들을 manualSelectedCustomers에 추가
+    const alreadySelected = prizeSelections
+      .filter((s: any) => {
+        if (s.recommendation_date !== selectedDetailDate) return false;
+        if (selectedDetailDateTime && s.recommendation_datetime && s.recommendation_datetime !== selectedDetailDateTime) return false;
+        return s.selection_status === 'selected';
+      })
+      .map((s: any) => s.survey_id);
+    
+    setManualSelectedCustomers(alreadySelected);
     setShowSelectionModal(true);
   };
 
@@ -3557,12 +3610,21 @@ export default function SurveysPage() {
                   <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col">
                     <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
                       <h3 className="text-xl font-bold text-gray-900">🎁 경품 선정 조건 설정</h3>
-                      <button
-                        onClick={() => setShowSelectionModal(false)}
-                        className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
-                      >
-                        ×
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={handleResetCriteria}
+                          className="text-xs px-3 py-1.5 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 border border-gray-300"
+                          title="설정값 초기화"
+                        >
+                          설정값 초기화
+                        </button>
+                        <button
+                          onClick={() => setShowSelectionModal(false)}
+                          className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                        >
+                          ×
+                        </button>
+                      </div>
                     </div>
                     <div className="flex-1 overflow-auto p-6">
                       {/* 통합된 선정 조건 설정 */}
@@ -4096,26 +4158,50 @@ export default function SurveysPage() {
                             {/* 선택된 고객 목록 표시 (필터 조건과 무관하게 전체 recommendations에서 찾기) */}
                             {manualSelectedCustomers.length > 0 && (
                               <div className="mt-2 p-2 bg-purple-50 rounded border border-purple-200 max-h-32 overflow-y-auto">
-                                <div className="text-xs font-semibold text-purple-700 mb-1">선택된 고객 목록:</div>
+                                <div className="flex items-center justify-between mb-1">
+                                  <div className="text-xs font-semibold text-purple-700">선택된 고객 목록:</div>
+                                  <button
+                                    onClick={() => setManualSelectedCustomers([])}
+                                    className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 border border-red-300"
+                                    title="모든 선택 해제"
+                                  >
+                                    전체 해제
+                                  </button>
+                                </div>
                                 <div className="flex flex-wrap gap-1">
                                   {prizeHistoryDetail?.recommendations
                                     ?.filter((r: any) => r.is_primary === true && manualSelectedCustomers.includes(r.survey_id))
                                     .map((item: any) => {
                                       const isPurchased = item.is_purchased === true && item.days_since_last_purchase != null;
                                       const isInFiltered = getFilteredCustomers.some((c: any) => c.survey_id === item.survey_id);
+                                      const isAlreadySelected = prizeSelections.some((s: any) => 
+                                        s.survey_id === item.survey_id && 
+                                        s.recommendation_date === selectedDetailDate &&
+                                        (!selectedDetailDateTime || !s.recommendation_datetime || s.recommendation_datetime === selectedDetailDateTime) &&
+                                        s.selection_status === 'selected'
+                                      );
                                       
                                       return (
                                         <span 
                                           key={item.survey_id} 
                                           className={`text-xs px-2 py-1 rounded border ${
-                                            isInFiltered 
-                                              ? 'bg-white border-purple-300' 
-                                              : 'bg-yellow-50 border-yellow-300 text-yellow-700'
+                                            isAlreadySelected
+                                              ? 'bg-green-50 border-green-400 text-green-800'
+                                              : isInFiltered 
+                                                ? 'bg-white border-purple-300' 
+                                                : 'bg-yellow-50 border-yellow-300 text-yellow-700'
                                           }`}
-                                          title={isInFiltered ? '' : '현재 필터 조건에서 제외됨'}
+                                          title={
+                                            isAlreadySelected 
+                                              ? '이미 선정된 고객' 
+                                              : isInFiltered 
+                                                ? '' 
+                                                : '현재 필터 조건에서 제외됨'
+                                          }
                                         >
                                           {item.name}
-                                          {!isInFiltered && ' ⚠️'}
+                                          {isAlreadySelected && ' ✓'}
+                                          {!isInFiltered && !isAlreadySelected && ' ⚠️'}
                                         </span>
                                       );
                                     })}
