@@ -679,16 +679,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               surveyId: survey.id,
             });
 
-            // ⭐ 수정: smsResult.success가 false이거나 successCount가 0이면 실패로 처리
-            if (!smsResult.success || (smsResult.result?.successCount || 0) === 0) {
+            // ⭐ 수정: 그룹 ID가 있으면 발송 성공으로 간주 (솔라피에서 그룹 ID가 생성되면 발송된 것)
+            // successCount가 0이어도 그룹 ID가 있으면 발송된 것으로 처리
+            const hasGroupIds = smsResult.result?.groupIds && smsResult.result.groupIds.length > 0;
+            const hasSuccessCount = (smsResult.result?.successCount || 0) > 0;
+            
+            if (!hasGroupIds && (!smsResult.success || !hasSuccessCount)) {
               const errorMsg = smsResult.message || 'SMS 발송 실패';
               console.error('[send-messages] SMS 발송 실패:', {
                 success: smsResult.success,
+                hasGroupIds,
+                hasSuccessCount,
                 message: errorMsg,
                 result: smsResult.result,
                 surveyId: survey.id,
               });
               throw new Error(errorMsg);
+            }
+            
+            // 그룹 ID가 있으면 성공으로 처리 (successCount는 나중에 업데이트될 수 있음)
+            if (hasGroupIds && !hasSuccessCount) {
+              console.warn('[send-messages] 그룹 ID는 있지만 successCount가 0입니다. 나중에 동기화될 수 있습니다:', {
+                groupIds: smsResult.result.groupIds,
+                surveyId: survey.id,
+              });
             }
 
             sentCount++;
@@ -761,16 +775,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               surveyId: survey.id,
             });
 
-            // ⭐ 수정: smsResult.success가 false이거나 successCount가 0이면 실패로 처리
-            if (!smsResult.success || (smsResult.result?.successCount || 0) === 0) {
+            // ⭐ 수정: 그룹 ID가 있으면 발송 성공으로 간주 (솔라피에서 그룹 ID가 생성되면 발송된 것)
+            // successCount가 0이어도 그룹 ID가 있으면 발송된 것으로 처리
+            const hasGroupIds = smsResult.result?.groupIds && smsResult.result.groupIds.length > 0;
+            const hasSuccessCount = (smsResult.result?.successCount || 0) > 0;
+            
+            if (!hasGroupIds && (!smsResult.success || !hasSuccessCount)) {
               const errorMsg = smsResult.message || 'SMS 발송 실패';
               console.error('[send-messages] SMS 발송 실패:', {
                 success: smsResult.success,
+                hasGroupIds,
+                hasSuccessCount,
                 message: errorMsg,
                 result: smsResult.result,
                 surveyId: survey.id,
               });
               throw new Error(errorMsg);
+            }
+            
+            // 그룹 ID가 있으면 성공으로 처리 (successCount는 나중에 업데이트될 수 있음)
+            if (hasGroupIds && !hasSuccessCount) {
+              console.warn('[send-messages] 그룹 ID는 있지만 successCount가 0입니다. 나중에 동기화될 수 있습니다:', {
+                groupIds: smsResult.result.groupIds,
+                surveyId: survey.id,
+              });
             }
 
             sentCount++;
