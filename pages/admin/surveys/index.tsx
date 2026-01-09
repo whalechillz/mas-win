@@ -2018,6 +2018,19 @@ export default function SurveysPage() {
     }
   };
 
+  // 버튼명 생성 함수
+  const getMessageButtonText = (messageType: 'thank_you' | 'winner', selectedCount: number, totalCount: number): string => {
+    const messageName = messageType === 'thank_you' ? '감사 메시지' : '당첨 메시지';
+    
+    if (selectedCount === 0) {
+      return `${messageName} 발송`;
+    } else if (selectedCount === totalCount) {
+      return `${messageName} 전체 (${totalCount}개)`;
+    } else {
+      return `${messageName} 발송 (${selectedCount}개)`;
+    }
+  };
+
   // 일괄 메시지 발송
   const handleBulkSendMessages = async (messageType: 'thank_you' | 'winner', sendToAll: boolean = false) => {
     const targetCount = sendToAll ? surveys.length : selectedIds.length;
@@ -2438,20 +2451,20 @@ export default function SurveysPage() {
                   >
                     {isDeleting ? '삭제 중...' : `선택한 ${selectedIds.length}개 삭제`}
                   </button>
-                  {/* 일괄 발송 버튼 (선택된 항목에 대해) */}
+                  {/* 메시지 발송 버튼 (선택 상태에 따라 동적) */}
                   <button
-                    onClick={() => handleBulkSendMessages('thank_you', false)}
+                    onClick={() => handleBulkSendMessages('thank_you', selectedIds.length === surveys.length)}
                     disabled={sendingMessages}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   >
-                    {sendingMessages ? '발송 중...' : `감사 메시지 일괄 발송 (${selectedIds.length}개)`}
+                    {sendingMessages ? '발송 중...' : getMessageButtonText('thank_you', selectedIds.length, surveys.length)}
                   </button>
                   <button
-                    onClick={() => handleBulkSendMessages('winner', false)}
+                    onClick={() => handleBulkSendMessages('winner', selectedIds.length === surveys.length)}
                     disabled={sendingMessages}
                     className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   >
-                    {sendingMessages ? '발송 중...' : `당첨 메시지 일괄 발송 (${selectedIds.length}개)`}
+                    {sendingMessages ? '발송 중...' : getMessageButtonText('winner', selectedIds.length, surveys.length)}
                   </button>
                 </div>
                 </>
@@ -2469,20 +2482,20 @@ export default function SurveysPage() {
                     >
                       {updatingEventCandidates ? '업데이트 중...' : '🎁 선물 지급 설문 자동 연결 및 업데이트'}
                     </button>
-                    {/* 전체 발송 버튼 (전체에 대해) */}
+                    {/* 메시지 발송 버튼 (선택 항목 없을 때) */}
                     <button
                       onClick={() => handleBulkSendMessages('thank_you', true)}
                       disabled={sendingMessages}
                       className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                     >
-                      {sendingMessages ? '발송 중...' : '감사 메시지 전체 발송'}
+                      {sendingMessages ? '발송 중...' : getMessageButtonText('thank_you', 0, surveys.length)}
                     </button>
                     <button
                       onClick={() => handleBulkSendMessages('winner', true)}
                       disabled={sendingMessages}
                       className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                     >
-                      {sendingMessages ? '발송 중...' : '당첨 메시지 전체 발송'}
+                      {sendingMessages ? '발송 중...' : getMessageButtonText('winner', 0, surveys.length)}
                     </button>
               </div>
                 </>
