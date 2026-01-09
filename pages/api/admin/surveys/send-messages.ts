@@ -825,6 +825,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 surveyId: survey.id,
                 surveyName: survey.name,
               });
+              
+              // surveys 테이블에 발송 완료 표시
+              await supabase
+                .from('surveys')
+                .update({ winner_message_sent_at: new Date().toISOString() })
+                .eq('id', survey.id);
             }
 
             sentCount++;
@@ -1010,6 +1016,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 groupIds: smsResult.result.groupIds,
                 surveyId: survey.id,
               });
+            }
+            
+            // 감사 메시지 발송 성공 시 surveys 테이블 업데이트
+            if (hasGroupIds) {
+              console.log('[send-messages] ✅ 감사 메시지 발송 성공 (그룹 ID 확인):', {
+                groupIds: smsResult.result.groupIds,
+                surveyId: survey.id,
+                surveyName: survey.name,
+              });
+              
+              // surveys 테이블에 발송 완료 표시
+              await supabase
+                .from('surveys')
+                .update({ thank_you_message_sent_at: new Date().toISOString() })
+                .eq('id', survey.id);
             }
 
             sentCount++;

@@ -28,6 +28,8 @@ type Survey = {
   distance_km?: number | null; // 거리 (km)
   is_purchased?: boolean; // 구매 여부
   days_since_last_purchase?: number | null; // 구매 경과 일수
+  thank_you_message_sent_at?: string | null; // 감사 메시지 발송 완료 시간
+  winner_message_sent_at?: string | null; // 당첨 메시지 발송 완료 시간
 };
 
 export default function SurveysPage() {
@@ -1996,6 +1998,8 @@ export default function SurveysPage() {
           setMessageSendResults(json.data);
           setMessagePreviewModal({ open: false, survey: null, messageType: null, message: '', loading: false });
           alert(json.message || '메시지가 발송되었습니다.');
+          // 발송 완료 후 목록 새로고침 (발송 상태 업데이트 반영)
+          fetchSurveys();
         } else {
           // 실제로는 발송되지 않았지만 API는 success: true를 반환한 경우
           console.error('[발송] 실제 발송 실패 (API는 success지만 sent=0):', json);
@@ -2025,32 +2029,82 @@ export default function SurveysPage() {
     }
 
     if (messageType === 'winner') {
-      // 당첨 메시지인 경우 당첨자만 필터링
-      const winnerCount = sendToAll
-        ? surveys.filter(s => s.is_winner).length
-        : surveys.filter(s => selectedIds.includes(s.id) && s.is_winner).length;
+      // 당첨 메시지인 경우 당첨자만 필터링 (이미 발송된 설문 제외)
+      const targetSurveys = sendToAll
+        ? surveys.filter(s => s.is_winner && !s.winner_message_sent_at)
+        : surveys.filter(s => selectedIds.includes(s.id) && s.is_winner && !s.winner_message_sent_at);
 
-      if (winnerCount === 0) {
-        alert('당첨자가 없습니다.');
+      if (targetSurveys.length === 0) {
+        alert('발송 가능한 당첨자가 없습니다. (이미 발송된 설문 제외)');
         return;
       }
 
-      if (!confirm(`${targetText} 설문 중 당첨자 ${winnerCount}명에게 당첨 메시지를 발송하시겠습니까?`)) {
-        return;
+      const alreadySentCount = sendToAll
+        ? surveys.filter(s => s.is_winner && s.winner_message_sent_at).length
+        : surveys.filter(s => selectedIds.includes(s.id) && s.is_winner && s.winner_message_sent_at).length;
+
+      if (alreadySentCount > 0) {
+        if (!confirm(`${targetText} 설문 중 당첨자 ${targetSurveys.length}명에게 당첨 메시지를 발송하시겠습니까?\n(이미 발송된 ${alreadySentCount}명은 제외됩니다.)`)) {
+          return;
+        }
+      } else {
+        if (!confirm(`${targetText} 설문 중 당첨자 ${targetSurveys.length}명에게 당첨 메시지를 발송하시겠습니까?`)) {
+          return;
+        }
       }
     } else {
-      if (!confirm(`${targetText} ${targetCount}명에게 감사 메시지를 발송하시겠습니까?`)) {
+      // 감사 메시지인 경우 이미 발송된 설문 제외
+      const targetSurveys = sendToAll
+        ? surveys.filter(s => !s.thank_you_message_sent_at)
+        : surveys.filter(s => selectedIds.includes(s.id) && !s.thank_you_message_sent_at);
+
+      if (targetSurveys.length === 0) {
+        alert('발송 가능한 설문이 없습니다. (이미 발송된 설문 제외)');
         return;
+      }
+
+      const alreadySentCount = sendToAll
+        ? surveys.filter(s => s.thank_you_message_sent_at).length
+        : surveys.filter(s => selectedIds.includes(s.id) && s.thank_you_message_sent_at).length;
+
+      if (alreadySentCount > 0) {
+        if (!confirm(`${targetText} 설문 중 ${targetSurveys.length}명에게 감사 메시지를 발송하시겠습니까?\n(이미 발송된 ${alreadySentCount}명은 제외됩니다.)`)) {
+          return;
+        }
+      } else {
+        if (!confirm(`${targetText} ${targetSurveys.length}명에게 감사 메시지를 발송하시겠습니까?`)) {
+          return;
+        }
       }
     }
 
     setSendingMessages(true);
     try {
+      // 이미 발송된 설문 제외
+      let targetSurveyIds: string[];
+      if (messageType === 'winner') {
+        const targetSurveys = sendToAll
+          ? surveys.filter(s => s.is_winner && !s.winner_message_sent_at)
+          : surveys.filter(s => selectedIds.includes(s.id) && s.is_winner && !s.winner_message_sent_at);
+        targetSurveyIds = targetSurveys.map(s => s.id);
+      } else {
+        const targetSurveys = sendToAll
+          ? surveys.filter(s => !s.thank_you_message_sent_at)
+          : surveys.filter(s => selectedIds.includes(s.id) && !s.thank_you_message_sent_at);
+        targetSurveyIds = targetSurveys.map(s => s.id);
+      }
+
+      if (targetSurveyIds.length === 0) {
+        alert('발송 가능한 설문이 없습니다.');
+        setSendingMessages(false);
+        return;
+      }
+
       const res = await fetch('/api/admin/surveys/send-messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          surveyIds: sendToAll ? undefined : selectedIds,
+          surveyIds: sendToAll ? undefined : targetSurveyIds,
           messageType,
           sendToAll,
         }),
@@ -2061,6 +2115,8 @@ export default function SurveysPage() {
       if (json.success) {
         setMessageSendResults(json.data);
         alert(json.message || '메시지가 발송되었습니다.');
+        // 발송 완료 후 목록 새로고침 (발송 상태 업데이트 반영)
+        fetchSurveys();
         if (json.data?.errors && json.data.errors.length > 0) {
           console.error('발송 오류 목록:', json.data.errors);
         }
@@ -2685,19 +2741,25 @@ export default function SurveysPage() {
                               <div className="flex gap-2 mt-1">
                                 <button
                                   onClick={() => handlePreviewMessage(survey, 'thank_you')}
-                                  disabled={sendingMessages}
+                                  disabled={sendingMessages || !!survey.thank_you_message_sent_at}
                                   className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                  title="감사 메시지 미리보기 및 발송"
+                                  title={survey.thank_you_message_sent_at ? "감사 메시지 발송 완료" : "감사 메시지 미리보기 및 발송"}
                                 >
                                   감사 메시지
+                                  {survey.thank_you_message_sent_at && (
+                                    <span className="ml-1 text-xs text-green-600 font-semibold">✓</span>
+                                  )}
                                 </button>
                                 <button
                                   onClick={() => handlePreviewMessage(survey, 'winner')}
-                                  disabled={sendingMessages || !survey.is_winner}
+                                  disabled={sendingMessages || !survey.is_winner || !!survey.winner_message_sent_at}
                                   className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                  title={survey.is_winner ? "당첨 메시지 미리보기 및 발송" : "당첨자만 발송 가능"}
+                                  title={survey.winner_message_sent_at ? "당첨 메시지 발송 완료" : survey.is_winner ? "당첨 메시지 미리보기 및 발송" : "당첨자만 발송 가능"}
                                 >
                                   당첨 메시지
+                                  {survey.winner_message_sent_at && (
+                                    <span className="ml-1 text-xs text-green-600 font-semibold">✓</span>
+                                  )}
                                 </button>
                               </div>
                             </div>
