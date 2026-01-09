@@ -181,6 +181,7 @@ function generateThankYouMessage(
 function generateWinnerMessage(
   name: string,
   distanceKm: number | null,
+  isPurchased: boolean,
   survey: any
 ): string {
   const importantFactors = (survey?.important_factors || []) as string[];
@@ -252,7 +253,15 @@ function generateWinnerMessage(
   let message = `[마쓰구골프] 축하합니다, ${name}님!\n\n`;
   message += `경품 당첨을 축하드립니다!\n`;
   message += `선물을 받으시고 기존 클럽 점검을 받으신 후\n`;
-  message += `110만원 상당의 특별한 리샤프팅 혜택을 드립니다.\n\n`;
+  
+  // 구매 여부에 따라 다른 문구
+  if (isPurchased) {
+    // 구매자: "특별한 리샤프팅 혜택을 드립니다."
+    message += `특별한 리샤프팅 혜택을 드립니다.\n\n`;
+  } else {
+    // 비구매자: "특별한 혜택을 드립니다."
+    message += `특별한 혜택을 드립니다.\n\n`;
+  }
 
   // 거리별 상담 안내
   if (isFarDistance) {
@@ -406,7 +415,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (messageType === 'thank_you') {
         message = generateThankYouMessage(survey.name || '고객', isPurchased, distanceKm, survey);
       } else {
-        message = generateWinnerMessage(survey.name || '고객', distanceKm, survey);
+        message = generateWinnerMessage(survey.name || '고객', distanceKm, isPurchased, survey);
       }
 
       return res.status(200).json({
@@ -645,7 +654,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // both인 경우 감사 메시지만 발송
           } else {
             // 당첨 메시지 생성 및 발송 (개인화된 메시지)
-            const winnerMessage = generateWinnerMessage(survey.name || '고객', distanceKm, survey);
+            const winnerMessage = generateWinnerMessage(survey.name || '고객', distanceKm, isPurchased, survey);
             
             // ⭐ 수정: UUID 대신 먼저 메시지를 저장하여 integer ID 획득 (고객 관리와 동일한 방식)
             const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
