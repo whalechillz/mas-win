@@ -580,10 +580,17 @@ export default async function handler(req, res) {
     if (upsertError) {
       console.error('[send] channel_sms UPSERT 오류:', {
         error: upsertError,
+        errorCode: upsertError.code,
+        errorMessage: upsertError.message,
+        errorDetails: upsertError.details,
+        errorHint: upsertError.hint,
         channelPostId,
+        isUUID,
+        existingMessage: existingMessage ? { id: existingMessage.id } : null,
         upsertData: {
           ...upsertData,
           message_text: upsertData.message_text?.substring(0, 50) + '...',
+          id: upsertData.id || '(자동 생성)',
         },
       });
       
@@ -592,6 +599,8 @@ export default async function handler(req, res) {
         success: false,
         message: '메시지 발송은 성공했지만 데이터베이스 저장에 실패했습니다.',
         error: upsertError.message,
+        errorCode: upsertError.code,
+        errorDetails: upsertError.details,
         result: {
           groupIds: aggregated.groupIds,
           sentCount: uniqueToSend.length,
