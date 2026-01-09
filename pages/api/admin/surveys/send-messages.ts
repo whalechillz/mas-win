@@ -159,9 +159,15 @@ function generateThankYouMessage(
     message += `\n`;
   }
 
-  // 기본 CTA
-  message += `무료 시타 체험으로 직접 확인해보세요!\n`;
-  message += `전문 상담을 통해 최적의 솔루션을 제안해드리겠습니다.\n\n`;
+  // 기본 CTA (거리별 + 신제품 강조)
+  if (distanceKm !== null && distanceKm < 50) {
+    // 50km 이내: 시타 체험
+    message += `신제품 최초 체험! 무료 시타 예약하세요!\n`;
+  } else {
+    // 50km 이상: 온라인/전화 상담
+    message += `신제품 최초 체험! 무료 온라인/전화 상담 예약하세요!\n`;
+  }
+  message += `KGFA 1급 피팅 전문 상담을 통해 최적의 솔루션을 제안해드리겠습니다.\n\n`;
 
   // 매장 정보 추가 (거리 기반 개인화)
   message += generateStoreInfo(distanceKm);
@@ -276,9 +282,15 @@ function generateWinnerMessage(
     message += `\n`;
   }
 
-  // 기본 CTA
-  message += `무료 시타 체험으로 직접 확인해보세요!\n`;
-  message += `전문 상담을 통해 최적의 솔루션을 제안해드리겠습니다.\n\n`;
+  // 기본 CTA (거리별 + 신제품 강조)
+  if (distanceKm !== null && distanceKm < 50) {
+    // 50km 이내: 시타 체험
+    message += `신제품 최초 체험! 무료 시타 예약하세요!\n`;
+  } else {
+    // 50km 이상: 온라인/전화 상담
+    message += `신제품 최초 체험! 무료 온라인/전화 상담 예약하세요!\n`;
+  }
+  message += `KGFA 1급 피팅 전문 상담을 통해 최적의 솔루션을 제안해드리겠습니다.\n\n`;
 
   // 매장 정보 추가 (거리 기반 개인화)
   message += generateStoreInfo(distanceKm);
