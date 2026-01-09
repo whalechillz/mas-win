@@ -2423,7 +2423,7 @@ export default function SurveysPage() {
                 <span className="text-sm text-gray-700">
                   {selectedIds.length}개 항목 선택됨
                 </span>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <button
                     onClick={handleBulkAnalyze}
                     disabled={analysisModal.loading}
@@ -2437,7 +2437,22 @@ export default function SurveysPage() {
                     className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   >
                     {isDeleting ? '삭제 중...' : `선택한 ${selectedIds.length}개 삭제`}
-                </button>
+                  </button>
+                  {/* 일괄 발송 버튼 (선택된 항목에 대해) */}
+                  <button
+                    onClick={() => handleBulkSendMessages('thank_you', false)}
+                    disabled={sendingMessages}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                  >
+                    {sendingMessages ? '발송 중...' : `감사 메시지 일괄 발송 (${selectedIds.length}개)`}
+                  </button>
+                  <button
+                    onClick={() => handleBulkSendMessages('winner', false)}
+                    disabled={sendingMessages}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                  >
+                    {sendingMessages ? '발송 중...' : `당첨 메시지 일괄 발송 (${selectedIds.length}개)`}
+                  </button>
                 </div>
                 </>
               ) : (
@@ -2454,20 +2469,7 @@ export default function SurveysPage() {
                     >
                       {updatingEventCandidates ? '업데이트 중...' : '🎁 선물 지급 설문 자동 연결 및 업데이트'}
                     </button>
-                    <button
-                      onClick={() => handleBulkSendMessages('thank_you', false)}
-                      disabled={sendingMessages || selectedIds.length === 0}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                    >
-                      {sendingMessages ? '발송 중...' : `감사 메시지 일괄 발송 (${selectedIds.length}개)`}
-                    </button>
-                    <button
-                      onClick={() => handleBulkSendMessages('winner', false)}
-                      disabled={sendingMessages || selectedIds.length === 0}
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                    >
-                      {sendingMessages ? '발송 중...' : `당첨 메시지 일괄 발송 (${selectedIds.length}개)`}
-                    </button>
+                    {/* 전체 발송 버튼 (전체에 대해) */}
                     <button
                       onClick={() => handleBulkSendMessages('thank_you', true)}
                       disabled={sendingMessages}
