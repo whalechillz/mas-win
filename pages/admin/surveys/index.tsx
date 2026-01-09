@@ -4057,33 +4057,71 @@ export default function SurveysPage() {
                                   필터 조건에 맞는 고객이 없습니다.
                                 </div>
                               ) : (
-                                getFilteredCustomers.map((item: any) => {
-                                  const isSelected = manualSelectedCustomers.includes(item.survey_id);
-                                  const isPurchased = item.is_purchased === true && item.days_since_last_purchase != null;
-                                  
-                                  return (
-                                    <label
-                                      key={item.survey_id}
-                                      className={`flex items-center gap-2 p-2 hover:bg-gray-50 cursor-pointer ${isSelected ? 'bg-blue-50' : ''}`}
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={isSelected}
-                                        onChange={() => toggleManualCustomerSelection(item.survey_id)}
-                                      />
-                                      <span className="text-sm">
-                                        {item.name} ({item.phone}) - 점수: {item.total_score}
-                                        {isPurchased ? ' [구매]' : ' [비구매]'}
-                                        {item.distance_km && ` - 거리: ${Number(item.distance_km).toFixed(1)}km`}
-                                      </span>
-                                    </label>
-                                  );
-                                })
+                                getFilteredCustomers
+                                  .sort((a: any, b: any) => {
+                                    // 선택된 고객을 상단으로 정렬
+                                    const aSelected = manualSelectedCustomers.includes(a.survey_id);
+                                    const bSelected = manualSelectedCustomers.includes(b.survey_id);
+                                    if (aSelected && !bSelected) return -1;
+                                    if (!aSelected && bSelected) return 1;
+                                    return 0;
+                                  })
+                                  .map((item: any) => {
+                                    const isSelected = manualSelectedCustomers.includes(item.survey_id);
+                                    const isPurchased = item.is_purchased === true && item.days_since_last_purchase != null;
+                                    
+                                    return (
+                                      <label
+                                        key={item.survey_id}
+                                        className={`flex items-center gap-2 p-2 hover:bg-gray-50 cursor-pointer ${isSelected ? 'bg-blue-50' : ''}`}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={isSelected}
+                                          onChange={() => toggleManualCustomerSelection(item.survey_id)}
+                                        />
+                                        <span className="text-sm">
+                                          {item.name} ({item.phone}) - 점수: {item.total_score}
+                                          {isPurchased ? ' [구매]' : ' [비구매]'}
+                                          {item.distance_km && ` - 거리: ${Number(item.distance_km).toFixed(1)}km`}
+                                        </span>
+                                      </label>
+                                    );
+                                  })
                               )}
                             </div>
                             <div className="mt-2 text-sm text-gray-600">
                               선택된 고객: <span className="font-bold text-purple-600">{manualSelectedCustomers.length}명</span>
                             </div>
+                            {/* 선택된 고객 목록 표시 (필터 조건과 무관하게 전체 recommendations에서 찾기) */}
+                            {manualSelectedCustomers.length > 0 && (
+                              <div className="mt-2 p-2 bg-purple-50 rounded border border-purple-200 max-h-32 overflow-y-auto">
+                                <div className="text-xs font-semibold text-purple-700 mb-1">선택된 고객 목록:</div>
+                                <div className="flex flex-wrap gap-1">
+                                  {prizeHistoryDetail?.recommendations
+                                    ?.filter((r: any) => r.is_primary === true && manualSelectedCustomers.includes(r.survey_id))
+                                    .map((item: any) => {
+                                      const isPurchased = item.is_purchased === true && item.days_since_last_purchase != null;
+                                      const isInFiltered = getFilteredCustomers.some((c: any) => c.survey_id === item.survey_id);
+                                      
+                                      return (
+                                        <span 
+                                          key={item.survey_id} 
+                                          className={`text-xs px-2 py-1 rounded border ${
+                                            isInFiltered 
+                                              ? 'bg-white border-purple-300' 
+                                              : 'bg-yellow-50 border-yellow-300 text-yellow-700'
+                                          }`}
+                                          title={isInFiltered ? '' : '현재 필터 조건에서 제외됨'}
+                                        >
+                                          {item.name}
+                                          {!isInFiltered && ' ⚠️'}
+                                        </span>
+                                      );
+                                    })}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
