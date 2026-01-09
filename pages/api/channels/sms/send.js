@@ -515,7 +515,6 @@ export default async function handler(req, res) {
     // ⭐ UPSERT 사용 (레코드가 없으면 INSERT, 있으면 UPDATE)
     const now = new Date().toISOString();
     const upsertData = {
-      id: channelPostId, // ID를 명시적으로 지정
       message_type: solapiType || 'MMS',
       message_text: messageContent,
       recipient_numbers: uniqueToSend,
@@ -532,15 +531,40 @@ export default async function handler(req, res) {
       updated_at: now,
     };
     
+    // ⭐ 수정: channelPostId가 UUID인 경우 id를 지정하지 않고 자동 생성
+    // UUID가 아닌 경우에만 id 지정
+    if (!isUUID && existingMessage && existingMessage.id) {
+      // 기존 메시지가 있고 UUID가 아닌 경우: id로 업데이트
+      upsertData.id = existingMessage.id;
+    }
+    
     // 새 레코드인 경우에만 created_at 설정
     if (!existingMessage) {
       upsertData.created_at = now;
     }
     
-    const { data: upsertResult, error: upsertError } = await supabase
-      .from('channel_sms')
-      .upsert(upsertData, { onConflict: 'id' })
-      .select();
+    // ⭐ 수정: UPSERT 로직
+    let upsertResult;
+    let upsertError;
+    
+    if (!isUUID && existingMessage && existingMessage.id) {
+      // 기존 메시지가 있고 UUID가 아닌 경우: id로 업데이트
+      const { data, error } = await supabase
+        .from('channel_sms')
+        .update(upsertData)
+        .eq('id', existingMessage.id)
+        .select();
+      upsertResult = data;
+      upsertError = error;
+    } else {
+      // 새 메시지 생성 (id는 자동 생성, UUID인 경우도 여기서 처리)
+      const { data, error } = await supabase
+        .from('channel_sms')
+        .insert(upsertData)
+        .select();
+      upsertResult = data;
+      upsertError = error;
+    }
 
     if (upsertError) {
       console.error('[send] channel_sms UPSERT 오류:', {
