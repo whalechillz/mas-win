@@ -1954,11 +1954,53 @@ export default function SurveysPage() {
 
       const json = await res.json();
       console.log('[발송] API 응답 데이터:', json);
+      
+      // ⭐ 상세 로그 추가
+      console.log('[발송] 상세 분석:', {
+        success: json.success,
+        message: json.message,
+        data: json.data,
+        sent: json.data?.sent,
+        failed: json.data?.failed,
+        total: json.data?.total,
+        errors: json.data?.errors,
+        errorCount: json.data?.errors?.length || 0,
+      });
+      
+      // 에러가 있으면 상세 출력
+      if (json.data?.errors && json.data.errors.length > 0) {
+        console.error('[발송] 발송 실패 상세:', {
+          errorCount: json.data.errors.length,
+          errors: json.data.errors,
+        });
+        json.data.errors.forEach((error: string, index: number) => {
+          console.error(`[발송] 에러 ${index + 1}:`, error);
+        });
+      }
 
       if (json.success) {
-        setMessageSendResults(json.data);
-        setMessagePreviewModal({ open: false, survey: null, messageType: null, message: '', loading: false });
-        alert(json.message || '메시지가 발송되었습니다.');
+        // ⭐ 성공 여부를 더 정확히 판단
+        const actualSent = json.data?.sent || 0;
+        const actualFailed = json.data?.failed || 0;
+        
+        console.log('[발송] 최종 결과:', {
+          actualSent,
+          actualFailed,
+          isSuccess: actualSent > 0 && actualFailed === 0,
+          isPartial: actualSent > 0 && actualFailed > 0,
+          isFailed: actualSent === 0,
+        });
+        
+        if (actualSent > 0) {
+          setMessageSendResults(json.data);
+          setMessagePreviewModal({ open: false, survey: null, messageType: null, message: '', loading: false });
+          alert(json.message || '메시지가 발송되었습니다.');
+        } else {
+          // 실제로는 발송되지 않았지만 API는 success: true를 반환한 경우
+          console.error('[발송] 실제 발송 실패 (API는 success지만 sent=0):', json);
+          const errorMsg = json.data?.errors?.[0] || json.message || '메시지 발송에 실패했습니다.';
+          alert(`발송 실패: ${errorMsg}`);
+        }
       } else {
         console.error('[발송] API 실패:', json);
         alert(json.message || '메시지 발송에 실패했습니다.');

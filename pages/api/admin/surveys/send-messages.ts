@@ -805,11 +805,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         }
       } catch (error: any) {
-        console.error(`메시지 발송 오류 (설문 ${survey.id}):`, error);
+        console.error(`[send-messages] 메시지 발송 오류 (설문 ${survey.id}):`, {
+          surveyId: survey.id,
+          surveyName: survey.name,
+          phone: survey.phone,
+          messageType: messageType,
+          error: error.message,
+          errorStack: error.stack,
+        });
         failedCount++;
-        errors.push(`설문 ${survey.id} (${survey.name}): ${error.message || '알 수 없는 오류'}`);
+        const errorMessage = `설문 ${survey.id} (${survey.name}): ${error.message || '알 수 없는 오류'}`;
+        errors.push(errorMessage);
       }
     }
+
+    // ⭐ 최종 결과 로깅
+    console.log('[send-messages] 최종 발송 결과:', {
+      total: surveysToProcess.length,
+      sent: sentCount,
+      failed: failedCount,
+      errors: errors.length,
+      errorDetails: errors.slice(0, 5), // 처음 5개만 로그
+    });
 
     return res.status(200).json({
       success: true,
