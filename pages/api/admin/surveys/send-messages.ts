@@ -305,7 +305,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // 설문 정보 조회 (개인화를 위한 필드 포함)
       const { data: survey, error: surveyError } = await supabase
         .from('surveys')
-        .select('id, name, phone, important_factors, selected_model, age_group, customer_id')
+        .select('id, name, phone, important_factors, selected_model, age_group, customer_id, additional_feedback')
         .eq('id', surveyId)
         .single();
 
@@ -441,7 +441,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // 전체 설문 조회 (개인화를 위한 필드 포함)
       const { data: allSurveys, error: fetchError } = await supabase
         .from('surveys')
-        .select('id, name, phone, important_factors, selected_model, age_group, customer_id');
+        .select('id, name, phone, important_factors, selected_model, age_group, customer_id, additional_feedback');
 
       if (fetchError) {
         console.error('전체 설문 조회 오류:', fetchError);
@@ -456,7 +456,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // 선택된 설문 조회 (개인화를 위한 필드 포함)
       const { data: selectedSurveys, error: fetchError } = await supabase
         .from('surveys')
-        .select('id, name, phone, important_factors, selected_model, age_group, customer_id')
+        .select('id, name, phone, important_factors, selected_model, age_group, customer_id, additional_feedback')
         .in('id', surveyIds);
 
       if (fetchError) {
