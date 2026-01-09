@@ -713,9 +713,11 @@ export default async function handler(req, res) {
     // 발송 실패 시 상태 저장/업데이트 (UPSERT 사용)
     if (req.body.channelPostId) {
       try {
+        // ⭐ 수정: channelPostId가 UUID인지 확인
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(req.body.channelPostId);
+        
         const now = new Date().toISOString();
         const failData = {
-          id: req.body.channelPostId,
           message_type: req.body.messageType || 'MMS',
           message_text: req.body.messageText || req.body.content || '',
           recipient_numbers: req.body.recipientNumbers || [],
@@ -728,22 +730,48 @@ export default async function handler(req, res) {
           updated_at: now,
         };
         
-        // 기존 레코드 확인
-        const { data: existing } = await supabase
-          .from('channel_sms')
-          .select('id, created_at')
-          .eq('id', req.body.channelPostId)
-          .maybeSingle();
+        let existing = null;
+        if (!isUUID) {
+          // UUID가 아닌 경우에만 기존 레코드 확인
+          const { data } = await supabase
+            .from('channel_sms')
+            .select('id, created_at')
+            .eq('id', req.body.channelPostId)
+            .maybeSingle();
+          existing = data;
+        }
+        
+        // ⭐ 수정: UUID가 아닌 경우에만 id 지정
+        if (!isUUID && existing && existing.id) {
+          failData.id = existing.id;
+        }
         
         if (!existing) {
           failData.created_at = now;
         }
         
-        await supabase
-          .from('channel_sms')
-          .upsert(failData, { onConflict: 'id' });
+        // ⭐ 수정: UUID 처리
+        let upsertFailError;
+        if (!isUUID && existing && existing.id) {
+          // 기존 메시지가 있고 UUID가 아닌 경우: id로 업데이트
+          const { error } = await supabase
+            .from('channel_sms')
+            .update(failData)
+            .eq('id', existing.id);
+          upsertFailError = error;
+        } else {
+          // 새 메시지 생성 (id는 자동 생성, UUID인 경우도 여기서 처리)
+          const { error } = await supabase
+            .from('channel_sms')
+            .insert(failData);
+          upsertFailError = error;
+        }
         
-        console.log(`✅ channel_sms 실패 레코드 ${existing ? '업데이트' : '생성'} 완료: ${req.body.channelPostId}`);
+        if (upsertFailError) {
+          console.error('SMS 실패 상태 저장/업데이트 오류:', upsertFailError);
+        } else {
+          console.log(`✅ channel_sms 실패 레코드 ${existing ? '업데이트' : '생성'} 완료: ${req.body.channelPostId}`);
+        }
       } catch (updateError) {
         console.error('SMS 실패 상태 저장/업데이트 오류:', updateError);
       }
