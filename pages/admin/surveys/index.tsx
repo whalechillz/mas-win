@@ -2741,24 +2741,36 @@ export default function SurveysPage() {
                               <div className="flex gap-2 mt-1">
                                 <button
                                   onClick={() => handlePreviewMessage(survey, 'thank_you')}
-                                  disabled={sendingMessages || !!survey.thank_you_message_sent_at}
-                                  className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                  title={survey.thank_you_message_sent_at ? "감사 메시지 발송 완료" : "감사 메시지 미리보기 및 발송"}
+                                  disabled={sendingMessages}
+                                  className={`text-xs px-2 py-1 rounded hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                    survey.thank_you_message_sent_at 
+                                      ? 'bg-orange-50 text-orange-700' 
+                                      : 'bg-blue-50 text-blue-700'
+                                  }`}
+                                  title={survey.thank_you_message_sent_at ? "감사 메시지 재발송" : "감사 메시지 미리보기 및 발송"}
                                 >
-                                  감사 메시지
+                                  {survey.thank_you_message_sent_at ? '감사 메시지 재발송' : '감사 메시지'}
                                   {survey.thank_you_message_sent_at && (
-                                    <span className="ml-1 text-xs text-green-600 font-semibold">✓</span>
+                                    <span className="ml-1 text-xs text-gray-500">
+                                      ({new Date(survey.thank_you_message_sent_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })})
+                                    </span>
                                   )}
                                 </button>
                                 <button
                                   onClick={() => handlePreviewMessage(survey, 'winner')}
-                                  disabled={sendingMessages || !survey.is_winner || !!survey.winner_message_sent_at}
-                                  className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                  title={survey.winner_message_sent_at ? "당첨 메시지 발송 완료" : survey.is_winner ? "당첨 메시지 미리보기 및 발송" : "당첨자만 발송 가능"}
+                                  disabled={sendingMessages || !survey.is_winner}
+                                  className={`text-xs px-2 py-1 rounded hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                    survey.winner_message_sent_at 
+                                      ? 'bg-orange-50 text-orange-700' 
+                                      : 'bg-green-50 text-green-700'
+                                  }`}
+                                  title={survey.winner_message_sent_at ? "당첨 메시지 재발송" : survey.is_winner ? "당첨 메시지 미리보기 및 발송" : "당첨자만 발송 가능"}
                                 >
-                                  당첨 메시지
+                                  {survey.winner_message_sent_at ? '당첨 메시지 재발송' : '당첨 메시지'}
                                   {survey.winner_message_sent_at && (
-                                    <span className="ml-1 text-xs text-green-600 font-semibold">✓</span>
+                                    <span className="ml-1 text-xs text-gray-500">
+                                      ({new Date(survey.winner_message_sent_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })})
+                                    </span>
                                   )}
                                 </button>
                               </div>
@@ -4963,6 +4975,39 @@ export default function SurveysPage() {
                 </div>
               ) : (
                 <>
+                  {/* 재발송 경고 */}
+                  {(messagePreviewModal.messageType === 'thank_you' && messagePreviewModal.survey.thank_you_message_sent_at) ||
+                   (messagePreviewModal.messageType === 'winner' && messagePreviewModal.survey.winner_message_sent_at) ? (
+                    <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0">
+                          <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <h3 className="text-sm font-medium text-yellow-800">
+                            재발송 안내
+                          </h3>
+                          <div className="mt-2 text-sm text-yellow-700">
+                            <p>
+                              이 설문에는 이미 {messagePreviewModal.messageType === 'thank_you' ? '감사' : '당첨'} 메시지가 발송되었습니다.
+                              <br />
+                              이전 발송 시간: {new Date(
+                                messagePreviewModal.messageType === 'thank_you' 
+                                  ? messagePreviewModal.survey.thank_you_message_sent_at!
+                                  : messagePreviewModal.survey.winner_message_sent_at!
+                              ).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
+                            </p>
+                            <p className="mt-2 font-medium">
+                              재발송하시겠습니까?
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+
                   {/* 고객 정보 */}
                   <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                     <h3 className="font-semibold text-gray-900 mb-3">고객 정보</h3>
