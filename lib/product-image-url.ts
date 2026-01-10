@@ -152,6 +152,26 @@ export function getProductImageUrl(imagePath: string): string {
     }
   }
   
+  // ✅ 구식 폴더명을 새 폴더명으로 변환
+  const folderMappings: Record<string, string> = {
+    'originals/products/black-beryl/': 'originals/products/secret-weapon-black-muziik/',
+    'originals/products/black-weapon/': 'originals/products/secret-weapon-black/',
+    'originals/products/gold-weapon4/': 'originals/products/secret-weapon-gold-4-1/',
+    'originals/products/gold2/': 'originals/products/secret-force-gold-2/',
+    'originals/products/gold2-sapphire/': 'originals/products/secret-force-gold-2-muziik/',
+    'originals/products/pro3-muziik/': 'originals/products/secret-force-pro-3-muziik/',
+    'originals/products/pro3/': 'originals/products/secret-force-pro-3/',
+    'originals/products/v3/': 'originals/products/secret-force-v3/',
+  };
+
+  for (const [oldPath, newPath] of Object.entries(folderMappings)) {
+    if (storagePath.includes(oldPath)) {
+      storagePath = storagePath.replace(oldPath, newPath);
+      console.log(`🔄 구식 경로 변환: ${oldPath} → ${newPath}`);
+      break;
+    }
+  }
+
   // ✅ originals/products/... 또는 originals/goods/... 경로에서 composition/detail/gallery 폴더 누락 시 자동 추가
   if (storagePath.startsWith('originals/products/') || storagePath.startsWith('originals/goods/')) {
     const pathParts = storagePath.split('/');

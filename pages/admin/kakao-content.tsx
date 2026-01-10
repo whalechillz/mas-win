@@ -405,7 +405,12 @@ export default function KakaoContentPage() {
       
       // ✅ 재시도 시 skipImageCheck=true로 빠른 로딩 시도
       const skipImageCheck = retryCount > 0 ? 'true' : 'false';
-      const res = await fetch(`/api/kakao-content/calendar-load?month=${monthStr}&skipImageCheck=${skipImageCheck}`);
+      const res = await fetch(`/api/kakao-content/calendar-load?month=${monthStr}&skipImageCheck=${skipImageCheck}`, {
+        credentials: 'include', // ✅ 쿠키 포함 명시 (Playwright 호환)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       
       // ✅ 응답 상태 확인 (504 등 에러 응답 처리)
       if (!res.ok) {
@@ -1417,7 +1422,12 @@ export default function KakaoContentPage() {
     try {
       const today = new Date();
       const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-      const res = await fetch(`/api/kakao-content/calendar-load?month=${monthStr}`);
+      const res = await fetch(`/api/kakao-content/calendar-load?month=${monthStr}`, {
+        credentials: 'include', // ✅ 쿠키 포함 명시 (Playwright 호환)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       const data = await res.json();
       if (data.success && data.calendarData) {
         setCalendarData(data.calendarData);

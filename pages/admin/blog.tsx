@@ -25,6 +25,7 @@ import {
 
 export default function BlogAdmin() {
   const { data: session, status } = useSession();
+  const [canRender, setCanRender] = useState(false);
   const router = useRouter();
   const redirectingRef = useRef(false);
   const [posts, setPosts] = useState([]);
@@ -627,6 +628,7 @@ export default function BlogAdmin() {
       
       const response = await fetch(`/api/admin/blog/?${sortParams}`, {
         method: 'GET',
+        credentials: 'include', // ✅ 쿠키 포함 명시 (Playwright 호환)
         headers: {
           'Content-Type': 'application/json',
         },
@@ -669,11 +671,18 @@ export default function BlogAdmin() {
   // 카테고리 목록 로드
   const loadCategories = async () => {
     try {
-      const response = await fetch('/api/admin/blog');
+      const response = await fetch('/api/admin/blog', {
+        credentials: 'include', // ✅ 쿠키 포함 명시 (Playwright 호환)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         const categories = Array.from(new Set(data.posts.map(post => post.category))).filter(Boolean);
         setAvailableCategories(categories);
+      } else if (response.status === 401) {
+        console.warn('⚠️ 카테고리 로드 실패: 인증 필요');
       }
     } catch (error) {
       console.error('카테고리 로드 오류:', error);
@@ -4692,14 +4701,14 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
     // 디버깅 모드가 아닐 때만 세션 체크
     if (DEBUG_MODE) return;
     
+    // 세션 체크는 미들웨어에서 처리하므로 클라이언트 사이드 리다이렉트 제거
+    // 미들웨어가 이미 인증되지 않은 사용자를 로그인 페이지로 리다이렉트함
+    // 클라이언트 사이드에서 추가 리다이렉트를 하면 루프가 발생할 수 있음
     if (status === 'loading') return; // 로딩 중이면 대기
     
-    if (!session) {
-      // 인증되지 않은 경우 로그인 페이지로 리다이렉트
-      window.location.href = '/admin/login';
-      return;
-    }
-  }, [session, status, DEBUG_MODE]);
+    // 세션이 없어도 미들웨어가 통과시켰다면 렌더링 허용
+    // (useSession이 세션을 가져오는 데 시간이 걸릴 수 있음)
+  }, [status, session, DEBUG_MODE]);
   // URL 파라미터 처리
   useEffect(() => {
     if (router.isReady) {
@@ -4853,11 +4862,10 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
     }
   }, [status, session, DEBUG_MODE]);
 
-  // 로딩 중이거나 인증되지 않은 경우 (디버깅 모드가 아닐 때만 체크)
-  // 디버깅 모드일 때는 세션 체크 없이 렌더링
-  if (!DEBUG_MODE && status === 'loading') {
+  // 로딩 중 표시 (세션 체크는 미들웨어가 처리하므로 여기서는 로딩만 표시)
+  if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">로딩 중...</p>
@@ -4865,10 +4873,19 @@ ${analysis.recommendations.map(rec => `• ${rec}`).join('\n')}
       </div>
     );
   }
-  
-  // 디버깅 모드일 때는 세션 없이도 렌더링
-  if (!DEBUG_MODE && !session) {
-    return null; // 리다이렉트 중
+
+  // 디버깅 모드가 아니고 세션이 없으면
+  // 미들웨어가 이미 통과시켰으므로 세션 확인 중일 수 있음
+  // 무한 로딩 방지를 위해 일정 시간 후 렌더링 시도
+  if (!DEBUG_MODE && !session && !canRender) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -26,7 +26,7 @@ export default function GoldWeapon4Product() {
   ];
 
   // 제품 데이터 로드
-  const { productImages, galleryImages, isLoadingProduct } = useProductData('gold-weapon4', defaultImages);
+  const { productImages, galleryImages, isLoadingProduct } = useProductData('secret-weapon-gold-4-1', defaultImages);
 
   // 블로그 후기 가져오기
   useEffect(() => {

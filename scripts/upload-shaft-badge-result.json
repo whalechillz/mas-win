@@ -1,0 +1,72 @@
+[
+  {
+    "type": "shaft",
+    "source": "secret-force-common-shaft-grip.webp",
+    "target": "secret-force-v3-shaft-grip.webp",
+    "slug": "secret-force-v3",
+    "storagePath": "originals/products/secret-force-v3/composition/secret-force-v3-shaft-grip.webp",
+    "success": true,
+    "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/products/secret-force-v3/composition/secret-force-v3-shaft-grip.webp",
+    "path": "originals/products/secret-force-v3/composition/secret-force-v3-shaft-grip.webp"
+  },
+  {
+    "type": "shaft",
+    "source": "secret-force-common-shaft-grip.webp",
+    "target": "secret-force-pro-3-shaft-grip.webp",
+    "slug": "secret-force-pro-3",
+    "storagePath": "originals/products/secret-force-pro-3/composition/secret-force-pro-3-shaft-grip.webp",
+    "success": true,
+    "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/products/secret-force-pro-3/composition/secret-force-pro-3-shaft-grip.webp",
+    "path": "originals/products/secret-force-pro-3/composition/secret-force-pro-3-shaft-grip.webp"
+  },
+  {
+    "type": "shaft",
+    "source": "secret-force-common-shaft.webp",
+    "target": "secret-force-v3-shaft.webp",
+    "slug": "secret-force-v3",
+    "storagePath": "originals/products/secret-force-v3/composition/secret-force-v3-shaft.webp",
+    "success": true,
+    "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/products/secret-force-v3/composition/secret-force-v3-shaft.webp",
+    "path": "originals/products/secret-force-v3/composition/secret-force-v3-shaft.webp"
+  },
+  {
+    "type": "shaft",
+    "source": "secret-force-common-shaft.webp",
+    "target": "secret-force-pro-3-shaft.webp",
+    "slug": "secret-force-pro-3",
+    "storagePath": "originals/products/secret-force-pro-3/composition/secret-force-pro-3-shaft.webp",
+    "success": true,
+    "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/products/secret-force-pro-3/composition/secret-force-pro-3-shaft.webp",
+    "path": "originals/products/secret-force-pro-3/composition/secret-force-pro-3-shaft.webp"
+  },
+  {
+    "type": "badge",
+    "source": "secret-force-pro-3-badge.webp",
+    "target": "secret-force-pro-3-badge.webp",
+    "slug": "secret-force-pro-3",
+    "storagePath": "originals/products/secret-force-pro-3/composition/secret-force-pro-3-badge.webp",
+    "success": true,
+    "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/products/secret-force-pro-3/composition/secret-force-pro-3-badge.webp",
+    "path": "originals/products/secret-force-pro-3/composition/secret-force-pro-3-badge.webp"
+  },
+  {
+    "type": "badge",
+    "source": "secret-force-pro-3-badge.webp",
+    "target": "secret-force-pro-3-badge.webp",
+    "slug": "secret-force-pro-3-muziik",
+    "storagePath": "originals/products/secret-force-pro-3-muziik/composition/secret-force-pro-3-badge.webp",
+    "success": true,
+    "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/products/secret-force-pro-3-muziik/composition/secret-force-pro-3-badge.webp",
+    "path": "originals/products/secret-force-pro-3-muziik/composition/secret-force-pro-3-badge.webp"
+  },
+  {
+    "type": "badge",
+    "source": "secret-force-v3-badge.webp",
+    "target": "secret-force-v3-badge.webp",
+    "slug": "secret-force-v3",
+    "storagePath": "originals/products/secret-force-v3/composition/secret-force-v3-badge.webp",
+    "success": true,
+    "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/products/secret-force-v3/composition/secret-force-v3-badge.webp",
+    "path": "originals/products/secret-force-v3/composition/secret-force-v3-badge.webp"
+  }
+]

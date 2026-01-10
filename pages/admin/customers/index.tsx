@@ -79,7 +79,12 @@ export default function CustomersPage() {
     const searchValue = typeof searchOverride === 'string' ? searchOverride : q;
     const params = new URLSearchParams({ q: searchValue, page: String(nextPage), pageSize: String(pageSize), sortBy, sortOrder });
     if (onlyOptOut) params.set('optout', 'true');
-    const res = await fetch(`/api/admin/customers?${params.toString()}`);
+    const res = await fetch(`/api/admin/customers?${params.toString()}`, {
+      credentials: 'include', // ✅ 쿠키 포함 명시 (Playwright 호환)
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
     const json = await res.json();
     if (json.success) {
       let customersData = json.data || [];
@@ -181,6 +186,7 @@ export default function CustomersPage() {
   const handleToggleOptOut = async (c: Customer) => {
     const res = await fetch('/api/admin/customers', {
       method: 'PATCH',
+      credentials: 'include', // ✅ 쿠키 포함 명시 (Playwright 호환)
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: c.id, update: { opt_out: !c.opt_out } })
     });
@@ -194,7 +200,13 @@ export default function CustomersPage() {
 
   const handleDelete = async (c: Customer) => {
     if (!confirm(`정말 ${c.name} 고객을 삭제하시겠습니까?`)) return;
-    const res = await fetch(`/api/admin/customers?id=${c.id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/admin/customers?id=${c.id}`, {
+      method: 'DELETE',
+      credentials: 'include', // ✅ 쿠키 포함 명시 (Playwright 호환)
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
     const json = await res.json();
     if (json.success) {
       alert('고객이 삭제되었습니다.');
@@ -386,7 +398,13 @@ export default function CustomersPage() {
                 onClick={async () => {
                   setUpdatingVipLevels(true);
                   try {
-                    const res = await fetch('/api/admin/customers/update-vip-levels', { method: 'POST' });
+                    const res = await fetch('/api/admin/customers/update-vip-levels', {
+                      method: 'POST',
+                      credentials: 'include', // ✅ 쿠키 포함 명시 (Playwright 호환)
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                    });
                     const json = await res.json();
                     if (json.success) {
                       alert(`VIP 레벨 업데이트 완료!\n${json.message}\n\n분포:\n- Platinum: ${json.stats?.distribution?.platinum || 0}명\n- Gold: ${json.stats?.distribution?.gold || 0}명\n- Silver: ${json.stats?.distribution?.silver || 0}명\n- Bronze: ${json.stats?.distribution?.bronze || 0}명\n- 비구매자: ${json.stats?.distribution?.noPurchase || 0}명`);

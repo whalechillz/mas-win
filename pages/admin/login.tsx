@@ -17,7 +17,9 @@ export default function LoginPage() {
   useEffect(() => {
     const errorParam = router.query.error as string;
     if (errorParam) {
-      setError(decodeURIComponent(errorParam));
+      const decodedError = decodeURIComponent(errorParam);
+      setError(decodedError);
+      console.error('🔴 로그인 에러 (URL 파라미터):', decodedError);
     }
     
     // 로그아웃 파라미터가 있으면 성공 메시지 표시 (선택사항)
@@ -28,6 +30,70 @@ export default function LoginPage() {
       window.history.replaceState({}, '', cleanUrl);
     }
   }, [router.query]);
+
+  // NextAuth 세션 에러 감지 및 콘솔 로깅
+  // Playwright 브라우저 호환성을 위해 조건부로 실행
+  useEffect(() => {
+    // 자동화된 브라우저(Playwright) 감지
+    const isAutomated = typeof navigator !== 'undefined' && (
+      (navigator as any).webdriver || 
+      /HeadlessChrome/.test(navigator.userAgent) ||
+      (window as any).navigator?.webdriver
+    );
+    
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/auth/session', {
+          method: 'GET',
+          credentials: 'include',
+          // Playwright 브라우저를 위한 추가 헤더
+          headers: {
+            'Accept': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          // Playwright 브라우저에서는 에러를 조용히 처리
+          if (isAutomated) {
+            console.warn('⚠️ [Playwright] /api/auth/session 응답 에러 (자동화 브라우저):', {
+              status: response.status,
+              statusText: response.statusText,
+            });
+          } else {
+            console.error('🔴 /api/auth/session 응답 에러:', {
+              status: response.status,
+              statusText: response.statusText,
+              url: response.url,
+            });
+          }
+          return;
+        }
+        
+        const data = await response.json();
+        if (!isAutomated) {
+          console.log('✅ /api/auth/session 응답:', data);
+        }
+      } catch (err: any) {
+        // Playwright 브라우저에서는 리다이렉트 루프 에러를 조용히 처리
+        if (isAutomated && err.message?.includes('Failed to fetch')) {
+          console.warn('⚠️ [Playwright] /api/auth/session 요청 실패 (자동화 브라우저):', err.message);
+        } else {
+          console.error('🔴 /api/auth/session 요청 실패:', {
+            message: err.message,
+            name: err.name,
+          });
+        }
+      }
+    };
+
+    // 페이지 로드 시 한 번만 체크 (Playwright 브라우저에서는 지연 실행)
+    if (isAutomated) {
+      // Playwright 브라우저에서는 약간 지연 후 실행하여 리다이렉트 루프 방지
+      setTimeout(checkSession, 1000);
+    } else {
+      checkSession();
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +115,15 @@ export default function LoginPage() {
           Verification: '인증 오류가 발생했습니다.',
           CredentialsSignin: '아이디와 비밀번호를 확인해주세요.',
         };
-        setError(errorMessages[result.error] || '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
+        const errorMessage = errorMessages[result.error] || '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.';
+        setError(errorMessage);
+        
+        // 콘솔에 상세 에러 정보 표시
+        console.error('🔴 로그인 실패:', {
+          error: result.error,
+          message: errorMessage,
+          fullResult: result,
+        });
       } else if (result?.ok) {
         // 로그인 성공 확인 - result?.ok를 명시적으로 체크
         const callbackUrl = (router.query.callbackUrl as string) || '/admin/dashboard';
@@ -94,7 +168,16 @@ export default function LoginPage() {
         setError('로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
       }
     } catch (err: any) {
-      setError(err.message || '로그인 중 오류가 발생했습니다.');
+      const errorMessage = err.message || '로그인 중 오류가 발생했습니다.';
+      setError(errorMessage);
+      
+      // 콘솔에 상세 에러 정보 표시
+      console.error('🔴 로그인 예외 발생:', {
+        message: err.message,
+        name: err.name,
+        stack: err.stack,
+        error: err,
+      });
     } finally {
       setIsLoading(false);
     }

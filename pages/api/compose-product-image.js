@@ -642,11 +642,17 @@ export default async function handler(req, res) {
       : compositionBackground === 'product-page'
         ? 'clean white or light-gray studio background, product-only, e-commerce product page style, soft shadows, no people, no distractions'
         : 'outdoor golf course vibe, product-only, no people, natural light';
+    // ✅ 샤프트/배지 이미지 URL 가져오기
+    const shaftImageUrl = product.shaftImageUrl || product.shaft_image_url;
+    const badgeImageUrl = product.badgeImageUrl || product.badge_image_url;
+    
     let compositionPrompt = prompt || generateCompositionPrompt(
       product, 
       hasReferenceImages,
       targetDriverPart,
-      compositionBackground
+      compositionBackground,
+      shaftImageUrl,  // ✅ 샤프트 이미지 URL 전달
+      badgeImageUrl   // ✅ 배지 이미지 URL 전달
     );
     if (productOnlyMode) {
       // 사람 없이 제품컷 전용 프롬프트

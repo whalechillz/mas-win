@@ -42,7 +42,12 @@ export default function KakaoChannelList() {
       params.append('sortBy', sortBy);
       params.append('sortOrder', sortOrder);
       
-      const response = await fetch(`/api/admin/kakao?${params.toString()}`);
+      const response = await fetch(`/api/admin/kakao?${params.toString()}`, {
+        credentials: 'include', // ✅ 쿠키 포함 명시 (Playwright 호환)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       const data = await response.json();
 
       if (data.success) {

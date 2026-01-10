@@ -10,9 +10,7 @@
     "grep": {},
     "grepInvert": null,
     "maxFailures": 0,
-    "metadata": {
-      "actualWorkers": 6
-    },
+    "metadata": {},
     "preserveOutput": "always",
     "reporter": [
       [
@@ -44,9 +42,7 @@
         "outputDir": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 6
-        },
+        "metadata": {},
         "id": "chromium",
         "name": "chromium",
         "testDir": "/Users/m2/MASLABS/win.masgolf.co.kr/tests",
@@ -54,15 +50,13 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 6
-        },
+        "metadata": {},
         "id": "firefox",
         "name": "firefox",
         "testDir": "/Users/m2/MASLABS/win.masgolf.co.kr/tests",
@@ -70,15 +64,13 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {
-          "actualWorkers": 6
-        },
+        "metadata": {},
         "id": "webkit",
         "name": "webkit",
         "testDir": "/Users/m2/MASLABS/win.masgolf.co.kr/tests",
@@ -86,7 +78,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       }
     ],
     "shard": null,
@@ -101,454 +93,19 @@
       "timeout": 120000
     }
   },
-  "suites": [
+  "suites": [],
+  "errors": [
     {
-      "title": "product-composition-gallery.spec.ts",
-      "file": "product-composition-gallery.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "제품 합성 관리 - 갤러리 이미지 선택",
-          "file": "product-composition-gallery.spec.ts",
-          "line": 4,
-          "column": 6,
-          "specs": [
-            {
-              "title": "갤러리에서 이미지 선택 모달 열기 및 이미지 로딩 확인",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 14150,
-                      "error": {
-                        "message": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=제품 합성 관리') to be visible\u001b[22m\n",
-                        "stack": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=제품 합성 관리') to be visible\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts:16:16",
-                        "location": {
-                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                          "column": 16,
-                          "line": 16
-                        },
-                        "snippet": "  14 |   test('갤러리에서 이미지 선택 모달 열기 및 이미지 로딩 확인', async ({ page }) => {\n  15 |     // 제품 목록이 로드될 때까지 대기\n> 16 |     await page.waitForSelector('text=제품 합성 관리', { timeout: 10000 });\n     |                ^\n  17 |     \n  18 |     // 제품 수정 버튼이 있는지 확인 (첫 번째 제품)\n  19 |     const editButtons = page.locator('button:has-text(\"수정\")');"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                            "column": 16,
-                            "line": 16
-                          },
-                          "message": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=제품 합성 관리') to be visible\u001b[22m\n\n\n  14 |   test('갤러리에서 이미지 선택 모달 열기 및 이미지 로딩 확인', async ({ page }) => {\n  15 |     // 제품 목록이 로드될 때까지 대기\n> 16 |     await page.waitForSelector('text=제품 합성 관리', { timeout: 10000 });\n     |                ^\n  17 |     \n  18 |     // 제품 수정 버튼이 있는지 확인 (첫 번째 제품)\n  19 |     const editButtons = page.locator('button:has-text(\"수정\")');\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts:16:16"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-29T10:37:03.242Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/product-composition-galler-90eff-에서-이미지-선택-모달-열기-및-이미지-로딩-확인-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/product-composition-galler-90eff-에서-이미지-선택-모달-열기-및-이미지-로딩-확인-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/product-composition-galler-90eff-에서-이미지-선택-모달-열기-및-이미지-로딩-확인-chromium/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                        "column": 16,
-                        "line": 16
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "d38db43dd3514232b3f4-97e7d8067d65d149feed",
-              "file": "product-composition-gallery.spec.ts",
-              "line": 14,
-              "column": 7
-            },
-            {
-              "title": "갤러리 모달에서 API 응답 확인",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [
-                    {
-                      "type": "skip",
-                      "location": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                        "line": 188,
-                        "column": 12
-                      }
-                    }
-                  ],
-                  "expectedStatus": "skipped",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "skipped",
-                      "duration": 3944,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-29T10:37:03.220Z",
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                            "line": 188,
-                            "column": 12
-                          }
-                        }
-                      ],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "skipped"
-                }
-              ],
-              "id": "d38db43dd3514232b3f4-711354bfec648309f322",
-              "file": "product-composition-gallery.spec.ts",
-              "line": 146,
-              "column": 7
-            },
-            {
-              "title": "갤러리에서 이미지 선택 모달 열기 및 이미지 로딩 확인",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "failed",
-                      "duration": 2753,
-                      "error": {
-                        "message": "Error: page.goto: NS_BINDING_ABORTED\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/product-composition\", waiting until \"load\"\u001b[22m\n",
-                        "stack": "Error: page.goto: NS_BINDING_ABORTED\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/product-composition\", waiting until \"load\"\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts:10:16",
-                        "location": {
-                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                          "column": 16,
-                          "line": 10
-                        },
-                        "snippet": "   8 |     \n   9 |     // 제품 합성 관리 페이지로 이동\n> 10 |     await page.goto('http://localhost:3000/admin/product-composition');\n     |                ^\n  11 |     await page.waitForLoadState('networkidle');\n  12 |   });\n  13 |"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                            "column": 16,
-                            "line": 10
-                          },
-                          "message": "Error: page.goto: NS_BINDING_ABORTED\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/product-composition\", waiting until \"load\"\u001b[22m\n\n\n   8 |     \n   9 |     // 제품 합성 관리 페이지로 이동\n> 10 |     await page.goto('http://localhost:3000/admin/product-composition');\n     |                ^\n  11 |     await page.waitForLoadState('networkidle');\n  12 |   });\n  13 |\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts:10:16"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-29T10:37:03.242Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/product-composition-galler-90eff-에서-이미지-선택-모달-열기-및-이미지-로딩-확인-firefox/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/product-composition-galler-90eff-에서-이미지-선택-모달-열기-및-이미지-로딩-확인-firefox/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/product-composition-galler-90eff-에서-이미지-선택-모달-열기-및-이미지-로딩-확인-firefox/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                        "column": 16,
-                        "line": 10
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "d38db43dd3514232b3f4-812ee2a063f0dd46d886",
-              "file": "product-composition-gallery.spec.ts",
-              "line": 14,
-              "column": 7
-            },
-            {
-              "title": "갤러리 모달에서 API 응답 확인",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
-                      "status": "failed",
-                      "duration": 3298,
-                      "error": {
-                        "message": "Error: page.goto: NS_BINDING_ABORTED; maybe frame was detached?\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/product-composition\", waiting until \"load\"\u001b[22m\n",
-                        "stack": "Error: page.goto: NS_BINDING_ABORTED; maybe frame was detached?\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/product-composition\", waiting until \"load\"\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts:10:16",
-                        "location": {
-                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                          "column": 16,
-                          "line": 10
-                        },
-                        "snippet": "   8 |     \n   9 |     // 제품 합성 관리 페이지로 이동\n> 10 |     await page.goto('http://localhost:3000/admin/product-composition');\n     |                ^\n  11 |     await page.waitForLoadState('networkidle');\n  12 |   });\n  13 |"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                            "column": 16,
-                            "line": 10
-                          },
-                          "message": "Error: page.goto: NS_BINDING_ABORTED; maybe frame was detached?\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/product-composition\", waiting until \"load\"\u001b[22m\n\n\n   8 |     \n   9 |     // 제품 합성 관리 페이지로 이동\n> 10 |     await page.goto('http://localhost:3000/admin/product-composition');\n     |                ^\n  11 |     await page.waitForLoadState('networkidle');\n  12 |   });\n  13 |\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts:10:16"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-29T10:37:03.249Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/product-composition-galler-ea3da-리-이미지-선택-갤러리-모달에서-API-응답-확인-firefox/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/product-composition-galler-ea3da-리-이미지-선택-갤러리-모달에서-API-응답-확인-firefox/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/product-composition-galler-ea3da-리-이미지-선택-갤러리-모달에서-API-응답-확인-firefox/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                        "column": 16,
-                        "line": 10
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "d38db43dd3514232b3f4-39312c44467762daa596",
-              "file": "product-composition-gallery.spec.ts",
-              "line": 146,
-              "column": 7
-            },
-            {
-              "title": "갤러리에서 이미지 선택 모달 열기 및 이미지 로딩 확인",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "webkit",
-                  "projectName": "webkit",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 4,
-                      "status": "failed",
-                      "duration": 2657,
-                      "error": {
-                        "message": "Error: page.goto: Navigation to \"http://localhost:3000/admin/product-composition\" is interrupted by another navigation to \"http://localhost:3000/api/auth/error\"\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/product-composition\", waiting until \"load\"\u001b[22m\n",
-                        "stack": "Error: page.goto: Navigation to \"http://localhost:3000/admin/product-composition\" is interrupted by another navigation to \"http://localhost:3000/api/auth/error\"\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/product-composition\", waiting until \"load\"\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts:10:16",
-                        "location": {
-                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                          "column": 16,
-                          "line": 10
-                        },
-                        "snippet": "   8 |     \n   9 |     // 제품 합성 관리 페이지로 이동\n> 10 |     await page.goto('http://localhost:3000/admin/product-composition');\n     |                ^\n  11 |     await page.waitForLoadState('networkidle');\n  12 |   });\n  13 |"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                            "column": 16,
-                            "line": 10
-                          },
-                          "message": "Error: page.goto: Navigation to \"http://localhost:3000/admin/product-composition\" is interrupted by another navigation to \"http://localhost:3000/api/auth/error\"\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/product-composition\", waiting until \"load\"\u001b[22m\n\n\n   8 |     \n   9 |     // 제품 합성 관리 페이지로 이동\n> 10 |     await page.goto('http://localhost:3000/admin/product-composition');\n     |                ^\n  11 |     await page.waitForLoadState('networkidle');\n  12 |   });\n  13 |\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts:10:16"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-29T10:37:03.235Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/product-composition-galler-90eff-에서-이미지-선택-모달-열기-및-이미지-로딩-확인-webkit/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/product-composition-galler-90eff-에서-이미지-선택-모달-열기-및-이미지-로딩-확인-webkit/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/product-composition-galler-90eff-에서-이미지-선택-모달-열기-및-이미지-로딩-확인-webkit/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                        "column": 16,
-                        "line": 10
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "d38db43dd3514232b3f4-6edb031bf998a6073f75",
-              "file": "product-composition-gallery.spec.ts",
-              "line": 14,
-              "column": 7
-            },
-            {
-              "title": "갤러리 모달에서 API 응답 확인",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "webkit",
-                  "projectName": "webkit",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 5,
-                      "status": "failed",
-                      "duration": 2638,
-                      "error": {
-                        "message": "Error: page.goto: Navigation to \"http://localhost:3000/admin/product-composition\" is interrupted by another navigation to \"http://localhost:3000/api/auth/error\"\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/product-composition\", waiting until \"load\"\u001b[22m\n",
-                        "stack": "Error: page.goto: Navigation to \"http://localhost:3000/admin/product-composition\" is interrupted by another navigation to \"http://localhost:3000/api/auth/error\"\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/product-composition\", waiting until \"load\"\u001b[22m\n\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts:10:16",
-                        "location": {
-                          "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                          "column": 16,
-                          "line": 10
-                        },
-                        "snippet": "   8 |     \n   9 |     // 제품 합성 관리 페이지로 이동\n> 10 |     await page.goto('http://localhost:3000/admin/product-composition');\n     |                ^\n  11 |     await page.waitForLoadState('networkidle');\n  12 |   });\n  13 |"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                            "column": 16,
-                            "line": 10
-                          },
-                          "message": "Error: page.goto: Navigation to \"http://localhost:3000/admin/product-composition\" is interrupted by another navigation to \"http://localhost:3000/api/auth/error\"\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin/product-composition\", waiting until \"load\"\u001b[22m\n\n\n   8 |     \n   9 |     // 제품 합성 관리 페이지로 이동\n> 10 |     await page.goto('http://localhost:3000/admin/product-composition');\n     |                ^\n  11 |     await page.waitForLoadState('networkidle');\n  12 |   });\n  13 |\n    at /Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts:10:16"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-29T10:37:03.236Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/product-composition-galler-ea3da-리-이미지-선택-갤러리-모달에서-API-응답-확인-webkit/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/product-composition-galler-ea3da-리-이미지-선택-갤러리-모달에서-API-응답-확인-webkit/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/m2/MASLABS/win.masgolf.co.kr/test-results/product-composition-galler-ea3da-리-이미지-선택-갤러리-모달에서-API-응답-확인-webkit/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/m2/MASLABS/win.masgolf.co.kr/tests/product-composition-gallery.spec.ts",
-                        "column": 16,
-                        "line": 10
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "d38db43dd3514232b3f4-5fa76f85f2aa20051a3c",
-              "file": "product-composition-gallery.spec.ts",
-              "line": 146,
-              "column": 7
-            }
-          ]
-        }
-      ]
+      "message": "Error: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments.",
+      "stack": "Error: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments."
     }
   ],
-  "errors": [],
   "stats": {
-    "startTime": "2025-12-29T10:37:02.560Z",
-    "duration": 15836.912999999999,
+    "startTime": "2026-01-09T11:56:36.205Z",
+    "duration": 710.6299999999999,
     "expected": 0,
-    "skipped": 1,
-    "unexpected": 5,
+    "skipped": 0,
+    "unexpected": 0,
     "flaky": 0
   }
 }

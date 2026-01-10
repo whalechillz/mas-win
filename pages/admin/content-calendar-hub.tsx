@@ -48,6 +48,7 @@ export default function ContentCalendarHub() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const redirectingRef = useRef(false);
+  const [canRender, setCanRender] = useState(false);
   const [contents, setContents] = useState<HubContent[]>([]);
   const [stats, setStats] = useState<ChannelStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -641,13 +642,22 @@ export default function ContentCalendarHub() {
 
   const fetchSMSData = async (contentId: string) => {
     try {
-      const response = await fetch(`/api/channels/sms/list?calendar_id=${contentId}`);
-      const data = await response.json();
-      if (data.success && data.messages) {
-        setSmsDataMap(prev => ({
-          ...prev,
-          [contentId]: data.messages
-        }));
+      const response = await fetch(`/api/channels/sms/list?calendar_id=${contentId}`, {
+        credentials: 'include', // ✅ 쿠키 포함 명시 (Playwright 호환)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.messages) {
+          setSmsDataMap(prev => ({
+            ...prev,
+            [contentId]: data.messages
+          }));
+        }
+      } else if (response.status === 401) {
+        console.warn('⚠️ SMS 데이터 조회 실패: 인증 필요');
       }
     } catch (error) {
       console.error('SMS 데이터 조회 오류:', error);
@@ -656,13 +666,22 @@ export default function ContentCalendarHub() {
 
   const fetchBlogData = async (contentId: string) => {
     try {
-      const response = await fetch(`/api/admin/blog?calendar_id=${contentId}`);
-      const data = await response.json();
-      if (data.success && data.posts) {
-        setBlogDataMap(prev => ({
-          ...prev,
-          [contentId]: data.posts
-        }));
+      const response = await fetch(`/api/admin/blog?calendar_id=${contentId}`, {
+        credentials: 'include', // ✅ 쿠키 포함 명시 (Playwright 호환)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.posts) {
+          setBlogDataMap(prev => ({
+            ...prev,
+            [contentId]: data.posts
+          }));
+        }
+      } else if (response.status === 401) {
+        console.warn('⚠️ 블로그 데이터 조회 실패: 인증 필요');
       }
     } catch (error) {
       console.error('블로그 데이터 조회 오류:', error);
@@ -671,13 +690,22 @@ export default function ContentCalendarHub() {
 
   const fetchNaverBlogData = async (contentId: string) => {
     try {
-      const response = await fetch(`/api/admin/naver-blog?calendar_id=${contentId}`);
-      const data = await response.json();
-      if (data.success && data.data) {
-        setNaverBlogDataMap(prev => ({
-          ...prev,
-          [contentId]: data.data
-        }));
+      const response = await fetch(`/api/admin/naver-blog?calendar_id=${contentId}`, {
+        credentials: 'include', // ✅ 쿠키 포함 명시 (Playwright 호환)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          setNaverBlogDataMap(prev => ({
+            ...prev,
+            [contentId]: data.data
+          }));
+        }
+      } else if (response.status === 401) {
+        console.warn('⚠️ 네이버 블로그 데이터 조회 실패: 인증 필요');
       }
     } catch (error) {
       console.error('네이버 블로그 데이터 조회 오류:', error);
@@ -1441,24 +1469,37 @@ export default function ContentCalendarHub() {
     fetchContents(newPage);
   };
 
-  // 세션 체크 및 리다이렉트 (프로덕션에서 활성화)
+  // 세션 체크는 미들웨어에서 처리하므로 클라이언트 사이드 리다이렉트 제거
+  // 미들웨어가 이미 인증되지 않은 사용자를 로그인 페이지로 리다이렉트함
+  // 클라이언트 사이드에서 추가 리다이렉트를 하면 루프가 발생할 수 있음
   // 프로덕션에서는 디버깅 모드 비활성화 (환경 변수로만 제어)
   const DEBUG_MODE = false;
   
   useEffect(() => {
     // 디버깅 모드가 아닐 때만 세션 체크
-    if (DEBUG_MODE) return;
-    
-    if (status === 'loading') return;
-    
-    if (!session) {
-      if (!redirectingRef.current) {
-        redirectingRef.current = true;
-        router.push('/admin/login');
-      }
+    if (DEBUG_MODE) {
+      setCanRender(true);
       return;
     }
-  }, [status, session, router, DEBUG_MODE]);
+    
+    // 세션 체크는 미들웨어에서 처리하므로 클라이언트 사이드 리다이렉트 제거
+    // 미들웨어가 이미 인증되지 않은 사용자를 로그인 페이지로 리다이렉트함
+    // 클라이언트 사이드에서 추가 리다이렉트를 하면 루프가 발생할 수 있음
+    
+    // 세션이 있으면 즉시 렌더링
+    if (session) {
+      setCanRender(true);
+      return;
+    }
+    
+    // 세션이 없어도 미들웨어가 통과시켰다면 2초 후 렌더링 시도
+    // (useSession이 세션을 가져오는 데 시간이 걸릴 수 있음)
+    const timer = setTimeout(() => {
+      setCanRender(true);
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  }, [status, session, DEBUG_MODE]);
 
   useEffect(() => {
     if (session) {
@@ -1469,8 +1510,8 @@ export default function ContentCalendarHub() {
     }
   }, [session]);
 
-  // 로딩 중 (디버깅 모드가 아닐 때만 체크)
-  if (!DEBUG_MODE && status === 'loading') {
+  // 로딩 중 표시 (세션 체크는 미들웨어가 처리하므로 여기서는 로딩만 표시)
+  if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -1481,9 +1522,18 @@ export default function ContentCalendarHub() {
     );
   }
 
-  // 세션 없음 (디버깅 모드가 아닐 때만 체크)
-  if (!DEBUG_MODE && !session) {
-    return null; // 리다이렉트 중
+  // 디버깅 모드가 아니고 세션이 없으면
+  // 미들웨어가 이미 통과시켰으므로 세션 확인 중일 수 있음
+  // 무한 로딩 방지를 위해 일정 시간 후 렌더링 시도
+  if (!DEBUG_MODE && !session && !canRender) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

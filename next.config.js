@@ -139,4 +139,14 @@ module.exports = {
       ],
     };
   },
+  // API 경로에 대한 trailing slash 리다이렉트 비활성화
+  async redirects() {
+    return [
+      {
+        source: '/api/auth/:path*/',
+        destination: '/api/auth/:path*',
+        permanent: true,
+      },
+    ];
+  },
 };

@@ -26,37 +26,70 @@ export default function Home({ hostname, initialProducts = [] }) {
   // 제품별 기본 이미지 매핑 (fallback)
   const getDefaultImages = (slug) => {
     const defaultImageMap = {
+      'secret-force-gold-2-muziik': [
+        'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_11.webp',
+        'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_01.webp',
+      ],
+      'secret-weapon-black-muziik': [
+        'originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_11.webp',
+        'originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_01.webp',
+      ],
+      'secret-force-pro-3-muziik': [
+        'originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp',
+        'originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_beryl_240.webp',
+      ],
+      'secret-force-gold-2': [
+        'originals/products/secret-force-gold-2/detail/secret-force-gold-2-gallery-01.webp',
+        'originals/products/secret-force-gold-2/detail/secret-force-gold-2-gallery-02.webp',
+      ],
+      'secret-force-pro-3': [
+        'originals/products/secret-force-pro-3/detail/secret-force-pro-3-gallery-00.webp',
+        'originals/products/secret-force-pro-3/detail/secret-force-pro-3-gallery-01.webp',
+      ],
+      'secret-force-v3': [
+        'originals/products/secret-force-v3/detail/secret-force-v3-gallery-05-00.webp',
+        'originals/products/secret-force-v3/detail/secret-force-v3-gallery-02.webp',
+      ],
+      'secret-weapon-black': [
+        'originals/products/secret-weapon-black/detail/secret-weapon-black-00.webp',
+        'originals/products/secret-weapon-black/detail/secret-weapon-black-01.webp',
+      ],
+      'secret-weapon-gold-4-1': [
+        'originals/products/secret-weapon-gold-4-1/detail/secret-weapon-gold-4-1-gallery-00-01.webp',
+        'originals/products/secret-weapon-gold-4-1/detail/secret-weapon-gold-4-1-gallery-01.webp',
+      ],
+      // 기존 slug 호환성 유지
       'gold2-sapphire': [
-        'originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_11.webp',
-        'originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_01.webp',
+        'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_11.webp',
+        'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_01.webp',
       ],
       'black-beryl': [
-        'originals/products/black-beryl/detail/massgoo_sw_black_muz_11.webp',
-        'originals/products/black-beryl/detail/massgoo_sw_black_muz_01.webp',
+        'originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_11.webp',
+        'originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_01.webp',
       ],
       'pro3-muziik': [
-        'originals/products/pro3-muziik/detail/secret-force-pro-3-muziik-00.webp',
-        'originals/products/pro3-muziik/detail/massgoo_pro3_beryl_240.webp',
+        'originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp',
+        'originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_beryl_240.webp',
       ],
       'gold2': [
-        'originals/products/gold2/detail/secret-force-gold-2-gallery-01.webp',
-        'originals/products/gold2/detail/secret-force-gold-2-gallery-02.webp',
+        'originals/products/secret-force-gold-2/detail/secret-force-gold-2-gallery-01.webp',
+        'originals/products/secret-force-gold-2/detail/secret-force-gold-2-gallery-02.webp',
       ],
       'pro3': [
-        '/main/products/pro3/secret-force-pro-3-gallery-00.webp',
-        '/main/products/pro3/secret-force-pro-3-gallery-01.webp',
+        'originals/products/secret-force-pro-3/detail/secret-force-pro-3-gallery-00.webp',
+        'originals/products/secret-force-pro-3/detail/secret-force-pro-3-gallery-01.webp',
       ],
       'v3': [
-        '/main/products/v3/secret-force-v3-gallery-05-00.webp',
-        '/main/products/v3/secret-force-v3-gallery-02.webp',
+        'originals/products/secret-force-v3/detail/secret-force-v3-gallery-05-00.webp',
+        'originals/products/secret-force-v3/detail/secret-force-v3-gallery-02.webp',
       ],
       'black-weapon': [
-        '/main/products/black-weapon/secret-weapon-black-00.webp',
-        '/main/products/black-weapon/secret-weapon-black-01.webp',
+        'originals/products/secret-weapon-black/detail/secret-weapon-black-00.webp',
+        'originals/products/secret-weapon-black/detail/secret-weapon-black-01.webp',
       ],
       'gold-weapon4': [
-        '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-00-01.webp',
-        '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-01.webp',
+        'originals/products/secret-weapon-gold-4-1/detail/secret-weapon-gold-4-1-gallery-00-01.webp',
+        'originals/products/secret-weapon-gold-4-1/detail/secret-weapon-gold-4-1-gallery-01.webp',
       ],
     };
     return defaultImageMap[slug] || [];
@@ -100,157 +133,157 @@ export default function Home({ hostname, initialProducts = [] }) {
       // 오류 시 기본 제품 데이터 사용 (fallback)
       setProducts([
     {
-      id: 'gold2-sapphire',
+      id: 'secret-force-gold-2-muziik',
       name: '시크리트포스 골드 2 MUZIIK',
       subtitle: 'MUZIIK 협업 제품',
       price: '2,200,000원',
       features: ['오토플렉스 티타늄 샤프트', 'ONE-FLEX A200·A215', '무제한 2년 헤드 보증'],
       images: [
-        '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp',
-        '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_01.webp',
-        '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_12.webp',
-        '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_13.webp',
-        '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_14.webp',
-        '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_16.webp',
-        '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_17.webp',
-        '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_18.webp',
-        '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_22.webp',
-        '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_23.webp',
+        'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_11.webp',
+        'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_01.webp',
+        'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_12.webp',
+        'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_13.webp',
+        'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_14.webp',
+        'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_16.webp',
+        'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_17.webp',
+        'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_18.webp',
+        'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_22.webp',
+        'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_23.webp',
       ],
       badges: { left: 'NEW', right: 'BEST', leftColor: 'red', rightColor: 'yellow' },
       borderColor: 'yellow',
     },
     {
-      id: 'black-beryl',
+      id: 'secret-weapon-black-muziik',
       name: '시크리트웨폰 블랙 MUZIIK',
       subtitle: 'MUZIIK 협업 제품',
       price: '2,200,000원',
       features: ['풀 티타늄 4X 샤프트', '40g대, 최대 X 플렉스', '2년 헤드 보증(최대 3회)'],
       images: [
-        '/main/products/black-beryl/massgoo_sw_black_muz_11.webp',
-        '/main/products/black-beryl/massgoo_sw_black_muz_01.webp',
-        '/main/products/black-beryl/massgoo_sw_black_muz_12.webp',
-        '/main/products/black-beryl/massgoo_sw_black_muz_13.webp',
-        '/main/products/black-beryl/massgoo_sw_black_muz_14_b.webp',
-        '/main/products/black-beryl/massgoo_sw_black_muz_15.webp',
-        '/main/products/black-beryl/massgoo_sw_black_muz_18.webp',
-        '/main/products/black-beryl/massgoo_sw_black_muz_23.webp',
+        'originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_11.webp',
+        'originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_01.webp',
+        'originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_12.webp',
+        'originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_13.webp',
+        'originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_14_b.webp',
+        'originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_15.webp',
+        'originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_18.webp',
+        'originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_23.webp',
       ],
       badges: { left: 'NEW', right: 'LIMITED', leftColor: 'red', rightColor: 'green' },
       borderColor: 'green',
     },
     {
-      id: 'pro3-muziik',
+      id: 'secret-force-pro-3-muziik',
       name: '시크리트포스 PRO 3 MUZIIK',
       subtitle: 'MUZIIK 협업 제품',
       price: '1,700,000원',
       features: ['MUZIIK 샤프트', '사파이어, 베릴 샤프트 추가', '업그레이드된 고반발 드라이버'],
       images: [
-        '/main/products/pro3-muziik/secret-force-pro-3-muziik-00.webp',
-        '/main/products/pro3-muziik/massgoo_pro3_beryl_230.webp',
-        '/main/products/pro3-muziik/massgoo_pro3_beryl_240.webp',
-        '/main/products/pro3-muziik/massgoo_pro3_beryl_250.webp',
-        '/main/products/pro3-muziik/massgoo_pro3_sapphire_200.webp',
-        '/main/products/pro3-muziik/massgoo_pro3_sapphire_215.webp',
-        '/main/products/pro3-muziik/secret-force-pro-3-muziik-03.webp',
+        'originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp',
+        'originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_beryl_230.webp',
+        'originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_beryl_240.webp',
+        'originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_beryl_250.webp',
+        'originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_sapphire_200.webp',
+        'originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_sapphire_215.webp',
+        'originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-03.webp',
       ],
       badges: { left: 'NEW', right: null, leftColor: 'red', rightColor: null },
       borderColor: null,
     },
     {
-      id: 'gold2',
+      id: 'secret-force-gold-2',
       name: '시크리트포스 골드 2',
       subtitle: '프리미엄 드라이버',
       price: '1,700,000원',
       features: ['DAT55G+ Grade 5 티타늄', '2.2mm 초박형 페이스', 'COR 0.87'],
       images: [
-        'originals/products/gold2/detail/secret-force-gold-2-gallery-01.webp',
-        'originals/products/gold2/detail/secret-force-gold-2-gallery-02.webp',
-        'originals/products/gold2/detail/secret-force-gold-2-gallery-03.webp',
-        'originals/products/gold2/detail/secret-force-gold-2-gallery-04.webp',
-        'originals/products/gold2/detail/secret-force-gold-2-gallery-05.webp',
-        'originals/products/gold2/detail/secret-force-gold-2-gallery-06.webp',
-        'originals/products/gold2/detail/secret-force-gold-2-gallery-07.webp',
-        'originals/products/gold2/detail/secret-force-gold-2-gallery-08.webp',
-        'originals/products/gold2/detail/secret-force-gold-2-gallery-09.webp',
+        'originals/products/secret-force-gold-2/detail/secret-force-gold-2-gallery-01.webp',
+        'originals/products/secret-force-gold-2/detail/secret-force-gold-2-gallery-02.webp',
+        'originals/products/secret-force-gold-2/detail/secret-force-gold-2-gallery-03.webp',
+        'originals/products/secret-force-gold-2/detail/secret-force-gold-2-gallery-04.webp',
+        'originals/products/secret-force-gold-2/detail/secret-force-gold-2-gallery-05.webp',
+        'originals/products/secret-force-gold-2/detail/secret-force-gold-2-gallery-06.webp',
+        'originals/products/secret-force-gold-2/detail/secret-force-gold-2-gallery-07.webp',
+        'originals/products/secret-force-gold-2/detail/secret-force-gold-2-gallery-08.webp',
+        'originals/products/secret-force-gold-2/detail/secret-force-gold-2-gallery-09.webp',
       ],
       badges: { left: 'BEST', right: null, leftColor: 'yellow', rightColor: null },
       borderColor: 'yellow',
     },
     {
-      id: 'pro3',
+      id: 'secret-force-pro-3',
       name: '시크리트포스 PRO 3',
       subtitle: '고반발 드라이버',
       price: '1,150,000원',
       features: ['DAT55G 티타늄', '2.3mm 페이스', 'COR 0.86'],
       images: [
-        '/main/products/pro3/secret-force-pro-3-gallery-00.webp',
-        '/main/products/pro3/secret-force-pro-3-gallery-01.webp',
-        '/main/products/pro3/secret-force-pro-3-gallery-02.webp',
-        '/main/products/pro3/secret-force-pro-3-gallery-03.webp',
-        '/main/products/pro3/secret-force-pro-3-gallery-04.webp',
-        '/main/products/pro3/secret-force-pro-3-gallery-05.webp',
-        '/main/products/pro3/secret-force-pro-3-gallery-06.webp',
-        '/main/products/pro3/secret-force-pro-3-gallery-07.webp',
-        '/main/products/pro3/secret-force-pro-3-gallery-08.webp',
+        'originals/products/secret-force-pro-3/detail/secret-force-pro-3-gallery-00.webp',
+        'originals/products/secret-force-pro-3/detail/secret-force-pro-3-gallery-01.webp',
+        'originals/products/secret-force-pro-3/detail/secret-force-pro-3-gallery-02.webp',
+        'originals/products/secret-force-pro-3/detail/secret-force-pro-3-gallery-03.webp',
+        'originals/products/secret-force-pro-3/detail/secret-force-pro-3-gallery-04.webp',
+        'originals/products/secret-force-pro-3/detail/secret-force-pro-3-gallery-05.webp',
+        'originals/products/secret-force-pro-3/detail/secret-force-pro-3-gallery-06.webp',
+        'originals/products/secret-force-pro-3/detail/secret-force-pro-3-gallery-07.webp',
+        'originals/products/secret-force-pro-3/detail/secret-force-pro-3-gallery-08.webp',
       ],
       badges: null,
       borderColor: null,
     },
     {
-      id: 'v3',
+      id: 'secret-force-v3',
       name: '시크리트포스 V3',
       subtitle: '투어 드라이버',
       price: '950,000원',
       features: ['DAT55G 티타늄', '2.4mm 페이스', 'COR 0.85'],
       images: [
-        '/main/products/v3/secret-force-v3-gallery-05-00.webp',
-        '/main/products/v3/secret-force-v3-gallery-02.webp',
-        '/main/products/v3/secret-force-v3-gallery-03.webp',
-        '/main/products/v3/secret-force-v3-gallery-04.webp',
-        '/main/products/v3/secret-force-v3-gallery-05.webp',
-        '/main/products/v3/secret-force-v3-gallery-06.webp',
-        '/main/products/v3/secret-force-v3-gallery-07.webp',
+        'originals/products/secret-force-v3/detail/secret-force-v3-gallery-05-00.webp',
+        'originals/products/secret-force-v3/detail/secret-force-v3-gallery-02.webp',
+        'originals/products/secret-force-v3/detail/secret-force-v3-gallery-03.webp',
+        'originals/products/secret-force-v3/detail/secret-force-v3-gallery-04.webp',
+        'originals/products/secret-force-v3/detail/secret-force-v3-gallery-05.webp',
+        'originals/products/secret-force-v3/detail/secret-force-v3-gallery-06.webp',
+        'originals/products/secret-force-v3/detail/secret-force-v3-gallery-07.webp',
       ],
       badges: null,
       borderColor: null,
     },
     {
-      id: 'weapon-black',
+      id: 'secret-weapon-black',
       name: '시크리트웨폰 블랙',
       subtitle: '프리미엄 리미티드',
       price: '1,700,000원',
       features: ['SP700 Grade 5 티타늄', '2.2mm 초박형 페이스', 'COR 0.87'],
       images: [
-        '/main/products/black-weapon/secret-weapon-black-gallery-00-01.webp',
-        '/main/products/black-weapon/secret-weapon-black-gallery-01.webp',
-        '/main/products/black-weapon/secret-weapon-black-gallery-02.webp',
-        '/main/products/black-weapon/secret-weapon-black-gallery-03.webp',
-        '/main/products/black-weapon/secret-weapon-black-gallery-04.webp',
-        '/main/products/black-weapon/secret-weapon-black-gallery-05.webp',
-        '/main/products/black-weapon/secret-weapon-black-gallery-06.webp',
-        '/main/products/black-weapon/secret-weapon-black-gallery-07.webp',
-        '/main/products/black-weapon/secret-weapon-black-gallery-08-01.webp',
+        'originals/products/secret-weapon-black/detail/secret-weapon-black-gallery-00-01.webp',
+        'originals/products/secret-weapon-black/detail/secret-weapon-black-gallery-01.webp',
+        'originals/products/secret-weapon-black/detail/secret-weapon-black-gallery-02.webp',
+        'originals/products/secret-weapon-black/detail/secret-weapon-black-gallery-03.webp',
+        'originals/products/secret-weapon-black/detail/secret-weapon-black-gallery-04.webp',
+        'originals/products/secret-weapon-black/detail/secret-weapon-black-gallery-05.webp',
+        'originals/products/secret-weapon-black/detail/secret-weapon-black-gallery-06.webp',
+        'originals/products/secret-weapon-black/detail/secret-weapon-black-gallery-07.webp',
+        'originals/products/secret-weapon-black/detail/secret-weapon-black-gallery-08-01.webp',
       ],
       badges: { left: 'LIMITED', right: null, leftColor: 'purple', rightColor: null },
       borderColor: 'purple',
     },
     {
-      id: 'weapon-gold-4-1',
+      id: 'secret-weapon-gold-4-1',
       name: '시크리트웨폰 골드 4.1',
       subtitle: '프리미엄 드라이버',
       price: '1,700,000원',
       features: ['SP700 Grade 5 티타늄', '2.2mm 초박형 페이스', 'COR 0.87'],
       images: [
-        '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-00-01.webp',
-        '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-01.webp',
-        '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-02.webp',
-        '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-03.webp',
-        '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-04.webp',
-        '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-05.webp',
-        '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-06.webp',
-        '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-07.webp',
-        '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-08-01.webp',
+        'originals/products/secret-weapon-gold-4-1/detail/secret-weapon-gold-4-1-gallery-00-01.webp',
+        'originals/products/secret-weapon-gold-4-1/detail/secret-weapon-gold-4-1-gallery-01.webp',
+        'originals/products/secret-weapon-gold-4-1/detail/secret-weapon-gold-4-1-gallery-02.webp',
+        'originals/products/secret-weapon-gold-4-1/detail/secret-weapon-gold-4-1-gallery-03.webp',
+        'originals/products/secret-weapon-gold-4-1/detail/secret-weapon-gold-4-1-gallery-04.webp',
+        'originals/products/secret-weapon-gold-4-1/detail/secret-weapon-gold-4-1-gallery-05.webp',
+        'originals/products/secret-weapon-gold-4-1/detail/secret-weapon-gold-4-1-gallery-06.webp',
+        'originals/products/secret-weapon-gold-4-1/detail/secret-weapon-gold-4-1-gallery-07.webp',
+        'originals/products/secret-weapon-gold-4-1/detail/secret-weapon-gold-4-1-gallery-08-01.webp',
       ],
       badges: null,
       borderColor: null,
@@ -263,16 +296,16 @@ export default function Home({ hostname, initialProducts = [] }) {
 
   const handleProductClick = (product) => {
     // 1,2,3번 제품은 각각의 제품 페이지로 이동
-    if (product.id === 'gold2-sapphire') {
-      router.push('/products/gold2-sapphire');
+    if (product.id === 'secret-force-gold-2-muziik' || product.id === 'gold2-sapphire') {
+      router.push('/products/secret-force-gold-2-muziik');
       return;
     }
-    if (product.id === 'black-beryl') {
-      router.push('/products/weapon-beryl');
+    if (product.id === 'secret-weapon-black-muziik' || product.id === 'black-beryl') {
+      router.push('/products/secret-weapon-black-muziik');
       return;
     }
-    if (product.id === 'pro3-muziik') {
-      router.push('/products/pro3-muziik');
+    if (product.id === 'secret-force-pro-3-muziik' || product.id === 'pro3-muziik') {
+      router.push('/products/secret-force-pro-3-muziik');
       return;
     }
     if (product.id === 'gold2') {
@@ -560,7 +593,7 @@ export default function Home({ hostname, initialProducts = [] }) {
               <div className="grid md:grid-cols-3 gap-8 mb-12">
                 <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-green-500/30 hover:border-green-400 transition-all">
                   <Image
-                    src={getProductImageUrl('originals/products/black-beryl/detail/massgoo_sw_black_muz_11.webp')}
+                    src={getProductImageUrl('originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_11.webp')}
                     alt="시크리트웨폰 블랙 MUZIIK"
                     fill
                     className="object-cover"
@@ -576,7 +609,7 @@ export default function Home({ hostname, initialProducts = [] }) {
               </div>
                 <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-yellow-500/30 hover:border-yellow-400 transition-all">
                   <Image
-                    src={getProductImageUrl('originals/products/gold2-sapphire/detail/massgoo_sf_gold2_muz_11.webp')}
+                    src={getProductImageUrl('originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_11.webp')}
                     alt="시크리트포스 골드 2 MUZIIK"
                     fill
                     className="object-cover"
@@ -592,7 +625,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                 </div>
                 <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-red-500/30 hover:border-red-400 transition-all">
                   <Image
-                    src={getProductImageUrl('originals/products/pro3-muziik/detail/secret-force-pro-3-muziik-00.webp')}
+                    src={getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp')}
                     alt="시크리트포스 PRO 3 MUZIIK"
                     fill
                     className="object-cover"
@@ -941,7 +974,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                         alt={product.name}
                         fill
                         className="object-cover"
-                        priority={product.id === 'gold2-sapphire' || product.id === 'black-beryl'}
+                        priority={product.id === 'secret-force-gold-2-muziik' || product.id === 'secret-weapon-black-muziik' || product.id === 'gold2-sapphire' || product.id === 'black-beryl'}
                         onError={(e) => {
                           console.error('이미지 로드 실패:', product.images[0], product.name);
                           const target = e.target;

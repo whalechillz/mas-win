@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { ImageMetadataModal } from '../../components/ImageMetadataModal';
 import FolderTree from '../../components/gallery/FolderTree';
 import { createClient } from '@supabase/supabase-js';
@@ -83,6 +84,8 @@ interface ImageMetadata {
 }
 
 export default function GalleryAdmin() {
+  const { data: session, status } = useSession();
+  const [canRender, setCanRender] = useState(false);
   const [images, setImages] = useState<ImageMetadata[]>([]);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   
@@ -961,6 +964,30 @@ export default function GalleryAdmin() {
     fetchFolders();
   }, []); // 컴포넌트 마운트 시 한 번만 실행
   
+  // 세션 체크는 미들웨어에서 처리하므로 클라이언트 사이드 리다이렉트 제거
+  // 프로덕션에서는 디버깅 모드 비활성화 (환경 변수로만 제어)
+  const DEBUG_MODE = false;
+  
+  useEffect(() => {
+    if (DEBUG_MODE) {
+      setCanRender(true);
+      return;
+    }
+    
+    // 세션이 있으면 즉시 렌더링
+    if (session) {
+      setCanRender(true);
+      return;
+    }
+    
+    // 세션이 없어도 미들웨어가 통과시켰다면 2초 후 렌더링 시도
+    const timer = setTimeout(() => {
+      setCanRender(true);
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  }, [status, session, DEBUG_MODE]);
+
   // 초기 로드 (컴포넌트 마운트 시 한 번만 실행)
   useEffect(() => {
     if (initialLoadRef.current) {
@@ -1574,6 +1601,7 @@ export default function GalleryAdmin() {
   });
   const [isBulkWorking, setIsBulkWorking] = useState(false);
   const [seoPreview, setSeoPreview] = useState<any[] | null>(null);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   // 이미지 로드
   const fetchImages = async (page = 1, reset = false, customFolderFilter?: string, customIncludeChildren?: boolean, customSearchQuery?: string, forceRefresh?: boolean) => {
@@ -3752,6 +3780,32 @@ export default function GalleryAdmin() {
     }
   };
 
+  // 로딩 중 표시 (세션 체크는 미들웨어가 처리하므로 여기서는 로딩만 표시)
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 디버깅 모드가 아니고 세션이 없으면
+  // 미들웨어가 이미 통과시켰으므로 세션 확인 중일 수 있음
+  // 무한 로딩 방지를 위해 일정 시간 후 렌더링 시도
+  if (!DEBUG_MODE && !session && !canRender) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <AdminNav />
@@ -3779,9 +3833,46 @@ export default function GalleryAdmin() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* 메인 레이아웃: 트리 사이드바 + 콘텐츠 영역 */}
-          <div className="flex gap-6">
+          <div className="flex gap-6 relative">
+            {/* 모바일: 드로어 오버레이 */}
+            {isMobileDrawerOpen && (
+              <div 
+                className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+                onClick={() => setIsMobileDrawerOpen(false)}
+              />
+            )}
+
             {/* 트리 사이드바 (왼쪽) */}
-            <div className="w-80 flex-shrink-0 relative z-10">
+            <div className={`
+              w-80 flex-shrink-0 relative z-10
+              lg:sticky lg:top-8 lg:self-start
+              lg:max-h-[calc(100vh-4rem)]
+              ${isMobileDrawerOpen 
+                ? 'fixed inset-y-0 left-0 bg-white shadow-xl z-50 flex flex-col lg:relative lg:shadow-none' 
+                : 'hidden lg:block'
+              }
+              transition-transform duration-300 ease-in-out
+            `}>
+              {/* 모바일: 닫기 버튼 */}
+              {isMobileDrawerOpen && (
+                <div className="flex justify-between items-center p-4 border-b lg:hidden flex-shrink-0">
+                  <h3 className="text-lg font-semibold">📂 폴더 구조</h3>
+                  <button
+                    onClick={() => setIsMobileDrawerOpen(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    aria-label="폴더 메뉴 닫기"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* 사이드바 내용 (스크롤 가능 영역) */}
+              <div className={`
+                ${isMobileDrawerOpen ? 'flex-1 overflow-y-auto p-4' : 'lg:overflow-y-auto lg:max-h-[calc(100vh-4rem)]'}
+              `}>
               {/* 폴더 로딩 상태 표시 */}
               {isLoadingFolders ? (
                 <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
@@ -3863,6 +3954,9 @@ export default function GalleryAdmin() {
                 folders={availableFolders}
                 selectedFolder={folderFilter}
                 onFolderSelect={(folderPath) => {
+                  // 모바일에서 폴더 선택 시 드로어 닫기
+                  setIsMobileDrawerOpen(false);
+                  
                   // 🔧 수정: daily-branding/kakao, kakao-ch 또는 mms로 시작하는 경로에 originals/ 프리픽스 자동 추가
                   let adjustedPath = folderPath;
                   if (folderPath && folderPath !== 'all' && folderPath !== 'root') {
@@ -3963,10 +4057,23 @@ export default function GalleryAdmin() {
                   <p className="text-sm text-gray-600">폴더가 없습니다.</p>
                 </div>
               )}
+              </div>
             </div>
 
             {/* 콘텐츠 영역 (오른쪽) */}
             <div className="flex-1 min-w-0">
+              {/* 모바일: 폴더 열기 버튼 */}
+              <button
+                onClick={() => setIsMobileDrawerOpen(true)}
+                className="lg:hidden mb-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2 transition-colors"
+                aria-label="폴더 메뉴 열기"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <span>폴더 선택</span>
+              </button>
+
               {/* 브레드크럼 */}
               <div className="flex items-center text-sm text-gray-600 mb-2">
                 <span className="mr-2 text-gray-500">경로:</span>

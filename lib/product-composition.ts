@@ -24,6 +24,10 @@ export interface ProductForComposition {
   slug: string;
   description?: string;
   features?: string[];
+  // ✅ 샤프트 및 배지 이미지 추가
+  shaftImageUrl?: string; // 샤프트 이미지 URL (검정색 샤프트 참조용)
+  badgeImageUrl?: string; // 배지 이미지 URL (배지 참조용)
+  shaftLogoImageUrl?: string; // 샤프트 로고 이미지 URL (선택)
 }
 
 /**
@@ -32,129 +36,129 @@ export interface ProductForComposition {
  */
 export const PRODUCTS_FOR_COMPOSITION: ProductForComposition[] = [
   {
-    id: 'gold2-sapphire',
+    id: 'secret-force-gold-2-muziik',
     name: '시크리트포스 골드 2 MUZIIK',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/main/products/gold2-sapphire/secret-force-gold-2-sole-500.webp',
+    imageUrl: '/main/products/secret-force-gold-2-muziik/secret-force-gold-2-sole-500.webp',
     referenceImages: [
-      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp',
-      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_12.webp',
-      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_13.webp',
-      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_14_b.webp',
-      '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_15.webp',
+      '/main/products/secret-force-gold-2-muziik/massgoo_sf_gold2_muz_11.webp',
+      '/main/products/secret-force-gold-2-muziik/massgoo_sf_gold2_muz_12.webp',
+      '/main/products/secret-force-gold-2-muziik/massgoo_sf_gold2_muz_13.webp',
+      '/main/products/secret-force-gold-2-muziik/massgoo_sf_gold2_muz_14_b.webp',
+      '/main/products/secret-force-gold-2-muziik/massgoo_sf_gold2_muz_15.webp',
     ],
-    slug: 'gold2-sapphire',
+    slug: 'secret-force-gold-2-muziik',
     description: '오토플렉스 티타늄 샤프트, ONE-FLEX A200·A215',
     features: ['오토플렉스 티타늄 샤프트', 'ONE-FLEX A200·A215', '무제한 2년 헤드 보증'],
   },
   {
-    id: 'black-beryl',
+    id: 'secret-weapon-black-muziik',
     name: '시크리트웨폰 블랙 MUZIIK',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/main/products/black-beryl/secret-weapon-black-sole-500.webp',
+    imageUrl: '/main/products/secret-weapon-black-muziik/secret-weapon-black-sole-500.webp',
     referenceImages: [
-      '/main/products/black-beryl/massgoo_sw_black_muz_11.webp',
-      '/main/products/black-beryl/massgoo_sw_black_muz_12.webp',
-      '/main/products/black-beryl/massgoo_sw_black_muz_13.webp',
-      '/main/products/black-beryl/massgoo_sw_black_muz_14_b.webp',
-      '/main/products/black-beryl/massgoo_sw_black_muz_15.webp',
-      '/main/products/black-beryl/massgoo_sw_black_muz_18.webp',
+      '/main/products/secret-weapon-black-muziik/massgoo_sw_black_muz_11.webp',
+      '/main/products/secret-weapon-black-muziik/massgoo_sw_black_muz_12.webp',
+      '/main/products/secret-weapon-black-muziik/massgoo_sw_black_muz_13.webp',
+      '/main/products/secret-weapon-black-muziik/massgoo_sw_black_muz_14_b.webp',
+      '/main/products/secret-weapon-black-muziik/massgoo_sw_black_muz_15.webp',
+      '/main/products/secret-weapon-black-muziik/massgoo_sw_black_muz_18.webp',
     ],
-    slug: 'black-beryl',
+    slug: 'secret-weapon-black-muziik',
     description: '풀 티타늄 4X 샤프트, 40g대, 최대 X 플렉스',
     features: ['풀 티타늄 4X 샤프트', '40g대, 최대 X 플렉스', '2년 헤드 보증(최대 3회)'],
   },
   {
-    id: 'gold2',
+    id: 'secret-force-gold-2',
     name: '시크리트포스 골드 2',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/main/products/gold2/secret-force-gold-2-sole-500.webp',
+    imageUrl: '/main/products/secret-force-gold-2/secret-force-gold-2-sole-500.webp',
     referenceImages: [
-      '/main/products/gold2/gold2_01.jpg',
-      '/main/products/gold2/gold2_02.jpg',
-      '/main/products/gold2/gold2_03.jpg',
-      '/main/products/gold2/gold2_04.jpg',
-      '/main/products/gold2/gold2_05.jpg',
-      '/main/products/gold2/gold2_06.jpg',
-      '/main/products/gold2/gold2_07.jpg',
+      '/main/products/secret-force-gold-2/gold2_01.jpg',
+      '/main/products/secret-force-gold-2/gold2_02.jpg',
+      '/main/products/secret-force-gold-2/gold2_03.jpg',
+      '/main/products/secret-force-gold-2/gold2_04.jpg',
+      '/main/products/secret-force-gold-2/gold2_05.jpg',
+      '/main/products/secret-force-gold-2/gold2_06.jpg',
+      '/main/products/secret-force-gold-2/gold2_07.jpg',
     ],
-    slug: 'gold2',
+    slug: 'secret-force-gold-2',
     description: 'DAT55G+ Grade 5 티타늄, 2.2mm 초박형 페이스, COR 0.87',
     features: ['DAT55G+ Grade 5 티타늄', '2.2mm 초박형 페이스', 'COR 0.87'],
   },
   {
-    id: 'pro3',
+    id: 'secret-force-pro-3',
     name: '시크리트포스 PRO 3',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/main/products/pro3/secret-force-pro-3-sole-500.webp',
+    imageUrl: '/main/products/secret-force-pro-3/secret-force-pro-3-sole-500.webp',
     referenceImages: [
-      '/main/products/pro3/secret-force-pro-3-gallery-01.webp',
-      '/main/products/pro3/secret-force-pro-3-gallery-02.webp',
-      '/main/products/pro3/secret-force-pro-3-gallery-03.webp',
-      '/main/products/pro3/secret-force-pro-3-gallery-04.webp',
-      '/main/products/pro3/secret-force-pro-3-gallery-05.webp',
-      '/main/products/pro3/secret-force-pro-3-gallery-06.webp',
-      '/main/products/pro3/secret-force-pro-3-gallery-07.webp',
+      '/main/products/secret-force-pro-3/secret-force-pro-3-gallery-01.webp',
+      '/main/products/secret-force-pro-3/secret-force-pro-3-gallery-02.webp',
+      '/main/products/secret-force-pro-3/secret-force-pro-3-gallery-03.webp',
+      '/main/products/secret-force-pro-3/secret-force-pro-3-gallery-04.webp',
+      '/main/products/secret-force-pro-3/secret-force-pro-3-gallery-05.webp',
+      '/main/products/secret-force-pro-3/secret-force-pro-3-gallery-06.webp',
+      '/main/products/secret-force-pro-3/secret-force-pro-3-gallery-07.webp',
     ],
     slug: 'secret-force-pro-3',
     description: 'DAT55G 티타늄, 2.3mm 페이스, COR 0.86',
     features: ['DAT55G 티타늄', '2.3mm 페이스', 'COR 0.86'],
   },
   {
-    id: 'v3',
+    id: 'secret-force-v3',
     name: '시크리트포스 V3',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/main/products/v3/secret-force-v3-sole-350-bg.webp',
+    imageUrl: '/main/products/secret-force-v3/secret-force-v3-sole-350-bg.webp',
     referenceImages: [
-      '/main/products/v3/secret-force-v3-gallery-02.webp',
-      '/main/products/v3/secret-force-v3-gallery-03.webp',
-      '/main/products/v3/secret-force-v3-gallery-04.webp',
-      '/main/products/v3/secret-force-v3-gallery-05.webp',
-      '/main/products/v3/secret-force-v3-gallery-06.webp',
-      '/main/products/v3/secret-force-v3-gallery-07.webp',
+      '/main/products/secret-force-v3/secret-force-v3-gallery-02.webp',
+      '/main/products/secret-force-v3/secret-force-v3-gallery-03.webp',
+      '/main/products/secret-force-v3/secret-force-v3-gallery-04.webp',
+      '/main/products/secret-force-v3/secret-force-v3-gallery-05.webp',
+      '/main/products/secret-force-v3/secret-force-v3-gallery-06.webp',
+      '/main/products/secret-force-v3/secret-force-v3-gallery-07.webp',
     ],
     slug: 'secret-force-v3',
     description: 'DAT55G 티타늄, 2.4mm 페이스, COR 0.85',
     features: ['DAT55G 티타늄', '2.4mm 페이스', 'COR 0.85'],
   },
   {
-    id: 'weapon-black',
+    id: 'secret-weapon-black',
     name: '시크리트웨폰 블랙',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/main/products/black-weapon/secret-weapon-black-sole-500.webp',
+    imageUrl: '/main/products/secret-weapon-black/secret-weapon-black-sole-500.webp',
     referenceImages: [
-      '/main/products/black-weapon/secret-weapon-black-gallery-01.webp',
-      '/main/products/black-weapon/secret-weapon-black-gallery-02.webp',
-      '/main/products/black-weapon/secret-weapon-black-gallery-03.webp',
-      '/main/products/black-weapon/secret-weapon-black-gallery-04.webp',
-      '/main/products/black-weapon/secret-weapon-black-gallery-05.webp',
-      '/main/products/black-weapon/secret-weapon-black-gallery-06.webp',
-      '/main/products/black-weapon/secret-weapon-black-gallery-07.webp',
+      '/main/products/secret-weapon-black/secret-weapon-black-gallery-01.webp',
+      '/main/products/secret-weapon-black/secret-weapon-black-gallery-02.webp',
+      '/main/products/secret-weapon-black/secret-weapon-black-gallery-03.webp',
+      '/main/products/secret-weapon-black/secret-weapon-black-gallery-04.webp',
+      '/main/products/secret-weapon-black/secret-weapon-black-gallery-05.webp',
+      '/main/products/secret-weapon-black/secret-weapon-black-gallery-06.webp',
+      '/main/products/secret-weapon-black/secret-weapon-black-gallery-07.webp',
     ],
     slug: 'secret-weapon-black',
     description: 'SP700 Grade 5 티타늄, 2.2mm 초박형 페이스, COR 0.87',
     features: ['SP700 Grade 5 티타늄', '2.2mm 초박형 페이스', 'COR 0.87'],
   },
   {
-    id: 'weapon-gold-4-1',
+    id: 'secret-weapon-gold-4-1',
     name: '시크리트웨폰 골드 4.1',
     category: 'driver' as ProductCategory,
     compositionTarget: 'hands' as CompositionTarget,
-    imageUrl: '/main/products/gold-weapon4/secret-weapon-gold-4-1-sole-500.webp',
+    imageUrl: '/main/products/secret-weapon-gold-4-1/secret-weapon-gold-4-1-sole-500.webp',
     referenceImages: [
-      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-01.webp',
-      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-02.webp',
-      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-03.webp',
-      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-04.webp',
-      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-05.webp',
-      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-06.webp',
-      '/main/products/gold-weapon4/secret-weapon-gold-4-1-gallery-07.webp',
+      '/main/products/secret-weapon-gold-4-1/secret-weapon-gold-4-1-gallery-01.webp',
+      '/main/products/secret-weapon-gold-4-1/secret-weapon-gold-4-1-gallery-02.webp',
+      '/main/products/secret-weapon-gold-4-1/secret-weapon-gold-4-1-gallery-03.webp',
+      '/main/products/secret-weapon-gold-4-1/secret-weapon-gold-4-1-gallery-04.webp',
+      '/main/products/secret-weapon-gold-4-1/secret-weapon-gold-4-1-gallery-05.webp',
+      '/main/products/secret-weapon-gold-4-1/secret-weapon-gold-4-1-gallery-06.webp',
+      '/main/products/secret-weapon-gold-4-1/secret-weapon-gold-4-1-gallery-07.webp',
     ],
     slug: 'secret-weapon-gold-4-1',
     description: 'SP700 Grade 5 티타늄, 2.2mm 초박형 페이스, COR 0.87',
@@ -259,11 +263,83 @@ export function generateCompositionPrompt(
       prompt = `Replace ONLY the golf driver head in the person's hands with the ${product.name} driver head. Keep the person's hands, grip position, body posture, and all other elements exactly the same.`;
     }
     
+    // 🔥 개선: 각도 매칭 강화 지시
     if (useReferenceImages && product.referenceImages && product.referenceImages.length > 0) {
-      prompt += ` Use the provided reference images to match the exact angle, perspective, and lighting of the driver in the person's hands.`;
+      prompt += ` 
+
+CRITICAL ANGLE MATCHING INSTRUCTIONS:
+1. Analyze the original driver head's exact 3D orientation:
+   - Viewing angle (front, side, 3/4, top, bottom)
+   - Tilt angle (club face open/closed)
+   - Rotation (around shaft axis)
+   - Perspective (camera distance and angle)
+
+2. Compare with all provided reference images and select the one with the closest matching angle.
+
+3. Transform the selected product image to match the EXACT angle:
+   - Apply geometric transformation (rotation, perspective warp, scale)
+   - Match the 3D position and orientation precisely
+   - Do NOT simply overlay - transform to match geometry
+
+4. Match lighting and shadows:
+   - Analyze original lighting direction and intensity
+   - Apply matching shadows and reflections
+   - Ensure seamless integration
+
+The replacement must be geometrically accurate and photorealistic.`;
+    } else {
+      // 참조 이미지가 없는 경우에도 각도 매칭 강조
+      prompt += ` 
+
+CRITICAL: The new driver head must match the EXACT angle, tilt, rotation, and perspective of the original driver head. Analyze the original driver's 3D orientation carefully:
+- Match the viewing angle (front, side, 3/4 view, etc.)
+- Match the tilt angle (how much the club face is open/closed)
+- Match the rotation (how the club is rotated around the shaft axis)
+- Match the perspective (distance and camera angle)
+- Match the lighting direction and intensity
+- Match the shadow direction and shape
+
+Transform the product image to match the exact perspective. Do NOT simply overlay - apply geometric transformation (rotation, perspective warp, scale) to align perfectly with the original driver's 3D position and orientation. The replacement must be geometrically accurate - ensure the new driver head appears at the exact same angle as the original.`;
     }
     
-    prompt += ` The new driver head (or part) should match the original driver's angle, position, lighting, and shadows. Maintain natural shadows and reflections. The driver shaft can remain unchanged if visible. The replacement should be seamless and realistic, with the new driver head appearing as if it was originally part of the image.`;
+    prompt += ` Maintain natural shadows and reflections that match the original lighting. 
+
+CRITICAL SHAFT COLOR INSTRUCTION:
+- The driver shaft must be BLACK (matte black or dark graphite black)
+- Do NOT change the shaft to any other color (no silver, gold, red, blue, or any other colors)
+- The shaft should maintain its original position and angle
+- If the shaft is visible, it must remain BLACK throughout its entire length
+- The shaft color should match professional golf club standards: matte black graphite shaft
+- The shaft should connect seamlessly to the driver head with no visible gaps or misalignment
+
+BADGE INSTRUCTION:
+- If the product has a badge or logo on the head, ensure it matches the reference images exactly
+- The badge position, size, and design must be accurate
+- Do NOT add or remove badges that are not in the reference images
+- Badge colors and text must match the reference images precisely`;
+
+    // ✅ 샤프트 이미지 참조 추가
+    if (product.shaftImageUrl) {
+      prompt += ` 
+
+SHAFT REFERENCE:
+- Use the provided shaft reference image to match the exact shaft design, color, and texture
+- The shaft must be BLACK (matte black) as shown in the reference image
+- Match the shaft's diameter, taper, and any graphics or logos on the shaft
+- Ensure the shaft connects seamlessly to the driver head`;
+    }
+    
+    // ✅ 배지 이미지 참조 추가
+    if (product.badgeImageUrl) {
+      prompt += ` 
+
+BADGE REFERENCE:
+- Use the provided badge reference image to match the exact badge design, position, and color
+- The badge must be placed in the exact same position as shown in the reference image
+- Match the badge size, shape, and any text or graphics on the badge`;
+    }
+    
+    prompt += ` The replacement should be seamless and realistic, with the new driver head appearing as if it was originally part of the image.`;
     
     return prompt;
   } else if (product.compositionTarget === 'accessory') {
@@ -461,6 +537,10 @@ export async function getProductsFromSupabase(
         slug: p.slug,
         description: p.description,
         features: p.features || [],
+        // ✅ 샤프트 및 배지 이미지 추가
+        shaftImageUrl: p.shaft_image_url ? getAbsoluteImageUrl(convertPngToWebp(p.shaft_image_url)) : undefined,
+        badgeImageUrl: p.badge_image_url ? getAbsoluteImageUrl(convertPngToWebp(p.badge_image_url)) : undefined,
+        shaftLogoImageUrl: p.shaft_logo_image_url ? getAbsoluteImageUrl(convertPngToWebp(p.shaft_logo_image_url)) : undefined,
       }));
     }
 

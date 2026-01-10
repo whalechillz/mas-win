@@ -7,12 +7,22 @@ type ImageItem = {
   created_at: string;
 };
 
+type AlternativeFolder = {
+  label: string;
+  path: string;
+  icon?: string;
+};
+
 type Props = {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (url: string) => void;
   folderPath: string; // 필수: 현재 폴더 경로
   title?: string;
+  // ✅ 추가: 대체 폴더 목록 (예: secret-force-common)
+  alternativeFolders?: AlternativeFolder[];
+  // ✅ 추가: 폴더 변경 콜백
+  onFolderChange?: (path: string) => void;
 };
 
 const FolderImagePicker: React.FC<Props> = ({
@@ -20,15 +30,19 @@ const FolderImagePicker: React.FC<Props> = ({
   onClose,
   folderPath,
   onSelect,
-  title = "폴더에서 이미지 선택"
+  title = "폴더에서 이미지 선택",
+  alternativeFolders = [],
+  onFolderChange,
 }) => {
   const [images, setImages] = useState<ImageItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // ✅ 현재 선택된 폴더 경로 (내부 상태로 관리)
+  const [currentFolderPath, setCurrentFolderPath] = useState(folderPath);
 
   // Storage에서 직접 조회 (빠름)
   const fetchFolderImages = async () => {
-    if (!folderPath) {
+    if (!currentFolderPath) {
       setImages([]);
       return;
     }
@@ -38,7 +52,7 @@ const FolderImagePicker: React.FC<Props> = ({
 
     try {
       const response = await fetch(
-        `/api/admin/folder-images?folder=${encodeURIComponent(folderPath)}`
+        `/api/admin/folder-images?folder=${encodeURIComponent(currentFolderPath)}`
       );
 
       if (!response.ok) {
@@ -57,14 +71,21 @@ const FolderImagePicker: React.FC<Props> = ({
     }
   };
 
+  // ✅ folderPath prop이 변경되면 내부 상태도 업데이트
   useEffect(() => {
-    if (isOpen && folderPath) {
+    if (folderPath) {
+      setCurrentFolderPath(folderPath);
+    }
+  }, [folderPath]);
+
+  useEffect(() => {
+    if (isOpen && currentFolderPath) {
       fetchFolderImages();
     } else {
       setImages([]);
       setError(null);
     }
-  }, [isOpen, folderPath]);
+  }, [isOpen, currentFolderPath]);
 
   if (!isOpen) return null;
 
@@ -72,36 +93,110 @@ const FolderImagePicker: React.FC<Props> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] flex flex-col">
         {/* 헤더 */}
-        <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
-            <div className="text-sm text-gray-500 mt-1">{folderPath}</div>
+        <div className="p-4 border-b flex flex-col gap-3 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={fetchFolderImages}
+                className="px-4 py-2 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2 transition-colors"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <span className="animate-spin">⏳</span> 로딩 중...
+                  </>
+                ) : (
+                  <>
+                    <span>🔄</span> 새로고침
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-light w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                ×
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={fetchFolderImages}
-              className="px-4 py-2 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2 transition-colors"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <span className="animate-spin">⏳</span> 로딩 중...
-                </>
-              ) : (
-                <>
-                  <span>🔄</span> 새로고침
-                </>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-2xl font-light w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              ×
-            </button>
-          </div>
+
+          {/* ✅ 폴더 전환 탭 */}
+          {alternativeFolders.length > 0 && (
+            <div className="flex items-center gap-2 border-t pt-3">
+              <span className="text-xs text-gray-500 font-medium">폴더:</span>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentFolderPath(folderPath);
+                    onFolderChange?.(folderPath);
+                  }}
+                  className={`px-3 py-1 text-xs rounded-lg transition-colors ${
+                    currentFolderPath === folderPath
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  제품 이미지
+                </button>
+                {alternativeFolders.map((altFolder, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => {
+                      setCurrentFolderPath(altFolder.path);
+                      onFolderChange?.(altFolder.path);
+                    }}
+                    className={`px-3 py-1 text-xs rounded-lg transition-colors flex items-center gap-1 ${
+                      currentFolderPath === altFolder.path
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {altFolder.icon && <span>{altFolder.icon}</span>}
+                    {altFolder.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ✅ 브레드크럼 네비게이션 */}
+          {currentFolderPath && (
+            <nav className="flex flex-wrap items-center gap-1 text-xs" aria-label="폴더 경로">
+              {currentFolderPath.split('/').map((segment, index, array) => {
+                const path = array.slice(0, index + 1).join('/');
+                const isLast = index === array.length - 1;
+                return (
+                  <div key={index} className="flex items-center gap-1">
+                    {index > 0 && <span className="text-gray-400">/</span>}
+                    {isLast ? (
+                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                        {segment}
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCurrentFolderPath(path);
+                          onFolderChange?.(path);
+                        }}
+                        className="px-2 py-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded text-xs font-medium transition-colors"
+                        title={`${path}로 이동`}
+                      >
+                        {segment}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </nav>
+          )}
         </div>
 
         {/* 본문 */}
@@ -112,7 +207,7 @@ const FolderImagePicker: React.FC<Props> = ({
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 <div className="text-gray-600 font-medium">이미지 로딩 중...</div>
                 <div className="text-sm text-gray-400 mt-2">
-                  폴더: {folderPath}
+                  폴더: {currentFolderPath}
                 </div>
                 <div className="text-xs text-gray-400 mt-1">
                   Supabase Storage에서 이미지를 불러오는 중입니다...
@@ -137,7 +232,7 @@ const FolderImagePicker: React.FC<Props> = ({
               <div className="text-center text-gray-500">
                 <div className="text-lg font-medium mb-2">이미지가 없습니다</div>
                 <div className="text-sm mb-4">
-                  "{folderPath}" 폴더에 이미지가 없습니다.
+                  "{currentFolderPath}" 폴더에 이미지가 없습니다.
                 </div>
                 <button
                   onClick={onClose}

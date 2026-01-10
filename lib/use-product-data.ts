@@ -29,30 +29,32 @@ export function useProductData(slug: string, defaultImages: string[] = []): UseP
           const productData = json.product;
           setProduct(productData);
           
-          // detail_images 처리
+          // detail_images 처리 - 정확히 매칭 (폴백 없음)
           if (Array.isArray(productData.detail_images) && productData.detail_images.length > 0) {
             const detailUrls = productData.detail_images.map((img: string) => getProductImageUrl(img));
             setProductImages(detailUrls);
-          } else if (defaultImages.length > 0) {
-            setProductImages(defaultImages.map(img => getProductImageUrl(img)));
+          } else {
+            // 데이터베이스에 이미지가 없으면 빈 배열
+            setProductImages([]);
           }
           
           // gallery_images 처리 (착용 이미지)
           if (Array.isArray(productData.gallery_images) && productData.gallery_images.length > 0) {
             const galleryUrls = productData.gallery_images.map((img: string) => getProductImageUrl(img));
             setGalleryImages(galleryUrls);
+          } else {
+            setGalleryImages([]);
           }
         } else {
-          // 데이터베이스에 없으면 기본 이미지 사용
-          if (defaultImages.length > 0) {
-            setProductImages(defaultImages.map(img => getProductImageUrl(img)));
-          }
+          // 데이터베이스에 제품이 없으면 빈 배열
+          setProductImages([]);
+          setGalleryImages([]);
         }
       } catch (error) {
         console.error('제품 로드 오류:', error);
-        if (defaultImages.length > 0) {
-          setProductImages(defaultImages.map(img => getProductImageUrl(img)));
-        }
+        // 오류 발생 시에도 폴백 없이 빈 배열
+        setProductImages([]);
+        setGalleryImages([]);
       } finally {
         setIsLoadingProduct(false);
       }

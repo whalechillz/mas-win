@@ -178,7 +178,7 @@ export const authOptions = {
   },
   pages: {
     signIn: '/admin/login'
-    // error 페이지는 로그인 페이지에서 직접 처리
+    // error 페이지는 로그인 페이지에서 직접 처리 (리다이렉트 루프 방지)
   },
   session: {
     strategy: 'jwt',
@@ -187,8 +187,9 @@ export const authOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET || 'masgolf-admin-secret-key-2024',
   debug: process.env.NODE_ENV === 'development',
+  // NextAuth URL 명시적 설정 (리다이렉트 루프 방지)
+  url: process.env.NEXTAUTH_URL || 'http://localhost:3000',
   // 로컬 개발 환경에서 쿠키 설정
-  // NextAuth v4에서는 url 속성 대신 NEXTAUTH_URL 환경 변수를 사용합니다
   useSecureCookies: process.env.NODE_ENV === 'production',
   cookies: {
     sessionToken: {
@@ -199,10 +200,11 @@ export const authOptions = {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         // 도메인 설정을 선택적으로 적용 (Chrome 버전 호환성)
-        // www와 non-www 모두 지원하되, 일부 Chrome 버전에서는 도메인 없이도 작동
+        // 개발 환경에서는 undefined로 두어 localhost에서도 작동하도록 함
+        // Playwright 브라우저 호환성을 위해 명시적으로 undefined 설정
         domain: process.env.NODE_ENV === 'production' 
           ? (process.env.NEXTAUTH_COOKIE_DOMAIN || '.masgolf.co.kr')
-          : undefined,
+          : undefined, // localhost에서는 도메인 없이 설정 (Playwright 호환)
         maxAge: 30 * 24 * 60 * 60, // 30일
       },
     },
@@ -217,7 +219,7 @@ export const authOptions = {
         secure: process.env.NODE_ENV === 'production',
         domain: process.env.NODE_ENV === 'production' 
           ? (process.env.NEXTAUTH_COOKIE_DOMAIN || '.masgolf.co.kr')
-          : undefined,
+          : undefined, // localhost에서는 도메인 없이 설정 (Playwright 호환)
         maxAge: 30 * 24 * 60 * 60, // 30일
       },
     },

@@ -64,16 +64,33 @@ export default function SMSListAdmin() {
     groupStatusesRef.current = groupStatuses;
   }, [groupStatuses]);
 
+  // 세션 체크는 미들웨어에서 처리하므로 클라이언트 사이드 리다이렉트 제거
+  // 프로덕션에서는 디버깅 모드 비활성화 (환경 변수로만 제어)
+  const DEBUG_MODE = false;
+  const [canRender, setCanRender] = useState(false);
+  
   useEffect(() => {
-    if (status === 'loading') return;
-    // 세션 체크 (프로덕션에서 활성화)
-    // 프로덕션에서는 디버깅 모드 비활성화 (환경 변수로만 제어)
-    const DEBUG_MODE = false;
-    
-    if (!DEBUG_MODE && !session) {
-      router.push('/admin/login');
+    if (DEBUG_MODE) {
+      setCanRender(true);
       return;
     }
+    
+    // 세션이 있으면 즉시 렌더링
+    if (session) {
+      setCanRender(true);
+      return;
+    }
+    
+    // 세션이 없어도 미들웨어가 통과시켰다면 2초 후 렌더링 시도
+    const timer = setTimeout(() => {
+      setCanRender(true);
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  }, [status, session, DEBUG_MODE]);
+
+  useEffect(() => {
+    if (status === 'loading') return;
     fetchMessages();
   }, [session, status, router, filter]);
 
@@ -798,6 +815,7 @@ export default function SMSListAdmin() {
     setSentAtSort('desc'); // 발송일 정렬 기본값으로
   };
 
+  // 로딩 중 표시 (세션 체크는 미들웨어가 처리하므로 여기서는 로딩만 표시)
   if (status === 'loading' || isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -809,14 +827,20 @@ export default function SMSListAdmin() {
     );
   }
 
-  // 세션 체크 (프로덕션에서 활성화)
-  // DEBUG_MODE는 환경 변수로만 제어 (SSR 호환성)
-  // 프로덕션에서는 디버깅 모드 비활성화
-  const DEBUG_MODE = false;
-  
-  if (!DEBUG_MODE && !session) {
-    return null;
+  // 디버깅 모드가 아니고 세션이 없으면
+  // 미들웨어가 이미 통과시켰으므로 세션 확인 중일 수 있음
+  // 무한 로딩 방지를 위해 일정 시간 후 렌더링 시도
+  if (!DEBUG_MODE && !session && !canRender) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
   }
+
 
   return (
     <>

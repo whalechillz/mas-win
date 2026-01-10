@@ -1,54 +1,110 @@
--- image_metadata 테이블의 original_path 업데이트
--- originals/products/goods/* → originals/goods/* 로 변경
--- (갤러리 폴더로 이미지가 이동된 경우 반영)
--- 
--- 참고: image_metadata 테이블에는 folder_path 컬럼이 없고, original_path만 있습니다.
--- folder_path는 API에서 original_path를 기반으로 동적으로 생성됩니다.
+-- image_metadata 테이블의 구식 폴더명을 새 폴더명으로 업데이트
+-- 갤러리 관리 페이지의 폴더 트리가 올바르게 표시되도록 함
 
--- 1. 현재 상태 확인
-SELECT 
-  '업데이트 전 상태' as status,
-  COUNT(*) as total_count,
-  COUNT(CASE WHEN original_path LIKE '%originals/products/goods/%' THEN 1 END) as old_path_count,
-  COUNT(CASE WHEN original_path LIKE '%originals/goods/%' THEN 1 END) as new_path_count,
-  COUNT(CASE WHEN image_url LIKE '%originals/products/goods/%' THEN 1 END) as old_url_count,
-  COUNT(CASE WHEN image_url LIKE '%originals/goods/%' THEN 1 END) as new_url_count
-FROM image_metadata
-WHERE original_path LIKE '%goods%' 
-   OR image_url LIKE '%goods%';
-
--- 2. original_path 업데이트
-UPDATE image_metadata
+-- ============================================
+-- 1단계: folder_path 업데이트
+-- ============================================
+UPDATE image_metadata 
 SET 
-  original_path = REPLACE(original_path, 'originals/products/goods/', 'originals/goods/'),
-  image_url = REPLACE(image_url, 'originals/products/goods/', 'originals/goods/'),
+  folder_path = CASE 
+    WHEN folder_path LIKE '%originals/products/black-beryl%' 
+      THEN replace(folder_path, 'originals/products/black-beryl', 'originals/products/secret-weapon-black-muziik')
+    WHEN folder_path LIKE '%originals/products/black-weapon%' 
+      THEN replace(folder_path, 'originals/products/black-weapon', 'originals/products/secret-weapon-black')
+    WHEN folder_path LIKE '%originals/products/gold-weapon4%' 
+      THEN replace(folder_path, 'originals/products/gold-weapon4', 'originals/products/secret-weapon-gold-4-1')
+    WHEN folder_path LIKE '%originals/products/gold2%' 
+      THEN replace(folder_path, 'originals/products/gold2', 'originals/products/secret-force-gold-2')
+    WHEN folder_path LIKE '%originals/products/gold2-sapphire%' 
+      THEN replace(folder_path, 'originals/products/gold2-sapphire', 'originals/products/secret-force-gold-2-muziik')
+    WHEN folder_path LIKE '%originals/products/pro3-muziik%' 
+      THEN replace(folder_path, 'originals/products/pro3-muziik', 'originals/products/secret-force-pro-3-muziik')
+    WHEN folder_path LIKE '%originals/products/pro3%' 
+      THEN replace(folder_path, 'originals/products/pro3', 'originals/products/secret-force-pro-3')
+    WHEN folder_path LIKE '%originals/products/v3%' 
+      THEN replace(folder_path, 'originals/products/v3', 'originals/products/secret-force-v3')
+    ELSE folder_path
+  END,
   updated_at = NOW()
-WHERE original_path LIKE '%originals/products/goods/%'
-   OR image_url LIKE '%originals/products/goods/%';
+WHERE folder_path LIKE '%originals/products/black-beryl%'
+   OR folder_path LIKE '%originals/products/black-weapon%'
+   OR folder_path LIKE '%originals/products/gold-weapon4%'
+   OR folder_path LIKE '%originals/products/gold2%'
+   OR folder_path LIKE '%originals/products/gold2-sapphire%'
+   OR folder_path LIKE '%originals/products/pro3-muziik%'
+   OR folder_path LIKE '%originals/products/pro3%'
+   OR folder_path LIKE '%originals/products/v3%';
 
--- 3. 업데이트 후 상태 확인
+-- ============================================
+-- 2단계: image_url 업데이트
+-- ============================================
+UPDATE image_metadata 
+SET 
+  image_url = CASE 
+    WHEN image_url LIKE '%originals/products/black-beryl%' 
+      THEN replace(image_url, 'originals/products/black-beryl', 'originals/products/secret-weapon-black-muziik')
+    WHEN image_url LIKE '%originals/products/black-weapon%' 
+      THEN replace(image_url, 'originals/products/black-weapon', 'originals/products/secret-weapon-black')
+    WHEN image_url LIKE '%originals/products/gold-weapon4%' 
+      THEN replace(image_url, 'originals/products/gold-weapon4', 'originals/products/secret-weapon-gold-4-1')
+    WHEN image_url LIKE '%originals/products/gold2%' 
+      THEN replace(image_url, 'originals/products/gold2', 'originals/products/secret-force-gold-2')
+    WHEN image_url LIKE '%originals/products/gold2-sapphire%' 
+      THEN replace(image_url, 'originals/products/gold2-sapphire', 'originals/products/secret-force-gold-2-muziik')
+    WHEN image_url LIKE '%originals/products/pro3-muziik%' 
+      THEN replace(image_url, 'originals/products/pro3-muziik', 'originals/products/secret-force-pro-3-muziik')
+    WHEN image_url LIKE '%originals/products/pro3%' 
+      THEN replace(image_url, 'originals/products/pro3', 'originals/products/secret-force-pro-3')
+    WHEN image_url LIKE '%originals/products/v3%' 
+      THEN replace(image_url, 'originals/products/v3', 'originals/products/secret-force-v3')
+    ELSE image_url
+  END,
+  updated_at = NOW()
+WHERE image_url LIKE '%originals/products/black-beryl%'
+   OR image_url LIKE '%originals/products/black-weapon%'
+   OR image_url LIKE '%originals/products/gold-weapon4%'
+   OR image_url LIKE '%originals/products/gold2%'
+   OR image_url LIKE '%originals/products/gold2-sapphire%'
+   OR image_url LIKE '%originals/products/pro3-muziik%'
+   OR image_url LIKE '%originals/products/pro3%'
+   OR image_url LIKE '%originals/products/v3%';
+
+-- ============================================
+-- 3단계: 업데이트 결과 확인
+-- ============================================
 SELECT 
-  '업데이트 후 상태' as status,
-  COUNT(*) as total_count,
-  COUNT(CASE WHEN original_path LIKE '%originals/products/goods/%' THEN 1 END) as old_path_count,
-  COUNT(CASE WHEN original_path LIKE '%originals/goods/%' THEN 1 END) as new_path_count,
-  COUNT(CASE WHEN image_url LIKE '%originals/products/goods/%' THEN 1 END) as old_url_count,
-  COUNT(CASE WHEN image_url LIKE '%originals/goods/%' THEN 1 END) as new_url_count
+  'folder_path 업데이트 확인' as step,
+  COUNT(*) as count
 FROM image_metadata
-WHERE original_path LIKE '%goods%' 
-   OR image_url LIKE '%goods%';
+WHERE folder_path LIKE '%originals/products/black-beryl%'
+   OR folder_path LIKE '%originals/products/black-weapon%'
+   OR folder_path LIKE '%originals/products/gold-weapon4%'
+   OR folder_path LIKE '%originals/products/gold2%'
+   OR folder_path LIKE '%originals/products/gold2-sapphire%'
+   OR folder_path LIKE '%originals/products/pro3-muziik%'
+   OR folder_path LIKE '%originals/products/pro3%'
+   OR folder_path LIKE '%originals/products/v3%';
 
--- 4. 샘플 데이터 확인
 SELECT 
-  id,
-  image_url,
-  original_path,
-  title,
-  alt_text,
-  updated_at
+  'image_url 업데이트 확인' as step,
+  COUNT(*) as count
 FROM image_metadata
-WHERE original_path LIKE '%originals/goods/%'
-   OR image_url LIKE '%originals/goods/%'
-ORDER BY updated_at DESC
-LIMIT 10;
+WHERE image_url LIKE '%originals/products/black-beryl%'
+   OR image_url LIKE '%originals/products/black-weapon%'
+   OR image_url LIKE '%originals/products/gold-weapon4%'
+   OR image_url LIKE '%originals/products/gold2%'
+   OR image_url LIKE '%originals/products/gold2-sapphire%'
+   OR image_url LIKE '%originals/products/pro3-muziik%'
+   OR image_url LIKE '%originals/products/pro3%'
+   OR image_url LIKE '%originals/products/v3%';
 
+-- 새 폴더명 확인
+SELECT 
+  '새 폴더명 확인' as step,
+  folder_path,
+  COUNT(*) as count
+FROM image_metadata
+WHERE folder_path LIKE '%originals/products/secret-%'
+GROUP BY folder_path
+ORDER BY folder_path
+LIMIT 20;

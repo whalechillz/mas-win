@@ -49,20 +49,8 @@ function getProductStoragePath(productSlug, category, imageType = 'detail') {
   }
 
   // 드라이버 제품: originals/products/{slug}/{imageType}
-  // 드라이버 제품 slug → 폴더 매핑
-  const driverSlugToFolder = {
-    'secret-weapon-black': 'black-weapon',
-    'black-beryl': 'black-beryl',
-    'secret-weapon-4-1': 'gold-weapon4',
-    'secret-force-gold-2': 'gold2',
-    'gold2-sapphire': 'gold2-sapphire',
-    'secret-force-pro-3': 'pro3',
-    'pro3-muziik': 'pro3-muziik',
-    'secret-force-v3': 'v3',
-  };
-
-  const folderName = driverSlugToFolder[productSlug] || productSlug;
-  return `originals/products/${folderName}/${imageType}`;
+  // slug와 폴더명이 일치하므로 직접 사용
+  return `originals/products/${productSlug}/${imageType}`;
 }
 
 export default async function handler(req, res) {
@@ -108,6 +96,7 @@ export default async function handler(req, res) {
     const category = fields.category?.[0] || 'cap'; // 기본값: cap (모자)
     const imageType = fields.imageType?.[0] || 'detail'; // detail, composition, gallery
     const preserveFilename = fields.preserveFilename?.[0] === 'true'; // 원본 파일명 유지 옵션
+    const customFileName = fields.customFileName?.[0]; // ✅ 커스텀 파일명 (shaft, badge 등)
 
     console.log('[upload-product-image] 제품 정보:', {
       productSlug,
@@ -145,7 +134,10 @@ export default async function handler(req, res) {
     
     // 파일명 생성
     let webpFileName;
-    if (preserveFilename) {
+    if (customFileName) {
+      // ✅ 커스텀 파일명 사용 (shaft, badge 등)
+      webpFileName = `${customFileName}.webp`;
+    } else if (preserveFilename) {
       // 원본 파일명 유지 (확장자만 .webp로 변경)
       const baseName = path.parse(originalName).name;
       webpFileName = `${baseName}.webp`;

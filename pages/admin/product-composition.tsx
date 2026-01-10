@@ -33,6 +33,7 @@ interface ProductComposition {
 export default function ProductCompositionManagement() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [canRender, setCanRender] = useState(false);
   const [products, setProducts] = useState<ProductComposition[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -69,7 +70,12 @@ export default function ProductCompositionManagement() {
       if (filter.target) params.append('target', filter.target);
       if (filter.active !== undefined) params.append('active', String(filter.active));
 
-      const response = await fetch(`/api/admin/product-composition?${params.toString()}`);
+      const response = await fetch(`/api/admin/product-composition?${params.toString()}`, {
+        credentials: 'include', // ✅ 쿠키 포함 명시 (Playwright 호환)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         setProducts(data.products || []);
@@ -83,15 +89,33 @@ export default function ProductCompositionManagement() {
     }
   }, [filter.category, filter.target, filter.active]);
 
-  // ✅ 제품 목록 로드 useEffect: 단순화 (세션 체크 임시 비활성화 - 디버깅용)
+  // 세션 체크는 미들웨어에서 처리하므로 클라이언트 사이드 리다이렉트 제거
+  // 프로덕션에서는 디버깅 모드 비활성화 (환경 변수로만 제어)
+  const DEBUG_MODE = false;
+  
+  useEffect(() => {
+    if (DEBUG_MODE) {
+      setCanRender(true);
+      return;
+    }
+    
+    // 세션이 있으면 즉시 렌더링
+    if (session) {
+      setCanRender(true);
+      return;
+    }
+    
+    // 세션이 없어도 미들웨어가 통과시켰다면 2초 후 렌더링 시도
+    const timer = setTimeout(() => {
+      setCanRender(true);
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  }, [status, session, DEBUG_MODE]);
+
+  // ✅ 제품 목록 로드 useEffect
   useEffect(() => {
     if (status === 'loading') return;
-    
-    // if (!session) {
-    //   router.push('/admin/login');
-    //   return;
-    // }
-    
     loadProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, !!session, filter.category, filter.target, filter.active]);
@@ -105,13 +129,15 @@ export default function ProductCompositionManagement() {
     );
   }
 
-  // 세션 체크 (프로덕션에서 활성화)
-  // 프로덕션에서는 디버깅 모드 비활성화 (환경 변수로만 제어)
-  const DEBUG_MODE = false;
-  
-  if (!DEBUG_MODE && !session) {
-    router.push('/admin/login');
-    return null;
+  // 디버깅 모드가 아니고 세션이 없으면
+  // 미들웨어가 이미 통과시켰으므로 세션 확인 중일 수 있음
+  // 무한 로딩 방지를 위해 일정 시간 후 렌더링 시도
+  if (!DEBUG_MODE && !session && !canRender) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   // 제품 추가/수정
@@ -461,14 +487,41 @@ export default function ProductCompositionManagement() {
     }
   };
 
-  // 이미지 경로 자동 수정 (hat-white-bucket → bucket-hat-muziik)
+  // 이미지 경로 자동 수정 (구식 폴더명 → 새 폴더명)
   const getCorrectedImageUrl = (url: string): string => {
     if (!url || typeof url !== 'string' || url.trim() === '') return '';
-    // hat-white-bucket → bucket-hat-muziik 경로 수정
-    return url.replace(
-      'originals/goods/hat-white-bucket/',
-      'originals/goods/bucket-hat-muziik/'
-    );
+    
+    let corrected = url;
+    
+    // 구식 폴더명을 새 폴더명으로 변환
+    const folderMappings: Record<string, string> = {
+      'originals/goods/hat-white-bucket/': 'originals/goods/bucket-hat-muziik/',
+      'originals/products/black-beryl/': 'originals/products/secret-weapon-black-muziik/',
+      'originals/products/black-weapon/': 'originals/products/secret-weapon-black/',
+      'originals/products/gold-weapon4/': 'originals/products/secret-weapon-gold-4-1/',
+      'originals/products/gold2/': 'originals/products/secret-force-gold-2/',
+      'originals/products/gold2-sapphire/': 'originals/products/secret-force-gold-2-muziik/',
+      'originals/products/pro3-muziik/': 'originals/products/secret-force-pro-3-muziik/',
+      'originals/products/pro3/': 'originals/products/secret-force-pro-3/',
+      'originals/products/v3/': 'originals/products/secret-force-v3/',
+      '/main/products/black-beryl/': 'originals/products/secret-weapon-black-muziik/',
+      '/main/products/black-weapon/': 'originals/products/secret-weapon-black/',
+      '/main/products/gold-weapon4/': 'originals/products/secret-weapon-gold-4-1/',
+      '/main/products/gold2/': 'originals/products/secret-force-gold-2/',
+      '/main/products/gold2-sapphire/': 'originals/products/secret-force-gold-2-muziik/',
+      '/main/products/pro3-muziik/': 'originals/products/secret-force-pro-3-muziik/',
+      '/main/products/pro3/': 'originals/products/secret-force-pro-3/',
+      '/main/products/v3/': 'originals/products/secret-force-v3/',
+    };
+    
+    for (const [oldPath, newPath] of Object.entries(folderMappings)) {
+      if (corrected.includes(oldPath)) {
+        corrected = corrected.replace(oldPath, newPath);
+        break; // 첫 번째 매칭만 처리
+      }
+    }
+    
+    return corrected;
   };
 
   // URL에서 파일명 추출 함수
@@ -498,12 +551,36 @@ export default function ProductCompositionManagement() {
   };
 
   // 갤러리에서 이미지 선택
+  // ✅ 공통 폴더 경로 반환 함수 추가
+  const getCommonFolderPath = (): string => {
+    return 'originals/products/secret-force-common/composition';
+  };
+
+  // ✅ MUZIIK 공통 폴더 경로 반환 함수 추가
+  const getMuziikCommonFolderPath = (): string => {
+    return 'originals/products/muziik-common/composition';
+  };
+
+  // ✅ MUZIIK 제품인지 확인하는 함수
+  const isMuziikProduct = (slug: string): boolean => {
+    return slug.includes('muziik') || 
+           slug === 'secret-force-pro-3-muziik' ||
+           slug === 'secret-weapon-black-muziik' ||
+           slug === 'secret-force-gold-2-muziik';
+  };
+
   const getCompositionFolderPath = (): string | undefined => {
     if (!formData.slug || !formData.category) return undefined;
     
     // ✅ includeChildren='false'일 때는 현재 폴더만 조회하므로
     // 기본적으로 composition 폴더를 반환 (이미지가 여기에 있음)
     // 사용자는 브레드크럼으로 detail, gallery 폴더로 이동 가능
+    
+    // secret-force-common은 공통 참조 이미지 폴더
+    // slug가 없거나 특별한 경우 originals/products/secret-force-common/composition 반환
+    if (formData.slug === 'secret-force-common' || formData.slug === '') {
+      return getCommonFolderPath();
+    }
     
     // 굿즈/액세서리: originals/goods/{slug}/composition (cap = 모자)
     if (formData.category === 'goods' || formData.category === 'cap' || formData.category === 'accessory') {
@@ -527,7 +604,20 @@ export default function ProductCompositionManagement() {
       return `originals/goods/${folderSlug}/composition`;
     } else {
       // 드라이버 제품: slug를 그대로 사용 (실제 폴더명과 일치)
-      return `originals/products/${formData.slug}/composition`;
+      // 구식 slug를 새 slug로 변환
+      const slugMapping: Record<string, string> = {
+        'black-beryl': 'secret-weapon-black-muziik',
+        'black-weapon': 'secret-weapon-black',
+        'gold-weapon4': 'secret-weapon-gold-4-1',
+        'gold2': 'secret-force-gold-2',
+        'gold2-sapphire': 'secret-force-gold-2-muziik',
+        'pro3-muziik': 'secret-force-pro-3-muziik',
+        'pro3': 'secret-force-pro-3',
+        'v3': 'secret-force-v3',
+      };
+      
+      const folderSlug = slugMapping[formData.slug] || formData.slug;
+      return `originals/products/${folderSlug}/composition`;
     }
   };
 
@@ -1069,6 +1159,23 @@ export default function ProductCompositionManagement() {
             onSelect={handleGalleryImageSelect}
             folderPath={getCompositionFolderPath() || ''}
             title="갤러리에서 이미지 선택"
+            // ✅ 공통 폴더 접근 추가
+            alternativeFolders={[
+              {
+                label: '공통 이미지',
+                path: getCommonFolderPath(),
+                icon: '📁',
+              },
+              // ✅ MUZIIK 제품인 경우 MUZIIK 공통 폴더 추가
+              ...(isMuziikProduct(formData.slug) ? [{
+                label: 'MUZIIK 샤프트',
+                path: getMuziikCommonFolderPath(),
+                icon: '🎯',
+              }] : []),
+            ]}
+            onFolderChange={(newPath) => {
+              console.log('📁 폴더 변경:', newPath);
+            }}
           />
         </div>
       </div>

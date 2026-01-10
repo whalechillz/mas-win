@@ -294,7 +294,7 @@ export default function FolderTree({
   };
 
   return (
-    <div className="w-full h-full bg-white rounded-lg border border-gray-200 p-3 overflow-y-auto">
+    <div className="w-full bg-white rounded-lg border border-gray-200 p-3">
       <div className="mb-3">
         <h3 className="text-sm font-semibold text-gray-800 mb-2">📂 폴더 구조</h3>
         

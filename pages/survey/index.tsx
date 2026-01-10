@@ -39,7 +39,7 @@ export default function SurveyLanding() {
   const [bucketHatImages, setBucketHatImages] = useState<Array<{ src: string; originalUrl?: string; alt: string }>>([]);
   const [golfCapImages, setGolfCapImages] = useState<Array<{ src: string; originalUrl?: string; alt: string }>>([]);
   const [imagesLoading, setImagesLoading] = useState(true);
-  const [pro3MuziikImage, setPro3MuziikImage] = useState<string>(getProductImageUrl('originals/products/pro3-muziik/detail/secret-force-pro-3-muziik-00.webp')); // Fallback
+  const [pro3MuziikImage, setPro3MuziikImage] = useState<string>(getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp')); // Fallback
 
   // 파일 타입 감지 함수 (이미지/동영상)
   const getFileType = (url: string): 'image' | 'video' => {
@@ -84,7 +84,7 @@ export default function SurveyLanding() {
         setPro3MuziikImage(firstImage);
       } else {
         // Fallback: 기본 이미지 사용 (Supabase Storage 경로)
-        setPro3MuziikImage(getProductImageUrl('originals/products/pro3-muziik/detail/secret-force-pro-3-muziik-00.webp'));
+        setPro3MuziikImage(getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp'));
       }
     } catch (error) {
       console.error('PRO3 MUZIIK 이미지 로드 오류:', error);
