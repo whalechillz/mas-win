@@ -839,8 +839,8 @@ export default function SurveysPage() {
       : `${date} 날짜의 모든 경품 추천 데이터를 삭제하시겠습니까?`;
 
     if (!confirm(confirmMessage)) {
-      return;
-    }
+        return;
+      }
 
     try {
       console.log('[삭제] 삭제 시작:', date, recommendationDatetime);
@@ -2503,7 +2503,7 @@ export default function SurveysPage() {
                     className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   >
                     {isDeleting ? '삭제 중...' : `선택한 ${selectedIds.length}개 삭제`}
-                  </button>
+                </button>
                   {/* 메시지 발송 버튼 (선택 상태에 따라 동적) */}
                   <button
                     onClick={() => handleBulkSendMessages('thank_you', selectedIds.length === surveys.length)}
@@ -2535,21 +2535,7 @@ export default function SurveysPage() {
                     >
                       {updatingEventCandidates ? '업데이트 중...' : '🎁 선물 지급 설문 자동 연결 및 업데이트'}
                     </button>
-                    {/* 메시지 발송 버튼 (선택 항목 없을 때) */}
-                    <button
-                      onClick={() => handleBulkSendMessages('thank_you', true)}
-                      disabled={sendingMessages}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                    >
-                      {sendingMessages ? '발송 중...' : getMessageButtonText('thank_you', 0, surveys.length)}
-                    </button>
-                    <button
-                      onClick={() => handleBulkSendMessages('winner', true)}
-                      disabled={sendingMessages}
-                      className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                    >
-                      {sendingMessages ? '발송 중...' : getMessageButtonText('winner', 0, surveys.length)}
-                    </button>
+                    {/* 메시지 발송 버튼 제거 - 선택 항목이 있을 때만 표시 (위쪽 조건부 렌더링에서 처리) */}
               </div>
                 </>
             )}
@@ -2777,20 +2763,20 @@ export default function SurveysPage() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex flex-col gap-1">
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={() => handleGenerateMessage(survey)}
-                                  className="text-green-600 hover:text-green-900 font-medium"
-                                  title="맞춤형 메시지 생성"
-                                >
-                                  메시지
-                                </button>
-                                <button
-                                  onClick={() => handleEdit(survey)}
-                                  className="text-blue-600 hover:text-blue-900"
-                                >
-                                  수정
-                                </button>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleGenerateMessage(survey)}
+                                className="text-green-600 hover:text-green-900 font-medium"
+                                title="맞춤형 메시지 생성"
+                              >
+                                메시지
+                              </button>
+                              <button
+                                onClick={() => handleEdit(survey)}
+                                className="text-blue-600 hover:text-blue-900"
+                              >
+                                수정
+                              </button>
                                 <button
                                   onClick={() => handleGoToCustomerManagement(survey)}
                                   className="text-purple-600 hover:text-purple-900"
@@ -2798,13 +2784,13 @@ export default function SurveysPage() {
                                 >
                                   고객관리
                                 </button>
-                                <button
-                                  onClick={() => handleDelete(survey.id)}
-                                  disabled={isDeleting}
-                                  className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                  삭제
-                                </button>
+                              <button
+                                onClick={() => handleDelete(survey.id)}
+                                disabled={isDeleting}
+                                className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                삭제
+                              </button>
                               </div>
                               <div className="flex gap-2 mt-1">
                                 <button
@@ -2815,14 +2801,13 @@ export default function SurveysPage() {
                                       ? 'bg-orange-50 text-orange-700' 
                                       : 'bg-blue-50 text-blue-700'
                                   }`}
-                                  title={survey.thank_you_message_sent_at ? "감사 메시지 재발송" : "감사 메시지 미리보기 및 발송"}
+                                  title={
+                                    survey.thank_you_message_sent_at 
+                                      ? `감사 메시지 재발송\n이전 발송: ${new Date(survey.thank_you_message_sent_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}`
+                                      : "감사 메시지 미리보기 및 발송"
+                                  }
                                 >
                                   {survey.thank_you_message_sent_at ? '감사 메시지 재발송' : '감사 메시지'}
-                                  {survey.thank_you_message_sent_at && (
-                                    <span className="ml-1 text-xs text-gray-500">
-                                      ({new Date(survey.thank_you_message_sent_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })})
-                                    </span>
-                                  )}
                                 </button>
                                 <button
                                   onClick={() => handlePreviewMessage(survey, 'winner')}
@@ -2832,14 +2817,15 @@ export default function SurveysPage() {
                                       ? 'bg-orange-50 text-orange-700' 
                                       : 'bg-green-50 text-green-700'
                                   }`}
-                                  title={survey.winner_message_sent_at ? "당첨 메시지 재발송" : survey.is_winner ? "당첨 메시지 미리보기 및 발송" : "당첨자만 발송 가능"}
+                                  title={
+                                    survey.winner_message_sent_at 
+                                      ? `당첨 메시지 재발송\n이전 발송: ${new Date(survey.winner_message_sent_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}`
+                                      : survey.is_winner 
+                                        ? "당첨 메시지 미리보기 및 발송" 
+                                        : "당첨자만 발송 가능"
+                                  }
                                 >
                                   {survey.winner_message_sent_at ? '당첨 메시지 재발송' : '당첨 메시지'}
-                                  {survey.winner_message_sent_at && (
-                                    <span className="ml-1 text-xs text-gray-500">
-                                      ({new Date(survey.winner_message_sent_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })})
-                                    </span>
-                                  )}
                                 </button>
                               </div>
                             </div>
@@ -2893,7 +2879,7 @@ export default function SurveysPage() {
 
               {/* 점수 기준 표 */}
               <div className="bg-white rounded-lg shadow p-4">
-                <button
+                    <button
                   onClick={() => setScoreCriteriaExpanded(!scoreCriteriaExpanded)}
                   className="flex items-center justify-between w-full text-left mb-3 hover:text-blue-600 transition-colors"
                 >
@@ -2903,10 +2889,10 @@ export default function SurveysPage() {
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
-                  >
+                    >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
-                </button>
+                    </button>
                 
                 {scoreCriteriaExpanded && (
                   <>
@@ -2957,14 +2943,14 @@ export default function SurveysPage() {
                           </tr>
                         </tbody>
                       </table>
-                    </div>
+                  </div>
                     
                     {/* 제정/개정 날짜 표시 */}
                     <div className="mt-3 pt-3 border-t border-gray-200">
                       <p className="text-xs text-gray-500 text-right">
                         2026년 1월 7일 제정
                       </p>
-                    </div>
+                </div>
                   </>
                 )}
               </div>
@@ -3082,7 +3068,7 @@ export default function SurveysPage() {
                                     title="클릭하여 이름 수정"
                                   >
                                     {stat.recommendation_name || <span className="text-gray-400 italic">이름 없음 (클릭하여 추가)</span>}
-                                  </div>
+                            </div>
                                 )}
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
@@ -3112,25 +3098,25 @@ export default function SurveysPage() {
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                                 <div className="flex justify-end gap-2">
-                                  <button
+                            <button
                                     onClick={async () => {
-                                      setSelectedDetailDate(stat.date);
+                                setSelectedDetailDate(stat.date);
                                       setSelectedDetailDateTime(stat.recommendation_datetime || null);
                                       setPrizeHistoryFilter('all');
                                       await fetchPrizeHistoryDetail(stat.date, stat.recommendation_datetime || undefined, true);
                                       await fetchPrizeSelections(stat.date, stat.recommendation_datetime || undefined);
-                                    }}
+                              }}
                                     className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                                  >
-                                    상세보기
-                                  </button>
-                                  <button
+                            >
+                              상세보기
+                            </button>
+                            <button
                                     onClick={() => handleDeletePrizeHistory(stat.date, stat.recommendation_datetime)}
                                     className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                                  >
-                                    삭제
-                                  </button>
-                                </div>
+                            >
+                              삭제
+                            </button>
+                          </div>
                               </td>
                             </tr>
                           );
@@ -3158,7 +3144,7 @@ export default function SurveysPage() {
                     <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
                       <div>
                         <div>
-                        <h3 className="text-xl font-bold text-gray-900">
+                      <h3 className="text-xl font-bold text-gray-900">
                           {selectedDetailDate} 경품 추천 상세
                           {prizeHistoryDetail?.recommendation_name && (
                             <span className="text-blue-600 ml-2">- {prizeHistoryDetail.recommendation_name}</span>
@@ -3195,7 +3181,7 @@ export default function SurveysPage() {
                               } catch {}
                               return '';
                             })()}
-                          </h3>
+                      </h3>
                         </div>
                         {prizeHistoryDetail?.recommendations && (
                           <p className="text-sm text-gray-600 mt-1">
@@ -3307,15 +3293,15 @@ export default function SurveysPage() {
                         >
                           🎁 경품 선정하기
                         </button>
-                        <button
-                          onClick={() => {
-                            setSelectedDetailDate(null);
-                            setPrizeHistoryDetail(null);
-                          }}
-                          className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
-                        >
-                          ×
-                        </button>
+                      <button
+                        onClick={() => {
+                          setSelectedDetailDate(null);
+                          setPrizeHistoryDetail(null);
+                        }}
+                        className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                      >
+                        ×
+                      </button>
                       </div>
                     </div>
                     <div className="flex-1 overflow-auto p-6">
