@@ -674,9 +674,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               throw new Error('정규화된 전화번호가 유효하지 않습니다.');
             }
 
+            // ⭐ 세션 쿠키 전달 (내부 API 호출 시 인증 유지)
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (req.headers.cookie) {
+              headers['Cookie'] = req.headers.cookie;
+            }
+            
+            console.log('[send-messages] 당첨 메시지 저장 API 호출:', {
+              url: saveApiUrl,
+              hasCookie: !!req.headers.cookie,
+              cookiePreview: req.headers.cookie ? req.headers.cookie.substring(0, 50) + '...' : '없음',
+            });
+            
             const saveResponse = await fetch(saveApiUrl, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers,
               body: JSON.stringify({
                 messageType: 'MMS',
                 messageText: winnerMessage,
@@ -735,9 +747,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               apiUrl: smsApiUrl,
             });
             
+            // ⭐ 세션 쿠키 전달 (내부 API 호출 시 인증 유지)
+            const smsHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (req.headers.cookie) {
+              smsHeaders['Cookie'] = req.headers.cookie;
+            }
+            
+            console.log('[send-messages] 당첨 메시지 발송 API 호출:', {
+              url: smsApiUrl,
+              hasCookie: !!req.headers.cookie,
+              cookiePreview: req.headers.cookie ? req.headers.cookie.substring(0, 50) + '...' : '없음',
+            });
+            
             const smsResponse = await fetch(smsApiUrl, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: smsHeaders,
               body: JSON.stringify({
                 channelPostId: winnerChannelPostId,
                 messageType: 'MMS',
@@ -902,9 +926,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               recipientNumbersLength: saveRequestBody.recipientNumbers?.length,
             });
 
+            // ⭐ 세션 쿠키 전달 (내부 API 호출 시 인증 유지)
+            const saveHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (req.headers.cookie) {
+              saveHeaders['Cookie'] = req.headers.cookie;
+            }
+            
+            console.log('[send-messages] 감사 메시지 저장 API 호출:', {
+              url: saveApiUrl,
+              hasCookie: !!req.headers.cookie,
+              cookiePreview: req.headers.cookie ? req.headers.cookie.substring(0, 50) + '...' : '없음',
+            });
+            
             const saveResponse = await fetch(saveApiUrl, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: saveHeaders,
               body: JSON.stringify(saveRequestBody),
             });
 
@@ -956,9 +992,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               apiUrl: smsApiUrl,
             });
             
+            // ⭐ 세션 쿠키 전달 (내부 API 호출 시 인증 유지)
+            const thankYouSmsHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (req.headers.cookie) {
+              thankYouSmsHeaders['Cookie'] = req.headers.cookie;
+            }
+            
+            console.log('[send-messages] 감사 메시지 발송 API 호출:', {
+              url: smsApiUrl,
+              hasCookie: !!req.headers.cookie,
+              cookiePreview: req.headers.cookie ? req.headers.cookie.substring(0, 50) + '...' : '없음',
+            });
+            
             const smsResponse = await fetch(smsApiUrl, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: thankYouSmsHeaders,
               body: JSON.stringify({
                 channelPostId: thankYouChannelPostId,
                 messageType: 'MMS',
