@@ -113,12 +113,21 @@ export const authOptions = {
           
           console.log('로그인 성공:', user.name, user.role)
           
+          // permissions 정보 가져오기 (admin인 경우 모든 권한 부여)
+          let userPermissions = user.permissions || { categories: [] };
+          if (user.role === 'admin') {
+            userPermissions = { 
+              categories: ['hub', 'gallery', 'customer', 'daily-content', 'system', 'products', 'finance'] 
+            };
+          }
+          
           return {
             id: user.id,
             name: user.name,
             email: user.phone, // NextAuth는 email 필드를 요구하므로 전화번호를 email에 저장
             role: user.role,
-            phone: user.phone
+            phone: user.phone,
+            permissions: userPermissions
           }
         }
         
@@ -135,6 +144,7 @@ export const authOptions = {
         token.role = user.role
         token.phone = (user as any).phone || user.email  // user.email에는 전화번호가 들어있음
         token.name = user.name
+        token.permissions = (user as any).permissions || { categories: [] }
       }
       
       // 세션 업데이트 트리거 시 DB에서 최신 정보 가져오기
@@ -142,7 +152,7 @@ export const authOptions = {
         try {
           const { data: userData, error } = await supabaseAdmin
             .from('admin_users')
-            .select('name, phone, role')
+            .select('name, phone, role, permissions')
             .eq('id', token.id)
             .single();
           
@@ -150,7 +160,20 @@ export const authOptions = {
             token.name = userData.name;
             token.phone = userData.phone;
             token.role = userData.role;
-            console.log('세션 갱신: DB에서 최신 정보 가져옴', { name: userData.name, phone: userData.phone, role: userData.role });
+            // permissions 업데이트 (admin인 경우 모든 권한 부여)
+            if (userData.role === 'admin') {
+              token.permissions = { 
+                categories: ['hub', 'gallery', 'customer', 'daily-content', 'system', 'products', 'finance'] 
+              };
+            } else {
+              token.permissions = userData.permissions || { categories: [] };
+            }
+            console.log('세션 갱신: DB에서 최신 정보 가져옴', { 
+              name: userData.name, 
+              phone: userData.phone, 
+              role: userData.role,
+              permissions: token.permissions
+            });
           } else {
             console.log('세션 갱신 중 DB 조회 실패:', error);
           }
@@ -172,6 +195,8 @@ export const authOptions = {
         if (!session.user.email && token.phone) {
           session.user.email = token.phone
         }
+        // permissions 정보 추가
+        ;(session.user as any).permissions = token.permissions || { categories: [] }
       }
       return session
     }

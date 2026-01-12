@@ -154,6 +154,12 @@ export default async function handler(req, res) {
           product_id: productId, // products 테이블의 ID 연결
         };
 
+        // ✅ reference_images_enabled가 객체인 경우 JSON 문자열로 변환 (Supabase JSONB 저장)
+        if (compositionData.reference_images_enabled && typeof compositionData.reference_images_enabled === 'object') {
+          // 이미 객체이므로 그대로 전달 (Supabase가 자동으로 JSONB로 변환)
+          // 빈 객체인 경우 null로 변환하지 않고 그대로 전달
+        }
+
         // 카테고리 변환: cap -> hat (DB 체크 제약 조건에 맞춤)
         if (compositionData.category === 'cap') {
           compositionData.category = 'hat';
@@ -212,6 +218,12 @@ export default async function handler(req, res) {
         // ✅ 1단계: product_composition 테이블 업데이트
         // 카테고리 변환: cap -> hat (DB 체크 제약 조건에 맞춤)
         const compositionUpdateData = { ...updateData };
+        
+        // ✅ reference_images_enabled가 객체인 경우 그대로 전달 (Supabase가 JSONB로 처리)
+        if (compositionUpdateData.reference_images_enabled && typeof compositionUpdateData.reference_images_enabled === 'object') {
+          // 이미 객체이므로 그대로 전달
+        }
+        
         if (compositionUpdateData.category === 'cap') {
           compositionUpdateData.category = 'hat';
           console.log('[admin/product-composition][PUT] ✅ 카테고리 변환: cap -> hat');

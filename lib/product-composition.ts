@@ -249,46 +249,161 @@ export function generateCompositionPrompt(
     
     return prompt;
   } else if (product.compositionTarget === 'hands' && product.category === 'driver') {
-    // 드라이버 합성 프롬프트
-    let prompt = '';
-    
-    if (driverPart === 'crown') {
-      prompt = `Replace ONLY the crown (top part) of the golf driver head in the person's hands with the crown of the ${product.name} driver head. Keep the sole, face, hands, grip position, body posture, and all other elements exactly the same.`;
-    } else if (driverPart === 'sole') {
-      prompt = `Replace ONLY the sole (bottom part) of the golf driver head in the person's hands with the sole of the ${product.name} driver head. Keep the crown, face, hands, grip position, body posture, and all other elements exactly the same.`;
-    } else if (driverPart === 'face') {
-      prompt = `Replace ONLY the face (striking surface) of the golf driver head in the person's hands with the face of the ${product.name} driver head. Keep the crown, sole, hands, grip position, body posture, and all other elements exactly the same.`;
-    } else {
-      // full (기본)
-      prompt = `Replace ONLY the golf driver head in the person's hands with the ${product.name} driver head. Keep the person's hands, grip position, body posture, and all other elements exactly the same.`;
-    }
-    
-    // 🔥 개선: 각도 매칭 강화 지시
+    // 드라이버 합성 프롬프트 - 강화된 버전
+    let prompt = `You are an expert 3D image editor. Before making any changes, you MUST carefully analyze the original image.
+
+═══════════════════════════════════════════════════════════════
+STEP 1: ORIGINAL IMAGE ANALYSIS (DO THIS FIRST - CRITICAL)
+═══════════════════════════════════════════════════════════════
+
+Look at the original image and identify:
+
+1. CLUB TYPE IDENTIFICATION (CRITICAL):
+   - Identify what type of golf club is in the original image
+   - IRON: Smaller head, shorter shaft, angled face (lofted), compact design
+   - DRIVER: Larger head, longer shaft, flatter face (less lofted), aerodynamic design
+   - WOOD: Medium head, medium shaft length
+   - CRITICAL: If the original club is an IRON, you MUST convert it to a DRIVER with proper adjustments
+
+2. IRON-TO-DRIVER CONVERSION (if original is iron):
+   - SHAFT LENGTH ADJUSTMENT:
+     * The driver shaft is approximately 20-30% longer than an iron shaft
+     * Extend the shaft length proportionally (about 25% longer)
+     * Maintain the shaft's angle and curvature
+     * The shaft should reach higher up in the image
+     * Keep the grip position natural and realistic
+   
+   - HEAD SIZE ADJUSTMENT:
+     * Driver heads are larger than iron heads, but NOT excessively large
+     * Scale the head to be realistically larger (about 1.5-2x the iron head size)
+     * DO NOT make the head unrealistically huge - maintain professional golf standards
+     * The head should be proportionally larger but still look natural and realistic
+     * Match the head size to professional driver dimensions (typically 460cc or similar)
+     * The head must appear realistic, not cartoonish or oversized
+   
+   - HEAD SHAPE TRANSFORMATION:
+     * Driver heads are more rounded and aerodynamic than iron heads
+     * Transform the angular iron head shape to a rounded driver head shape
+     * Maintain the same viewing angle and perspective
+     * The driver head should have smooth, curved edges (not sharp angles)
+
+3. DRIVER HEAD VISIBILITY ANALYSIS:
+   - Which part of the driver head is most visible?
+   - FACE (striking surface): If you can see the flat hitting surface clearly → Use FACE reference images
+   - CROWN (top): If you can see the top of the head clearly → Use CROWN reference images
+   - SOLE (bottom): If you can see the bottom of the head clearly → Use SOLE reference images
+   - MULTIPLE: If you see multiple angles → Use FULL reference images
+   - CRITICAL: Select the reference image that matches the ORIGINAL head's viewing angle
+
+4. 3D ORIENTATION MEASUREMENT:
+   - Viewing angle: Front view? Side view? 3/4 view? Top view? Bottom view?
+   - Tilt angle: How much is the club face open or closed relative to the shaft?
+   - Rotation: How is the head rotated around the shaft axis?
+   - Distance: How far is the head from the camera? (This affects apparent size)
+
+5. SHAFT CONNECTION POINT ANALYSIS:
+   - Where exactly does the shaft enter the head? (hosel position)
+   - What is the angle of the shaft relative to the head?
+   - Is the shaft visible? How much of it is visible?
+   - What is the shaft's position and curvature?
+
+6. PERSPECTIVE ANALYSIS (CRITICAL FOR SIZE):
+   - Does the head appear smaller due to distance? (perspective distortion)
+   - What is the camera angle? (eye level, low angle, high angle?)
+   - How does the perspective affect the head's apparent size?
+   - Measure the original head's apparent size in the image
+
+═══════════════════════════════════════════════════════════════
+STEP 2: REFERENCE IMAGE SELECTION
+═══════════════════════════════════════════════════════════════
+
+From the provided reference images, select the one that matches:
+- The viewing angle you identified in Step 1
+- If original shows FACE → prioritize FACE reference images
+- If original shows CROWN → prioritize CROWN reference images
+- If original shows SOLE → prioritize SOLE reference images
+- Match the angle EXACTLY
+
+═══════════════════════════════════════════════════════════════
+STEP 3: GEOMETRIC TRANSFORMATION (MOST CRITICAL)
+═══════════════════════════════════════════════════════════════
+
+1. SIZE SCALING (Perspective-Aware - CRITICAL):
+   - Measure the original head's apparent size in pixels
+   - Scale the new head to match EXACTLY the same apparent size
+   - Apply perspective scaling: if original head appears 50% smaller due to distance, new head must also appear 50% smaller
+   - The head size MUST decrease proportionally with distance from camera
+   - DO NOT make the head larger than the original - match the size exactly
+   - The head must appear smaller if it's further from the camera (perspective correction)
+
+2. 3D ROTATION (CRITICAL FOR CONNECTION):
+   - Rotate the new head to match the EXACT 3D orientation of the original
+   - The head MUST rotate around the hosel point to align with the shaft
+   - Rotate until the hosel opening points directly at the shaft entry point
+   - The rotation must be geometrically accurate
+   - The head must turn (rotate) to connect, not just move
+
+3. PERSPECTIVE WARP:
+   - Apply perspective transformation to match the camera angle
+   - If original head appears tilted, warp the new head to match
+   - Use perspective correction to align the head's geometry with the shaft
+   - Match the perspective distortion exactly
+
+═══════════════════════════════════════════════════════════════
+STEP 4: HEAD-TO-SHAFT CONNECTION (MOST CRITICAL)
+═══════════════════════════════════════════════════════════════
+
+The head and shaft MUST connect seamlessly:
+
+1. ROTATION TO CONNECT (CRITICAL):
+   - Rotate the head around the hosel point until it aligns with the shaft
+   - The hosel opening must point directly at the shaft entry point
+   - The head must rotate, not just move - it needs to turn to connect
+   - The rotation must be geometrically perfect
+
+2. SIZE MATCHING (Perspective-Aware):
+   - The head size must match the original (perspective-aware)
+   - If the original head appears small due to distance, the new head must also appear small
+   - DO NOT make the head larger than the original
+   - Apply perspective scaling based on distance from camera
+
+3. SEAMLESS CONNECTION:
+   - There must be NO gap between head and shaft
+   - There must be NO separation
+   - There must be NO misalignment
+   - The head and shaft must appear as ONE continuous, unified piece
+   - The connection must be geometrically perfect and photorealistic
+
+4. VISUAL CONTINUITY:
+   - The shaft must flow naturally into the head
+   - The hosel area must have appropriate shadows and reflections
+   - The transition must be smooth and natural
+   - No visual discontinuity
+
+═══════════════════════════════════════════════════════════════
+STEP 5: FINAL REPLACEMENT
+═══════════════════════════════════════════════════════════════
+
+Now replace the golf driver head in the person's hands with the ${product.name} driver head, following ALL steps above.
+
+CRITICAL REQUIREMENTS:
+- Keep the person's hands, grip position, body posture, and all other elements exactly the same
+- The new head must appear at the EXACT same position, size, and angle as the original
+- The head must connect seamlessly to the shaft (rotate to connect)
+- The head size must match the original (perspective-aware scaling)
+- The result must be photorealistic and geometrically accurate`;
+
+    // 참조 이미지가 있는 경우 추가 지시
     if (useReferenceImages && product.referenceImages && product.referenceImages.length > 0) {
       prompt += ` 
 
-CRITICAL ANGLE MATCHING INSTRUCTIONS:
-1. Analyze the original driver head's exact 3D orientation:
-   - Viewing angle (front, side, 3/4, top, bottom)
-   - Tilt angle (club face open/closed)
-   - Rotation (around shaft axis)
-   - Perspective (camera distance and angle)
-
-2. Compare with all provided reference images and select the one with the closest matching angle.
-
-3. Transform the selected product image to match the EXACT angle:
-   - Apply geometric transformation (rotation, perspective warp, scale)
-   - Match the 3D position and orientation precisely
-   - Do NOT simply overlay - transform to match geometry
-
-4. Match lighting and shadows:
-   - Analyze original lighting direction and intensity
-   - Apply matching shadows and reflections
-   - Ensure seamless integration
-
-The replacement must be geometrically accurate and photorealistic.`;
+REFERENCE IMAGES AVAILABLE:
+- You have ${product.referenceImages.length} reference images provided
+- Use them to match the exact angle, perspective, and lighting
+- Select the reference image that matches the original head's viewing angle (FACE/CROWN/SOLE/FULL)
+- Transform the selected reference image to match the original's exact 3D orientation
+- Apply geometric transformation (rotation, perspective warp, scale) to align perfectly`;
     } else {
-      // 참조 이미지가 없는 경우에도 각도 매칭 강조
       prompt += ` 
 
 CRITICAL: The new driver head must match the EXACT angle, tilt, rotation, and perspective of the original driver head. Analyze the original driver's 3D orientation carefully:
@@ -298,11 +413,44 @@ CRITICAL: The new driver head must match the EXACT angle, tilt, rotation, and pe
 - Match the perspective (distance and camera angle)
 - Match the lighting direction and intensity
 - Match the shadow direction and shape
+- Apply perspective-aware size scaling
 
-Transform the product image to match the exact perspective. Do NOT simply overlay - apply geometric transformation (rotation, perspective warp, scale) to align perfectly with the original driver's 3D position and orientation. The replacement must be geometrically accurate - ensure the new driver head appears at the exact same angle as the original.`;
+Transform the product image to match the exact perspective. Do NOT simply overlay - apply geometric transformation (rotation, perspective warp, scale) to align perfectly with the original driver's 3D position and orientation.`;
     }
     
-    prompt += ` Maintain natural shadows and reflections that match the original lighting. 
+    prompt += ` 
+
+CRITICAL HEAD-TO-SHAFT CONNECTION (ENHANCED):
+- The driver head MUST ROTATE to connect to the shaft at the hosel
+- Rotate the head around the hosel point until the hosel opening aligns with the shaft
+- The head size must scale with distance (perspective correction)
+- The head must appear smaller if it's further from the camera
+- The connection must be geometrically perfect - no gaps, no separation
+- The head and shaft must appear as one continuous, unified piece
+- Pay special attention to the hosel area - it must connect seamlessly`;
+
+    // ✅ MUZIIK 제품 감지
+    const isMuziikProduct = product.name?.toLowerCase().includes('muziik') || 
+                           product.slug?.includes('muziik');
+
+    // 샤프트 색상 지시 (MUZIIK 여부에 따라 분기)
+    if (isMuziikProduct && product.shaftImageUrl) {
+      // MUZIIK 제품: 샤프트 참조 이미지의 색상 사용
+      prompt += ` 
+
+CRITICAL SHAFT COLOR INSTRUCTION (MUZIIK):
+- The driver shaft must match the EXACT color shown in the provided shaft reference image
+- If the shaft reference image shows a blue, green, or colored shaft, use that exact color
+- Do NOT change the shaft color to black - preserve the original shaft color from the reference image
+- CRITICAL: Replace the black shaft in the original driver head images with the colored shaft from the reference image
+- The colored shaft must connect seamlessly to the driver head at the exact same angle and position
+- The transition from the original black shaft to the new colored shaft must be perfect and photorealistic
+- The shaft should maintain its original position and angle
+- Match the shaft's diameter, taper, and any graphics or logos on the shaft
+- Ensure the shaft connects seamlessly to the driver head with no visible gaps or misalignment`;
+    } else {
+      // 일반 제품: 검정색 샤프트
+      prompt += ` 
 
 CRITICAL SHAFT COLOR INSTRUCTION:
 - The driver shaft must be BLACK (matte black or dark graphite black)
@@ -310,7 +458,10 @@ CRITICAL SHAFT COLOR INSTRUCTION:
 - The shaft should maintain its original position and angle
 - If the shaft is visible, it must remain BLACK throughout its entire length
 - The shaft color should match professional golf club standards: matte black graphite shaft
-- The shaft should connect seamlessly to the driver head with no visible gaps or misalignment
+- The shaft should connect seamlessly to the driver head with no visible gaps or misalignment`;
+    }
+
+    prompt += ` 
 
 BADGE INSTRUCTION:
 - If the product has a badge or logo on the head, ensure it matches the reference images exactly
@@ -320,13 +471,27 @@ BADGE INSTRUCTION:
 
     // ✅ 샤프트 이미지 참조 추가
     if (product.shaftImageUrl) {
-      prompt += ` 
+      if (isMuziikProduct) {
+        prompt += ` 
+
+SHAFT REFERENCE (MUZIIK):
+- Use the provided shaft reference image to match the EXACT shaft design, color, and texture
+- The shaft color must match the reference image exactly (blue, green, or whatever color is shown)
+- Match the shaft's diameter, taper, and any graphics or logos on the shaft
+- CRITICAL: Replace the black shaft in the original driver head images with the colored shaft from the reference image
+- The colored shaft must connect seamlessly to the driver head at the exact same angle and position
+- The transition from the original black shaft to the new colored shaft must be perfect and photorealistic
+- The hosel connection must be geometrically perfect with no visible gaps or misalignment`;
+      } else {
+        prompt += ` 
 
 SHAFT REFERENCE:
 - Use the provided shaft reference image to match the exact shaft design, color, and texture
 - The shaft must be BLACK (matte black) as shown in the reference image
 - Match the shaft's diameter, taper, and any graphics or logos on the shaft
-- Ensure the shaft connects seamlessly to the driver head`;
+- Ensure the shaft connects seamlessly to the driver head
+- The hosel connection must be geometrically perfect with no visible gaps or misalignment`;
+      }
     }
     
     // ✅ 배지 이미지 참조 추가
@@ -335,8 +500,13 @@ SHAFT REFERENCE:
 
 BADGE REFERENCE:
 - Use the provided badge reference image to match the exact badge design, position, and color
-- The badge must be placed in the exact same position as shown in the reference image
-- Match the badge size, shape, and any text or graphics on the badge`;
+- CRITICAL: The badge must be placed on the driver head WITHOUT modifying the head's shape or geometry
+- The driver head shape, size, and contours must remain EXACTLY as shown in the original reference images
+- Do NOT reshape, resize, or modify the driver head to accommodate the badge
+- The badge must be applied as a surface element on the existing head geometry
+- Match the badge size, shape, and any text or graphics on the badge
+- The badge position must match the reference image, but the head itself must not change
+- The badge should appear as if it was originally part of the head, with natural shadows and reflections`;
     }
     
     prompt += ` The replacement should be seamless and realistic, with the new driver head appearing as if it was originally part of the image.`;

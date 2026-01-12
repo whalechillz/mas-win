@@ -29,6 +29,16 @@ export default async function handler(req, res) {
     } = req.body;
 
     // 환경 변수 검증 (빈 문자열도 체크)
+    console.log('[send.js] 환경 변수 검증 시작:', {
+      hasApiKey: !!SOLAPI_API_KEY,
+      hasApiSecret: !!SOLAPI_API_SECRET,
+      hasSender: !!SOLAPI_SENDER,
+      apiKeyValue: SOLAPI_API_KEY ? SOLAPI_API_KEY.substring(0, 10) + '...' : '없음',
+      apiKeyLength: SOLAPI_API_KEY?.length || 0,
+      apiSecretLength: SOLAPI_API_SECRET?.length || 0,
+      senderValue: SOLAPI_SENDER || '없음',
+    });
+    
     if (!SOLAPI_API_KEY || !SOLAPI_API_KEY.trim() || 
         !SOLAPI_API_SECRET || !SOLAPI_API_SECRET.trim() || 
         !SOLAPI_SENDER || !SOLAPI_SENDER.trim()) {
@@ -47,6 +57,8 @@ export default async function handler(req, res) {
         hint: '.env.local 파일에 Solapi 환경 변수가 올바르게 설정되어 있는지 확인해주세요.'
       });
     }
+    
+    console.log('[send.js] ✅ 환경 변수 검증 통과');
 
     // 필수 필드 검증
     const messageContent = messageText || content;
@@ -170,7 +182,19 @@ export default async function handler(req, res) {
     }
 
     // Solapi v4 API로 발송 (성공한 test-sms 방식 사용)
+    console.log('[send.js] Solapi 환경 변수 확인:', {
+      hasApiKey: !!SOLAPI_API_KEY && SOLAPI_API_KEY.trim().length > 0,
+      hasApiSecret: !!SOLAPI_API_SECRET && SOLAPI_API_SECRET.trim().length > 0,
+      apiKeyLength: SOLAPI_API_KEY?.length || 0,
+      apiSecretLength: SOLAPI_API_SECRET?.length || 0,
+      apiKeyPreview: SOLAPI_API_KEY ? SOLAPI_API_KEY.substring(0, 10) + '...' : '없음',
+    });
+    
     const authHeaders = createSolapiSignature(SOLAPI_API_KEY, SOLAPI_API_SECRET);
+    console.log('[send.js] Solapi 인증 헤더 생성 완료:', {
+      hasAuthorization: !!authHeaders.Authorization,
+      authHeaderPreview: authHeaders.Authorization?.substring(0, 80) + '...',
+    });
 
     // ⭐ 전화번호 정규화 및 포맷팅 헬퍼 함수
     const normalizePhone = (phone = '') => phone.replace(/[^0-9]/g, '');
@@ -286,13 +310,22 @@ export default async function handler(req, res) {
       const payload = { messages: chunk };
       
       try {
+        console.log(`[send.js] Solapi API 호출 시작 (청크 ${chunkIndex}/${totalChunks}):`, {
+          url: 'https://api.solapi.com/messages/v4/send-many/detail',
+          messageCount: chunk.length,
+          hasAuthHeaders: !!authHeaders.Authorization,
+        });
+        
         const resp = await fetch('https://api.solapi.com/messages/v4/send-many/detail', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...authHeaders },
           body: JSON.stringify(payload)
         });
+        
+        console.log(`[send.js] Solapi API 응답 상태 (청크 ${chunkIndex}):`, resp.status, resp.statusText);
+        
         const json = await resp.json();
-        console.log(`Solapi chunk ${chunkIndex}/${totalChunks} 응답:`, json);
+        console.log(`[send.js] Solapi chunk ${chunkIndex}/${totalChunks} 응답:`, JSON.stringify(json, null, 2));
         
         // ⭐ 추가: Solapi API 응답에서 errorMessage 확인 (HTTP 200이어도 errorMessage가 있을 수 있음)
         if (json.errorMessage || json.error || (json.statusCode && json.statusCode !== '2000')) {

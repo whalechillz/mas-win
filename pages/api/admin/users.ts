@@ -1,11 +1,19 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabaseAdmin } from '../../../lib/supabase-admin';
 import bcrypt from 'bcryptjs';
+import { requireAuth } from '../../../lib/api-auth';
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // ✅ 인증 체크 추가 (관리자만 접근 가능)
+  try {
+    await requireAuth(req, res, { requireAdmin: true });
+  } catch (error) {
+    return; // requireAuth에서 이미 응답을 보냄
+  }
+
   if (!supabaseAdmin) {
     return res.status(500).json({
       success: false,
@@ -38,7 +46,7 @@ export default async function handler(
 
     // POST - 사용자 생성
     if (req.method === 'POST') {
-      const { name, phone, role, password } = req.body;
+      const { name, phone, role, password, permissions } = req.body;
 
       if (!name || !phone || !role || !password) {
         return res.status(400).json({
@@ -64,6 +72,11 @@ export default async function handler(
       // 비밀번호 해시 생성
       const passwordHash = await bcrypt.hash(password, 10);
 
+      // permissions 기본값 설정 (editor인 경우)
+      const defaultPermissions = role === 'admin' 
+        ? { categories: ['hub', 'gallery', 'customer', 'daily-content', 'system', 'products', 'finance'] }
+        : (permissions || { categories: [] });
+
       const { data: newUser, error: createError } = await supabaseAdmin
         .from('admin_users')
         .insert({
@@ -71,7 +84,8 @@ export default async function handler(
           phone: phone.replace(/[^0-9]/g, ''),
           role,
           password_hash: passwordHash,
-          is_active: true
+          is_active: true,
+          permissions: defaultPermissions
         })
         .select()
         .single();
@@ -93,7 +107,7 @@ export default async function handler(
 
     // PUT - 사용자 수정
     if (req.method === 'PUT') {
-      const { id, name, phone, role, password, is_active } = req.body;
+      const { id, name, phone, role, password, is_active, permissions } = req.body;
 
       if (!id) {
         return res.status(400).json({
@@ -127,10 +141,20 @@ export default async function handler(
       const updateData: any = {};
       if (name !== undefined) updateData.name = name.trim();
       if (phone !== undefined) updateData.phone = phone.replace(/[^0-9]/g, '');
-      if (role !== undefined) updateData.role = role;
+      if (role !== undefined) {
+        updateData.role = role;
+        // admin으로 변경 시 모든 권한 부여, editor로 변경 시 permissions 유지
+        if (role === 'admin') {
+          updateData.permissions = { categories: ['hub', 'gallery', 'customer', 'daily-content', 'system', 'products', 'finance'] };
+        }
+      }
       if (typeof is_active === 'boolean') updateData.is_active = is_active;
       if (password && password.trim() !== '') {
         updateData.password_hash = await bcrypt.hash(password, 10);
+      }
+      // permissions 업데이트 (role이 admin이 아닌 경우에만)
+      if (permissions !== undefined && updateData.role !== 'admin') {
+        updateData.permissions = permissions;
       }
 
       const { data: updatedUser, error: updateError } = await supabaseAdmin

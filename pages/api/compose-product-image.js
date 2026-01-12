@@ -1,6 +1,7 @@
 import { fal } from "@fal-ai/client";
 import { createClient } from '@supabase/supabase-js';
 import { getProductById, generateCompositionPrompt, generateLogoReplacementPrompt, getAbsoluteImageUrl, generateColorChangePrompt } from '../../lib/product-composition';
+import { logFALAIUsage } from '../../lib/ai-usage-logger';
 
 // API 타임아웃 설정 (10분)
 export const config = {
@@ -743,20 +744,31 @@ export default async function handler(req, res) {
       
       const mainImageNormalized = normalizeUrl(mainImageUrl);
       
-      // 메인 이미지와 중복되지 않는 참조 이미지만 추가
+      // ✅ 참조 이미지 활성화 상태 확인
+      const refImagesEnabled = product.reference_images_enabled || {};
+      
+      // 메인 이미지와 중복되지 않고 활성화된 참조 이미지만 추가
       const uniqueRefImages = product.referenceImages.filter(refImg => {
         if (!refImg) return false;
         const refNormalized = normalizeUrl(refImg);
-        return refNormalized !== mainImageNormalized;
+        // 중복 체크
+        if (refNormalized === mainImageNormalized) return false;
+        // ✅ 활성화 상태 체크 (기본값: true)
+        if (refImagesEnabled[refImg] === false) {
+          console.log(`⏭️ 참조 이미지 비활성화됨: ${refImg}`);
+          return false;
+        }
+        return true;
       });
       
       if (uniqueRefImages.length > 0) {
         for (const refImage of uniqueRefImages) {
         addImageUrl(refImage, '참조 이미지');
         }
-        console.log(`✅ ${uniqueRefImages.length}개의 고유 참조 이미지 추가됨 (중복 ${product.referenceImages.length - uniqueRefImages.length}개 제외)`);
+        const disabledCount = product.referenceImages.length - uniqueRefImages.length;
+        console.log(`✅ ${uniqueRefImages.length}개의 활성화된 참조 이미지 추가됨${disabledCount > 0 ? ` (비활성화 ${disabledCount}개 제외)` : ''}`);
       } else {
-        console.log(`⚠️ 참조 이미지가 모두 메인 이미지와 중복되어 제외됨`);
+        console.log(`⚠️ 활성화된 참조 이미지가 없습니다.`);
       }
     }
     
@@ -898,6 +910,38 @@ export default async function handler(req, res) {
       throw new Error('FAL AI에서 이미지를 생성하지 못했습니다.');
     }
 
+    // ✅ FAL AI 비용 계산 및 로깅
+    const generatedImagesCount = result.data.images.length;
+    // FAL AI nano-banana-pro 비용: 이미지 1장당 약 $0.01 (추정)
+    // nano-banana는 약 $0.008 (더 저렴)
+    const costPerImage = modelName.includes('nano-banana-pro') ? 0.01 : 0.008;
+    const totalCost = generatedImagesCount * costPerImage;
+    
+    console.log(`💰 FAL AI 비용: $${totalCost.toFixed(4)} (${generatedImagesCount}장 × $${costPerImage.toFixed(4)}/장)`);
+    console.log(`📊 모델: ${modelName}, 해상도: ${resolution}, 포맷: ${outputFormat}`);
+
+    // AI 사용량 로그 저장
+    try {
+      await logFALAIUsage(
+        'compose-product-image',
+        'product-composition',
+        {
+          model: modelName,
+          imageCount: generatedImagesCount,
+          resolution: resolution,
+          output_format: outputFormat,
+          product_id: productId,
+          product_name: product.name,
+          cost_per_image: costPerImage,
+          total_cost: totalCost
+        }
+      );
+      console.log('✅ AI 사용량 로그 저장 완료');
+    } catch (logError) {
+      console.error('⚠️ AI 사용량 로그 저장 실패 (계속 진행):', logError.message);
+      // 로그 저장 실패해도 합성은 계속 진행
+    }
+
     // 생성된 이미지들을 Supabase에 저장
     const savedImages = [];
     for (let i = 0; i < result.data.images.length; i++) {
@@ -952,7 +996,13 @@ export default async function handler(req, res) {
         method: compositionMethod,
         processingTime: processingTime,
         description: result.data.description,
-        requestId: result.requestId
+        requestId: result.requestId,
+        cost: {
+          total: totalCost,
+          perImage: costPerImage,
+          currency: 'USD',
+          model: modelName
+        }
       },
       falResult: {
         images: result.data.images,

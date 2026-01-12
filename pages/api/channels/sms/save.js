@@ -78,13 +78,13 @@ export default async function handler(req, res) {
 
     // 데이터베이스에 저장
     const insertData = {
-      calendar_id: calendarId || null,
-      blog_post_id: blogPostId || null,
-      message_type: messageType,
-      message_text: messageText,
-      short_link: shortLink || null,
-      image_url: imageUrl || null,
-      recipient_numbers: recipientNumbers || [],
+        calendar_id: calendarId || null,
+        blog_post_id: blogPostId || null,
+        message_type: messageType,
+        message_text: messageText,
+        short_link: shortLink || null,
+        image_url: imageUrl || null,
+        recipient_numbers: recipientNumbers || [],
       status: status,
       message_category: messageCategory || null,
       message_subcategory: messageSubcategory || null

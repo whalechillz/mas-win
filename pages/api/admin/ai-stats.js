@@ -1,8 +1,22 @@
-import { supabase } from '../../../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('❌ Supabase 환경 변수가 설정되지 않았습니다');
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('❌ Supabase 환경 변수가 설정되지 않았습니다');
+    return res.status(500).json({ error: '서버 설정 오류' });
   }
 
   try {

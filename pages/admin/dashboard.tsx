@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import AdminNav from '../../components/admin/AdminNav';
 import { menuCategories, colorClasses } from '../../lib/admin-menu-structure';
+import { filterMenusByPermission } from '../../lib/menu-permissions';
 
 export default function AdminDashboard() {
   const { data: session, status } = useSession();
@@ -79,8 +80,13 @@ export default function AdminDashboard() {
     }
   };
 
-  // 검색 필터링
-  const filteredCategories = menuCategories.map(category => ({
+  // 권한 기반 메뉴 필터링
+  const userPermissions = (session?.user as any)?.permissions;
+  const userRole = session?.user?.role;
+  const allowedCategories = filterMenusByPermission(menuCategories, userPermissions, userRole);
+
+  // 검색 필터링 (권한 필터링된 메뉴에 대해)
+  const filteredCategories = allowedCategories.map(category => ({
     ...category,
     menus: category.menus.filter(menu => 
       menu.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -88,9 +94,9 @@ export default function AdminDashboard() {
     )
   })).filter(category => category.menus.length > 0);
 
-  // 최근 메뉴 정보 가져오기
+  // 최근 메뉴 정보 가져오기 (권한이 있는 메뉴만)
   const getRecentMenuInfo = (path: string) => {
-    for (const category of menuCategories) {
+    for (const category of allowedCategories) {
       const menu = category.menus.find(m => m.path === path);
       if (menu) return menu;
     }

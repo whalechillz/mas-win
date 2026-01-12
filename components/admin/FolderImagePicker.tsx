@@ -23,6 +23,14 @@ type Props = {
   alternativeFolders?: AlternativeFolder[];
   // ✅ 추가: 폴더 변경 콜백
   onFolderChange?: (path: string) => void;
+  // ✅ 추가: 삭제 기능 활성화
+  enableDelete?: boolean;
+  // ✅ 추가: 업로드 기능 활성화
+  enableUpload?: boolean;
+  // ✅ 추가: 삭제 콜백
+  onDelete?: (imageUrl: string) => Promise<void>;
+  // ✅ 추가: 업로드 콜백
+  onUpload?: (file: File, folderPath: string) => Promise<void>;
 };
 
 const FolderImagePicker: React.FC<Props> = ({
@@ -33,12 +41,19 @@ const FolderImagePicker: React.FC<Props> = ({
   title = "폴더에서 이미지 선택",
   alternativeFolders = [],
   onFolderChange,
+  enableDelete = false,
+  enableUpload = false,
+  onDelete,
+  onUpload,
 }) => {
   const [images, setImages] = useState<ImageItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // ✅ 현재 선택된 폴더 경로 (내부 상태로 관리)
   const [currentFolderPath, setCurrentFolderPath] = useState(folderPath);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Storage에서 직접 조회 (빠름)
   const fetchFolderImages = async () => {
@@ -99,6 +114,52 @@ const FolderImagePicker: React.FC<Props> = ({
               <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
             </div>
             <div className="flex items-center gap-2">
+              {/* ✅ 업로드 버튼 (enableUpload가 true일 때만) */}
+              {enableUpload && onUpload && (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      
+                      setIsUploading(true);
+                      try {
+                        await onUpload(file, currentFolderPath);
+                        // 업로드 후 이미지 목록 새로고침
+                        await fetchFolderImages();
+                      } catch (error) {
+                        console.error('이미지 업로드 오류:', error);
+                        alert('이미지 업로드 중 오류가 발생했습니다.');
+                      } finally {
+                        setIsUploading(false);
+                        if (fileInputRef.current) {
+                          fileInputRef.current.value = '';
+                        }
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="px-4 py-2 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center gap-2 transition-colors disabled:bg-gray-400"
+                  >
+                    {isUploading ? (
+                      <>
+                        <span className="animate-spin">⏳</span> 업로드 중...
+                      </>
+                    ) : (
+                      <>
+                        <span>📤</span> 업로드
+                      </>
+                    )}
+                  </button>
+                </>
+              )}
               <button
                 type="button"
                 onClick={fetchFolderImages}

@@ -1,0 +1,14 @@
+[
+  {
+    "type": "shaft",
+    "source": "originals/products/secret-force-pro-3/composition/secret-force-pro-3-shaft.webp",
+    "target": "originals/products/ngs-common/composition/ngs-shaft-black.webp",
+    "success": true
+  },
+  {
+    "type": "grip",
+    "action": "delete",
+    "path": "originals/products/secret-force-pro-3/composition/secret-force-pro-3-shaft-grip.webp",
+    "success": true
+  }
+]

@@ -549,12 +549,12 @@ export default async function handler(req, res) {
     }
 
     const updateData = {
-      status: aggregatedFinalStatus,
-      sent_count: aggregatedTotalCount,
-      success_count: aggregatedSuccessCount,
-      fail_count: aggregatedFailCount,
-      group_statuses: uniqueStatuses, // ⭐ 그룹별 상세 정보 저장 (중복 제거 및 검증된 항목만)
-      updated_at: new Date().toISOString()
+        status: aggregatedFinalStatus,
+        sent_count: aggregatedTotalCount,
+        success_count: aggregatedSuccessCount,
+        fail_count: aggregatedFailCount,
+        group_statuses: uniqueStatuses, // ⭐ 그룹별 상세 정보 저장 (중복 제거 및 검증된 항목만)
+        updated_at: new Date().toISOString()
     };
 
     // ⭐ sent_at이 없거나 솔라피에서 가져온 날짜가 더 정확한 경우 업데이트

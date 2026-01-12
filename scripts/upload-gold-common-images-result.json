@@ -1,0 +1,37 @@
+[
+  {
+    "source": "소울_01.webp",
+    "target": "secret-force-gold-common-sole-01.webp",
+    "success": true,
+    "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/products/secret-force-gold-common/composition/secret-force-gold-common-sole-01.webp",
+    "path": "originals/products/secret-force-gold-common/composition/secret-force-gold-common-sole-01.webp"
+  },
+  {
+    "source": "소울_02.webp",
+    "target": "secret-force-gold-common-sole-02.webp",
+    "success": true,
+    "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/products/secret-force-gold-common/composition/secret-force-gold-common-sole-02.webp",
+    "path": "originals/products/secret-force-gold-common/composition/secret-force-gold-common-sole-02.webp"
+  },
+  {
+    "source": "소울_03.webp",
+    "target": "secret-force-gold-common-sole-03.webp",
+    "success": true,
+    "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/products/secret-force-gold-common/composition/secret-force-gold-common-sole-03.webp",
+    "path": "originals/products/secret-force-gold-common/composition/secret-force-gold-common-sole-03.webp"
+  },
+  {
+    "source": "크라운.webp",
+    "target": "secret-force-gold-common-crown.webp",
+    "success": true,
+    "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/products/secret-force-gold-common/composition/secret-force-gold-common-crown.webp",
+    "path": "originals/products/secret-force-gold-common/composition/secret-force-gold-common-crown.webp"
+  },
+  {
+    "source": "프론트-페이스.webp",
+    "target": "secret-force-gold-common-front-face.webp",
+    "success": true,
+    "url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/products/secret-force-gold-common/composition/secret-force-gold-common-front-face.webp",
+    "path": "originals/products/secret-force-gold-common/composition/secret-force-gold-common-front-face.webp"
+  }
+]

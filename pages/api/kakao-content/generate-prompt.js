@@ -80,7 +80,7 @@ export default async function handler(req, res) {
         ? 'Warm golden tone landscape. ABSOLUTELY MINIMIZE people in the scene. If people must appear, maximum 1-2 very small, distant silhouettes in the far background, barely visible. The golf course, store, or landscape is the ONLY main subject. Prefer scenes with NO people at all.'
         : 'Cool blue-gray tone modern setting. ABSOLUTELY MINIMIZE people in the scene. If people must appear, maximum 1-2 very small, distant silhouettes in the far background, barely visible. The store interior, fitting room, or modern space is the ONLY main subject. Prefer scenes with NO people at all.'
       : accountType === 'account1'
-        ? 'Korean senior golfer (50-70 years old, Korean ethnicity, Asian facial features, silver/gray hair), warm golden tone, emotional atmosphere'
+        ? 'Korean senior golfer (50-70 years old, Korean ethnicity, Asian facial features, silver/gray hair), warm golden tone, emotional atmosphere, MUST wear a traditional golf hat (not a visor or sun cap, but a proper golf hat/cap that covers the head), the hat should be a classic golf cap style (not a bucket hat or visor), silver/gray hair should be mostly covered by the hat, only a small amount of hair may be visible at the sides or back if natural, professional golf attire'
         : 'Korean young golfer (30-50 years old, Korean ethnicity, Asian facial features), cool blue-gray tone, innovative atmosphere';
 
     // 타입별 설명
@@ -118,7 +118,17 @@ export default async function handler(req, res) {
 - Store signs should be realistic and part of the architecture
 - Cap logos should be embroidered or printed on the fabric naturally
 - Branding should be visible but not overwhelming the main subject
-- Use "MASSGOO" (not "MASGOO") as the official brand name`
+- Use "MASSGOO" (not "MASGOO") as the official brand name
+
+**IMPORTANT - SENIOR GOLFER HAT REQUIREMENT (account1 only):**
+- For account1 (senior tone) feed and profile images: The Korean senior golfer MUST wear a traditional golf hat/cap
+- The hat must be a classic golf cap style (NOT a visor, NOT a sun cap, NOT a bucket hat)
+- The hat should cover most of the head, with only minimal hair visible at the sides or back if natural
+- The hat should be properly fitted and professional-looking
+- Silver/gray hair should be mostly covered by the hat (not prominently displayed)
+- The hat must have "MASSGOO" logo or embroidery clearly visible
+- This applies to ALL feed and profile images for account1 (senior tone)
+- The golfer should NOT be shown without a hat or with a visor/sun cap`
       : `**Style Guidelines:**
 - No text overlays, no watermarks, no promotional text
 - Clean composition without unnecessary textual content

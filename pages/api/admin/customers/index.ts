@@ -6,6 +6,40 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // ✅ 인증 체크 추가 (고객 관리 카테고리 권한 필요)
+  try {
+    // 동적 import로 빌드 에러 방지 (경로 수정: pages/api/admin/customers/ -> lib/ = ../../../../lib)
+    const { requireCategoryPermission } = await import('../../../../lib/api-auth');
+    await requireCategoryPermission(req, res, 'customer');
+  } catch (error: any) {
+    // 모듈을 찾을 수 없는 경우 fallback 처리
+    if (error?.message?.includes('Cannot find module') || error?.code === 'MODULE_NOT_FOUND') {
+      console.error('api-auth 모듈을 찾을 수 없습니다. 기본 인증 체크를 수행합니다.');
+      // 기본 인증 체크 (getServerSession 사용) (경로 수정: pages/api/admin/customers/ -> pages/api/auth/ = ../../auth)
+      const { getServerSession } = await import('next-auth/next');
+      const { authOptions } = await import('../../auth/[...nextauth]');
+      const session = await getServerSession(req, res, authOptions);
+      
+      if (!session?.user) {
+        return res.status(401).json({
+          success: false,
+          message: '인증이 필요합니다. 로그인해주세요.'
+        });
+      }
+      
+      // 에디터 이상 권한 체크
+      const userRole = session.user.role;
+      if (userRole !== 'admin' && userRole !== 'editor') {
+        return res.status(403).json({
+          success: false,
+          message: '에디터 이상의 권한이 필요합니다.'
+        });
+      }
+    } else {
+      return; // requireCategoryPermission에서 이미 응답을 보냄
+    }
+  }
+
   try {
     // VIP 레벨 자동 업데이트 요청
     if (req.method === 'POST' && req.query.action === 'update-vip-levels') {

@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import UserProfileDropdown from './UserProfileDropdown';
 import ProfileEditModal from './ProfileEditModal';
+import { hasCategoryPermission } from '../../lib/menu-permissions';
 
 const AdminNav = () => {
   const router = useRouter();
@@ -12,6 +13,10 @@ const AdminNav = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const isActive = (path: string) => router.pathname === path;
+  
+  // 권한 확인
+  const userPermissions = (session?.user as any)?.permissions;
+  const userRole = (session?.user as any)?.role;
 
   // 미들웨어가 통과시켰다면 세션이 곧 올 것이므로 일정 시간 후 표시
   useEffect(() => {
@@ -78,16 +83,31 @@ const AdminNav = () => {
         }
       }
       
-      // 4. 강제 리다이렉트 (replace 사용하여 히스토리 교체, 쿼리 파라미터 추가로 캐시 방지)
+      // 4. 강제 리다이렉트 (환경에 따라 동적으로 결정)
       const logoutTimestamp = Date.now();
+      // 현재 호스트 기반으로 로그인 페이지 URL 생성
+      const isLocalhost = typeof window !== 'undefined' && 
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      
+      const loginUrl = isLocalhost
+        ? `/admin/login?logout=${logoutTimestamp}`
+        : `https://www.masgolf.co.kr/admin/login?logout=${logoutTimestamp}`;
+      
       // replace를 사용하여 뒤로 가기로 이전 페이지로 돌아갈 수 없도록 함
-      window.location.replace(`https://www.masgolf.co.kr/admin/login?logout=${logoutTimestamp}`);
+      window.location.replace(loginUrl);
       
     } catch (error) {
       console.error('로그아웃 오류:', error);
-      // 에러 발생 시에도 강제 리다이렉트
+      // 에러 발생 시에도 리다이렉트
       const logoutTimestamp = Date.now();
-      window.location.replace(`https://www.masgolf.co.kr/admin/login?logout=${logoutTimestamp}`);
+      const isLocalhost = typeof window !== 'undefined' && 
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      
+      const loginUrl = isLocalhost
+        ? `/admin/login?logout=${logoutTimestamp}`
+        : `https://www.masgolf.co.kr/admin/login?logout=${logoutTimestamp}`;
+      
+      window.location.replace(loginUrl);
     }
   };
 
@@ -99,25 +119,39 @@ const AdminNav = () => {
             <Link href="/admin/dashboard" className={`px-2 py-1 rounded font-semibold ${isActive('/admin/dashboard') || isActive('/admin') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
               📊 대시보드
             </Link>
-            <span className="text-gray-300">|</span>
-            <Link href="/admin/content-calendar-hub" className={`px-2 py-1 rounded ${isActive('/admin/content-calendar-hub') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
-              🎯 허브 시스템
-            </Link>
-            <Link href="/admin/blog" className={`px-2 py-1 rounded ${isActive('/admin/blog') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
-              📝 블로그 관리
-            </Link>
-            <Link href="/admin/gallery" className={`px-2 py-1 rounded ${isActive('/admin/gallery') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
-              🖼️ 갤러리 관리
-            </Link>
-            <Link href="/admin/customers" className={`px-2 py-1 rounded ${isActive('/admin/customers') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
-              👥 고객 관리
-            </Link>
-            <Link href="/admin/kakao-content" className={`px-2 py-1 rounded ${isActive('/admin/kakao-content') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
-              📱 데일리 콘텐츠
-            </Link>
-            <Link href="/admin/kakao-list" className={`px-2 py-1 rounded ${isActive('/admin/kakao-list') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
-              💬 카카오 메시지
-            </Link>
+            {hasCategoryPermission('hub', userPermissions, userRole) && (
+              <>
+                <span className="text-gray-300">|</span>
+                <Link href="/admin/content-calendar-hub" className={`px-2 py-1 rounded ${isActive('/admin/content-calendar-hub') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
+                  🎯 허브 시스템
+                </Link>
+              </>
+            )}
+            {hasCategoryPermission('hub', userPermissions, userRole) && (
+              <Link href="/admin/blog" className={`px-2 py-1 rounded ${isActive('/admin/blog') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
+                📝 블로그 관리
+              </Link>
+            )}
+            {hasCategoryPermission('gallery', userPermissions, userRole) && (
+              <Link href="/admin/gallery" className={`px-2 py-1 rounded ${isActive('/admin/gallery') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
+                🖼️ 갤러리 관리
+              </Link>
+            )}
+            {hasCategoryPermission('customer', userPermissions, userRole) && (
+              <Link href="/admin/customers" className={`px-2 py-1 rounded ${isActive('/admin/customers') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
+                👥 고객 관리
+              </Link>
+            )}
+            {hasCategoryPermission('daily-content', userPermissions, userRole) && (
+              <>
+                <Link href="/admin/kakao-content" className={`px-2 py-1 rounded ${isActive('/admin/kakao-content') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
+                  📱 데일리 콘텐츠
+                </Link>
+                <Link href="/admin/kakao-list" className={`px-2 py-1 rounded ${isActive('/admin/kakao-list') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
+                  💬 카카오 메시지
+                </Link>
+              </>
+            )}
             <Link href="/admin/dashboard" className={`px-2 py-1 rounded text-gray-400 hover:text-gray-600`}>
               더보기 →
             </Link>

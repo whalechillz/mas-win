@@ -9,6 +9,10 @@ interface AdminUser {
   is_active: boolean;
   created_at: string;
   last_login?: string;
+  permissions?: {
+    categories?: string[];
+    menus?: Record<string, boolean>;
+  };
 }
 
 interface AccountManagementProps {
@@ -27,8 +31,22 @@ export default function AccountManagement({ session }: AccountManagementProps) {
     phone: '',
     role: 'editor' as 'admin' | 'editor',
     password: '',
-    is_active: true
+    is_active: true,
+    permissions: {
+      categories: [] as string[]
+    }
   });
+
+  // 카테고리 목록
+  const categories = [
+    { id: 'hub', name: '허브 시스템', icon: '🎯' },
+    { id: 'gallery', name: '갤러리 관리', icon: '🖼️' },
+    { id: 'customer', name: '고객 관리', icon: '👥' },
+    { id: 'daily-content', name: '데일리 콘텐츠', icon: '📱' },
+    { id: 'system', name: '시스템', icon: '⚙️' },
+    { id: 'products', name: '제품 관리', icon: '📦' },
+    { id: 'finance', name: '재무', icon: '💰' },
+  ];
 
   useEffect(() => {
     loadUsers();
@@ -41,7 +59,29 @@ export default function AccountManagement({ session }: AccountManagementProps) {
       const data = await response.json();
       
       if (data.success) {
-        setUsers(data.users || []);
+        // permissions 안전하게 파싱
+        const users = (data.users || []).map((user: any) => {
+          if (user.permissions) {
+            // JSONB 문자열인 경우 파싱
+            if (typeof user.permissions === 'string') {
+              try {
+                user.permissions = JSON.parse(user.permissions);
+              } catch (e) {
+                console.warn('permissions 파싱 실패:', e);
+                user.permissions = { categories: [] };
+              }
+            }
+            // categories가 배열인지 확인
+            if (!Array.isArray(user.permissions.categories)) {
+              user.permissions.categories = [];
+            }
+          } else {
+            user.permissions = { categories: [] };
+          }
+          return user;
+        });
+        
+        setUsers(users);
       } else {
         setError('사용자를 불러오는데 실패했습니다.');
       }
@@ -63,14 +103,26 @@ export default function AccountManagement({ session }: AccountManagementProps) {
       const response = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          permissions: formData.role === 'admin' 
+            ? { categories: categories.map(c => c.id) }
+            : formData.permissions
+        }),
       });
       const data = await response.json();
       
       if (data.success) {
         loadUsers();
         setShowCreateModal(false);
-        setFormData({ name: '', phone: '', role: 'editor', password: '', is_active: true });
+        setFormData({ 
+          name: '', 
+          phone: '', 
+          role: 'editor', 
+          password: '', 
+          is_active: true,
+          permissions: { categories: [] }
+        });
         alert('사용자가 생성되었습니다.');
       } else {
         alert(data.message || '사용자 생성에 실패했습니다.');
@@ -94,7 +146,10 @@ export default function AccountManagement({ session }: AccountManagementProps) {
         name: formData.name,
         phone: formData.phone,
         role: formData.role,
-        is_active: formData.is_active
+        is_active: formData.is_active,
+        permissions: formData.role === 'admin' 
+          ? { categories: categories.map(c => c.id) }
+          : formData.permissions
       };
       
       if (formData.password) {
@@ -112,7 +167,14 @@ export default function AccountManagement({ session }: AccountManagementProps) {
         loadUsers();
         setShowEditModal(false);
         setEditingUser(null);
-        setFormData({ name: '', phone: '', role: 'editor', password: '', is_active: true });
+        setFormData({ 
+          name: '', 
+          phone: '', 
+          role: 'editor', 
+          password: '', 
+          is_active: true,
+          permissions: { categories: [] }
+        });
         alert('사용자 정보가 수정되었습니다.');
       } else {
         alert(data.message || '사용자 수정에 실패했습니다.');
@@ -146,7 +208,14 @@ export default function AccountManagement({ session }: AccountManagementProps) {
 
   const openCreateModal = () => {
     // 명시적으로 빈 값으로 초기화 (브라우저 자동완성 방지)
-    setFormData({ name: '', phone: '', role: 'editor', password: '', is_active: true });
+    setFormData({ 
+      name: '', 
+      phone: '', 
+      role: 'editor', 
+      password: '', 
+      is_active: true,
+      permissions: { categories: [] }
+    });
     setShowCreateModal(true);
     // 모달이 열린 후 input 필드 강제 초기화
     setTimeout(() => {
@@ -161,14 +230,68 @@ export default function AccountManagement({ session }: AccountManagementProps) {
 
   const openEditModal = (user: AdminUser) => {
     setEditingUser(user);
+    
+    // permissions 안전하게 파싱
+    let userPermissions = { categories: [] as string[] };
+    if (user.permissions) {
+      // JSONB 문자열인 경우 파싱
+      if (typeof user.permissions === 'string') {
+        try {
+          userPermissions = JSON.parse(user.permissions);
+        } catch (e) {
+          console.warn('permissions 파싱 실패:', e);
+          userPermissions = { categories: [] };
+        }
+      } else if (typeof user.permissions === 'object') {
+        userPermissions = user.permissions;
+      }
+    }
+    
+    // categories가 배열인지 확인
+    if (!Array.isArray(userPermissions.categories)) {
+      userPermissions.categories = [];
+    }
+    
     setFormData({
       name: user.name,
       phone: user.phone,
       role: user.role,
       password: '',
-      is_active: user.is_active
+      is_active: user.is_active,
+      permissions: userPermissions
     });
     setShowEditModal(true);
+  };
+
+  const handleCategoryToggle = (categoryId: string) => {
+    if (formData.role === 'admin') {
+      // admin은 모든 권한이 자동으로 부여되므로 변경 불가
+      return;
+    }
+    
+    // permissions가 없거나 categories가 배열이 아닌 경우 초기화
+    if (!formData.permissions || !Array.isArray(formData.permissions.categories)) {
+      setFormData({
+        ...formData,
+        permissions: {
+          categories: []
+        }
+      });
+      return;
+    }
+    
+    const currentCategories = formData.permissions.categories || [];
+    const newCategories = currentCategories.includes(categoryId)
+      ? currentCategories.filter(id => id !== categoryId)
+      : [...currentCategories, categoryId];
+    
+    setFormData({
+      ...formData,
+      permissions: {
+        ...formData.permissions,
+        categories: newCategories
+      }
+    });
   };
 
 
@@ -358,12 +481,47 @@ export default function AccountManagement({ session }: AccountManagementProps) {
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </div>
+                {formData.role === 'editor' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      📋 접근 권한 설정
+                    </label>
+                    <div className="border border-gray-300 rounded-md p-3 space-y-2 bg-gray-50">
+                      {categories.map((category) => (
+                        <label
+                          key={category.id}
+                          className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.permissions.categories.includes(category.id)}
+                            onChange={() => handleCategoryToggle(category.id)}
+                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <span className="text-sm text-gray-700">
+                            {category.icon} {category.name}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      선택한 카테고리의 모든 메뉴에 접근할 수 있습니다.
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="flex justify-end space-x-3 mt-6">
                 <button
                   onClick={() => {
                     setShowCreateModal(false);
-                    setFormData({ name: '', phone: '', role: 'editor', password: '', is_active: true });
+                    setFormData({ 
+                      name: '', 
+                      phone: '', 
+                      role: 'editor', 
+                      password: '', 
+                      is_active: true,
+                      permissions: { categories: [] }
+                    });
                   }}
                   className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
                 >
@@ -438,13 +596,55 @@ export default function AccountManagement({ session }: AccountManagementProps) {
                     <span className="ml-2 text-sm text-gray-700">활성 상태</span>
                   </label>
                 </div>
+                {formData.role === 'editor' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      📋 접근 권한 설정
+                    </label>
+                    <div className="border border-gray-300 rounded-md p-3 space-y-2 bg-gray-50">
+                      {categories.map((category) => (
+                        <label
+                          key={category.id}
+                          className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.permissions.categories.includes(category.id)}
+                            onChange={() => handleCategoryToggle(category.id)}
+                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <span className="text-sm text-gray-700">
+                            {category.icon} {category.name}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      선택한 카테고리의 모든 메뉴에 접근할 수 있습니다.
+                    </p>
+                  </div>
+                )}
+                {formData.role === 'admin' && (
+                  <div className="border border-blue-200 rounded-md p-3 bg-blue-50">
+                    <p className="text-sm text-blue-800">
+                      💡 총관리자는 모든 카테고리에 접근할 수 있습니다.
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="flex justify-end space-x-3 mt-6">
                 <button
                   onClick={() => {
                     setShowEditModal(false);
                     setEditingUser(null);
-                    setFormData({ name: '', phone: '', role: 'editor', password: '', is_active: true });
+                    setFormData({ 
+                      name: '', 
+                      phone: '', 
+                      role: 'editor', 
+                      password: '', 
+                      is_active: true,
+                      permissions: { categories: [] }
+                    });
                   }}
                   className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
                 >

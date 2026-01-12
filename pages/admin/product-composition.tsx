@@ -11,10 +11,11 @@ interface ProductComposition {
   id: string;
   product_id?: number; // ✅ 추가: products 테이블 참조
   name: string;
-  category: 'driver' | 'cap' | 'apparel' | 'accessory';
+  category: 'driver' | 'cap' | 'apparel' | 'accessory' | 'goods';
   composition_target: 'hands' | 'head' | 'body' | 'accessory';
   image_url: string;
   reference_images?: string[];
+  reference_images_enabled?: Record<string, boolean>; // ✅ 참조 이미지 활성화 상태
   driver_parts?: {
     crown?: string[];
     sole?: string[];
@@ -44,6 +45,7 @@ export default function ProductCompositionManagement() {
     composition_target: 'head',
     image_url: '',
     reference_images: [],
+    reference_images_enabled: {}, // ✅ 참조 이미지 활성화 상태
     slug: '',
     description: '',
     features: [],
@@ -57,9 +59,12 @@ export default function ProductCompositionManagement() {
     active?: boolean;
   }>({});
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [uploadingRefImage, setUploadingRefImage] = useState(false);
   const [showGalleryPicker, setShowGalleryPicker] = useState(false);
   const [galleryPickerMode, setGalleryPickerMode] = useState<'image' | 'reference' | null>(null);
+  // ✅ 변경사항 추적
+  const [originalFormData, setOriginalFormData] = useState<Partial<ProductComposition> | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // 제품 목록 로드 (useCallback으로 메모이제이션)
   const loadProducts = useCallback(async () => {
@@ -113,6 +118,38 @@ export default function ProductCompositionManagement() {
     return () => clearTimeout(timer);
   }, [status, session, DEBUG_MODE]);
 
+  // ✅ 변경사항 확인 함수 (모든 hooks는 조건부 return 이전에 배치)
+  const checkForChanges = useCallback(() => {
+    if (!originalFormData || !editingProduct) {
+      setHasUnsavedChanges(false);
+      return false;
+    }
+
+    // 주요 필드 비교
+    const hasChanges = 
+      formData.image_url !== originalFormData.image_url ||
+      JSON.stringify(formData.reference_images) !== JSON.stringify(originalFormData.reference_images) ||
+      JSON.stringify(formData.reference_images_enabled) !== JSON.stringify(originalFormData.reference_images_enabled) ||
+      formData.name !== originalFormData.name ||
+      formData.category !== originalFormData.category ||
+      formData.composition_target !== originalFormData.composition_target ||
+      formData.slug !== originalFormData.slug ||
+      formData.description !== originalFormData.description ||
+      JSON.stringify(formData.features) !== JSON.stringify(originalFormData.features) ||
+      formData.is_active !== originalFormData.is_active ||
+      formData.display_order !== originalFormData.display_order;
+
+    setHasUnsavedChanges(hasChanges);
+    return hasChanges;
+  }, [formData, originalFormData, editingProduct]);
+
+  // ✅ formData 변경 시 변경사항 확인
+  useEffect(() => {
+    if (editingProduct) {
+      checkForChanges();
+    }
+  }, [formData, editingProduct, checkForChanges]);
+
   // ✅ 제품 목록 로드 useEffect
   useEffect(() => {
     if (status === 'loading') return;
@@ -143,6 +180,14 @@ export default function ProductCompositionManagement() {
   // 제품 추가/수정
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 변경사항이 없으면 저장하지 않음
+    if (editingProduct && !hasUnsavedChanges) {
+      alert('변경사항이 없습니다.');
+      return;
+    }
+
+    setIsSaving(true);
     try {
       const url = '/api/admin/product-composition';
       const method = editingProduct ? 'PUT' : 'POST';
@@ -161,10 +206,18 @@ export default function ProductCompositionManagement() {
 
       if (response.ok) {
         await loadProducts();
-        setShowModal(false);
-        setEditingProduct(null);
-        resetForm();
-        alert(editingProduct ? '제품이 수정되었습니다.' : '제품이 추가되었습니다.');
+        
+        // ✅ 원본 데이터 업데이트
+        setOriginalFormData(JSON.parse(JSON.stringify(formData))); // deep copy
+        setHasUnsavedChanges(false);
+        
+        // ✅ 저장 성공 메시지 및 모달 닫기
+        if (confirm(editingProduct ? '제품이 수정되었습니다. 모달을 닫으시겠습니까?' : '제품이 추가되었습니다. 모달을 닫으시겠습니까?')) {
+          setShowModal(false);
+          setEditingProduct(null);
+          resetForm();
+          setOriginalFormData(null);
+        }
       } else {
         const error = await response.json();
         alert(`오류: ${error.error || '제품 저장에 실패했습니다.'}`);
@@ -172,6 +225,8 @@ export default function ProductCompositionManagement() {
     } catch (error) {
       console.error('제품 저장 오류:', error);
       alert('제품 저장 중 오류가 발생했습니다.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -262,21 +317,37 @@ export default function ProductCompositionManagement() {
       }
     }
     
+    // reference_images_enabled 파싱
+    let refImagesEnabled: Record<string, boolean> = {};
+    if (product.reference_images_enabled) {
+      if (typeof product.reference_images_enabled === 'object') {
+        refImagesEnabled = product.reference_images_enabled;
+      } else if (typeof product.reference_images_enabled === 'string') {
+        try {
+          refImagesEnabled = JSON.parse(product.reference_images_enabled);
+        } catch (e) {
+          console.warn('⚠️ reference_images_enabled 파싱 실패:', e);
+        }
+      }
+    }
+
     // 🔍 디버깅: 처리된 이미지 확인
     console.log('🔍 제품 수정 - 처리된 이미지:', {
       mainImageUrl,
       refImages,
       refImagesCount: refImages.length,
       totalImages: [mainImageUrl, ...refImages].filter(img => img).length,
+      reference_images_enabled: refImagesEnabled,
     });
     
-    setFormData({
+    const newFormData = {
       name: product.name,
       product_id: product.product_id,
       category: product.category,
       composition_target: product.composition_target,
       image_url: mainImageUrl,
       reference_images: refImages,
+      reference_images_enabled: refImagesEnabled, // ✅ 참조 이미지 활성화 상태 로드
       driver_parts: product.driver_parts,
       hat_type: product.hat_type,
       slug: product.slug,
@@ -284,7 +355,12 @@ export default function ProductCompositionManagement() {
       features: product.features || [],
       is_active: product.is_active,
       display_order: product.display_order,
-    });
+    };
+    
+    setFormData(newFormData);
+    // ✅ 원본 데이터 저장 (변경사항 추적용)
+    setOriginalFormData(JSON.parse(JSON.stringify(newFormData))); // deep copy
+    setHasUnsavedChanges(false);
     setShowModal(true);
   };
 
@@ -296,6 +372,7 @@ export default function ProductCompositionManagement() {
       composition_target: 'head',
       image_url: '',
       reference_images: [],
+      reference_images_enabled: {}, // ✅ 참조 이미지 활성화 상태 초기화
       slug: '',
       description: '',
       features: [],
@@ -390,20 +467,6 @@ export default function ProductCompositionManagement() {
     }
   };
 
-  // 참조 이미지 업로드 (합성용) - 통합 이미지 관리 방식으로 동작
-  const handleReferenceImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    // handleImageUpload와 동일한 로직 사용
-    await handleImageUpload(e);
-  };
-
-  // 참조 이미지 삭제 (기존 함수 - 호환성 유지)
-  const handleRemoveReferenceImage = (index: number) => {
-    const currentRefs = formData.reference_images || [];
-    setFormData({
-      ...formData,
-      reference_images: currentRefs.filter((_, i) => i !== index),
-    });
-  };
 
   // 모든 이미지를 하나의 배열로 관리하는 함수
   const getAllImages = (): string[] => {
@@ -439,7 +502,34 @@ export default function ProductCompositionManagement() {
     });
   };
 
-  // 이미지 삭제 함수 (Storage에서도 삭제)
+  // ✅ 목록에서만 제거 (Storage는 유지)
+  const handleRemoveFromList = (imageUrl: string) => {
+    const allImages = getAllImages();
+    const remainingImages = allImages.filter(img => img !== imageUrl);
+    
+    if (remainingImages.length > 0) {
+      // 첫 번째 이미지를 대표 이미지로 설정
+      setFormData({
+        ...formData,
+        image_url: remainingImages[0],
+        reference_images: remainingImages.slice(1),
+        // 참조 비활성화 상태도 제거
+        reference_images_enabled: Object.fromEntries(
+          Object.entries(formData.reference_images_enabled || {}).filter(([key]) => key !== imageUrl)
+        ),
+      });
+    } else {
+      // 모든 이미지가 제거된 경우
+      setFormData({
+        ...formData,
+        image_url: '',
+        reference_images: [],
+        reference_images_enabled: {},
+      });
+    }
+  };
+
+  // ✅ Storage에서 완전 삭제
   const handleDeleteImage = async (imageUrl: string) => {
     if (!confirm('정말로 이 이미지를 삭제하시겠습니까?\n\n⚠️ Supabase Storage에서도 영구적으로 삭제됩니다.')) {
       return;
@@ -551,14 +641,29 @@ export default function ProductCompositionManagement() {
   };
 
   // 갤러리에서 이미지 선택
-  // ✅ 공통 폴더 경로 반환 함수 추가
+  // ✅ 공통 폴더 경로 반환 함수 추가 (그립 공통)
   const getCommonFolderPath = (): string => {
-    return 'originals/products/secret-force-common/composition';
+    return 'originals/products/grip-common/composition';
   };
 
   // ✅ MUZIIK 공통 폴더 경로 반환 함수 추가
   const getMuziikCommonFolderPath = (): string => {
     return 'originals/products/muziik-common/composition';
+  };
+
+  // ✅ NGS 샤프트 공통 폴더 경로 반환 함수 추가
+  const getNgsCommonFolderPath = (): string => {
+    return 'originals/products/ngs-common/composition';
+  };
+
+  // ✅ 시크리트포스 공통 폴더 경로 반환 함수 추가
+  const getSecretForceCommonFolderPath = (): string => {
+    return 'originals/products/secret-force-common/composition';
+  };
+
+  // ✅ 골드 공통 폴더 경로 반환 함수 추가
+  const getGoldCommonFolderPath = (): string => {
+    return 'originals/products/secret-force-gold-common/composition';
   };
 
   // ✅ MUZIIK 제품인지 확인하는 함수
@@ -569,6 +674,12 @@ export default function ProductCompositionManagement() {
            slug === 'secret-force-gold-2-muziik';
   };
 
+  // ✅ 골드 2 제품인지 확인하는 함수 추가
+  const isGold2Product = (slug: string): boolean => {
+    return slug === 'secret-force-gold-2' || 
+           slug === 'secret-force-gold-2-muziik';
+  };
+
   const getCompositionFolderPath = (): string | undefined => {
     if (!formData.slug || !formData.category) return undefined;
     
@@ -576,9 +687,9 @@ export default function ProductCompositionManagement() {
     // 기본적으로 composition 폴더를 반환 (이미지가 여기에 있음)
     // 사용자는 브레드크럼으로 detail, gallery 폴더로 이동 가능
     
-    // secret-force-common은 공통 참조 이미지 폴더
-    // slug가 없거나 특별한 경우 originals/products/secret-force-common/composition 반환
-    if (formData.slug === 'secret-force-common' || formData.slug === '') {
+    // grip-common은 공통 참조 이미지 폴더 (그립 공통)
+    // slug가 없거나 특별한 경우 originals/products/grip-common/composition 반환
+    if (formData.slug === 'grip-common' || formData.slug === 'secret-force-common' || formData.slug === '') {
       return getCommonFolderPath();
     }
     
@@ -958,17 +1069,7 @@ export default function ProductCompositionManagement() {
                     </label>
                     
                     {/* 이미지 추가 버튼 */}
-                    <div className="flex gap-2 mb-4">
-                      <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">
-                        {uploadingImage ? '업로드 중...' : '📷 이미지 업로드'}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                          disabled={uploadingImage}
-                        />
-                      </label>
+                    <div className="flex gap-2 mb-4 items-center">
                       <button
                         type="button"
                         onClick={() => handleOpenGallery('image')}
@@ -976,6 +1077,9 @@ export default function ProductCompositionManagement() {
                       >
                         🖼️ 갤러리에서 선택
                       </button>
+                      <span className="text-xs text-gray-500">
+                        💡 완전 삭제는 갤러리 모달에서 가능합니다
+                      </span>
                     </div>
 
                     {/* 통합 이미지 그리드 */}
@@ -984,10 +1088,12 @@ export default function ProductCompositionManagement() {
                         {getAllImages().map((img, index) => {
                           const isMain = formData.image_url === img;
                           const fileName = getFileNameFromUrl(img);
+                          // ✅ 참조 이미지 활성화 상태 확인 (기본값: true)
+                          const isRefEnabled = formData.reference_images_enabled?.[img] !== false;
                           return (
                             <div key={index} className="relative group">
                               <div className={`relative w-full h-32 bg-gray-100 rounded overflow-hidden border-2 ${
-                                isMain ? 'border-blue-500' : 'border-gray-300'
+                                isMain ? 'border-blue-500' : isRefEnabled ? 'border-gray-300' : 'border-gray-200 opacity-60'
                               }`}>
                                 <Image
                                   src={getAbsoluteImageUrl(getCorrectedImageUrl(img))}
@@ -1007,6 +1113,16 @@ export default function ProductCompositionManagement() {
                                     대표
                                   </div>
                                 )}
+                                {/* ✅ 참조 이미지 활성화 배지 */}
+                                {!isMain && (
+                                  <div className={`absolute top-1 right-1 text-xs px-2 py-1 rounded ${
+                                    isRefEnabled 
+                                      ? 'bg-green-500 text-white' 
+                                      : 'bg-gray-400 text-white'
+                                  }`}>
+                                    {isRefEnabled ? '✓ 참조' : '✗ 비활성'}
+                                  </div>
+                                )}
                               </div>
                               
                               {/* 파일명 표시 */}
@@ -1015,25 +1131,55 @@ export default function ProductCompositionManagement() {
                               </div>
                               
                               {/* 버튼 그룹 */}
-                              <div className="mt-2 flex gap-1">
-                                {!isMain && (
+                              <div className="mt-2 flex flex-col gap-1">
+                                {/* 첫 번째 줄: 참조 토글 + 대표 설정 */}
+                                <div className="flex gap-1">
+                                  {!isMain && (
+                                    <>
+                                      {/* ✅ 참조 이미지 활성화 토글 버튼 */}
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setFormData(prev => ({
+                                            ...prev,
+                                            reference_images_enabled: {
+                                              ...(prev.reference_images_enabled || {}),
+                                              [img]: !isRefEnabled
+                                            }
+                                          }));
+                                        }}
+                                        className={`flex-1 px-2 py-1 text-xs rounded ${
+                                          isRefEnabled
+                                            ? 'bg-green-500 text-white hover:bg-green-600'
+                                            : 'bg-gray-300 text-gray-600 hover:bg-gray-400'
+                                        }`}
+                                        title={isRefEnabled ? '참조 이미지 사용 중 - 클릭하여 비활성화' : '참조 이미지 비활성화 - 클릭하여 활성화'}
+                                      >
+                                        {isRefEnabled ? '✓ 참조' : '✗ 비활성'}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleSetMainImage(img)}
+                                        className="flex-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                        title="대표 이미지로 설정"
+                                      >
+                                        대표로
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                                {/* 두 번째 줄: 목록 제거만 (완전 삭제는 갤러리 모달에서) */}
+                                <div className="flex gap-1">
                                   <button
                                     type="button"
-                                    onClick={() => handleSetMainImage(img)}
-                                    className="flex-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                                    title="대표 이미지로 설정"
+                                    onClick={() => handleRemoveFromList(img)}
+                                    className="flex-1 px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+                                    title="목록에서만 제거 (Storage는 유지)"
                                   >
-                                    대표로
+                                    목록 제거
                                   </button>
-                                )}
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteImage(img)}
-                                  className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
-                                  title="이미지 삭제"
-                                >
-                                  삭제
-                                </button>
+                                  {/* 완전 삭제는 "갤러리에서 선택" 모달에서만 가능 */}
+                                </div>
                               </div>
                             </div>
                           );
@@ -1125,13 +1271,29 @@ export default function ProductCompositionManagement() {
                     </div>
                   </div>
 
+                  {/* ✅ 변경사항 표시 */}
+                  {hasUnsavedChanges && (
+                    <div className="flex items-center gap-2 text-orange-600 text-sm bg-orange-50 border border-orange-200 rounded-lg p-2 mt-4">
+                      <span>⚠️</span>
+                      <span>저장하지 않은 변경사항이 있습니다.</span>
+                    </div>
+                  )}
+                  
                   <div className="flex justify-end gap-2 pt-4">
                     <button
                       type="button"
                       onClick={() => {
+                        // 변경사항이 있으면 확인
+                        if (hasUnsavedChanges) {
+                          if (!confirm('저장하지 않은 변경사항이 있습니다. 정말 닫으시겠습니까?')) {
+                            return;
+                          }
+                        }
                         setShowModal(false);
                         setEditingProduct(null);
                         resetForm();
+                        setOriginalFormData(null);
+                        setHasUnsavedChanges(false);
                       }}
                       className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                     >
@@ -1139,9 +1301,17 @@ export default function ProductCompositionManagement() {
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      disabled={(!hasUnsavedChanges && editingProduct !== null) || isSaving}
+                      className={`px-4 py-2 rounded-lg ${
+                        hasUnsavedChanges && !isSaving
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : isSaving
+                          ? 'bg-gray-400 text-white cursor-not-allowed'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                      title={!hasUnsavedChanges && editingProduct ? '변경사항이 없습니다' : ''}
                     >
-                      {editingProduct ? '수정' : '추가'}
+                      {isSaving ? '저장 중...' : hasUnsavedChanges ? '저장' : editingProduct ? '변경사항 없음' : '추가'}
                     </button>
                   </div>
                 </form>
@@ -1159,17 +1329,115 @@ export default function ProductCompositionManagement() {
             onSelect={handleGalleryImageSelect}
             folderPath={getCompositionFolderPath() || ''}
             title="갤러리에서 이미지 선택"
+            // ✅ 삭제/업로드 기능 활성화
+            enableDelete={true}
+            enableUpload={true}
+            onDelete={async (imageUrl: string) => {
+              // Storage에서 삭제
+              const response = await fetch('/api/admin/delete-product-image', {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ imageUrl }),
+              });
+
+              if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || '이미지 삭제에 실패했습니다.');
+              }
+
+              // ✅ 추가: 현재 제품의 이미지 목록에서도 자동 제거
+              const allImages = getAllImages();
+              if (allImages.includes(imageUrl)) {
+                const remainingImages = allImages.filter(img => img !== imageUrl);
+                
+                if (remainingImages.length > 0) {
+                  setFormData({
+                    ...formData,
+                    image_url: remainingImages[0],
+                    reference_images: remainingImages.slice(1),
+                    // 참조 비활성화 상태도 제거
+                    reference_images_enabled: Object.fromEntries(
+                      Object.entries(formData.reference_images_enabled || {}).filter(([key]) => key !== imageUrl)
+                    ),
+                  });
+                } else {
+                  setFormData({
+                    ...formData,
+                    image_url: '',
+                    reference_images: [],
+                    reference_images_enabled: {},
+                  });
+                }
+                
+                // 변경사항 표시
+                setHasUnsavedChanges(true);
+              }
+            }}
+            onUpload={async (file: File, folderPath: string) => {
+              // 폴더 경로에서 slug 추출
+              // 예: originals/products/secret-force-pro-3/composition -> secret-force-pro-3
+              const pathParts = folderPath.split('/');
+              const slugIndex = pathParts.indexOf('products') !== -1 
+                ? pathParts.indexOf('products') + 1
+                : pathParts.indexOf('goods') !== -1
+                ? pathParts.indexOf('goods') + 1
+                : -1;
+              
+              const productSlug = slugIndex !== -1 && pathParts[slugIndex] 
+                ? pathParts[slugIndex] 
+                : formData.slug || '';
+              
+              const category = formData.category || 'cap';
+              
+              if (!productSlug) {
+                throw new Error('제품 정보를 확인할 수 없습니다. 폴더 경로를 확인해주세요.');
+              }
+
+              const uploadFormData = new FormData();
+              uploadFormData.append('file', file);
+              uploadFormData.append('productSlug', productSlug);
+              uploadFormData.append('category', category);
+              uploadFormData.append('imageType', 'composition');
+
+              const response = await fetch('/api/admin/upload-product-image', {
+                method: 'POST',
+                body: uploadFormData,
+              });
+
+              if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
+                throw new Error(errorData.error || errorData.details || '이미지 업로드에 실패했습니다.');
+              }
+            }}
             // ✅ 공통 폴더 접근 추가
             alternativeFolders={[
               {
-                label: '공통 이미지',
-                path: getCommonFolderPath(),
+                label: '그립 공통',
+                path: getCommonFolderPath(), // grip-common/composition
                 icon: '📁',
               },
+              {
+                label: '시크리트포스 공통',
+                path: getSecretForceCommonFolderPath(), // secret-force-common/composition
+                icon: '🔧',
+              },
+              {
+                label: '시크리트포스 골드 공통',
+                path: getGoldCommonFolderPath(), // secret-force-gold-common/composition
+                icon: '⭐',
+              },
+              // ✅ 드라이버 제품인 경우 NGS 샤프트 폴더 추가
+              ...(formData.category === 'driver' ? [{
+                label: 'NGS 샤프트',
+                path: getNgsCommonFolderPath(), // ngs-common/composition
+                icon: '🔧',
+              }] : []),
               // ✅ MUZIIK 제품인 경우 MUZIIK 공통 폴더 추가
               ...(isMuziikProduct(formData.slug) ? [{
                 label: 'MUZIIK 샤프트',
-                path: getMuziikCommonFolderPath(),
+                path: getMuziikCommonFolderPath(), // muziik-common/composition
                 icon: '🎯',
               }] : []),
             ]}

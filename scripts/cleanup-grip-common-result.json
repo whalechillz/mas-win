@@ -1,0 +1,68 @@
+[
+  {
+    "action": "delete",
+    "fileName": "secret-force-common-back-01.webp",
+    "success": true
+  },
+  {
+    "action": "delete",
+    "fileName": "secret-force-common-back-02.webp",
+    "success": true
+  },
+  {
+    "action": "delete",
+    "fileName": "secret-force-common-back-03.webp",
+    "success": true
+  },
+  {
+    "action": "delete",
+    "fileName": "secret-force-common-crown-01.webp",
+    "success": true
+  },
+  {
+    "action": "delete",
+    "fileName": "secret-force-common-front-face-01.webp",
+    "success": true
+  },
+  {
+    "action": "delete",
+    "fileName": "secret-force-common-sole-01.webp",
+    "success": true
+  },
+  {
+    "action": "delete",
+    "fileName": "secret-force-common-sole-02.webp",
+    "success": true
+  },
+  {
+    "action": "delete",
+    "fileName": "secret-force-common-sole-03.webp",
+    "success": true
+  },
+  {
+    "action": "delete",
+    "fileName": "secret-force-common-toe-01.webp",
+    "success": true
+  },
+  {
+    "action": "delete",
+    "fileName": "secret-force-common-shaft-01.webp",
+    "success": true
+  },
+  {
+    "action": "delete",
+    "fileName": "secret-force-common-shaft-02.webp",
+    "success": true
+  },
+  {
+    "action": "rename",
+    "oldName": "secret-force-common-grip.webp",
+    "newName": "stm-grip-35g.webp",
+    "success": false,
+    "error": {
+      "__isStorageError": true,
+      "name": "StorageUnknownError",
+      "originalError": {}
+    }
+  }
+]
