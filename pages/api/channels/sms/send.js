@@ -28,16 +28,23 @@ export default async function handler(req, res) {
       messageSubcategory // 메시지 서브 카테고리: 'prize_winner' | 'booking_received' | 등
     } = req.body;
 
-    // 환경 변수 검증
-    if (!SOLAPI_API_KEY || !SOLAPI_API_SECRET || !SOLAPI_SENDER) {
-      console.error('솔라피 환경 변수 누락:', {
-        hasApiKey: !!SOLAPI_API_KEY,
-        hasApiSecret: !!SOLAPI_API_SECRET,
-        hasSender: !!SOLAPI_SENDER
+    // 환경 변수 검증 (빈 문자열도 체크)
+    if (!SOLAPI_API_KEY || !SOLAPI_API_KEY.trim() || 
+        !SOLAPI_API_SECRET || !SOLAPI_API_SECRET.trim() || 
+        !SOLAPI_SENDER || !SOLAPI_SENDER.trim()) {
+      console.error('🔴 솔라피 환경 변수 누락 또는 빈 값:', {
+        hasApiKey: !!SOLAPI_API_KEY && SOLAPI_API_KEY.trim().length > 0,
+        hasApiSecret: !!SOLAPI_API_SECRET && SOLAPI_API_SECRET.trim().length > 0,
+        hasSender: !!SOLAPI_SENDER && SOLAPI_SENDER.trim().length > 0,
+        apiKeyLength: SOLAPI_API_KEY?.length || 0,
+        apiSecretLength: SOLAPI_API_SECRET?.length || 0,
+        senderLength: SOLAPI_SENDER?.length || 0
       });
       return res.status(500).json({ 
         success: false, 
-        message: 'SMS 서비스 설정이 완료되지 않았습니다.' 
+        message: 'SMS 서비스 설정이 완료되지 않았습니다. 환경 변수 SOLAPI_API_KEY, SOLAPI_API_SECRET, SOLAPI_SENDER를 확인해주세요.',
+        error: 'ENV_VARIABLES_MISSING',
+        hint: '.env.local 파일에 Solapi 환경 변수가 올바르게 설정되어 있는지 확인해주세요.'
       });
     }
 
