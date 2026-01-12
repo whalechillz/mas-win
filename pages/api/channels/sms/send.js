@@ -287,6 +287,77 @@ export default async function handler(req, res) {
         const json = await resp.json();
         console.log(`Solapi chunk ${chunkIndex}/${totalChunks} 응답:`, json);
         
+        // ⭐ 추가: Solapi API 응답에서 errorMessage 확인 (HTTP 200이어도 errorMessage가 있을 수 있음)
+        if (json.errorMessage || json.error || (json.statusCode && json.statusCode !== '2000')) {
+          const errorMessage = json.errorMessage || json.error || `Solapi API 오류: ${json.statusCode || 'UNKNOWN'}`;
+          console.error(`❌ Solapi API 오류 (청크 ${chunkIndex}):`, {
+            errorMessage,
+            statusCode: json.statusCode,
+            errorCode: json.errorCode,
+            fullResponse: json
+          });
+          
+          // "No valid session" 오류는 인증 문제이므로 모든 청크 실패 처리
+          if (errorMessage.includes('No valid session') || 
+              errorMessage.includes('인증') || 
+              errorMessage.includes('authentication') ||
+              errorMessage.includes('session')) {
+            console.error('🔴 인증 오류 감지: Solapi API 키/시크릿을 확인해주세요.');
+            // 인증 오류는 모든 청크를 실패 처리
+            chunkErrors.push({
+              chunkIndex,
+              status: resp.status,
+              error: { errorMessage, statusCode: json.statusCode, errorCode: json.errorCode },
+              messageCount: chunk.length,
+              range: `${i + 1}-${Math.min(i + chunkSize, allMessages.length)}`,
+              isAuthError: true
+            });
+            
+            // 실패한 청크의 메시지들을 failCount에 추가
+            aggregated.failCount += chunk.length;
+            chunk.forEach((msg, idx) => {
+              aggregated.messageResults.push({
+                to: msg.to,
+                status: 'failed',
+                errorCode: json.errorCode || 'AUTH_ERROR',
+                errorMessage: errorMessage
+              });
+            });
+            
+            continue; // 다음 청크 계속 진행 (하지만 인증 오류는 모든 청크가 실패할 것)
+          }
+          
+          // 일반 오류 처리 (기존 로직)
+          const failedGroupId = json.groupInfo?.groupId || json.groupId || json.group_id || null;
+          if (failedGroupId) {
+            console.log(`⚠️ 청크 ${chunkIndex} 실패했지만 그룹 ID 발견: ${failedGroupId}`);
+            aggregated.groupIds.push(failedGroupId);
+          }
+          
+          const errorInfo = {
+            chunkIndex,
+            status: resp.status,
+            error: { errorMessage, statusCode: json.statusCode, errorCode: json.errorCode },
+            messageCount: chunk.length,
+            range: `${i + 1}-${Math.min(i + chunkSize, allMessages.length)}`,
+            groupId: failedGroupId || undefined
+          };
+          chunkErrors.push(errorInfo);
+          console.error(`❌ 청크 ${chunkIndex} 발송 실패:`, errorInfo);
+          
+          aggregated.failCount += chunk.length;
+          chunk.forEach((msg, idx) => {
+            aggregated.messageResults.push({
+              to: msg.to,
+              status: 'failed',
+              errorCode: json.errorCode || 'CHUNK_ERROR',
+              errorMessage: errorMessage
+            });
+          });
+          
+          continue;
+        }
+        
         if (!resp.ok) {
           // ⭐ 실패 응답에서도 그룹 ID 추출 시도 (잔액 부족 등으로 실패해도 그룹 ID가 생성될 수 있음)
           const failedGroupId = json.groupInfo?.groupId || json.groupId || json.group_id || null;
@@ -471,24 +542,24 @@ export default async function handler(req, res) {
       console.log('[send] channelPostId가 UUID 형식입니다. 새 메시지로 생성합니다:', channelPostId);
     } else {
       // UUID가 아닌 경우: id로 기존 메시지 찾기
-      try {
+    try {
         const { data: existing, error: checkError } = await supabase
-          .from('channel_sms')
+        .from('channel_sms')
           .select('id, solapi_group_id, created_at')
-          .eq('id', channelPostId)
+        .eq('id', channelPostId)
           .maybeSingle();
-        
+      
         if (!checkError && existing) {
           existingMessage = existing;
           if (existing.solapi_group_id) {
             existingGroupIds = existing.solapi_group_id
-              .split(',')
-              .map(g => g.trim())
-              .filter(Boolean);
-            console.log(`📋 기존 그룹 ID 발견: ${existingGroupIds.length}개`);
+          .split(',')
+          .map(g => g.trim())
+          .filter(Boolean);
+        console.log(`📋 기존 그룹 ID 발견: ${existingGroupIds.length}개`);
           }
-        }
-      } catch (e) {
+      }
+    } catch (e) {
         console.error('기존 레코드 조회 오류 (무시하고 진행):', e);
       }
     }
@@ -529,13 +600,13 @@ export default async function handler(req, res) {
       message_type: solapiType || 'MMS',
       message_text: messageContent,
       recipient_numbers: uniqueToSend,
-      status: finalStatus,
-      solapi_group_id: groupIdsString, // 모든 그룹 ID 저장 (콤마 구분)
-      solapi_message_id: null,
+        status: finalStatus,
+        solapi_group_id: groupIdsString, // 모든 그룹 ID 저장 (콤마 구분)
+        solapi_message_id: null,
       sent_at: now,
-      sent_count: uniqueToSend.length,
-      success_count: aggregated.successCount,
-      fail_count: aggregated.failCount,
+        sent_count: uniqueToSend.length,
+        success_count: aggregated.successCount,
+        fail_count: aggregated.failCount,
       group_statuses: groupStatuses, // ⭐ 그룹별 상세 정보 저장 (초기값)
       message_category: messageCategory || null, // 메시지 카테고리 저장
       message_subcategory: messageSubcategory || null, // 메시지 서브 카테고리 저장
@@ -669,6 +740,33 @@ export default async function handler(req, res) {
       console.error('AI 사용량 로깅 중 예외:', logError);
     }
 
+    // ⭐ 인증 오류 확인
+    const hasAuthError = chunkErrors.some(e => e.isAuthError);
+    
+    if (hasAuthError) {
+      console.error('🔴 Solapi 인증 오류가 발생했습니다. API 키/시크릿을 확인해주세요.');
+      return res.status(500).json({
+        success: false,
+        message: 'Solapi 인증 오류: API 키/시크릿을 확인해주세요. (No valid session)',
+        result: {
+          groupIds: aggregated.groupIds,
+          sentCount: uniqueToSend.length,
+          successCount: aggregated.successCount,
+          failCount: aggregated.failCount,
+          totalChunks: totalChunks,
+          failedChunks: chunkErrors.length,
+          chunkErrors: chunkErrors.filter(e => e.isAuthError).map(e => ({
+            chunkIndex: e.chunkIndex,
+            errorMessage: e.error?.errorMessage || '인증 오류',
+            statusCode: e.error?.statusCode,
+            errorCode: e.error?.errorCode
+          }))
+        },
+        authError: true,
+        hint: '환경 변수 SOLAPI_API_KEY와 SOLAPI_API_SECRET을 확인해주세요.'
+      });
+    }
+
     // 응답 메시지 결정
     let responseMessage = 'SMS가 성공적으로 발송되었습니다.';
     let responseStatus = 200;
@@ -762,7 +860,7 @@ export default async function handler(req, res) {
         } else {
           // 새 메시지 생성 (id는 자동 생성, UUID인 경우도 여기서 처리)
           const { error } = await supabase
-            .from('channel_sms')
+          .from('channel_sms')
             .insert(failData);
           upsertFailError = error;
         }
