@@ -360,12 +360,41 @@ export default function FeedManager({
 
           const compositionTarget = getCompositionTarget(selectedProductId);
           
-          console.log('🎨 기존 이미지 제품 합성 시작:', {
+          // ✅ baseImageUrl 명확히 생성 (카카오 콘텐츠 폴더 경로)
+          const dateStr = selectedDate || new Date().toISOString().split('T')[0];
+          const accountFolder = accountKey === 'account1' ? 'account1' : 'account2';
+          // 기존 이미지 URL에서 경로 추출 시도, 실패 시 명시적 경로 생성
+          let baseImageUrl = feedData.imageUrl;
+          
+          // feedData.imageUrl이 이미 Supabase public URL인 경우, 경로 추출
+          // 만약 경로 추출이 불가능하면 명시적 경로를 생성하여 전달
+          // ✅ 두 곳 저장을 보장하기 위해 명시적 경로 생성
+          if (!feedData.imageUrl.includes('blog-images') || !feedData.imageUrl.includes('daily-branding/kakao')) {
+            // 명시적 경로 생성 (저장 위치 결정용)
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+            baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/originals/daily-branding/kakao/${dateStr}/${accountFolder}/feed/kakao-${accountFolder}-feed-${Date.now()}.jpg`;
+          } else {
+            // feedData.imageUrl에 경로가 있지만, 명시적으로 카카오 콘텐츠 경로를 포함하도록 보장
+            // URL에서 경로 부분만 추출하여 명시적 경로 생성
+            const pathMatch = feedData.imageUrl.match(/blog-images\/(originals\/daily-branding\/kakao\/[^?]+)/);
+            if (pathMatch) {
+              const extractedPath = pathMatch[1];
+              const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+              baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/${extractedPath}`;
+            } else {
+              // 경로 추출 실패 시 명시적 경로 생성
+              const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+              baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/originals/daily-branding/kakao/${dateStr}/${accountFolder}/feed/kakao-${accountFolder}-feed-${Date.now()}.jpg`;
+            }
+          }
+          
+          console.log('🎨 기존 피드 이미지 제품 합성 시작:', {
             productId: selectedProductId,
             productName: selectedProduct.name,
             productCategory: selectedProduct.category,
             compositionTarget,
-            modelImageUrl: feedData.imageUrl
+            modelImageUrl: feedData.imageUrl,
+            baseImageUrl: baseImageUrl // ✅ 명확한 경로 전달
           });
           
           const composeResponse = await fetch('/api/compose-product-image', {
@@ -377,7 +406,8 @@ export default function FeedManager({
               compositionTarget: compositionTarget,
               compositionMethod: 'nano-banana-pro',
               compositionBackground: 'natural',
-              baseImageUrl: feedData.imageUrl // 저장 위치 결정용
+              baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
+              prompt: feedData.imagePrompt || feedData.basePrompt // ✅ 기존 프롬프트 전달
             })
           });
           
@@ -440,12 +470,41 @@ export default function FeedManager({
 
             const compositionTarget = getCompositionTarget(selectedProductId);
             
+            // ✅ baseImageUrl 명확히 생성 (카카오 콘텐츠 폴더 경로)
+            const dateStr = selectedDate || new Date().toISOString().split('T')[0];
+            const accountFolder = accountKey === 'account1' ? 'account1' : 'account2';
+            // 생성된 이미지 URL에서 경로 추출 시도, 실패 시 명시적 경로 생성
+            let baseImageUrl = finalImageUrl;
+            
+            // finalImageUrl이 이미 Supabase public URL인 경우, 경로 추출
+            // 만약 경로 추출이 불가능하면 명시적 경로를 생성하여 전달
+            // ✅ 두 곳 저장을 보장하기 위해 명시적 경로 생성
+            if (!finalImageUrl.includes('blog-images') || !finalImageUrl.includes('daily-branding/kakao')) {
+              // 명시적 경로 생성 (저장 위치 결정용)
+              const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+              baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/originals/daily-branding/kakao/${dateStr}/${accountFolder}/feed/kakao-${accountFolder}-feed-${Date.now()}.jpg`;
+            } else {
+              // finalImageUrl에 경로가 있지만, 명시적으로 카카오 콘텐츠 경로를 포함하도록 보장
+              // URL에서 경로 부분만 추출하여 명시적 경로 생성
+              const pathMatch = finalImageUrl.match(/blog-images\/(originals\/daily-branding\/kakao\/[^?]+)/);
+              if (pathMatch) {
+                const extractedPath = pathMatch[1];
+                const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+                baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/${extractedPath}`;
+              } else {
+                // 경로 추출 실패 시 명시적 경로 생성
+                const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+                baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/originals/daily-branding/kakao/${dateStr}/${accountFolder}/feed/kakao-${accountFolder}-feed-${Date.now()}.jpg`;
+              }
+            }
+            
             console.log('🎨 피드 이미지 제품 합성 시작:', {
               productId: selectedProductId,
               productName: selectedProduct.name,
               productCategory: selectedProduct.category,
               compositionTarget,
-              modelImageUrl: finalImageUrl
+              modelImageUrl: finalImageUrl,
+              baseImageUrl: baseImageUrl // ✅ 명확한 경로 전달
             });
             
             // 🔍 디버깅: baseImageUrl 및 productId 검증
@@ -453,22 +512,15 @@ export default function FeedManager({
               productId: selectedProductId,
               productName: selectedProduct?.name,
               productSlug: selectedProduct?.slug,
-              baseImageUrl: finalImageUrl,
-              baseImageUrlType: typeof finalImageUrl,
-              baseImageUrlLength: finalImageUrl?.length,
-              baseImageUrlIncludesKakao: finalImageUrl?.includes('daily-branding/kakao'),
-              baseImageUrlIncludesBlogImages: finalImageUrl?.includes('blog-images'),
-              compositionTarget: compositionTarget
+              baseImageUrl: baseImageUrl,
+              baseImageUrlType: typeof baseImageUrl,
+              baseImageUrlLength: baseImageUrl?.length,
+              baseImageUrlIncludesKakao: baseImageUrl?.includes('daily-branding/kakao'),
+              baseImageUrlIncludesBlogImages: baseImageUrl?.includes('blog-images'),
+              compositionTarget: compositionTarget,
+              dateStr: dateStr,
+              accountFolder: accountFolder
             });
-            
-            // baseImageUrl이 올바른 형식인지 검증
-            if (finalImageUrl && !finalImageUrl.includes('blog-images')) {
-              console.warn('⚠️ [디버깅] baseImageUrl에 blog-images 경로가 없습니다:', finalImageUrl);
-            }
-            
-            if (finalImageUrl && !finalImageUrl.includes('daily-branding/kakao')) {
-              console.warn('⚠️ [디버깅] baseImageUrl에 daily-branding/kakao 경로가 없습니다:', finalImageUrl);
-            }
             
             const composeResponse = await fetch('/api/compose-product-image', {
               method: 'POST',
@@ -479,7 +531,8 @@ export default function FeedManager({
                 compositionTarget: compositionTarget,
                 compositionMethod: 'nano-banana-pro',
                 compositionBackground: 'natural', // 배경 유지 명시
-                baseImageUrl: finalImageUrl // 저장 위치 결정용
+                baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
+                prompt: promptToUse // ✅ 프롬프트 전달
               })
             });
             

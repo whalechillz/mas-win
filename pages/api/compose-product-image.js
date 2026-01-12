@@ -47,10 +47,23 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', bas
     
     if (baseImageUrl) {
       try {
-        const match = baseImageUrl.match(/blog-images\/([^?]+)/);
+        // ✅ 여러 패턴 시도
+        let match = baseImageUrl.match(/blog-images\/([^?]+)/);
+        
+        // 패턴 1 실패 시 패턴 2 시도 (public URL에서 직접 경로 추출)
+        if (!match) {
+          match = baseImageUrl.match(/\/storage\/v1\/object\/public\/blog-images\/([^?]+)/);
+        }
+        
+        // 패턴 2 실패 시 패턴 3 시도 (상대 경로)
+        if (!match && baseImageUrl.startsWith('originals/')) {
+          match = [null, baseImageUrl];
+        }
+        
         console.log('🔍 [디버깅] baseImageUrl 패턴 매칭:', {
           match: match ? '성공' : '실패',
-          matchedPath: match ? match[1] : null
+          matchedPath: match ? match[1] : null,
+          baseImageUrl: baseImageUrl
         });
         
         if (match) {
@@ -184,6 +197,22 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', bas
     let sourceFileName = null;
     if (sourceFolder) {
       sourceFileName = `${sourceFolder}/${prefix}-${productId}-${timestamp}.${fileExtension}`;
+    } else {
+      // ✅ baseImageUrl에서 경로 추출 실패 시, baseImageUrl 자체에서 카카오 콘텐츠 경로 추출 시도
+      if (baseImageUrl) {
+        // baseImageUrl이 카카오 콘텐츠 URL 형식인지 확인
+        const kakaoMatch = baseImageUrl.match(/daily-branding\/kakao\/(\d{4}-\d{2}-\d{2})\/(account[12])\/(feed|profile|background)/);
+        if (kakaoMatch) {
+          const [, dateStr, accountFolder, typeFolder] = kakaoMatch;
+          sourceFolder = `originals/daily-branding/kakao/${dateStr}/${accountFolder}/${typeFolder}`;
+          sourceFolderType = 'kakao';
+          sourceFileName = `${sourceFolder}/${prefix}-${productId}-${timestamp}.${fileExtension}`;
+          console.log('✅ baseImageUrl에서 카카오 콘텐츠 경로 추출 성공 (fallback):', {
+            sourceFolder: sourceFolder,
+            sourceFileName: sourceFileName
+          });
+        }
+      }
     }
     
     // 6. 제품 gallery에 저장 (항상 - 필수)
@@ -529,7 +558,8 @@ export default async function handler(req, res) {
       outputFormat: requestedFormat = null,  // 클라이언트 요청 포맷 (선택, 자동 감지 우선)
       compositionBackground = 'natural', // 배경 타입: 'natural' | 'studio' | 'product-page'
       productOnlyMode = false, // 제품컷 전용 모드
-      baseImageUrl = null // 베이스 이미지 URL (저장 위치 결정용)
+      baseImageUrl = null, // 베이스 이미지 URL (저장 위치 결정용)
+      imageType = null // 이미지 타입: 'profile' | 'feed' | 'background' (프로필 이미지용 클로즈업 지시사항)
     } = req.body;
 
     // 🔍 디버깅: 요청 파라미터 상세 로깅
@@ -601,6 +631,8 @@ export default async function handler(req, res) {
           compositionTarget: supabaseProduct.composition_target,
           imageUrl: convertPngToWebp(supabaseProduct.image_url), // 기본 이미지 (.png → .webp 변환됨)
           referenceImages: convertedReferenceImages, // .png → .webp 변환됨
+          // ✅ reference_images_enabled 필드 추가 (참조 이미지 활성화 상태)
+          reference_images_enabled: supabaseProduct.reference_images_enabled || {},
           driverParts: supabaseProduct.driver_parts || undefined,
           hatType: supabaseProduct.hat_type,
           slug: supabaseProduct.slug,
@@ -647,13 +679,20 @@ export default async function handler(req, res) {
     const shaftImageUrl = product.shaftImageUrl || product.shaft_image_url;
     const badgeImageUrl = product.badgeImageUrl || product.badge_image_url;
     
+    // ✅ 샤프트/배지 이미지 URL을 product 객체에 추가
+    if (shaftImageUrl) {
+      product.shaftImageUrl = shaftImageUrl;
+    }
+    if (badgeImageUrl) {
+      product.badgeImageUrl = badgeImageUrl;
+    }
+    
     let compositionPrompt = prompt || generateCompositionPrompt(
       product, 
       hasReferenceImages,
       targetDriverPart,
       compositionBackground,
-      shaftImageUrl,  // ✅ 샤프트 이미지 URL 전달
-      badgeImageUrl   // ✅ 배지 이미지 URL 전달
+      imageType  // ✅ 이미지 타입 전달 (프로필 이미지용 클로즈업 지시사항)
     );
     if (productOnlyMode) {
       // 사람 없이 제품컷 전용 프롬프트
@@ -692,7 +731,97 @@ export default async function handler(req, res) {
         throw new Error(`모델 이미지 URL은 HTTPS로 시작해야 합니다: ${modelImageUrl}`);
       }
       
-      validatedModelImageUrl = modelImageUrl;
+      // ✅ 잘못된 v_file 경로를 올바른 형식으로 변환
+      if (modelImageUrl.includes('/storage/v_file/')) {
+        console.warn('⚠️ 잘못된 v_file URL 형식 감지, 올바른 형식으로 변환 중...');
+        
+        // 1. baseImageUrl이 있으면 우선 사용 (실제 저장 경로 - 가장 정확)
+        if (baseImageUrl && baseImageUrl.includes('supabase.co/storage/v1/object/public/blog-images/')) {
+          // baseImageUrl에서 경로 추출
+          const basePathMatch = baseImageUrl.match(/blog-images\/([^?]+)/);
+          if (basePathMatch) {
+            const extractedPath = basePathMatch[1];
+            const SUPABASE_BASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+            validatedModelImageUrl = `${SUPABASE_BASE_URL}/storage/v1/object/public/blog-images/${extractedPath}`;
+            
+            console.log('🔄 v_file URL 변환 완료 (baseImageUrl 사용):', {
+              original: modelImageUrl,
+              baseImageUrl: baseImageUrl,
+              converted: validatedModelImageUrl
+            });
+          }
+        }
+        
+        // 2. baseImageUrl이 없거나 추출 실패 시 파일명으로 경로 추정
+        if (!validatedModelImageUrl) {
+          const vFileMatch = modelImageUrl.match(/\/storage\/v_file\/([^?]+)/);
+          if (vFileMatch) {
+            const fileName = vFileMatch[1];
+            
+            // 파일명에서 정보 추출
+            // 예: kakao-account1-profile-1768230321468-1-1.jpg
+            const accountMatch = fileName.match(/kakao-(account[12])-(profile|feed|background)/);
+            const accountFolder = accountMatch ? accountMatch[1] : 'account1';
+            const typeFolder = accountMatch ? accountMatch[2] : 'profile';
+            
+            // 날짜 추정 (현재 날짜 또는 파일명의 타임스탬프에서 추출)
+            const timestampMatch = fileName.match(/(\d{13})/);
+            let dateStr = new Date().toISOString().split('T')[0];
+            if (timestampMatch) {
+              try {
+                const timestamp = parseInt(timestampMatch[1]);
+                dateStr = new Date(timestamp).toISOString().split('T')[0];
+              } catch (e) {
+                // 타임스탬프 파싱 실패 시 현재 날짜 사용
+              }
+            }
+            
+            // 올바른 경로로 변환
+            const SUPABASE_BASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+            validatedModelImageUrl = `${SUPABASE_BASE_URL}/storage/v1/object/public/blog-images/originals/daily-branding/kakao/${dateStr}/${accountFolder}/${typeFolder}/${fileName}`;
+            
+            console.log('🔄 v_file URL 변환 완료 (파일명 추정):', {
+              original: modelImageUrl,
+              converted: validatedModelImageUrl,
+              estimatedPath: `originals/daily-branding/kakao/${dateStr}/${accountFolder}/${typeFolder}/${fileName}`
+            });
+          }
+        }
+        
+        // 3. 변환 실패 시 명확한 에러 메시지
+        if (!validatedModelImageUrl) {
+          throw new Error(`v_file URL을 올바른 형식으로 변환할 수 없습니다: ${modelImageUrl}. baseImageUrl을 제공하거나 올바른 URL 형식을 사용해주세요.`);
+        }
+      } else {
+        validatedModelImageUrl = modelImageUrl;
+      }
+      
+      // ✅ Supabase Storage URL 접근성 확인 (HEAD 요청)
+      if (validatedModelImageUrl && validatedModelImageUrl.includes('supabase.co/storage/v1/object/public/')) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000); // 5초 타임아웃
+          
+          const headResponse = await fetch(validatedModelImageUrl, {
+            method: 'HEAD',
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          
+          if (!headResponse.ok) {
+            console.warn(`⚠️ 모델 이미지 URL 접근 불가 (${headResponse.status}):`, validatedModelImageUrl);
+            // 접근 불가해도 계속 진행 (FAL AI가 다시 시도할 수 있음)
+          } else {
+            console.log('✅ 모델 이미지 URL 접근 가능 확인');
+          }
+        } catch (fetchError) {
+          if (fetchError.name !== 'AbortError') {
+            console.warn('⚠️ 모델 이미지 URL 접근성 확인 실패:', fetchError.message);
+          }
+          // 타임아웃이나 네트워크 오류는 무시하고 계속 진행
+        }
+      }
+      
       console.log('📸 모델 이미지 URL 검증 완료:', validatedModelImageUrl);
     }
     
@@ -742,6 +871,21 @@ export default async function handler(req, res) {
         return url.replace(/^\/+/, '/').toLowerCase();
       };
       
+      // ✅ URL 매칭용 정규화 함수 (상대 경로와 절대 경로 모두 처리)
+      const normalizeUrlForMatching = (url) => {
+        if (!url) return '';
+        // 절대 URL에서 경로 부분만 추출
+        const pathMatch = url.match(/\/blog-images\/(.+)$/);
+        if (pathMatch) {
+          return pathMatch[1].toLowerCase();
+        }
+        // 상대 경로인 경우
+        if (url.startsWith('originals/') || url.startsWith('products/')) {
+          return url.toLowerCase();
+        }
+        return url.toLowerCase();
+      };
+      
       const mainImageNormalized = normalizeUrl(mainImageUrl);
       
       // ✅ 참조 이미지 활성화 상태 확인
@@ -753,11 +897,21 @@ export default async function handler(req, res) {
         const refNormalized = normalizeUrl(refImg);
         // 중복 체크
         if (refNormalized === mainImageNormalized) return false;
-        // ✅ 활성화 상태 체크 (기본값: true)
-        if (refImagesEnabled[refImg] === false) {
+        
+        // ✅ 활성화 상태 체크 (URL 정규화하여 매칭)
+        // refImagesEnabled의 키도 정규화하여 비교
+        const refNormalizedForMatching = normalizeUrlForMatching(refImg);
+        const enabledKeys = Object.keys(refImagesEnabled);
+        const isDisabled = enabledKeys.some(key => {
+          const normalizedKey = normalizeUrlForMatching(key);
+          return normalizedKey === refNormalizedForMatching && refImagesEnabled[key] === false;
+        });
+        
+        if (isDisabled) {
           console.log(`⏭️ 참조 이미지 비활성화됨: ${refImg}`);
           return false;
         }
+        
         return true;
       });
       
@@ -791,7 +945,47 @@ export default async function handler(req, res) {
       throw new Error('합성할 이미지가 없습니다. 모델 이미지 또는 제품 이미지가 필요합니다.');
     }
     
-    console.log(`📋 최종 이미지 URL 목록 (${sanitizedUrls.length}개):`, sanitizedUrls);
+    // ✅ FAL AI API 제한: 최대 14개 이미지 URL (안전장치)
+    const MAX_IMAGE_URLS = 14;
+    let finalUrls = sanitizedUrls;
+    if (sanitizedUrls.length > MAX_IMAGE_URLS) {
+      console.warn(`⚠️ 이미지 URL이 ${sanitizedUrls.length}개로 제한(${MAX_IMAGE_URLS}개)을 초과합니다. 우선순위에 따라 제한합니다.`);
+      
+      // 우선순위: 1. 모델 이미지, 2. 제품 메인 이미지, 3. 참조 이미지
+      const prioritizedUrls = [];
+      
+      // 1. 모델 이미지 (필수)
+      if (validatedModelImageUrl) {
+        prioritizedUrls.push(validatedModelImageUrl);
+      }
+      
+      // 2. 제품 메인 이미지 (필수)
+      const mainProductUrl = productImageUrl || product.imageUrl;
+      if (mainProductUrl) {
+        const absoluteMain = getAbsoluteProductImageUrl(mainProductUrl);
+        if (absoluteMain && !prioritizedUrls.includes(absoluteMain)) {
+          prioritizedUrls.push(absoluteMain);
+        }
+      }
+      
+      // 3. 참조 이미지 (남은 공간만큼만)
+      const remainingSlots = MAX_IMAGE_URLS - prioritizedUrls.length;
+      const refImages = sanitizedUrls.filter(url => 
+        url !== validatedModelImageUrl && 
+        url !== getAbsoluteProductImageUrl(mainProductUrl) &&
+        url !== getAbsoluteProductImageUrl(product.imageUrl)
+      );
+      
+      if (refImages.length > 0 && remainingSlots > 0) {
+        prioritizedUrls.push(...refImages.slice(0, remainingSlots));
+        console.log(`✅ ${prioritizedUrls.length}개의 이미지 URL로 제한 (참조 이미지 ${refImages.length}개 중 ${remainingSlots}개만 사용)`);
+      }
+      
+      // 제한된 URL 배열로 교체
+      finalUrls = prioritizedUrls;
+    }
+    
+    console.log(`📋 최종 이미지 URL 목록 (${finalUrls.length}개):`, finalUrls);
 
     // 나노바나나 API 호출
     const modelName = compositionMethod === 'nano-banana' 
@@ -814,7 +1008,7 @@ export default async function handler(req, res) {
       // FAL AI 입력 파라미터 구성
       const falInput = {
         prompt: compositionPrompt,
-        image_urls: sanitizedUrls, // 검증된 URL 배열 사용
+        image_urls: finalUrls, // ✅ 제한된 URL 배열 사용 (최대 14개)
         num_images: numImages,
         aspect_ratio: aspectRatio,
         output_format: outputFormat,

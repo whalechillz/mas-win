@@ -157,6 +157,35 @@ export default function ProfileManager({
           setIsComposingProduct(prev => ({ ...prev, background: true }));
           try {
             const compositionTarget = getCompositionTarget(selectedProductId.background, 'background');
+            
+            // ✅ baseImageUrl 명확히 생성 (카카오 콘텐츠 폴더 경로)
+            const dateStr = selectedDate || new Date().toISOString().split('T')[0];
+            const accountFolder = accountKey === 'account1' ? 'account1' : 'account2';
+            // 생성된 이미지 URL에서 경로 추출 시도, 실패 시 명시적 경로 생성
+            let baseImageUrl = finalImageUrl;
+            
+            // finalImageUrl이 이미 Supabase public URL인 경우, 경로 추출
+            // 만약 경로 추출이 불가능하면 명시적 경로를 생성하여 전달
+            // ✅ 두 곳 저장을 보장하기 위해 명시적 경로 생성
+            if (!finalImageUrl.includes('blog-images') || !finalImageUrl.includes('daily-branding/kakao')) {
+              // 명시적 경로 생성 (저장 위치 결정용)
+              const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+              baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/originals/daily-branding/kakao/${dateStr}/${accountFolder}/background/kakao-${accountFolder}-background-${Date.now()}.jpg`;
+            } else {
+              // finalImageUrl에 경로가 있지만, 명시적으로 카카오 콘텐츠 경로를 포함하도록 보장
+              // URL에서 경로 부분만 추출하여 명시적 경로 생성
+              const pathMatch = finalImageUrl.match(/blog-images\/(originals\/daily-branding\/kakao\/[^?]+)/);
+              if (pathMatch) {
+                const extractedPath = pathMatch[1];
+                const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+                baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/${extractedPath}`;
+              } else {
+                // 경로 추출 실패 시 명시적 경로 생성
+                const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+                baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/originals/daily-branding/kakao/${dateStr}/${accountFolder}/background/kakao-${accountFolder}-background-${Date.now()}.jpg`;
+              }
+            }
+            
             const composeResponse = await fetch('/api/compose-product-image', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -166,7 +195,8 @@ export default function ProfileManager({
                 compositionTarget: compositionTarget, // 선택한 제품의 compositionTarget 사용
                 compositionMethod: 'nano-banana-pro',
                 compositionBackground: 'natural', // 배경 유지 명시
-                baseImageUrl: finalImageUrl // 저장 위치 결정용
+                baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
+                prompt: profileData.background.prompt // ✅ 기존 프롬프트 전달
               })
             });
             
@@ -283,7 +313,8 @@ export default function ProfileManager({
         }
       }
       
-      // ✅ 기존 이미지가 있고 제품 합성이 활성화된 경우: 제품 합성만 수행 (프롬프트 재생성 제외)
+      // ✅ 기존 이미지가 있고 제품 합성이 활성화된 경우: 제품 합성만 수행
+      // "프롬프트 이미지 재생성" 버튼 클릭 시에는 새 이미지 생성 후 제품 합성하도록 분기
       if (profileData.profile.imageUrl && enableProductComposition.profile && selectedProductId.profile && !regeneratePrompt) {
         setIsComposingProduct(prev => ({ ...prev, profile: true }));
         try {
@@ -307,7 +338,30 @@ export default function ProfileManager({
           // ✅ baseImageUrl 명확히 생성 (카카오 콘텐츠 폴더 경로)
           const dateStr = selectedDate || new Date().toISOString().split('T')[0];
           const accountFolder = accountKey === 'account1' ? 'account1' : 'account2';
-          const baseImageUrl = profileData.profile.imageUrl; // 기존 이미지 URL 사용
+          // 기존 이미지 URL에서 경로 추출 시도, 실패 시 명시적 경로 생성
+          let baseImageUrl = profileData.profile.imageUrl;
+          
+          // profileData.profile.imageUrl이 이미 Supabase public URL인 경우, 경로 추출
+          // 만약 경로 추출이 불가능하면 명시적 경로를 생성하여 전달
+          // ✅ 두 곳 저장을 보장하기 위해 명시적 경로 생성
+          if (!profileData.profile.imageUrl.includes('blog-images') || !profileData.profile.imageUrl.includes('daily-branding/kakao')) {
+            // 명시적 경로 생성 (저장 위치 결정용)
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+            baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/originals/daily-branding/kakao/${dateStr}/${accountFolder}/profile/kakao-${accountFolder}-profile-${Date.now()}.jpg`;
+          } else {
+            // profileData.profile.imageUrl에 경로가 있지만, 명시적으로 카카오 콘텐츠 경로를 포함하도록 보장
+            // URL에서 경로 부분만 추출하여 명시적 경로 생성
+            const pathMatch = profileData.profile.imageUrl.match(/blog-images\/(originals\/daily-branding\/kakao\/[^?]+)/);
+            if (pathMatch) {
+              const extractedPath = pathMatch[1];
+              const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+              baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/${extractedPath}`;
+            } else {
+              // 경로 추출 실패 시 명시적 경로 생성
+              const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+              baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/originals/daily-branding/kakao/${dateStr}/${accountFolder}/profile/kakao-${accountFolder}-profile-${Date.now()}.jpg`;
+            }
+          }
           
           const composeResponse = await fetch('/api/compose-product-image', {
             method: 'POST',
@@ -318,8 +372,9 @@ export default function ProfileManager({
               compositionTarget: compositionTarget,
               compositionMethod: 'nano-banana-pro',
               compositionBackground: 'natural',
-              baseImageUrl: baseImageUrl, // ✅ 저장 위치 결정용
-              prompt: profileData.profile.prompt // ✅ 기존 프롬프트 전달 (피드와 동일)
+              baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
+              prompt: profileData.profile.prompt, // ✅ 기존 프롬프트 전달 (피드와 동일)
+              imageType: 'profile' // ✅ 프로필 이미지 타입 명시 (클로즈업 지시사항 적용)
             })
           });
           
@@ -396,8 +451,30 @@ export default function ProfileManager({
             // ✅ baseImageUrl 명확히 생성 (카카오 콘텐츠 폴더 경로)
             const dateStr = selectedDate || new Date().toISOString().split('T')[0];
             const accountFolder = accountKey === 'account1' ? 'account1' : 'account2';
-            // 생성된 이미지 URL에서 경로 추출 또는 명시적 경로 생성
-            const baseImageUrl = finalImageUrl; // 생성된 이미지 URL 사용
+            // 생성된 이미지 URL에서 경로 추출 시도, 실패 시 명시적 경로 생성
+            let baseImageUrl = finalImageUrl;
+            
+            // finalImageUrl이 이미 Supabase public URL인 경우, 경로 추출
+            // 만약 경로 추출이 불가능하면 명시적 경로를 생성하여 전달
+            // ✅ 두 곳 저장을 보장하기 위해 명시적 경로 생성
+            if (!finalImageUrl.includes('blog-images') || !finalImageUrl.includes('daily-branding/kakao')) {
+              // 명시적 경로 생성 (저장 위치 결정용)
+              const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+              baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/originals/daily-branding/kakao/${dateStr}/${accountFolder}/profile/kakao-${accountFolder}-profile-${Date.now()}.jpg`;
+            } else {
+              // finalImageUrl에 경로가 있지만, 명시적으로 카카오 콘텐츠 경로를 포함하도록 보장
+              // URL에서 경로 부분만 추출하여 명시적 경로 생성
+              const pathMatch = finalImageUrl.match(/blog-images\/(originals\/daily-branding\/kakao\/[^?]+)/);
+              if (pathMatch) {
+                const extractedPath = pathMatch[1];
+                const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+                baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/${extractedPath}`;
+              } else {
+                // 경로 추출 실패 시 명시적 경로 생성
+                const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+                baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/originals/daily-branding/kakao/${dateStr}/${accountFolder}/profile/kakao-${accountFolder}-profile-${Date.now()}.jpg`;
+              }
+            }
             
             const composeResponse = await fetch('/api/compose-product-image', {
               method: 'POST',
@@ -408,8 +485,9 @@ export default function ProfileManager({
                 compositionTarget: compositionTarget,
                 compositionMethod: 'nano-banana-pro',
                 compositionBackground: 'natural', // 배경 유지 명시
-                baseImageUrl: baseImageUrl, // ✅ 저장 위치 결정용 (카카오 콘텐츠 폴더)
-                prompt: promptToUse // ✅ 프롬프트 전달 (피드와 동일)
+                baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
+                prompt: promptToUse, // ✅ 프롬프트 전달 (피드와 동일)
+                imageType: 'profile' // ✅ 프로필 이미지 타입 명시 (클로즈업 지시사항 적용)
               })
             });
             
