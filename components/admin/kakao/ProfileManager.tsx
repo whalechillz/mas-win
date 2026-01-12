@@ -204,7 +204,25 @@ export default function ProfileManager({
     }
   };
 
-  const handleGenerateProfile = async () => {
+  // basePrompt 가져오기 (프로필용)
+  const getProfileBasePrompt = (): string | undefined => {
+    // 1순위: calendarData에서 조회
+    if (calendarData && accountKey && selectedDate) {
+      const profileSchedule = calendarData.profileContent?.[accountKey]?.dailySchedule || [];
+      const schedule = profileSchedule.find((s: any) => s.date === selectedDate);
+      if (schedule) {
+        const basePrompt = schedule.profile?.basePrompt || schedule.profile?.image;
+        if (basePrompt && basePrompt !== '없음') {
+          return basePrompt;
+        }
+      }
+    }
+    
+    // 2순위: profileData에서 조회
+    return profileData.profile.prompt;
+  };
+
+  const handleGenerateProfile = async (regeneratePrompt: boolean = false) => {
     // ✅ 배포 완료 상태면 차단
     if (publishStatus === 'published') {
       alert('배포 완료 상태에서는 이미지를 재생성할 수 없습니다. 배포 대기로 변경해주세요.');
@@ -213,7 +231,144 @@ export default function ProfileManager({
 
     try {
       setIsGeneratingProfile(true);
-      const result = await onGenerateImage('profile', profileData.profile.prompt);
+      
+      let promptToUse = profileData.profile.prompt;
+      
+      // ✅ 프롬프트 재생성 옵션 (피드와 동일)
+      if (regeneratePrompt) {
+        setIsRegeneratingPrompt('profile');
+        try {
+          let basePrompt: string | undefined = getProfileBasePrompt();
+          
+          if (!basePrompt) {
+            alert('basePrompt를 먼저 설정해주세요.');
+            setIsRegeneratingPrompt(null);
+            setIsGeneratingProfile(false);
+            return;
+          }
+
+          // 프롬프트 재생성 API 호출
+          const promptResponse = await fetch('/api/kakao-content/generate-prompt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt: basePrompt,
+              accountType: accountKey || (account.tone === 'gold' ? 'account1' : 'account2'),
+              type: 'profile',
+              brandStrategy: {
+                customerpersona: account.tone === 'gold' ? 'senior_fitting' : 'tech_enthusiast',
+                customerChannel: 'local_customers',
+                brandWeight: account.tone === 'gold' ? '높음' : '중간',
+                audienceTemperature: 'warm'
+              },
+              weeklyTheme: calendarData?.profileContent?.[accountKey || 'account1']?.weeklyThemes?.week1 || 
+                          '비거리의 감성 – 스윙과 마음의 연결',
+              date: selectedDate || new Date().toISOString().split('T')[0]
+            })
+          });
+
+          const promptData = await promptResponse.json();
+          if (!promptData.success) {
+            throw new Error(promptData.message || '프롬프트 재생성 실패');
+          }
+
+          promptToUse = promptData.prompt;
+        } catch (error: any) {
+          alert(`프롬프트 재생성 실패: ${error.message}`);
+          setIsRegeneratingPrompt(null);
+          setIsGeneratingProfile(false);
+          return;
+        } finally {
+          setIsRegeneratingPrompt(null);
+        }
+      }
+      
+      // ✅ 기존 이미지가 있고 제품 합성이 활성화된 경우: 제품 합성만 수행 (프롬프트 재생성 제외)
+      if (profileData.profile.imageUrl && enableProductComposition.profile && selectedProductId.profile && !regeneratePrompt) {
+        setIsComposingProduct(prev => ({ ...prev, profile: true }));
+        try {
+          const selectedProduct = products.find(p => p.id === selectedProductId.profile);
+          if (!selectedProduct) {
+            console.error('❌ 선택한 제품을 찾을 수 없습니다:', selectedProductId.profile);
+            alert('선택한 제품을 찾을 수 없습니다. 제품을 다시 선택해주세요.');
+            return;
+          }
+
+          const compositionTarget = getCompositionTarget(selectedProductId.profile, 'profile');
+          
+          console.log('🎨 기존 프로필 이미지 제품 합성 시작:', {
+            productId: selectedProductId.profile,
+            productName: selectedProduct.name,
+            productCategory: selectedProduct.category,
+            compositionTarget,
+            modelImageUrl: profileData.profile.imageUrl
+          });
+          
+          // ✅ baseImageUrl 명확히 생성 (카카오 콘텐츠 폴더 경로)
+          const dateStr = selectedDate || new Date().toISOString().split('T')[0];
+          const accountFolder = accountKey === 'account1' ? 'account1' : 'account2';
+          const baseImageUrl = profileData.profile.imageUrl; // 기존 이미지 URL 사용
+          
+          const composeResponse = await fetch('/api/compose-product-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              modelImageUrl: profileData.profile.imageUrl,
+              productId: selectedProductId.profile,
+              compositionTarget: compositionTarget,
+              compositionMethod: 'nano-banana-pro',
+              compositionBackground: 'natural',
+              baseImageUrl: baseImageUrl, // ✅ 저장 위치 결정용
+              prompt: profileData.profile.prompt // ✅ 기존 프롬프트 전달 (피드와 동일)
+            })
+          });
+          
+          if (!composeResponse.ok) {
+            const errorData = await composeResponse.json().catch(() => ({ 
+              error: `서버 오류 (${composeResponse.status})` 
+            }));
+            console.error('❌ 제품 합성 API 실패:', {
+              status: composeResponse.status,
+              statusText: composeResponse.statusText,
+              error: errorData
+            });
+            alert(`제품 합성 실패: ${errorData.error || errorData.message || '서버 오류가 발생했습니다.'}`);
+            return;
+          }
+          
+          const composeResult = await composeResponse.json();
+          
+          if (composeResult.success && composeResult.images && composeResult.images.length > 0) {
+            const finalImageUrl = composeResult.images[0].imageUrl;
+            console.log('✅ 기존 프로필 이미지 제품 합성 완료:', {
+              productName: composeResult.product?.name,
+              composedImageUrl: finalImageUrl
+            });
+            
+            onUpdate({
+              ...profileData,
+              profile: {
+                ...profileData.profile,
+                imageUrl: finalImageUrl
+              }
+            });
+            alert('✅ 기존 프로필 이미지에 제품이 합성되었습니다.');
+          } else {
+            console.warn('⚠️ 제품 합성 응답에 이미지가 없습니다:', composeResult);
+            alert('제품 합성은 완료되었지만 결과 이미지를 가져올 수 없습니다.');
+          }
+        } catch (composeError: any) {
+          console.error('❌ 제품 합성 예외 발생:', composeError);
+          alert(`제품 합성 중 오류가 발생했습니다: ${composeError.message || '알 수 없는 오류'}`);
+        } finally {
+          setIsComposingProduct(prev => ({ ...prev, profile: false }));
+          setIsGeneratingProfile(false);
+        }
+        return; // 제품 합성만 수행한 경우 여기서 종료
+      }
+      
+      // ✅ 기존 로직: 새 이미지 생성 → 제품 합성 (필요한 경우)
+      const result = await onGenerateImage('profile', promptToUse);
       if (result.imageUrls.length > 0) {
         let finalImageUrl = result.imageUrls[0];
         
@@ -238,6 +393,12 @@ export default function ProfileManager({
               modelImageUrl: finalImageUrl
             });
             
+            // ✅ baseImageUrl 명확히 생성 (카카오 콘텐츠 폴더 경로)
+            const dateStr = selectedDate || new Date().toISOString().split('T')[0];
+            const accountFolder = accountKey === 'account1' ? 'account1' : 'account2';
+            // 생성된 이미지 URL에서 경로 추출 또는 명시적 경로 생성
+            const baseImageUrl = finalImageUrl; // 생성된 이미지 URL 사용
+            
             const composeResponse = await fetch('/api/compose-product-image', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -247,7 +408,8 @@ export default function ProfileManager({
                 compositionTarget: compositionTarget,
                 compositionMethod: 'nano-banana-pro',
                 compositionBackground: 'natural', // 배경 유지 명시
-                baseImageUrl: finalImageUrl // 저장 위치 결정용
+                baseImageUrl: baseImageUrl, // ✅ 저장 위치 결정용 (카카오 콘텐츠 폴더)
+                prompt: promptToUse // ✅ 프롬프트 전달 (피드와 동일)
               })
             });
             
@@ -293,7 +455,7 @@ export default function ProfileManager({
           profile: {
             ...profileData.profile,
             imageUrl: finalImageUrl,
-            prompt: result.generatedPrompt || profileData.profile.prompt // 생성된 프롬프트 저장
+            prompt: result.generatedPrompt || promptToUse || profileData.profile.prompt // ✅ 생성된 프롬프트 또는 재생성된 프롬프트 저장
           }
         });
       }
@@ -1080,6 +1242,27 @@ export default function ProfileManager({
                   </>
                 )}
               </button>
+              {/* ✅ 프롬프트 재생성 옵션 (이미지가 있을 때만 표시) - 피드와 동일 */}
+              {profileData.profile.imageUrl && profileData.profile.prompt && (
+                <button
+                  onClick={() => handleGenerateProfile(true)}
+                  disabled={isRegeneratingPrompt === 'profile' || isGeneratingProfile || isGenerating || publishStatus === 'published'}
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="프롬프트 재생성 + 이미지 재생성 (제품 합성 포함)"
+                >
+                  {isRegeneratingPrompt === 'profile' ? (
+                    <>
+                      <Sparkles className="w-4 h-4 animate-spin" />
+                      재생성 중...
+                    </>
+                  ) : (
+                    <>
+                      <RotateCcw className="w-4 h-4" />
+                      프롬프트 이미지 재생성
+                    </>
+                  )}
+                </button>
+              )}
               {profileData.profile.imageUrl && (
                 <>
                   <button

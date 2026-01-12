@@ -309,7 +309,13 @@ const FolderImagePicker: React.FC<Props> = ({
                 <div
                   key={img.url}
                   className="relative group cursor-pointer"
-                  onClick={() => onSelect(img.url)}
+                  onClick={(e) => {
+                    // 삭제 버튼 클릭 시 선택 동작 방지
+                    if ((e.target as HTMLElement).closest('.delete-button')) {
+                      return;
+                    }
+                    onSelect(img.url);
+                  }}
                 >
                   <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-500 transition-all">
                     <img
@@ -319,6 +325,43 @@ const FolderImagePicker: React.FC<Props> = ({
                       loading="lazy"
                     />
                   </div>
+                  
+                  {/* ✅ 삭제 버튼 추가 (enableDelete가 true일 때만) */}
+                  {enableDelete && onDelete && (
+                    <button
+                      type="button"
+                      className="delete-button absolute top-1 right-1 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 z-10 shadow-lg"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (!confirm(`정말 "${img.name}" 이미지를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) {
+                          return;
+                        }
+                        
+                        if (isDeleting === img.url) return;
+                        setIsDeleting(img.url);
+                        
+                        try {
+                          await onDelete(img.url);
+                          // 삭제 후 이미지 목록 새로고침
+                          await fetchFolderImages();
+                        } catch (error: any) {
+                          console.error('이미지 삭제 오류:', error);
+                          alert(error.message || '이미지 삭제 중 오류가 발생했습니다.');
+                        } finally {
+                          setIsDeleting(null);
+                        }
+                      }}
+                      disabled={isDeleting === img.url}
+                      title="이미지 삭제"
+                    >
+                      {isDeleting === img.url ? (
+                        <span className="animate-spin text-xs">⏳</span>
+                      ) : (
+                        <span className="text-lg font-bold leading-none">×</span>
+                      )}
+                    </button>
+                  )}
+                  
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
                     <div className="text-white text-xs font-medium bg-black bg-opacity-50 px-2 py-1 rounded">
                       선택
