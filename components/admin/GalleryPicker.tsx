@@ -180,6 +180,7 @@ const GalleryPicker: React.FC<Props> = ({
       // 재시도가 아닌 첫 요청이고 폴더 필터가 있을 때만 캐시 무효화
       if (retryCount === 0 && folderFilter) {
         params.append('forceRefresh', 'true');
+        params.append('_t', Date.now().toString()); // ✅ 타임스탬프 추가로 브라우저 캐시 무효화
       }
       
       const apiUrl = `/api/admin/all-images?${params.toString()}`;
@@ -209,6 +210,46 @@ const GalleryPicker: React.FC<Props> = ({
       }
       
       const data = await res.json();
+      
+      // ✅ 디버깅: 상세 로그 추가
+      console.log('🔍 [DEBUG] API 응답 상세:', {
+        images: data.images,
+        imagesLength: data.images?.length || 0,
+        total: data.total || 0,
+        count: data.count || 0,
+        folderFilter: folderFilter || '전체',
+        apiUrl: apiUrl,
+        forceRefresh: params.get('forceRefresh'),
+        timestamp: params.get('_t'),
+        prefix: params.get('prefix'),
+        includeChildren: params.get('includeChildren')
+      });
+      
+      // ✅ 디버깅: 이미지가 없는데 total이 있는 경우 경고
+      if ((!data.images || data.images.length === 0) && data.total > 0) {
+        console.warn('⚠️ [DEBUG] 이미지 불일치 감지:', {
+          imagesCount: data.images?.length || 0,
+          total: data.total,
+          folderFilter: folderFilter,
+          message: '이미지 배열이 비어있는데 total이 0보다 큼 - 캐시 문제 가능성'
+        });
+      }
+      
+      // ✅ 디버깅: 이미지 URL 확인
+      if (data.images && data.images.length > 0) {
+        console.log('🔍 [DEBUG] 이미지 URL 목록:', data.images.map((img: any) => ({
+          name: img.name,
+          url: img.url,
+          folder_path: img.folder_path
+        })));
+      } else {
+        console.warn('⚠️ [DEBUG] 이미지가 없습니다:', {
+          folderFilter: folderFilter,
+          prefix: params.get('prefix'),
+          includeChildren: params.get('includeChildren')
+        });
+      }
+      
       console.log('✅ 이미지 로드 성공:', {
         count: data.images?.length || 0,
         total: data.total || 0,
@@ -313,6 +354,11 @@ const GalleryPicker: React.FC<Props> = ({
     if (autoFilterFolder) {
       console.log('📁 GalleryPicker autoFilterFolder:', autoFilterFolder);
       
+      // ✅ 수정: 이전 이미지 즉시 클리어
+      setAllImages([]);
+      setTotal(0);
+      setIsLoading(true);
+      
       // ⚠️ 중요: originals/mms/YYYY-MM-DD/메시지ID 형식인 경우 상위 폴더로 자동 이동
       const isMessageIdFolder = autoFilterFolder.match(/^originals\/mms\/\d{4}-\d{2}-\d{2}\/\d+$/);
       let targetFolder = '';
@@ -335,18 +381,15 @@ const GalleryPicker: React.FC<Props> = ({
         targetFolder = autoFilterFolder;
       }
       
+      // ✅ 수정: 폴더 필터 설정 (folderFilter 변경 시 useEffect가 자동으로 fetchImages 호출)
       setFolderFilter(targetFolder);
-      // 🔧 수정: 폴더 필터 설정 후 즉시 이미지 로드 (상태 업데이트를 기다리기 위해 setTimeout 사용)
-      setTimeout(() => {
-        fetchImages(true);
-      }, 0);
+      // ✅ 추가: 페이지도 1로 리셋
+      setPage(1);
     } else {
       // autoFilterFolder가 없으면 폴더 필터 초기화
       setFolderFilter('');
-      // 🔧 수정: 폴더 필터 초기화 후에도 이미지 로드
-      setTimeout(() => {
-        fetchImages(true);
-      }, 0);
+      setAllImages([]);
+      setTotal(0);
     }
     // 모달이 닫힐 때 상태 초기화
     return () => {
@@ -363,10 +406,17 @@ const GalleryPicker: React.FC<Props> = ({
       setIsUploading(false);
       return;
     }
-    // folderFilter가 변경될 때는 캐시 무효화를 위해 resetPage=true
-    const shouldResetPage = folderFilter !== undefined;
-    console.log('📁 folderFilter 또는 page 변경 감지, 이미지 다시 로드:', { folderFilter, page, shouldResetPage });
-    fetchImages(shouldResetPage);
+    
+    // ✅ 수정: folderFilter가 변경될 때는 이전 이미지 클리어 및 캐시 무효화
+    if (folderFilter !== undefined && folderFilter !== null) {
+      // folderFilter가 변경될 때는 캐시 무효화를 위해 resetPage=true
+      const shouldResetPage = true;
+      console.log('📁 folderFilter 또는 page 변경 감지, 이미지 다시 로드:', { folderFilter, page, shouldResetPage });
+      
+      // ✅ 추가: folderFilter가 실제로 변경되었을 때만 이미지 로드
+      // (초기 로드 시에는 이미 위에서 클리어했으므로 중복 방지)
+      fetchImages(shouldResetPage);
+    }
   }, [isOpen, page, folderFilter]);
 
   // 이미지 업로드 핸들러

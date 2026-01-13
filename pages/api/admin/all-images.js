@@ -22,13 +22,26 @@ let imagesCache = new Map();
 let imagesCacheTimestamp = 0;
 const IMAGES_CACHE_DURATION = 5 * 60 * 1000; // 5분
 
-// 캐시 무효화 함수 (외부에서 호출 가능)
-export function invalidateCache() {
-  totalCountCache = null;
-  cacheTimestamp = 0;
-  imagesCache.clear();
-  imagesCacheTimestamp = 0;
-  console.log('🗑️ 이미지 목록 캐시 무효화 완료');
+// ✅ 캐시 무효화 함수 개선: 특정 prefix의 캐시만 무효화 가능
+export function invalidateCache(prefix = null) {
+  if (prefix) {
+    // 특정 prefix의 캐시만 무효화
+    const keysToDelete = [];
+    imagesCache.forEach((value, key) => {
+      if (key.startsWith(`${prefix}_`)) {
+        keysToDelete.push(key);
+      }
+    });
+    keysToDelete.forEach(key => imagesCache.delete(key));
+    console.log(`🗑️ 특정 폴더 캐시 무효화 완료: ${prefix} (${keysToDelete.length}개 키)`);
+  } else {
+    // 전체 캐시 무효화
+    totalCountCache = null;
+    cacheTimestamp = 0;
+    imagesCache.clear();
+    imagesCacheTimestamp = 0;
+    console.log('🗑️ 전체 이미지 목록 캐시 무효화 완료');
+  }
 }
 
 // ✅ 메타데이터 품질 검증 함수
@@ -334,15 +347,26 @@ export default async function handler(req, res) {
     await Promise.race([
       (async () => {
         // 캐시 무효화 요청 처리 (forceRefresh 파라미터)
-        const { forceRefresh } = req.query;
-        if (forceRefresh === 'true' || forceRefresh === '1') {
-          invalidateCache();
-          console.log('🔄 캐시 강제 무효화 요청 처리');
-        }
+        const { forceRefresh, _t } = req.query;
         
         if (req.method === 'GET') {
       // 기본 limit을 24로 줄여서 빠른 응답 (갤러리에서 사용)
       const { limit = 24, offset = 0, page = 1, prefix = '', includeChildren = 'true', searchQuery = '', source, channel } = req.query;
+      
+      // ✅ forceRefresh 처리: prefix가 있으면 해당 prefix의 캐시만 무효화
+      if (forceRefresh === 'true' || forceRefresh === '1') {
+        if (prefix) {
+          invalidateCache(prefix);
+          // ✅ totalCount도 무효화 (prefix별로는 분리 불가하므로 전체 무효화)
+          totalCountCache = null;
+          cacheTimestamp = 0;
+        } else {
+          invalidateCache();
+          totalCountCache = null;
+          cacheTimestamp = 0;
+        }
+        console.log('🔄 캐시 강제 무효화 요청 처리', prefix ? `(prefix: ${prefix})` : '(전체)');
+      }
       const pageSize = parseInt(limit);
       const currentPage = parseInt(page);
       const currentOffset = parseInt(offset) || (currentPage - 1) * pageSize;
@@ -788,11 +812,21 @@ export default async function handler(req, res) {
       
       // 검색어가 없을 때는 기존 페이지네이션 로직 사용
       
+      // includeChildren 파라미터 처리 (boolean 또는 문자열 모두 지원)
+      const shouldIncludeChildren = includeChildren === 'true' || includeChildren === true || includeChildren === '1';
+      
       // 전체 개수 조회 (캐싱 적용) - 폴더 포함
       let totalCount = totalCountCache;
       const now = Date.now();
       
-      if (!totalCountCache || (now - cacheTimestamp) > CACHE_DURATION) {
+      // ✅ forceRefresh 시 totalCount 캐시도 무효화
+      if (forceRefresh === 'true' || forceRefresh === '1') {
+        totalCountCache = null;
+        cacheTimestamp = 0;
+        totalCount = null; // 강제로 새로 조회
+      }
+      
+      if (!totalCount || (now - cacheTimestamp) > CACHE_DURATION) {
         console.log('📊 전체 이미지 개수 조회 중 (폴더 포함)...');
         let allFiles = [];
         
@@ -897,9 +931,6 @@ export default async function handler(req, res) {
         console.log('📊 캐시된 전체 이미지 개수 사용:', totalCount, '개');
       }
       
-      // includeChildren 파라미터 처리 (boolean 또는 문자열 모두 지원)
-      const shouldIncludeChildren = includeChildren === 'true' || includeChildren === true || includeChildren === '1';
-      
       // ✅ includeChildren='false'일 때는 현재 폴더의 이미지 개수만 사용
       // 전체 이미지 개수(totalCount)는 includeChildren='true'일 때만 사용
       // allFilesForPagination은 아직 조회되지 않았을 수 있으므로, 일단 totalCount 사용 (나중에 실제 조회 후 업데이트)
@@ -910,13 +941,23 @@ export default async function handler(req, res) {
       const currentTime = Date.now();
       let allFilesForPagination = [];
       
-      if (imagesCache.has(cacheKey) && (currentTime - imagesCacheTimestamp) < IMAGES_CACHE_DURATION) {
+      // ✅ forceRefresh가 있으면 캐시 무시하고 새로 조회
+      if ((forceRefresh === 'true' || forceRefresh === '1') && prefix) {
+        console.log('🔄 forceRefresh 요청으로 캐시 무시:', cacheKey);
+        // 캐시 무시하고 새로 조회 - 아래 else 블록으로 진행
+      }
+      
+      // 캐시 확인 (forceRefresh가 아닐 때만)
+      if (!((forceRefresh === 'true' || forceRefresh === '1') && prefix) && 
+          imagesCache.has(cacheKey) && 
+          (currentTime - imagesCacheTimestamp) < IMAGES_CACHE_DURATION) {
         console.log('📊 캐시된 이미지 목록 사용:', cacheKey);
         allFilesForPagination = imagesCache.get(cacheKey);
       } else {
-        console.log('📊 이미지 목록 새로 조회:', cacheKey);
+        console.log('📊 이미지 목록 새로 조회:', cacheKey, forceRefresh === 'true' ? '(forceRefresh)' : '');
         
         // 재귀적으로 모든 폴더의 이미지 조회 (페이지네이션용)
+        // ✅ 중요: allFilesForPagination을 클로저로 접근하므로 함수 내부에서 직접 수정 가능
         const getAllImagesForPagination = async (folderPath = '', startTime = Date.now()) => {
           // ✅ 타임아웃 체크 (55초 경과 시 조기 반환)
           if (Date.now() - startTime > 55000) {
@@ -970,11 +1011,20 @@ export default async function handler(req, res) {
             }
 
             if (!files || files.length === 0) {
-              console.log(`📁 [getAllImagesForPagination] 파일 없음: "${folderPath}" (offset: ${offset})`);
+              // ✅ 첫 번째 offset에서 파일이 없으면 조기 종료
+              if (offset === 0) {
+                console.log(`📁 [getAllImagesForPagination] 파일 없음: "${folderPath}" (첫 조회)`);
+              } else {
+                console.log(`📁 [getAllImagesForPagination] 더 이상 파일 없음: "${folderPath}" (offset: ${offset})`);
+              }
               break;  // 더 이상 파일이 없음
             }
 
             console.log(`📁 [getAllImagesForPagination] 조회 성공: "${folderPath}" - ${files.length}개 항목 (offset: ${offset})`);
+            // ✅ 디버깅: 파일 상세 정보
+            files.forEach((file, idx) => {
+              console.log(`   [${idx + 1}] ${file.name} (id: ${file.id || '폴더'})`);
+            });
             allFilesInFolder = allFilesInFolder.concat(files);
             offset += batchSize;
 
@@ -1030,6 +1080,11 @@ export default async function handler(req, res) {
                 const isKeepFile = file.name.toLowerCase() === '.keep.png';
               
               if (isMedia && !isKeepFile) {
+                // temp 폴더 제외
+                const fullPath = folderPath ? `${folderPath}/${file.name}` : file.name;
+                const isTempFile = fullPath.startsWith('temp/');
+                if (isTempFile) continue;
+                
                 imageCount++;
                 allFilesForPagination.push({
                   ...file,
@@ -1052,6 +1107,7 @@ export default async function handler(req, res) {
           console.log(`✅ [all-images] getAllImagesForPagination 완료: ${allFilesForPagination.length}개 파일 수집됨 (소요 시간: ${Date.now() - paginationStartTime}ms)`);
         } else {
           // 현재 폴더만(하위 미포함) - 배치 조회로 모든 파일 가져오기
+          console.log(`🔍 [DEBUG] 현재 폴더만 조회 (includeChildren=false): "${prefix || '루트'}"`);
           let offset = 0;
           const batchSize = 1000;
           
@@ -1069,11 +1125,17 @@ export default async function handler(req, res) {
               break;
             }
             
+            console.log(`🔍 [DEBUG] Storage 조회 결과: "${prefix || '루트'}" - ${files?.length || 0}개 항목 (offset: ${offset})`);
+            
             if (!files || files.length === 0) {
+              console.log(`🔍 [DEBUG] 더 이상 파일 없음: "${prefix || '루트'}" (offset: ${offset})`);
               break;  // 더 이상 파일이 없음
             }
             
+            let fileCount = 0;
+            let imageCount = 0;
             for (const file of files) {
+              fileCount++;
               if (file.id) {
                 // 이미지 및 동영상 확장자
                 const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.heic', '.heif'];
@@ -1086,12 +1148,23 @@ export default async function handler(req, res) {
                   // temp 폴더 제외
                   const fullPath = prefix ? `${prefix}/${file.name}` : file.name;
                   const isTempFile = fullPath.startsWith('temp/');
-                  if (isTempFile) continue;
+                  if (isTempFile) {
+                    console.log(`🔍 [DEBUG] temp 파일 제외: "${fullPath}"`);
+                    continue;
+                  }
                   
+                  imageCount++;
+                  console.log(`🔍 [DEBUG] 이미지 파일 추가: "${fullPath}"`);
                   allFilesForPagination.push({ ...file, folderPath: prefix || '' });
+                } else {
+                  console.log(`🔍 [DEBUG] 파일 제외: "${file.name}" (isMedia: ${isMedia}, isKeepFile: ${isKeepFile}, hasId: ${!!file.id})`);
                 }
+              } else {
+                console.log(`🔍 [DEBUG] 폴더 발견: "${file.name}" (id: ${file.id})`);
               }
             }
+            
+            console.log(`🔍 [DEBUG] 파일 처리 결과: 총 ${fileCount}개 항목 중 이미지 ${imageCount}개 추가`);
             
             offset += batchSize;
             
@@ -1100,6 +1173,8 @@ export default async function handler(req, res) {
               break;
             }
           }
+          
+          console.log(`🔍 [DEBUG] 현재 폴더 조회 완료: "${prefix || '루트'}" - 총 ${allFilesForPagination.length}개 이미지 수집`);
         }
         
         // 생성일 기준으로 정렬
@@ -1113,6 +1188,16 @@ export default async function handler(req, res) {
       
       // 페이지네이션 적용
       const imageFiles = allFilesForPagination.slice(currentOffset, currentOffset + pageSize);
+      
+      // ✅ 디버깅: 페이지네이션 상세 로그
+      console.log('🔍 [DEBUG] 페이지네이션:', {
+        allFilesForPaginationLength: allFilesForPagination.length,
+        currentOffset: currentOffset,
+        pageSize: pageSize,
+        imageFilesLength: imageFiles.length,
+        prefix: prefix || 'root',
+        shouldIncludeChildren: shouldIncludeChildren
+      });
       
       console.log(`📁 폴더 포함 조회: 총 ${allFilesForPagination.length}개 → 페이지 ${imageFiles.length}개 이미지 파일`);
 
@@ -1385,6 +1470,17 @@ export default async function handler(req, res) {
           fullPath,
           isLinked: false // 실제 저장된 이미지
         };
+      });
+      
+      // ✅ 디버깅: imageUrls 변환 확인
+      console.log('🔍 [DEBUG] imageUrls 변환:', {
+        imageFilesLength: imageFiles.length,
+        imageUrlsLength: imageUrls.length,
+        imageUrls: imageUrls.map(item => ({
+          name: item.file.name,
+          url: item.url,
+          fullPath: item.fullPath
+        }))
       });
       
       // 링크된 이미지를 imageUrls에 추가 (페이지네이션 고려하여 현재 페이지 범위 내만)
@@ -1759,8 +1855,67 @@ export default async function handler(req, res) {
       }));
 
       // ✅ includeChildren='false'일 때는 현재 폴더의 이미지 개수만 반환
-      // 전체 이미지 개수(totalCountCache)가 아닌 실제 조회된 이미지 개수 사용
-      const actualTotal = shouldIncludeChildren ? totalCount : allFilesForPagination.length;
+      // 전체 이미지 개수(totalCount)가 아닌 실제 조회된 이미지 개수 사용
+      // ✅ forceRefresh 시 또는 totalCount가 null이거나 실제와 불일치하는 경우 allFilesForPagination.length 사용
+      let actualTotal = shouldIncludeChildren && totalCount !== null && totalCount !== undefined 
+        ? totalCount 
+        : allFilesForPagination.length;
+      
+      // ✅ 디버깅: totalCount와 allFilesForPagination.length 불일치 확인
+      if (shouldIncludeChildren && totalCount !== null && totalCount !== undefined && totalCount !== allFilesForPagination.length) {
+        console.warn('⚠️ [DEBUG] totalCount 불일치:', {
+          totalCount: totalCount,
+          allFilesForPaginationLength: allFilesForPagination.length,
+          prefix: prefix,
+          shouldIncludeChildren: shouldIncludeChildren,
+          message: 'totalCount가 실제 파일 개수와 다름 - allFilesForPagination.length 사용'
+        });
+        // 실제 조회된 개수 사용
+        actualTotal = allFilesForPagination.length;
+      } else if (shouldIncludeChildren && (totalCount === null || totalCount === undefined)) {
+        console.warn('⚠️ [DEBUG] totalCount가 null/undefined:', {
+          totalCount: totalCount,
+          allFilesForPaginationLength: allFilesForPagination.length,
+          prefix: prefix,
+          message: 'totalCount가 null이므로 allFilesForPagination.length 사용'
+        });
+        // totalCount가 null이면 실제 조회된 개수 사용
+        actualTotal = allFilesForPagination.length;
+      }
+      
+      // ✅ 디버깅: 상세 로그 추가
+      console.log('🔍 [DEBUG] 이미지 조회 결과:', {
+        imagesWithUrlLength: imagesWithUrl.length,
+        allFilesForPaginationLength: allFilesForPagination.length,
+        actualTotal: actualTotal,
+        totalCount: totalCount,
+        shouldIncludeChildren: shouldIncludeChildren,
+        prefix: prefix || 'root',
+        forceRefresh: forceRefresh,
+        cacheKey: cacheKey,
+        fromCache: imagesCache.has(cacheKey) && (Date.now() - imagesCacheTimestamp) < IMAGES_CACHE_DURATION
+      });
+      
+      // ✅ 디버깅: 이미지가 없는데 파일이 있는 경우 경고
+      if (imagesWithUrl.length === 0 && allFilesForPagination.length > 0) {
+        console.warn('⚠️ [DEBUG] 이미지 변환 문제 감지:', {
+          allFilesForPaginationCount: allFilesForPagination.length,
+          imagesWithUrlCount: imagesWithUrl.length,
+          prefix: prefix,
+          message: '파일은 있지만 이미지 URL 변환 실패 가능성'
+        });
+        
+        // ✅ 디버깅: 첫 번째 파일 정보 출력
+        if (allFilesForPagination.length > 0) {
+          const firstFile = allFilesForPagination[0];
+          console.log('🔍 [DEBUG] 첫 번째 파일 정보:', {
+            name: firstFile.name,
+            folderPath: firstFile.folderPath,
+            id: firstFile.id,
+            created_at: firstFile.created_at
+          });
+        }
+      }
       
       console.log('✅ 전체 이미지 조회 성공:', imagesWithUrl.length, '개 (총', actualTotal, '개 중)', shouldIncludeChildren ? '(하위 폴더 포함)' : '(현재 폴더만)');
       return res.status(200).json({ 

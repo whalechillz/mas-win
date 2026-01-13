@@ -283,6 +283,15 @@ HEAD-TO-SHAFT CONNECTION (CRITICAL):
 
 CRITICAL REQUIREMENTS:
 - Keep person's hands, grip, body posture, and ALL other elements exactly the same
+- ✅ HAND POSITION PRESERVATION (CRITICAL):
+  * If person is holding at GRIP: Keep exact grip position and hand placement
+  * If person is holding SHAFT MIDDLE (raised hand, celebration pose, etc.): 
+    - Preserve EXACT hand position on shaft (where fingers wrap around shaft)
+    - Maintain natural hand grip on shaft middle - do NOT move to grip area
+    - Keep hand angle, finger placement, and shaft contact point exactly as original
+    - Shaft should appear naturally held at middle section, not forced to grip
+  * If person has hand raised with club: Preserve raised arm position and shaft contact point
+  * Hand position must match original pose - whether at grip or shaft middle
 - CRITICAL: Preserve person's natural facial expression - do NOT make it expressionless or blank
 - Person's face should remain realistic and natural, not AI-generated or 3D-rendered
 - Maintain natural depth of field: person in focus, background gently blurred (not excessive)
@@ -330,13 +339,23 @@ HEAD COLOR (BLACK - SOLE & FACE ONLY):
 SHAFT (MUZIIK):
 - Match EXACT color from shaft reference image (blue, green, or colored)
 - Replace black shaft with colored shaft from reference - perfect transition
-- Match diameter, taper, graphics/logos - seamless connection to head`;
+- Match diameter, taper, graphics/logos - seamless connection to head
+- ✅ HAND-SHAFT INTERACTION:
+  * If hand is on shaft middle: Maintain exact hand position and shaft contact point
+  * Shaft should appear naturally held where hand contacts it (grip or middle)
+  * Do NOT force hand to grip area if original shows hand on shaft middle
+  * Preserve natural hand grip on shaft - whether at grip or middle section`;
       } else {
         prompt += ` 
 
 SHAFT:
 - BLACK (matte black) - match reference image exactly
-- Match diameter, taper, graphics/logos - seamless connection to head`;
+- Match diameter, taper, graphics/logos - seamless connection to head
+- ✅ HAND-SHAFT INTERACTION:
+  * If hand is on shaft middle: Maintain exact hand position and shaft contact point
+  * Shaft should appear naturally held where hand contacts it (grip or middle)
+  * Do NOT force hand to grip area if original shows hand on shaft middle
+  * Preserve natural hand grip on shaft - whether at grip or middle section`;
       }
     } else {
       // 샤프트 참조 이미지가 없는 경우
@@ -345,13 +364,23 @@ SHAFT:
 
 SHAFT (MUZIIK):
 - Use colored shaft if available - match reference images
-- Seamless connection to head - no gaps or misalignment`;
+- Seamless connection to head - no gaps or misalignment
+- ✅ HAND-SHAFT INTERACTION:
+  * If hand is on shaft middle: Maintain exact hand position and shaft contact point
+  * Shaft should appear naturally held where hand contacts it (grip or middle)
+  * Do NOT force hand to grip area if original shows hand on shaft middle
+  * Preserve natural hand grip on shaft - whether at grip or middle section`;
       } else {
         prompt += ` 
 
 SHAFT:
 - BLACK (matte black) - professional golf club standard
-- Seamless connection to head - no gaps or misalignment`;
+- Seamless connection to head - no gaps or misalignment
+- ✅ HAND-SHAFT INTERACTION:
+  * If hand is on shaft middle: Maintain exact hand position and shaft contact point
+  * Shaft should appear naturally held where hand contacts it (grip or middle)
+  * Do NOT force hand to grip area if original shows hand on shaft middle
+  * Preserve natural hand grip on shaft - whether at grip or middle section`;
       }
     }
 

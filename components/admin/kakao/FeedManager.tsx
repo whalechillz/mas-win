@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Image, Sparkles, X, RotateCcw, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import GalleryPicker from '../GalleryPicker';
 
@@ -78,6 +78,12 @@ export default function FeedManager({
   const [isRegeneratingWithTextOption, setIsRegeneratingWithTextOption] = useState<string | null>(null);
   // 프롬프트 토글 상태
   const [isPromptExpanded, setIsPromptExpanded] = useState(false);
+  
+  // ✅ 중복 호출 방지를 위한 플래그
+  const isRecoveringRef = useRef<boolean>(false);
+  
+  // ✅ alert 중복 방지를 위한 플래그
+  const alertShownRef = useRef<boolean>(false);
   // ✅ 제품 합성 관련 상태
   const [enableProductComposition, setEnableProductComposition] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | undefined>();
@@ -163,12 +169,19 @@ export default function FeedManager({
       return;
     }
 
+    // ✅ 중복 호출 방지
+    if (isRecoveringRef.current) {
+      console.log('ℹ️ 피드 이미지 복구 이미 진행 중, 중복 호출 무시');
+      return;
+    }
+
     if (!selectedDate || !accountKey) {
       console.warn('날짜 또는 계정 정보가 없어 자동 복구를 수행할 수 없습니다.');
       return;
     }
 
     try {
+      isRecoveringRef.current = true; // ✅ 플래그 설정
       setIsRecoveringImage(true);
 
       // 갤러리에서 해당 날짜의 피드 이미지 조회
@@ -192,15 +205,38 @@ export default function FeedManager({
         });
 
         console.log('✅ 피드 이미지 자동 복구 완료:', recoveredImageUrl);
-        alert('✅ 피드 이미지가 갤러리에서 자동으로 복구되었습니다.');
+        // ✅ alert는 한 번만 표시 (중복 방지)
+        if (!alertShownRef.current) {
+          alertShownRef.current = true;
+          alert('✅ 피드 이미지가 갤러리에서 자동으로 복구되었습니다.');
+          // 1초 후 플래그 리셋 (다음 복구 시 다시 표시 가능)
+          setTimeout(() => {
+            alertShownRef.current = false;
+          }, 1000);
+        }
       } else {
         console.warn('⚠️ 갤러리에서 피드 이미지를 찾을 수 없습니다.');
-        alert('⚠️ 갤러리에서 피드 이미지를 찾을 수 없습니다.');
+        // ✅ alert는 한 번만 표시
+        if (!alertShownRef.current) {
+          alertShownRef.current = true;
+          alert('⚠️ 갤러리에서 피드 이미지를 찾을 수 없습니다.');
+          setTimeout(() => {
+            alertShownRef.current = false;
+          }, 1000);
+        }
       }
     } catch (error: any) {
       console.error('❌ 피드 이미지 자동 복구 실패:', error);
-      alert(`이미지 자동 복구 실패: ${error.message}`);
+      // ✅ alert는 한 번만 표시
+      if (!alertShownRef.current) {
+        alertShownRef.current = true;
+        alert(`이미지 자동 복구 실패: ${error.message}`);
+        setTimeout(() => {
+          alertShownRef.current = false;
+        }, 1000);
+      }
     } finally {
+      isRecoveringRef.current = false; // ✅ 플래그 해제
       setIsRecoveringImage(false);
     }
   };
@@ -210,6 +246,12 @@ export default function FeedManager({
     // ✅ 배포 완료 상태면 자동 복구 차단
     if (publishStatus === 'published') {
       console.info('ℹ️ 피드 이미지 로드 실패: 배포 완료 상태에서는 자동 복구하지 않습니다.');
+      return;
+    }
+
+    // ✅ 이미 복구 중이면 무시
+    if (isRecoveringRef.current) {
+      console.log('ℹ️ 피드 이미지 복구 이미 진행 중, 에러 핸들러 무시');
       return;
     }
 

@@ -150,12 +150,45 @@ export default function KakaoContentPage() {
     const day = String(today.getDate()).padStart(2, '0');
     const dateStr = `${year}-${month}-${day}`;
     setTodayStr(dateStr);
+    
+    // ✅ 수정: URL 파라미터와 localStorage를 확인한 후 날짜 설정
+    if (router.isReady) {
+      const { date } = router.query;
+      if (date && typeof date === 'string') {
+        // URL 파라미터가 있으면 사용
+        setSelectedDate(date);
+        setSelectedDates([date]);
+        // localStorage에도 저장
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('kakao-content-selected-date', date);
+        }
+        return;
+      }
+    }
+    
+    // localStorage에서 복원 시도
+    if (typeof window !== 'undefined') {
+      const savedDate = localStorage.getItem('kakao-content-selected-date');
+      if (savedDate) {
+        setSelectedDate(savedDate);
+        setSelectedDates([savedDate]);
+        // URL에도 반영 (선택사항)
+        if (router.isReady && !router.query.date) {
+          router.replace(`/admin/kakao-content?date=${savedDate}`, undefined, { shallow: true });
+        }
+        return;
+      }
+    }
+    
+    // 둘 다 없으면 오늘 날짜 사용
     if (!selectedDate) {
       setSelectedDate(dateStr);
-      // 오늘 날짜를 기본 선택으로 설정
       setSelectedDates([dateStr]);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('kakao-content-selected-date', dateStr);
+      }
     }
-  }, []);
+  }, [router.isReady, router.query]);
 
   // URL 파라미터에서 date 읽기
   useEffect(() => {
@@ -166,11 +199,22 @@ export default function KakaoContentPage() {
         console.log('📅 URL에서 날짜 파라미터 읽기:', date);
         setSelectedDate(date);
         setSelectedDates([date]);
+        // localStorage에도 저장
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('kakao-content-selected-date', date);
+        }
         // 해당 날짜의 데이터 로드
         loadCalendarData(date);
       }
     }
   }, [router.isReady, router.query]);
+
+  // ✅ 추가: selectedDate 변경 시 localStorage 업데이트
+  useEffect(() => {
+    if (selectedDate && typeof window !== 'undefined') {
+      localStorage.setItem('kakao-content-selected-date', selectedDate);
+    }
+  }, [selectedDate]);
 
   // 날짜 범위 계산 함수
   const getDateRange = (mode: 'today' | 'week' | 'month' | 'list', targetMonth?: { year: number; month: number }) => {
