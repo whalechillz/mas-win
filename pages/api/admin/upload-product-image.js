@@ -28,7 +28,8 @@ export const config = {
  */
 function extractFolderPrefix(category) {
   // 굿즈/액세서리: goods (cap = 모자)
-  if (category === 'cap' || category === 'accessory' || category === 'goods') {
+  // ✅ 'hat'도 'cap'과 동일하게 처리 (product_composition 테이블 호환성)
+  if (category === 'cap' || category === 'hat' || category === 'accessory' || category === 'goods') {
     return 'goods';
   }
   // ✅ 부품: component
@@ -48,7 +49,8 @@ function extractFolderPrefix(category) {
  */
 function getProductStoragePath(productSlug, category, imageType = 'detail') {
   // 굿즈/액세서리: originals/goods/{slug}/{imageType} (cap = 모자)
-  if (category === 'cap' || category === 'accessory' || category === 'goods') {
+  // ✅ 'hat'도 'cap'과 동일하게 처리 (product_composition 테이블 호환성)
+  if (category === 'cap' || category === 'hat' || category === 'accessory' || category === 'goods') {
     return `originals/goods/${productSlug}/${imageType}`;
   }
 

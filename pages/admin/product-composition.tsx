@@ -1604,6 +1604,12 @@ export default function ProductCompositionManagement() {
                 category = 'component';
               }
               
+              // ✅ 카테고리 변환: hat -> cap (API 호환성)
+              // product_composition 테이블은 'hat'을 사용하지만, upload-product-image.js API는 'cap'을 인식
+              if (category === 'hat') {
+                category = 'cap';
+              }
+              
               // ✅ productSlug가 여전히 없으면 에러
               if (!productSlug || productSlug.trim() === '') {
                 throw new Error('제품 정보를 확인할 수 없습니다. 폴더 경로를 확인해주세요.');
