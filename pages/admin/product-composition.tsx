@@ -1574,13 +1574,18 @@ export default function ProductCompositionManagement() {
                 ? pathParts.indexOf('components') + 1
                 : -1;
               
-              const productSlug = slugIndex !== -1 && pathParts[slugIndex] 
+              let productSlug = slugIndex !== -1 && pathParts[slugIndex] 
                 ? pathParts[slugIndex] 
                 : formData.slug || '';
               
-              const category = formData.category || 'cap';
+              // ✅ components 폴더인 경우 category를 component로 설정
+              let category = formData.category || 'cap';
+              if (folderPath.includes('originals/components/')) {
+                category = 'component';
+              }
               
-              if (!productSlug) {
+              // ✅ productSlug가 여전히 없으면 에러
+              if (!productSlug || productSlug.trim() === '') {
                 throw new Error('제품 정보를 확인할 수 없습니다. 폴더 경로를 확인해주세요.');
               }
 
