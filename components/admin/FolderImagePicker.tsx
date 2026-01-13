@@ -30,7 +30,11 @@ type Props = {
   // ✅ 추가: 삭제 콜백
   onDelete?: (imageUrl: string) => Promise<void>;
   // ✅ 추가: 업로드 콜백
-  onUpload?: (file: File, folderPath: string) => Promise<void>;
+  onUpload?: (file: File, folderPath: string, uploadMode?: 'optimize-filename' | 'preserve-filename') => Promise<void>;
+  // ✅ 추가: 업로드 모드 (기본값: optimize-filename)
+  uploadMode?: 'optimize-filename' | 'preserve-filename';
+  // ✅ 추가: 업로드 모드 변경 콜백
+  onUploadModeChange?: (mode: 'optimize-filename' | 'preserve-filename') => void;
 };
 
 const FolderImagePicker: React.FC<Props> = ({
@@ -45,6 +49,8 @@ const FolderImagePicker: React.FC<Props> = ({
   enableUpload = false,
   onDelete,
   onUpload,
+  uploadMode: externalUploadMode,
+  onUploadModeChange,
 }) => {
   const [images, setImages] = useState<ImageItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +60,9 @@ const FolderImagePicker: React.FC<Props> = ({
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  // ✅ 업로드 모드 (외부에서 전달되면 사용, 없으면 내부 state 사용)
+  const [internalUploadMode, setInternalUploadMode] = useState<'optimize-filename' | 'preserve-filename'>('optimize-filename');
+  const uploadMode = externalUploadMode ?? internalUploadMode;
 
   // Storage에서 직접 조회 (빠름)
   const fetchFolderImages = async () => {
@@ -128,7 +137,7 @@ const FolderImagePicker: React.FC<Props> = ({
                       
                       setIsUploading(true);
                       try {
-                        await onUpload(file, currentFolderPath);
+                        await onUpload(file, currentFolderPath, uploadMode);
                         // 업로드 후 이미지 목록 새로고침
                         await fetchFolderImages();
                       } catch (error) {
@@ -257,6 +266,69 @@ const FolderImagePicker: React.FC<Props> = ({
                 );
               })}
             </nav>
+          )}
+
+          {/* ✅ 업로드 모드 선택 UI (enableUpload가 true일 때만) */}
+          {enableUpload && onUpload && (
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
+              <label className="text-xs font-medium text-gray-600 mb-2 block">
+                업로드 모드
+              </label>
+              
+              {/* 파일명 최적화 (기본) */}
+              <label className="flex items-start cursor-pointer">
+                <input
+                  type="radio"
+                  name="uploadMode"
+                  value="optimize-filename"
+                  checked={uploadMode === 'optimize-filename'}
+                  onChange={(e) => {
+                    const newMode = 'optimize-filename';
+                    if (onUploadModeChange) {
+                      onUploadModeChange(newMode);
+                    } else {
+                      setInternalUploadMode(newMode);
+                    }
+                  }}
+                  className="mt-1 mr-2 w-4 h-4 text-blue-600"
+                />
+                <div className="flex-1">
+                  <span className="text-sm text-gray-700 font-medium">파일명 최적화 (기본)</span>
+                  <p className="text-xs text-gray-500 mt-1">
+                    파일명: 폴더 기반 최적화 + 타임스탬프 + 중복방지<br/>
+                    확장자: 원본 유지<br/>
+                    최적화: 없음 (원본 그대로)
+                  </p>
+                </div>
+              </label>
+              
+              {/* 파일명 유지 */}
+              <label className="flex items-start cursor-pointer">
+                <input
+                  type="radio"
+                  name="uploadMode"
+                  value="preserve-filename"
+                  checked={uploadMode === 'preserve-filename'}
+                  onChange={(e) => {
+                    const newMode = 'preserve-filename';
+                    if (onUploadModeChange) {
+                      onUploadModeChange(newMode);
+                    } else {
+                      setInternalUploadMode(newMode);
+                    }
+                  }}
+                  className="mt-1 mr-2 w-4 h-4 text-blue-600"
+                />
+                <div className="flex-1">
+                  <span className="text-sm text-gray-700 font-medium">파일명 유지</span>
+                  <p className="text-xs text-gray-500 mt-1">
+                    파일명: 원본 그대로<br/>
+                    확장자: 원본 유지<br/>
+                    최적화: 없음 (원본 그대로)
+                  </p>
+                </div>
+              </label>
+            </div>
           )}
         </div>
 

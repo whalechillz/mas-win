@@ -59,6 +59,7 @@ const GalleryPicker: React.FC<Props> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pageSize = 24;
   const [recentFolders, setRecentFolders] = useState<string[]>([]); // 최근 사용 폴더 목록
+  const [uploadMode, setUploadMode] = useState<'optimize-filename' | 'preserve-filename'>('optimize-filename'); // ✅ 업로드 모드 추가
   
   // 이미지 복사/링크 모달 관련 상태
   const [showCopyLinkModal, setShowCopyLinkModal] = useState(false);
@@ -447,8 +448,8 @@ const GalleryPicker: React.FC<Props> = ({
         targetFolder: targetFolder,
         enableHEICConversion: true,
         enableEXIFBackfill: true,
-        // ✅ 카카오톡 콘텐츠는 항상 원본 그대로 (빠른 업로드, 멈춤 문제 해결)
-        uploadMode: 'preserve-original',
+        // ✅ 선택한 업로드 모드 사용
+        uploadMode: uploadMode,
       });
       
       // 타임아웃 클리어
@@ -1322,13 +1323,53 @@ const GalleryPicker: React.FC<Props> = ({
                   )}
                 </span>
               </label>
-              <input
-                id="gallery-picker-file-upload"
-                type="file"
-                accept="image/*,.heic,.heif"
-                className="hidden"
-                onChange={handleFileSelect}
-              />
+            </div>
+            
+            {/* ✅ 업로드 모드 선택 */}
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
+              <label className="text-xs font-medium text-gray-600 mb-2 block">
+                업로드 모드
+              </label>
+              
+              {/* 파일명 최적화 (기본) */}
+              <label className="flex items-start cursor-pointer">
+                <input
+                  type="radio"
+                  name="uploadMode"
+                  value="optimize-filename"
+                  checked={uploadMode === 'optimize-filename'}
+                  onChange={(e) => setUploadMode('optimize-filename')}
+                  className="mt-1 mr-2 w-4 h-4 text-blue-600"
+                />
+                <div className="flex-1">
+                  <span className="text-sm text-gray-700 font-medium">파일명 최적화 (기본)</span>
+                  <p className="text-xs text-gray-500 mt-1">
+                    파일명: 폴더 기반 최적화 + 타임스탬프 + 중복방지<br/>
+                    확장자: 원본 유지<br/>
+                    최적화: 없음 (원본 그대로)
+                  </p>
+                </div>
+              </label>
+              
+              {/* 파일명 유지 */}
+              <label className="flex items-start cursor-pointer">
+                <input
+                  type="radio"
+                  name="uploadMode"
+                  value="preserve-filename"
+                  checked={uploadMode === 'preserve-filename'}
+                  onChange={(e) => setUploadMode('preserve-filename')}
+                  className="mt-1 mr-2 w-4 h-4 text-blue-600"
+                />
+                <div className="flex-1">
+                  <span className="text-sm text-gray-700 font-medium">파일명 유지</span>
+                  <p className="text-xs text-gray-500 mt-1">
+                    파일명: 원본 그대로<br/>
+                    확장자: 원본 유지<br/>
+                    최적화: 없음 (원본 그대로)
+                  </p>
+                </div>
+              </label>
             </div>
           </div>
         </div>

@@ -31,6 +31,10 @@ function extractFolderPrefix(category) {
   if (category === 'cap' || category === 'accessory' || category === 'goods') {
     return 'goods';
   }
+  // ✅ 부품: component
+  if (category === 'component') {
+    return 'component';
+  }
   // 드라이버 제품: product
   return 'product';
 }
@@ -46,6 +50,11 @@ function getProductStoragePath(productSlug, category, imageType = 'detail') {
   // 굿즈/액세서리: originals/goods/{slug}/{imageType} (cap = 모자)
   if (category === 'cap' || category === 'accessory' || category === 'goods') {
     return `originals/goods/${productSlug}/${imageType}`;
+  }
+
+  // ✅ 부품: originals/components/{slug}/{imageType}
+  if (category === 'component') {
+    return `originals/components/${productSlug}/${imageType}`;
   }
 
   // 드라이버 제품: originals/products/{slug}/{imageType}
@@ -121,6 +130,15 @@ export default async function handler(req, res) {
 
     const originalName = file.originalFilename || `product-${Date.now()}.jpg`;
     
+    // ✅ 한글 파일명 감지 및 자동 변환
+    const hasKoreanInFileName = /[가-힣]/.test(originalName);
+    let effectivePreserveFilename = preserveFilename;
+    if (hasKoreanInFileName && preserveFilename) {
+      console.warn('⚠️ 한글 파일명 감지, 자동으로 최적화 모드로 전환:', originalName);
+      effectivePreserveFilename = false; // optimize-filename으로 전환
+      console.log('✅ 업로드 모드 자동 변경: preserve-filename → optimize-filename');
+    }
+    
     // WebP로 변환
     console.log('[upload-product-image] WebP 변환 시작');
     const webpBuffer = await sharp(fileBuffer)
@@ -137,7 +155,7 @@ export default async function handler(req, res) {
     if (customFileName) {
       // ✅ 커스텀 파일명 사용 (shaft, badge 등)
       webpFileName = `${customFileName}.webp`;
-    } else if (preserveFilename) {
+    } else if (effectivePreserveFilename) {
       // 원본 파일명 유지 (확장자만 .webp로 변경)
       const baseName = path.parse(originalName).name;
       webpFileName = `${baseName}.webp`;
@@ -153,7 +171,7 @@ export default async function handler(req, res) {
     console.log('[upload-product-image] 업로드 시작:', storagePath);
     
     // 원본 파일명 유지 옵션일 때 중복 체크
-    if (preserveFilename) {
+    if (effectivePreserveFilename) {
       let counter = 0;
       let finalPath = storagePath;
       

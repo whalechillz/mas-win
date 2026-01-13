@@ -1,0 +1,102 @@
+🔍 갤러리 피커 이미지 로딩 에러 재현 테스트 시작...
+
+
+1️⃣ 로그인 중...
+[info] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[log] [HMR] connected
+[error] Failed to load resource: the server responded with a status of 404 (Not Found)
+[log] [Fast Refresh] rebuilding
+[info] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[log] [HMR] connected
+✅ 로그인 완료
+
+2️⃣ 카카오 콘텐츠 페이지로 이동...
+[info] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[log] [HMR] connected
+[log] 📦 제품 목록 로드 결과: {driver: 8, hat: 11, accessory: 2}
+[log] ✅ 모자 제품 로드 완료: [마쓰구 화이트캡, 마쓰구 블랙캡, MAS 한정판 모자(그레이), MAS 한정판 모자(블랙), MASSGOO × MUZIIK 스타일리시 버킷햇(화이트), MASSGOO × MUZIIK 스타일리시 버킷햇(블랙), MASSGOO × MUZIIK 콜라보 골프모자 (화이트), MASSGOO × MUZIIK 콜라보 골프모자 (베이지), MASSGOO × MUZIIK 콜라보 골프모자 (네이비), MASSGOO × MUZIIK 콜라보 골프모자 (블랙), 캘빈 모자]
+[log] 📦 총 제품 개수: 21
+[log] 📦 제품 목록 로드 결과: {driver: 8, hat: 11, accessory: 2}
+[log] ✅ 모자 제품 로드 완료: [마쓰구 화이트캡, 마쓰구 블랙캡, MAS 한정판 모자(그레이), MAS 한정판 모자(블랙), MASSGOO × MUZIIK 스타일리시 버킷햇(화이트), MASSGOO × MUZIIK 스타일리시 버킷햇(블랙), MASSGOO × MUZIIK 콜라보 골프모자 (화이트), MASSGOO × MUZIIK 콜라보 골프모자 (베이지), MASSGOO × MUZIIK 콜라보 골프모자 (네이비), MASSGOO × MUZIIK 콜라보 골프모자 (블랙), 캘빈 모자]
+[log] 📦 총 제품 개수: 21
+[log] 📦 제품 목록 로드 결과: {driver: 8, hat: 11, accessory: 2}
+[log] ✅ 모자 제품 로드 완료: [마쓰구 화이트캡, 마쓰구 블랙캡, MAS 한정판 모자(그레이), MAS 한정판 모자(블랙), MASSGOO × MUZIIK 스타일리시 버킷햇(화이트), MASSGOO × MUZIIK 스타일리시 버킷햇(블랙), MASSGOO × MUZIIK 콜라보 골프모자 (화이트), MASSGOO × MUZIIK 콜라보 골프모자 (베이지), MASSGOO × MUZIIK 콜라보 골프모자 (네이비), MASSGOO × MUZIIK 콜라보 골프모자 (블랙), 캘빈 모자]
+[log] 📦 총 제품 개수: 21
+[log] 📦 제품 목록 로드 결과: {driver: 8, hat: 11, accessory: 2}
+[log] ✅ 모자 제품 로드 완료: [마쓰구 화이트캡, 마쓰구 블랙캡, MAS 한정판 모자(그레이), MAS 한정판 모자(블랙), MASSGOO × MUZIIK 스타일리시 버킷햇(화이트), MASSGOO × MUZIIK 스타일리시 버킷햇(블랙), MASSGOO × MUZIIK 콜라보 골프모자 (화이트), MASSGOO × MUZIIK 콜라보 골프모자 (베이지), MASSGOO × MUZIIK 콜라보 골프모자 (네이비), MASSGOO × MUZIIK 콜라보 골프모자 (블랙), 캘빈 모자]
+[log] 📦 총 제품 개수: 21
+✅ 카카오 콘텐츠 페이지 로드 완료
+
+3️⃣ 날짜 선택 (2026-01-13)...
+   발견된 날짜 입력 필드: 1개
+✅ 날짜 선택 완료
+
+4️⃣ "갤러리에서 선택" 버튼 클릭 (배경 이미지)...
+   발견된 "갤러리에서 선택" 버튼: 6개
+[log] 📁 GalleryPicker autoFilterFolder: originals/daily-branding/kakao/2026-01-13/account1/background
+[log] 📁 folderFilter 또는 page 변경 감지, 이미지 다시 로드: {folderFilter: originals/daily-branding/kakao/2026-01-13/account1/background, page: 1, shouldResetPage: true}
+[log] 🔍 GalleryPicker 이미지 로드 요청: /api/admin/all-images?limit=24&offset=0&prefix=originals%2Fdaily-branding%2Fkakao%2F2026-01-13%2Faccount1%2Fbackground&includeChildren=true&forceRefresh=true&_t=1768264190053 (캐시 무효화)
+
+📡 [REQUEST] GET http://localhost:3000/api/admin/all-images?limit=24&offset=0&prefix=originals%2Fdaily-branding%2Fkakao%2F2026-01-13%2Faccount1%2Fbackground&includeChildren=true&forceRefresh=true&_t=1768264190053
+📥 [RESPONSE] 200 http://localhost:3000/api/admin/all-images?limit=24&offset=0&prefix=originals%2Fdaily-branding%2Fkakao%2F2026-01-13%2Faccount1%2Fbackground&includeChildren=true&forceRefresh=true&_t=1768264190053
+[log] ⏱️ API 응답 시간: 181ms
+[log] 🔍 [DEBUG] API 응답 상세: {images: Array(0), imagesLength: 0, total: 0, count: 0, folderFilter: originals/daily-branding/kakao/2026-01-13/account1/background}
+[warning] ⚠️ [DEBUG] 이미지가 없습니다: {folderFilter: originals/daily-branding/kakao/2026-01-13/account1/background, prefix: originals/daily-branding/kakao/2026-01-13/account1/background, includeChildren: true}
+[log] ✅ 이미지 로드 성공: {count: 0, total: 0, folderFilter: originals/daily-branding/kakao/2026-01-13/account1/background, retryCount: }
+📊 [RESPONSE DATA] { imagesCount: 0, total: 0, count: 0 }
+⚠️ [문제 감지] 이미지가 0개, total도 0개 - 실제로 파일이 없는지 확인 필요
+✅ 갤러리 모달 열림
+
+5️⃣ 갤러리 모달 상태 확인...
+✅ 갤러리 모달 확인됨
+📁 현재 폴더: originals/daily-branding/kakao/2026-01-13/account1/background
+📭 "이미지가 없습니다" 메시지 표시: false
+📸 발견된 이미지 요소: 6개
+📊 총 이미지 개수 표시: 📊 총 0개 이미지
+
+6️⃣ 5초 대기 후 재확인...
+   대기 후 이미지 요소: 6개
+   대기 후 "이미지가 없습니다" 메시지: 표시 안 됨
+   대기 후 총 이미지 개수: 📊 총 0개 이미지
+
+7️⃣ 네트워크 로그 분석...
+   총 API 요청: 1개
+   총 API 응답: 1개
+
+   요청 1:
+      - prefix: originals/daily-branding/kakao/2026-01-13/account1/background
+      - includeChildren: true
+      - forceRefresh: true
+      - _t: 1768264190053
+
+   응답 2:
+      - images: 0개
+      - total: 0
+      - count: 0
+      ⚠️ 문제: 이미지 0개, total 0개 - 실제로 파일이 없거나 조회 실패
+
+8️⃣ 콘솔 로그 분석...
+   디버깅 관련 로그: 4개
+   1. [log] 🔍 GalleryPicker 이미지 로드 요청: /api/admin/all-images?limit=24&offset=0&prefix=originals%2Fdaily-branding%2Fkakao%2F2026-01-13%2Faccount1%2Fbackground&includeChildren=true&forceRefresh=true&_t=17682641900
+   2. [log] 🔍 [DEBUG] API 응답 상세: {images: Array(0), imagesLength: 0, total: 0, count: 0, folderFilter: originals/daily-branding/kakao/2026-01-13/account1/background}
+   3. [warning] ⚠️ [DEBUG] 이미지가 없습니다: {folderFilter: originals/daily-branding/kakao/2026-01-13/account1/background, prefix: originals/daily-branding/kakao/2026-01-13/account1/background, includeChildren: true}
+   4. [log] ✅ 이미지 로드 성공: {count: 0, total: 0, folderFilter: originals/daily-branding/kakao/2026-01-13/account1/background, retryCount: }
+
+9️⃣ 스크린샷 저장...
+✅ 스크린샷 저장 완료: test-gallery-picker-error-reproduction.png
+
+
+📋 문제 요약:
+   - API 응답: images=0, total=0, count=0
+   ❌ 문제: 이미지가 0개로 반환됨
+   가능한 원인:
+     1. Supabase Storage에 실제로 파일이 없음
+     2. 폴더 경로가 잘못됨
+     3. includeChildren 로직 문제
+     4. 파일 필터링 로직 문제 (확장자, temp 폴더 등)
+
+✅ 테스트 완료
+
+💡 브라우저는 수동으로 닫아주세요 (디버깅용)
+💡 서버 콘솔 로그도 확인해주세요
+

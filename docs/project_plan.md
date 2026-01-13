@@ -1,6 +1,75 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
-## ✅ 최근 작업: 경품 추천 저장 타이밍 이슈 수정 (2026-01-30)
+## ✅ 최근 작업: 제품 합성 관리 추가 개선 (2026-01-13)
+
+### 완료된 작업
+- **제품 추가 시 표시 순서 자동 설정** ✅:
+  - `pages/admin/product-composition.tsx`: `handleAdd` 함수 개선
+    - 현재 제품 목록에서 가장 높은 `display_order` 조회
+    - 자동으로 `max(display_order) + 1` 설정
+    - 제품 추가 시 수동 입력 불필요
+
+- **갤러리 폴더 추가** ✅:
+  - `pages/admin/product-composition.tsx`: 공통 폴더 추가
+    - `getSecretWeaponGoldCommonFolderPath()` 함수 추가
+    - `getSecretWeaponBlackCommonFolderPath()` 함수 추가
+    - `alternativeFolders`에 "시크리트웨폰 골드 공통", "시크리트웨폰 블랙 공통" 추가
+
+### 변경된 파일
+- `pages/admin/product-composition.tsx` (표시 순서 자동 설정, 공통 폴더 추가)
+- `docs/project_plan.md` (작업 내역 기록)
+
+### 예상 효과
+- 제품 추가 시 표시 순서 자동 설정으로 사용자 편의성 향상
+- 시크리트웨폰 골드/블랙 공통 폴더 접근 용이
+
+---
+
+## ✅ 이전 작업: 제품 합성 관리 시스템 개선 (2026-01-13)
+
+### 완료된 작업
+- **제품 합성 관리 페이지 탭 분리** ✅:
+  - `pages/admin/product-composition.tsx`: 클럽(Clubs)과 굿즈(Goods) 탭으로 분리
+    - 클럽 탭: 드라이버 8개만 관리 (`originals/products/`)
+    - 굿즈 탭: 모자, 액세서리 등 관리 (`originals/goods/`)
+    - 탭 전환 시 자동으로 카테고리 및 합성 타겟 설정
+
+- **카테고리 통일** ✅:
+  - `pages/admin/product-composition.tsx`: `cap` 제거, `hat`으로 통일
+    - DB 체크 제약 조건에 맞춰 `hat`만 사용
+    - `hatType` 필드 추가 (bucket, baseball, visor)
+    - 모자 카테고리 선택 시 모자 타입 선택 UI 추가
+
+- **Slug 입력 필드 개선** ✅:
+  - `pages/admin/product-composition.tsx`: prefix 표시 및 자동 처리
+    - 클럽: `originals/products/` prefix 표시
+    - 굿즈: `originals/goods/` prefix 표시
+    - 사용자는 prefix 이후만 입력
+    - 전체 경로 미리보기 제공
+
+- **경로 처리 함수 개선** ✅:
+  - `pages/admin/product-composition.tsx`: `getCompositionFolderPath` 함수 수정
+    - `hat` 카테고리 처리 추가
+    - `cap` 제거, `hat`으로 통일
+
+- **AI 이미지 생성 페이지** ✅:
+  - `pages/admin/ai-image-generator.tsx`: 이미 합성 타겟별 필터링 구현됨
+    - `ProductSelector` 컴포넌트가 `compositionTarget`으로 자동 필터링
+    - 추가 개선 불필요
+
+### 변경된 파일
+- `pages/admin/product-composition.tsx` (탭 분리, 카테고리 통일, Slug 입력 개선)
+- `docs/project_plan.md` (작업 내역 기록)
+
+### 예상 효과
+- 제품 관리가 더 직관적이고 체계적으로 개선
+- 경로 혼동 방지 및 정확한 갤러리 위치 파악 가능
+- 카테고리 통일로 데이터 일관성 확보
+- 사용자 경험 개선 (prefix 표시로 입력 실수 방지)
+
+---
+
+## ✅ 이전 작업: 경품 추천 저장 타이밍 이슈 수정 (2026-01-30)
 
 ### 완료된 작업
 - **경품 추천 저장 로직 개선** ✅:

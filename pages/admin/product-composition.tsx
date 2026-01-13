@@ -11,7 +11,7 @@ interface ProductComposition {
   id: string;
   product_id?: number; // ✅ 추가: products 테이블 참조
   name: string;
-  category: 'driver' | 'cap' | 'apparel' | 'accessory' | 'goods';
+  category: 'driver' | 'hat' | 'apparel' | 'accessory' | 'component'; // ✅ component 추가
   composition_target: 'hands' | 'head' | 'body' | 'accessory';
   image_url: string;
   reference_images?: string[];
@@ -39,10 +39,12 @@ export default function ProductCompositionManagement() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductComposition | null>(null);
+  // ✅ 탭 분리: 클럽/굿즈/부품
+  const [activeTab, setActiveTab] = useState<'clubs' | 'goods' | 'components'>('clubs');
   const [formData, setFormData] = useState<Partial<ProductComposition>>({
     name: '',
-    category: 'cap',
-    composition_target: 'head',
+    category: 'driver', // ✅ 기본값을 driver로 변경 (탭에 따라 자동 설정)
+    composition_target: 'hands',
     image_url: '',
     reference_images: [],
     reference_images_enabled: {}, // ✅ 참조 이미지 활성화 상태
@@ -65,6 +67,8 @@ export default function ProductCompositionManagement() {
   const [originalFormData, setOriginalFormData] = useState<Partial<ProductComposition> | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  // ✅ 업로드 모드 (기본값: optimize-filename)
+  const [uploadMode, setUploadMode] = useState<'optimize-filename' | 'preserve-filename'>('optimize-filename');
 
   // 제품 목록 로드 (useCallback으로 메모이제이션)
   const loadProducts = useCallback(async () => {
@@ -93,6 +97,38 @@ export default function ProductCompositionManagement() {
       setLoading(false);
     }
   }, [filter.category, filter.target, filter.active]);
+
+  // ✅ 탭별 제품 필터링
+  const filteredProducts = products.filter(product => {
+    if (activeTab === 'clubs') {
+      return product.category === 'driver';
+    } else if (activeTab === 'goods') {
+      return product.category !== 'driver' && product.category !== 'component';
+    } else if (activeTab === 'components') {
+      return product.category === 'component';
+    }
+    return true;
+  });
+
+  // ✅ Slug prefix 가져오기
+  const getSlugPrefix = () => {
+    if (activeTab === 'clubs') return 'originals/products/';
+    if (activeTab === 'goods') return 'originals/goods/';
+    if (activeTab === 'components') return 'originals/components/';
+    return 'originals/products/';
+  };
+
+  // ✅ Slug 입력 핸들러 (prefix 자동 처리)
+  const handleSlugChange = (value: string) => {
+    const prefix = getSlugPrefix();
+    // prefix가 포함되어 있으면 제거
+    if (value.startsWith(prefix)) {
+      value = value.replace(prefix, '');
+    }
+    // originals/products/ 또는 originals/goods/로 시작하는 경우도 제거
+    value = value.replace(/^originals\/(products|goods)\//, '');
+    setFormData({ ...formData, slug: value });
+  };
 
   // 세션 체크는 미들웨어에서 처리하므로 클라이언트 사이드 리다이렉트 제거
   // 프로덕션에서는 디버깅 모드 비활성화 (환경 변수로만 제어)
@@ -277,9 +313,45 @@ export default function ProductCompositionManagement() {
     }
   };
 
+  // ✅ 제품 추가 시 탭에 따라 카테고리 자동 설정 및 표시 순서 자동 설정
+  const handleAdd = () => {
+    // ✅ 현재 제품 목록에서 가장 높은 display_order 조회
+    const maxOrder = products.length > 0 
+      ? Math.max(...products.map(p => p.display_order || 0))
+      : -1;
+    
+    const defaultCategory = activeTab === 'clubs' ? 'driver' : activeTab === 'components' ? 'component' : 'hat';
+    const defaultTarget = activeTab === 'clubs' ? 'hands' : activeTab === 'components' ? 'accessory' : 'head';
+    setFormData({
+      name: '',
+      category: defaultCategory,
+      composition_target: defaultTarget,
+      image_url: '',
+      reference_images: [],
+      reference_images_enabled: {},
+      slug: '',
+      description: '',
+      features: [],
+      is_active: true,
+      display_order: maxOrder + 1, // ✅ 자동으로 가장 높은 번호 + 1
+      hat_type: 'baseball',
+    });
+    setOriginalFormData(null);
+    setHasUnsavedChanges(false);
+    setShowModal(true);
+  };
+
   // 수정 모드 시작
   const handleEdit = (product: ProductComposition) => {
     setEditingProduct(product);
+    // ✅ 수정 시 해당 제품의 탭으로 자동 전환
+    if (product.category === 'driver') {
+      setActiveTab('clubs');
+    } else if (product.category === 'component') {
+      setActiveTab('components');
+    } else {
+      setActiveTab('goods');
+    }
     
     // 🔍 디버깅: 제품 데이터 확인
     console.log('🔍 제품 수정 - 원본 데이터:', {
@@ -366,10 +438,12 @@ export default function ProductCompositionManagement() {
 
   // 폼 초기화
   const resetForm = () => {
+    const defaultCategory = activeTab === 'clubs' ? 'driver' : activeTab === 'components' ? 'component' : 'hat';
+    const defaultTarget = activeTab === 'clubs' ? 'hands' : activeTab === 'components' ? 'accessory' : 'head';
     setFormData({
       name: '',
-      category: 'cap',
-      composition_target: 'head',
+      category: defaultCategory,
+      composition_target: defaultTarget,
       image_url: '',
       reference_images: [],
       reference_images_enabled: {}, // ✅ 참조 이미지 활성화 상태 초기화
@@ -380,13 +454,6 @@ export default function ProductCompositionManagement() {
       display_order: 0,
       hat_type: 'baseball',
     });
-  };
-
-  // 새 제품 추가 모드
-  const handleAdd = () => {
-    setEditingProduct(null);
-    resetForm();
-    setShowModal(true);
   };
 
   // 순서 변경 (위/아래)
@@ -641,29 +708,39 @@ export default function ProductCompositionManagement() {
   };
 
   // 갤러리에서 이미지 선택
-  // ✅ 공통 폴더 경로 반환 함수 추가 (그립 공통)
+  // ✅ 공통 폴더 경로 반환 함수 추가 (그립 공통) - components로 변경
   const getCommonFolderPath = (): string => {
-    return 'originals/products/grip-common/composition';
+    return 'originals/components/grip-common/composition';
   };
 
-  // ✅ MUZIIK 공통 폴더 경로 반환 함수 추가
+  // ✅ MUZIIK 공통 폴더 경로 반환 함수 추가 - components로 변경
   const getMuziikCommonFolderPath = (): string => {
-    return 'originals/products/muziik-common/composition';
+    return 'originals/components/muziik-common/composition';
   };
 
-  // ✅ NGS 샤프트 공통 폴더 경로 반환 함수 추가
+  // ✅ NGS 샤프트 공통 폴더 경로 반환 함수 추가 - components로 변경
   const getNgsCommonFolderPath = (): string => {
-    return 'originals/products/ngs-common/composition';
+    return 'originals/components/ngs-common/composition';
   };
 
-  // ✅ 시크리트포스 공통 폴더 경로 반환 함수 추가
+  // ✅ 시크리트포스 공통 폴더 경로 반환 함수 추가 - components로 변경
   const getSecretForceCommonFolderPath = (): string => {
-    return 'originals/products/secret-force-common/composition';
+    return 'originals/components/secret-force-common/composition';
   };
 
-  // ✅ 골드 공통 폴더 경로 반환 함수 추가
+  // ✅ 골드 공통 폴더 경로 반환 함수 추가 - components로 변경
   const getGoldCommonFolderPath = (): string => {
-    return 'originals/products/secret-force-gold-common/composition';
+    return 'originals/components/secret-force-gold-common/composition';
+  };
+
+  // ✅ 시크리트웨폰 골드 공통 폴더 경로 반환 함수 추가 - components로 변경
+  const getSecretWeaponGoldCommonFolderPath = (): string => {
+    return 'originals/components/secret-weapon-gold-common/composition';
+  };
+
+  // ✅ 시크리트웨폰 블랙 공통 폴더 경로 반환 함수 추가 - components로 변경
+  const getSecretWeaponBlackCommonFolderPath = (): string => {
+    return 'originals/components/secret-weapon-black-common/composition';
   };
 
   // ✅ MUZIIK 제품인지 확인하는 함수
@@ -687,14 +764,22 @@ export default function ProductCompositionManagement() {
     // 기본적으로 composition 폴더를 반환 (이미지가 여기에 있음)
     // 사용자는 브레드크럼으로 detail, gallery 폴더로 이동 가능
     
-    // grip-common은 공통 참조 이미지 폴더 (그립 공통)
-    // slug가 없거나 특별한 경우 originals/products/grip-common/composition 반환
-    if (formData.slug === 'grip-common' || formData.slug === 'secret-force-common' || formData.slug === '') {
-      return getCommonFolderPath();
+    // ✅ 부품 카테고리: originals/components/{slug}/composition
+    if (formData.category === 'component') {
+      return `originals/components/${formData.slug}/composition`;
     }
     
-    // 굿즈/액세서리: originals/goods/{slug}/composition (cap = 모자)
-    if (formData.category === 'goods' || formData.category === 'cap' || formData.category === 'accessory') {
+    // grip-common은 공통 참조 이미지 폴더 (그립 공통)
+    // slug가 없거나 특별한 경우 originals/components/grip-common/composition 반환
+    if (formData.slug === 'grip-common' || formData.slug === 'secret-force-common' || formData.slug === '') {
+      // component 카테고리인 경우에만 getCommonFolderPath 사용
+      if (formData.category === ('component' as ProductComposition['category'])) {
+        return getCommonFolderPath();
+      }
+    }
+    
+    // 굿즈/액세서리: originals/goods/{slug}/composition (hat = 모자)
+    if (formData.category === 'hat' || formData.category === 'accessory') {
       // ✅ 구식 slug를 새 색상별 slug로 매핑
       const goodsSlugToFolder: Record<string, string> = {
         // 구식 버킷햇 slug → 새 색상별 slug
@@ -800,6 +885,60 @@ export default function ProductCompositionManagement() {
             </button>
           </div>
 
+          {/* ✅ 탭 분리: 클럽/굿즈/부품 */}
+          <div className="mb-6 bg-white rounded-lg shadow p-4">
+            <div className="flex gap-4 border-b border-gray-200">
+              <button
+                onClick={() => {
+                  setActiveTab('clubs');
+                  setFilter({ ...filter, category: undefined }); // 필터 초기화
+                }}
+                className={`px-6 py-3 font-medium text-sm transition-colors ${
+                  activeTab === 'clubs'
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                클럽 (Clubs)
+                <span className="ml-2 text-xs text-gray-400">
+                  ({products.filter(p => p.category === 'driver').length}개)
+                </span>
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('goods');
+                  setFilter({ ...filter, category: undefined }); // 필터 초기화
+                }}
+                className={`px-6 py-3 font-medium text-sm transition-colors ${
+                  activeTab === 'goods'
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                굿즈 (Goods)
+                <span className="ml-2 text-xs text-gray-400">
+                  ({products.filter(p => p.category !== 'driver' && p.category !== 'component').length}개)
+                </span>
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('components');
+                  setFilter({ ...filter, category: undefined }); // 필터 초기화
+                }}
+                className={`px-6 py-3 font-medium text-sm transition-colors ${
+                  activeTab === 'components'
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                부품 (Components)
+                <span className="ml-2 text-xs text-gray-400">
+                  ({products.filter(p => p.category === 'component').length}개)
+                </span>
+              </button>
+            </div>
+          </div>
+
           {/* 필터 */}
           <div className="bg-white rounded-lg shadow p-4 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -817,6 +956,7 @@ export default function ProductCompositionManagement() {
                   <option value="hat">모자</option>
                   <option value="apparel">의류</option>
                   <option value="accessory">액세서리</option>
+                  <option value="component">부품</option>
                 </select>
               </div>
               <div>
@@ -889,7 +1029,7 @@ export default function ProductCompositionManagement() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {products.map((product) => (
+                  {filteredProducts.map((product) => (
                     <tr key={product.id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="relative w-16 h-16 bg-gray-100 rounded overflow-hidden">
@@ -1030,15 +1170,49 @@ export default function ProductCompositionManagement() {
                       </label>
                       <select
                         value={formData.category}
-                        onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
+                        onChange={(e) => {
+                          const newCategory = e.target.value as any;
+                          setFormData({ 
+                            ...formData, 
+                            category: newCategory,
+                            // 카테고리 변경 시 합성 타겟 자동 설정
+                            composition_target: newCategory === 'driver' ? 'hands' : 
+                                              newCategory === 'hat' ? 'head' : 
+                                              newCategory === 'apparel' ? 'body' : 
+                                              newCategory === 'component' ? 'accessory' : 'accessory'
+                          });
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                         required
                       >
-                        <option value="driver">드라이버</option>
-                        <option value="hat">모자</option>
-                        <option value="apparel">의류</option>
-                        <option value="accessory">액세서리</option>
+                        {activeTab === 'clubs' ? (
+                          <option value="driver">드라이버</option>
+                        ) : activeTab === 'components' ? (
+                          <option value="component">부품</option>
+                        ) : (
+                          <>
+                            <option value="hat">모자</option>
+                            <option value="apparel">의류</option>
+                            <option value="accessory">액세서리</option>
+                          </>
+                        )}
                       </select>
+                      {formData.category === 'hat' && (
+                        <div className="mt-2">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            모자 타입
+                          </label>
+                          <select
+                            value={formData.hat_type || 'baseball'}
+                            onChange={(e) => setFormData({ ...formData, hat_type: e.target.value as any })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          >
+                            <option value="baseball">야구모자</option>
+                            <option value="bucket">버킷햇</option>
+                            <option value="visor">비저</option>
+                          </select>
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1205,21 +1379,30 @@ export default function ProductCompositionManagement() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Slug *
+                      <span className="ml-2 text-xs text-gray-500 font-normal">
+                        ({getSlugPrefix()})
+                      </span>
                     </label>
-                    <input
-                      type="text"
-                      value={formData.slug}
-                      onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                      onBlur={(e) => {
-                        // 제품명이 변경되었는데 slug가 비어있으면 자동 생성
-                        if (!e.target.value && formData.name) {
-                          setFormData({ ...formData, slug: generateSlug(formData.name) });
-                        }
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                      placeholder="제품명 입력 시 자동 생성됩니다"
-                      required
-                    />
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600 font-mono bg-gray-100 px-2 py-2 rounded-l-lg border border-r-0 border-gray-300">
+                        {getSlugPrefix()}
+                      </span>
+                      <input
+                        type="text"
+                        value={formData.slug || ''}
+                        onChange={(e) => handleSlugChange(e.target.value)}
+                        onBlur={(e) => {
+                          // 제품명이 변경되었는데 slug가 비어있으면 자동 생성
+                          if (!e.target.value && formData.name) {
+                            const generatedSlug = generateSlug(formData.name);
+                            setFormData({ ...formData, slug: generatedSlug });
+                          }
+                        }}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-r-lg"
+                        placeholder="slug 입력 (예: secret-force-gold-2-muziik)"
+                        required
+                      />
+                    </div>
                     {formData.name && !formData.slug && (
                       <button
                         type="button"
@@ -1229,6 +1412,9 @@ export default function ProductCompositionManagement() {
                         자동 생성: {generateSlug(formData.name)}
                       </button>
                     )}
+                    <p className="mt-1 text-xs text-gray-500">
+                      전체 경로: <span className="font-mono">{getSlugPrefix()}{formData.slug || '...'}/composition</span>
+                    </p>
                   </div>
 
 
@@ -1375,14 +1561,17 @@ export default function ProductCompositionManagement() {
                 setHasUnsavedChanges(true);
               }
             }}
-            onUpload={async (file: File, folderPath: string) => {
+            onUpload={async (file: File, folderPath: string, uploadModeParam?: 'optimize-filename' | 'preserve-filename') => {
               // 폴더 경로에서 slug 추출
               // 예: originals/products/secret-force-pro-3/composition -> secret-force-pro-3
+              // 예: originals/components/grip-common/composition -> grip-common
               const pathParts = folderPath.split('/');
               const slugIndex = pathParts.indexOf('products') !== -1 
                 ? pathParts.indexOf('products') + 1
                 : pathParts.indexOf('goods') !== -1
                 ? pathParts.indexOf('goods') + 1
+                : pathParts.indexOf('components') !== -1
+                ? pathParts.indexOf('components') + 1
                 : -1;
               
               const productSlug = slugIndex !== -1 && pathParts[slugIndex] 
@@ -1395,11 +1584,16 @@ export default function ProductCompositionManagement() {
                 throw new Error('제품 정보를 확인할 수 없습니다. 폴더 경로를 확인해주세요.');
               }
 
+              // ✅ 업로드 모드 결정 (파라미터 우선, 없으면 state 사용, 기본값: optimize-filename)
+              const effectiveUploadMode = uploadModeParam ?? uploadMode ?? 'optimize-filename';
+              const preserveFilename = effectiveUploadMode === 'preserve-filename';
+
               const uploadFormData = new FormData();
               uploadFormData.append('file', file);
               uploadFormData.append('productSlug', productSlug);
               uploadFormData.append('category', category);
               uploadFormData.append('imageType', 'composition');
+              uploadFormData.append('preserveFilename', String(preserveFilename));
 
               const response = await fetch('/api/admin/upload-product-image', {
                 method: 'POST',
@@ -1411,6 +1605,9 @@ export default function ProductCompositionManagement() {
                 throw new Error(errorData.error || errorData.details || '이미지 업로드에 실패했습니다.');
               }
             }}
+            // ✅ 업로드 모드 전달
+            uploadMode={uploadMode}
+            onUploadModeChange={(mode) => setUploadMode(mode)}
             // ✅ 공통 폴더 접근 추가
             alternativeFolders={[
               {
@@ -1427,6 +1624,16 @@ export default function ProductCompositionManagement() {
                 label: '시크리트포스 골드 공통',
                 path: getGoldCommonFolderPath(), // secret-force-gold-common/composition
                 icon: '⭐',
+              },
+              {
+                label: '시크리트웨폰 골드 공통',
+                path: getSecretWeaponGoldCommonFolderPath(), // secret-weapon-gold-common/composition
+                icon: '⭐',
+              },
+              {
+                label: '시크리트웨폰 블랙 공통',
+                path: getSecretWeaponBlackCommonFolderPath(), // secret-weapon-black-common/composition
+                icon: '⚫',
               },
               // ✅ 드라이버 제품인 경우 NGS 샤프트 폴더 추가
               ...(formData.category === 'driver' ? [{
