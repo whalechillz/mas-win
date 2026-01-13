@@ -562,11 +562,31 @@ export default function ProductCompositionManagement() {
     const allImages = getAllImages();
     const otherImages = allImages.filter(img => img !== imageUrl);
     
+    // ✅ reference_images_enabled 상태 업데이트
+    const prevEnabled = formData.reference_images_enabled || {};
+    const newEnabled: Record<string, boolean> = {};
+    
+    // 이전 대표 이미지가 있었다면 참조 이미지로 이동하면서 활성화 상태 유지
+    if (formData.image_url && formData.image_url !== imageUrl) {
+      // 이전 대표 이미지의 활성화 상태를 참조 이미지로 이동 (기본값: true)
+      newEnabled[formData.image_url] = prevEnabled[formData.image_url] !== false;
+    }
+    
+    // 나머지 참조 이미지들의 활성화 상태 유지
+    otherImages.forEach(img => {
+      if (img !== formData.image_url) {
+        newEnabled[img] = prevEnabled[img] !== false;
+      }
+    });
+    
     setFormData({
       ...formData,
       image_url: imageUrl,
       reference_images: otherImages,
+      reference_images_enabled: newEnabled, // ✅ 활성화 상태 업데이트
     });
+    
+    setHasUnsavedChanges(true); // ✅ 변경사항 추적
   };
 
   // ✅ 목록에서만 제거 (Storage는 유지)
@@ -1265,7 +1285,7 @@ export default function ProductCompositionManagement() {
                           // ✅ 참조 이미지 활성화 상태 확인 (기본값: true)
                           const isRefEnabled = formData.reference_images_enabled?.[img] !== false;
                           return (
-                            <div key={index} className="relative group">
+                            <div key={img || `image-${index}`} className="relative group">
                               <div className={`relative w-full h-32 bg-gray-100 rounded overflow-hidden border-2 ${
                                 isMain ? 'border-blue-500' : isRefEnabled ? 'border-gray-300' : 'border-gray-200 opacity-60'
                               }`}>
