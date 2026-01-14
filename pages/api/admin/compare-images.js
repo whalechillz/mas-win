@@ -1,7 +1,7 @@
 /**
  * Phase 5-7: 이미지 비교 API
  * 
- * 선택된 2-3개 이미지의 메타데이터를 비교하고, 중복 여부를 판단합니다.
+ * 선택된 2-4개 이미지의 메타데이터를 비교하고, 중복 여부를 판단합니다.
  * Phase 8-9-3: pHash 기반 시각적 유사도 계산 추가
  */
 
@@ -260,9 +260,9 @@ export default async function handler(req, res) {
   try {
     const { imageIds } = req.body;
 
-    if (!imageIds || !Array.isArray(imageIds) || imageIds.length < 1 || imageIds.length > 3) {
+    if (!imageIds || !Array.isArray(imageIds) || imageIds.length < 1 || imageIds.length > 4) {
       return res.status(400).json({
-        error: '1-3개의 이미지 ID가 필요합니다',
+        error: '1-4개의 이미지 ID가 필요합니다',
       });
     }
 
@@ -525,17 +525,16 @@ export default async function handler(req, res) {
     let phashSimilarity = 0;
     if (imagesWithUsage.length === 2 && imagesWithUsage[0].phash && imagesWithUsage[1].phash) {
       phashSimilarity = calculatePHashSimilarity(imagesWithUsage[0].phash, imagesWithUsage[1].phash);
-    } else if (imagesWithUsage.length === 3) {
-      // 3개 이미지인 경우 평균 유사도 계산
+    } else if (imagesWithUsage.length >= 3) {
+      // 3개 이상 이미지인 경우 평균 유사도 계산
       const similarities = [];
-      if (imagesWithUsage[0].phash && imagesWithUsage[1].phash) {
-        similarities.push(calculatePHashSimilarity(imagesWithUsage[0].phash, imagesWithUsage[1].phash));
-      }
-      if (imagesWithUsage[0].phash && imagesWithUsage[2].phash) {
-        similarities.push(calculatePHashSimilarity(imagesWithUsage[0].phash, imagesWithUsage[2].phash));
-      }
-      if (imagesWithUsage[1].phash && imagesWithUsage[2].phash) {
-        similarities.push(calculatePHashSimilarity(imagesWithUsage[1].phash, imagesWithUsage[2].phash));
+      // 모든 이미지 쌍의 유사도 계산
+      for (let i = 0; i < imagesWithUsage.length; i++) {
+        for (let j = i + 1; j < imagesWithUsage.length; j++) {
+          if (imagesWithUsage[i].phash && imagesWithUsage[j].phash) {
+            similarities.push(calculatePHashSimilarity(imagesWithUsage[i].phash, imagesWithUsage[j].phash));
+          }
+        }
       }
       if (similarities.length > 0) {
         phashSimilarity = Math.round(similarities.reduce((a, b) => a + b, 0) / similarities.length);

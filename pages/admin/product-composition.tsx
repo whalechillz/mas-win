@@ -69,6 +69,8 @@ export default function ProductCompositionManagement() {
   const [isSaving, setIsSaving] = useState(false);
   // ✅ 업로드 모드 (기본값: optimize-filename)
   const [uploadMode, setUploadMode] = useState<'optimize-filename' | 'preserve-filename'>('optimize-filename');
+  // ✅ slug 수동 수정 여부 추적
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 
   // 제품 목록 로드 (useCallback으로 메모이제이션)
   const loadProducts = useCallback(async () => {
@@ -125,9 +127,13 @@ export default function ProductCompositionManagement() {
     if (value.startsWith(prefix)) {
       value = value.replace(prefix, '');
     }
-    // originals/products/ 또는 originals/goods/로 시작하는 경우도 제거
-    value = value.replace(/^originals\/(products|goods)\//, '');
+    // originals/products/ 또는 originals/goods/ 또는 originals/components/로 시작하는 경우도 제거
+    value = value.replace(/^originals\/(products|goods|components)\//, '');
     setFormData({ ...formData, slug: value });
+    // ✅ slug 수동 수정 플래그 설정
+    if (value) {
+      setIsSlugManuallyEdited(true);
+    }
   };
 
   // 세션 체크는 미들웨어에서 처리하므로 클라이언트 사이드 리다이렉트 제거
@@ -338,6 +344,7 @@ export default function ProductCompositionManagement() {
     });
     setOriginalFormData(null);
     setHasUnsavedChanges(false);
+    setIsSlugManuallyEdited(false); // ✅ slug 수동 수정 플래그 리셋
     setShowModal(true);
   };
 
@@ -433,6 +440,7 @@ export default function ProductCompositionManagement() {
     // ✅ 원본 데이터 저장 (변경사항 추적용)
     setOriginalFormData(JSON.parse(JSON.stringify(newFormData))); // deep copy
     setHasUnsavedChanges(false);
+    setIsSlugManuallyEdited(false); // ✅ 수정 모드 진입 시 플래그 리셋 (기존 slug 유지)
     setShowModal(true);
   };
 
@@ -454,6 +462,9 @@ export default function ProductCompositionManagement() {
       display_order: 0,
       hat_type: 'baseball',
     });
+    setOriginalFormData(null);
+    setHasUnsavedChanges(false);
+    setIsSlugManuallyEdited(false); // ✅ slug 수동 수정 플래그 리셋
   };
 
   // 순서 변경 (위/아래)
@@ -870,13 +881,119 @@ export default function ProductCompositionManagement() {
     setGalleryPickerMode(null);
   };
 
-  // Slug 자동 생성
-  const generateSlug = (name: string) => {
-    return name
+  // ✅ 한글을 영문으로 변환하는 함수
+  const translateKoreanToEnglish = (text: string): string => {
+    if (!text || typeof text !== 'string') {
+      return '';
+    }
+    
+    // 골프 관련 용어 매핑
+    const koreanToEnglishMap: Record<string, string> = {
+      // 골프 관련
+      '골프': 'golf',
+      '드라이버': 'driver',
+      '아이언': 'iron',
+      '퍼터': 'putter',
+      '웨지': 'wedge',
+      '우드': 'wood',
+      '골프장': 'golf-course',
+      '골프공': 'golf-ball',
+      '골프백': 'golf-bag',
+      '골프장갑': 'golf-glove',
+      '골프화': 'golf-shoes',
+      // 골프 기술
+      '스윙': 'swing',
+      '그립': 'grip',
+      '스탠스': 'stance',
+      '샷': 'shot',
+      '라운드': 'round',
+      '그린': 'green',
+      '페어웨이': 'fairway',
+      '벙커': 'bunker',
+      '러프': 'rough',
+      '티': 'tee',
+      // 색상
+      '흰색': 'white',
+      '검은색': 'black',
+      '블랙': 'black',
+      '파란색': 'blue',
+      '블루': 'blue',
+      '초록색': 'green',
+      '빨간색': 'red',
+      '레드': 'red',
+      '노란색': 'yellow',
+      '골드': 'gold',
+      '실버': 'silver',
+      '회색': 'gray',
+      '그레이': 'gray',
+      '화이트': 'white',
+      // 의류/장비
+      '폴로셔츠': 'polo-shirt',
+      '바지': 'pants',
+      '모자': 'hat',
+      '캡': 'cap',
+      '바이저': 'visor',
+      '장갑': 'glove',
+      '신발': 'shoes',
+      // 브랜드/제품명
+      '시크리트': 'secret',
+      '시크리트포스': 'secret-force',
+      '시크리트웨폰': 'secret-weapon',
+      '프로': 'pro',
+      'V3': 'v3',
+      'V2': 'v2',
+      'V1': 'v1',
+      '마쓰구': 'massgoo',
+      '마스구': 'massgoo',
+      '리미티드': 'limited',
+      '캘빈': 'calvin',
+      '타일': 'tile',
+      '라보': 'labo',
+      // 기타
+      '공통': 'common',
+      '뮤직': 'muziik',
+      '뮤지크': 'muziik',
+      'MUZIIK': 'muziik',
+      'NGS': 'ngs',
+    };
+    
+    let result = text.trim();
+    
+    // 한글 단어를 영문으로 변환 (긴 단어부터 우선 처리)
+    const sortedEntries = Object.entries(koreanToEnglishMap)
+      .sort((a, b) => b[0].length - a[0].length);
+    
+    sortedEntries.forEach(([korean, english]) => {
+      const regex = new RegExp(korean, 'gi'); // 대소문자 무시
+      result = result.replace(regex, english);
+    });
+    
+    // 남은 한글 문자 제거 및 정리
+    result = result
+      .replace(/[가-힣]/g, '') // 남은 한글 제거
+      .replace(/[^a-zA-Z0-9\-_\s]/g, '') // 영문, 숫자, 하이픈, 언더스코어, 공백만 유지
+      .replace(/\s+/g, '-') // 공백을 하이픈으로
+      .replace(/-+/g, '-') // 연속 하이픈을 하나로
+      .replace(/^-|-$/g, '') // 앞뒤 하이픈 제거
+      .toLowerCase(); // 소문자로 변환
+    
+    return result;
+  };
+
+  // ✅ Slug 자동 생성 (한영 변환 포함)
+  const generateSlug = (name: string): string => {
+    if (!name) return '';
+    
+    // 1. 한글을 영어로 변환
+    const englishName = translateKoreanToEnglish(name);
+    
+    // 2. slug 형식으로 정리
+    return englishName
       .toLowerCase()
-      .replace(/[^a-z0-9가-힣\s]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
+      .replace(/[^a-z0-9\s-]/g, '') // 영문, 숫자, 공백, 하이픈만 유지
+      .replace(/\s+/g, '-') // 공백을 하이픈으로
+      .replace(/-+/g, '-') // 연속 하이픈을 하나로
+      .replace(/^-|-$/g, '') // 앞뒤 하이픈 제거
       .trim();
   };
 
@@ -1171,10 +1288,12 @@ export default function ProductCompositionManagement() {
                         type="text"
                         value={formData.name}
                         onChange={(e) => {
-                          setFormData({ ...formData, name: e.target.value });
-                          // Slug가 비어있으면 자동 생성
-                          if (!formData.slug && e.target.value) {
-                            setFormData(prev => ({ ...prev, name: e.target.value, slug: generateSlug(e.target.value) }));
+                          const newName = e.target.value;
+                          setFormData({ ...formData, name: newName });
+                          // ✅ slug가 비어있거나 수동 수정하지 않은 경우에만 자동 생성
+                          if (!isSlugManuallyEdited && newName) {
+                            const autoSlug = generateSlug(newName);
+                            setFormData(prev => ({ ...prev, name: newName, slug: autoSlug }));
                           }
                         }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
@@ -1416,20 +1535,25 @@ export default function ProductCompositionManagement() {
                           if (!e.target.value && formData.name) {
                             const generatedSlug = generateSlug(formData.name);
                             setFormData({ ...formData, slug: generatedSlug });
+                            setIsSlugManuallyEdited(false); // 자동 생성이므로 플래그 리셋
                           }
                         }}
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-r-lg"
-                        placeholder="slug 입력 (예: secret-force-gold-2-muziik)"
+                        placeholder={formData.name ? generateSlug(formData.name) : 'slug 입력 (예: secret-force-gold-2-muziik)'}
                         required
                       />
                     </div>
-                    {formData.name && !formData.slug && (
+                    {formData.name && (
                       <button
                         type="button"
-                        onClick={() => setFormData({ ...formData, slug: generateSlug(formData.name || '') })}
+                        onClick={() => {
+                          const autoSlug = generateSlug(formData.name || '');
+                          setFormData({ ...formData, slug: autoSlug });
+                          setIsSlugManuallyEdited(false); // 자동 생성이므로 플래그 리셋
+                        }}
                         className="mt-1 text-xs text-blue-600 hover:text-blue-800"
                       >
-                        자동 생성: {generateSlug(formData.name)}
+                        {formData.slug ? '자동 생성으로 재설정: ' : '자동 생성: '}{generateSlug(formData.name)}
                       </button>
                     )}
                     <p className="mt-1 text-xs text-gray-500">

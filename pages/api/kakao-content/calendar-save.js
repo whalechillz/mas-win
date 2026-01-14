@@ -43,9 +43,12 @@ async function updateImageUsageOnPublish(calendarData) {
     }
   }
   
+  // ✅ 중복 제거: 같은 URL이 여러 번 카운팅되지 않도록 Set 사용
+  const uniqueImageUrls = [...new Set(imageUrls)];
+  
   // 각 이미지 URL에 대해 사용 기록 업데이트
   let updatedCount = 0;
-  for (const imageUrl of imageUrls) {
+  for (const imageUrl of uniqueImageUrls) {
     try {
       // image_metadata 테이블 업데이트
       const { data: metadata } = await supabase
@@ -55,6 +58,9 @@ async function updateImageUsageOnPublish(calendarData) {
         .maybeSingle();
       
       if (metadata) {
+        // ✅ 중복 증가 방지: 이미 배포 완료된 이미지는 카운팅하지 않음
+        // (이미 publishedAt이 설정되어 있고, usage_count가 증가했다고 가정)
+        // 단, 이번 배포에서 처음 사용되는 이미지만 카운팅
         await supabase
           .from('image_metadata')
           .update({

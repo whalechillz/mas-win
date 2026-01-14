@@ -235,54 +235,29 @@ export default async function handler(req, res) {
       }
 
       // 2. image_metadata 테이블에서 메타데이터 삭제 (개선된 로직)
+      // ✅ file_name 컬럼이 없으므로 image_url만 사용
       let metadataDeletedCount = 0;
       for (const fileName of existingFiles) {
         console.log('🗑️ 메타데이터 삭제 시도:', fileName);
         
-        // 방법 1: 정확한 file_name 매칭
-        const { error: nameError } = await supabase
-          .from('image_metadata')
-          .delete()
-          .eq('file_name', fileName);
-
-        if (nameError) {
-          console.warn('⚠️ file_name 매칭 삭제 실패:', fileName, nameError);
-        } else {
-          metadataDeletedCount++;
-          console.log('✅ file_name 매칭 삭제 성공:', fileName);
-          continue;
-        }
-
-        // 방법 2: LIKE 연산자로 부분 매칭
-        const { error: likeError } = await supabase
-          .from('image_metadata')
-          .delete()
-          .like('file_name', `%${fileName}%`);
-
-        if (likeError) {
-          console.warn('⚠️ LIKE 매칭 삭제 실패:', fileName, likeError);
-        } else {
-          metadataDeletedCount++;
-          console.log('✅ LIKE 매칭 삭제 성공:', fileName);
-          continue;
-        }
-
-        // 방법 3: image_url로 삭제 (URL 기반)
+        // ✅ image_url로 삭제 (URL 기반) - file_name 컬럼이 없으므로 이 방법만 사용
         try {
           const { data: urlData } = supabase.storage
             .from('blog-images')
             .getPublicUrl(fileName);
           
-          const { error: urlError } = await supabase
+          const { error: urlError, count: urlCount } = await supabase
             .from('image_metadata')
             .delete()
             .eq('image_url', urlData.publicUrl);
 
           if (urlError) {
             console.warn('⚠️ URL 매칭 삭제 실패:', fileName, urlError);
+          } else if (urlCount && urlCount > 0) {
+            metadataDeletedCount += urlCount;
+            console.log('✅ URL 매칭 삭제 성공:', fileName, `(${urlCount}개 행 삭제됨)`);
           } else {
-            metadataDeletedCount++;
-            console.log('✅ URL 매칭 삭제 성공:', fileName);
+            console.log('ℹ️ 해당 URL의 메타데이터가 없음:', fileName);
           }
         } catch (urlError) {
           console.warn('⚠️ URL 생성 실패:', fileName, urlError);
@@ -385,63 +360,36 @@ export default async function handler(req, res) {
       }
 
       // 2. image_metadata 테이블에서 메타데이터 삭제 (개선된 로직)
+      // ✅ file_name 컬럼이 없으므로 image_url만 사용
       console.log('🗑️ 메타데이터 삭제 시도:', targetWithExtension);
       
       let metadataDeleted = false;
       
-      // 방법 1: 정확한 file_name 매칭
-      const { error: nameError } = await supabase
-        .from('image_metadata')
-        .delete()
-        .eq('file_name', targetWithExtension);
-
-      if (nameError) {
-        console.warn('⚠️ file_name 매칭 삭제 실패:', targetWithExtension, nameError);
-      } else {
-        metadataDeleted = true;
-        console.log('✅ file_name 매칭 삭제 성공:', targetWithExtension);
-      }
-
-      // 방법 2: LIKE 연산자로 부분 매칭 (방법 1이 실패한 경우)
-      if (!metadataDeleted) {
-        const { error: likeError } = await supabase
+      // ✅ image_url로 삭제 (URL 기반) - file_name 컬럼이 없으므로 이 방법만 사용
+      try {
+        const { data: urlData } = supabase.storage
+          .from('blog-images')
+          .getPublicUrl(targetWithExtension);
+        
+        const { error: urlError, count: urlCount } = await supabase
           .from('image_metadata')
           .delete()
-          .like('file_name', `%${targetWithExtension}%`);
+          .eq('image_url', urlData.publicUrl);
 
-        if (likeError) {
-          console.warn('⚠️ LIKE 매칭 삭제 실패:', targetWithExtension, likeError);
-        } else {
+        if (urlError) {
+          console.warn('⚠️ URL 매칭 삭제 실패:', targetWithExtension, urlError);
+        } else if (urlCount && urlCount > 0) {
           metadataDeleted = true;
-          console.log('✅ LIKE 매칭 삭제 성공:', targetWithExtension);
+          console.log('✅ URL 매칭 삭제 성공:', targetWithExtension, `(${urlCount}개 행 삭제됨)`);
+        } else {
+          console.log('ℹ️ 해당 URL의 메타데이터가 없음:', targetWithExtension);
         }
-      }
-
-      // 방법 3: image_url로 삭제 (URL 기반)
-      if (!metadataDeleted) {
-        try {
-          const { data: urlData } = supabase.storage
-            .from('blog-images')
-            .getPublicUrl(targetWithExtension);
-          
-          const { error: urlError } = await supabase
-            .from('image_metadata')
-            .delete()
-            .eq('image_url', urlData.publicUrl);
-
-          if (urlError) {
-            console.warn('⚠️ URL 매칭 삭제 실패:', targetWithExtension, urlError);
-          } else {
-            metadataDeleted = true;
-            console.log('✅ URL 매칭 삭제 성공:', targetWithExtension);
-          }
-        } catch (urlError) {
-          console.warn('⚠️ URL 생성 실패:', targetWithExtension, urlError);
-        }
+      } catch (urlError) {
+        console.warn('⚠️ URL 생성 실패:', targetWithExtension, urlError);
       }
 
       if (!metadataDeleted) {
-        console.warn('⚠️ 모든 메타데이터 삭제 방법 실패:', targetWithExtension);
+        console.warn('⚠️ 메타데이터 삭제 실패 (메타데이터가 없을 수 있음):', targetWithExtension);
       }
       
       // ✅ 제품의 detail_images, composition_images, gallery_images에서도 제거

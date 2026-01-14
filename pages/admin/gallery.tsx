@@ -12,6 +12,7 @@ import { uploadImageToSupabase } from '../../lib/image-upload-utils';
 import FolderSelector from '../../components/admin/FolderSelector';
 import { rotateImageWithCanvas, convertImageWithCanvas, getImageMetadata } from '../../lib/client/image-processor';
 import JSZip from 'jszip';
+import toast from 'react-hot-toast';
 
 // 디바운스 훅 (PerformanceUtils에서 분리하여 직접 구현)
 function useDebounce<T>(value: T, delay: number): T {
@@ -81,6 +82,8 @@ interface ImageMetadata {
   logo_brand?: string;
   logo_type?: string;
   logo_color_variant?: string;
+  // ✅ 좋아요 필드
+  is_liked?: boolean;
 }
 
 export default function GalleryAdmin() {
@@ -108,7 +111,11 @@ export default function GalleryAdmin() {
   
   // 이미지 복사/링크 모달 관련 상태
   const [showCopyLinkModal, setShowCopyLinkModal] = useState(false);
-  const [pendingImageDrop, setPendingImageDrop] = useState<{ imageData: any; targetFolder: string } | null>(null);
+  const [pendingImageDrop, setPendingImageDrop] = useState<{ 
+    imageData: any; 
+    targetFolder: string;
+    imageDataArray?: any[]; // ✅ 여러 이미지 배열 추가
+  } | null>(null);
   
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -512,16 +519,30 @@ export default function GalleryAdmin() {
     }
   };
 
-  // Phase 5-7: 이미지 비교 핸들러 (통합: 1개는 확대, 2-3개는 비교)
-  const handleCompareImages = async () => {
-    if (selectedForCompare.size < 1 || selectedForCompare.size > 3) {
-      alert('1-3개의 이미지를 선택해주세요.');
+  // Phase 5-7: 이미지 비교 핸들러 (통합: 1개는 확대, 2-4개는 비교)
+  const handleCompareImages = async (imageIds?: string[]) => {
+    // ✅ imageIds 파라미터가 있으면 사용, 없으면 selectedForCompare 사용
+    const idsToCompare = imageIds || Array.from(selectedForCompare);
+    
+    console.log('🔍 handleCompareImages 호출:', {
+      imageIdsParam: imageIds,
+      selectedForCompareSize: selectedForCompare.size,
+      idsToCompare: idsToCompare,
+      idsToCompareLength: idsToCompare.length
+    });
+    
+    if (idsToCompare.length < 1 || idsToCompare.length > 4) {
+      console.warn('⚠️ 이미지 개수 오류:', {
+        length: idsToCompare.length,
+        ids: idsToCompare
+      });
+      alert('1-4개의 이미지를 선택해주세요.');
       return;
     }
 
     // 1개 선택 시: 확대 모달 열기
-    if (selectedForCompare.size === 1) {
-      const imageId = Array.from(selectedForCompare)[0];
+    if (idsToCompare.length === 1) {
+      const imageId = idsToCompare[0];
       const image = images.find(img => img.id === imageId);
       if (image) {
         setSelectedImageForZoom(image);
@@ -530,9 +551,9 @@ export default function GalleryAdmin() {
       }
     }
 
-    // 2-3개 선택 시: 비교 모달 열기
+    // 2-4개 선택 시: 비교 모달 열기
     try {
-      const imageIds = Array.from(selectedForCompare);
+      const imageIds = idsToCompare;
       
       // 🔧 임시 ID 필터링: temp-로 시작하는 ID는 제외
       const validImageIds = imageIds.filter(id => id && !id.startsWith('temp-'));
@@ -611,14 +632,113 @@ export default function GalleryAdmin() {
     }
   };
 
+  // ✅ 비교 모달이 닫힐 때 선택 상태 초기화
+  useEffect(() => {
+    if (!showCompareModal) {
+      // 모달이 닫힐 때 선택 상태 초기화
+      setSelectedImages(new Set());
+      setSelectedForCompare(new Set());
+    }
+  }, [showCompareModal]);
+
+  // ✅ 이미지 비교 모달이 열려있을 때 images 상태 변경 시 compareResult 자동 동기화
+  useEffect(() => {
+    if (!showCompareModal || !compareResult || !compareResult.images) {
+      return;
+    }
+    
+    console.log('🔍 compareResult 동기화 useEffect 실행:', {
+      showCompareModal,
+      compareResultImagesCount: compareResult?.images?.length,
+      imagesCount: images.length
+    });
+    
+    // compareResult의 이미지 ID 목록
+    const compareImageIds = new Set(compareResult.images.map((img: any) => img.id));
+    
+    // 최신 images 상태에서 해당 ID들의 이미지 찾기
+    const existingImageIds = new Set(images.map((img: any) => img.id));
+    
+    // compareResult에 있지만 images에 없는 이미지 = 삭제된 이미지
+    const deletedImageIds = Array.from(compareImageIds).filter(id => !existingImageIds.has(id));
+    
+    console.log('🔍 삭제된 이미지 확인:', {
+      compareImageIds: Array.from(compareImageIds),
+      existingImageIds: Array.from(existingImageIds),
+      deletedImageIds,
+      deletedCount: deletedImageIds.length
+    });
+    
+    if (deletedImageIds.length > 0) {
+      console.log('🔍 삭제된 이미지 발견, compareResult 업데이트 시작');
+      
+      // 삭제된 이미지가 있으면 compareResult 업데이트
+      const updatedImages = compareResult.images.filter((img: any) => 
+        existingImageIds.has(img.id)
+      );
+      
+      console.log('🔍 업데이트된 이미지 목록:', {
+        beforeCount: compareResult.images.length,
+        afterCount: updatedImages.length,
+        deletedIds: deletedImageIds
+      });
+      
+      // 모든 이미지가 삭제되었으면 모달 닫기
+      if (updatedImages.length === 0) {
+        console.log('🔍 모든 이미지가 삭제되어 모달 닫기');
+        setShowCompareModal(false);
+        setCompareResult(null);
+        setSelectedImages(new Set()); // ✅ 추가: 선택 상태 초기화
+        setSelectedForCompare(new Set());
+        return;
+      }
+      
+      // 이미지가 1개만 남았으면 모달 닫기
+      if (updatedImages.length === 1) {
+        console.log('🔍 이미지가 1개만 남아 모달 닫기');
+        setShowCompareModal(false);
+        setCompareResult(null);
+        setSelectedImages(new Set()); // ✅ 추가: 선택 상태 초기화
+        setSelectedForCompare(new Set());
+        return;
+      }
+      
+      // compareResult 업데이트 (최신 images 데이터로)
+      const latestImages = images.filter((img: any) => 
+        compareImageIds.has(img.id)
+      );
+      
+      console.log('🔍 최신 images 데이터로 업데이트:', {
+        latestImagesCount: latestImages.length,
+        compareImageIdsCount: compareImageIds.size
+      });
+      
+      // ✅ 무한 루프 방지: compareResult가 실제로 변경되었을 때만 업데이트
+      const needsUpdate = latestImages.length !== compareResult.images.length || 
+        latestImages.some((img, idx) => img.id !== compareResult.images[idx]?.id);
+      
+      if (needsUpdate) {
+        console.log('✅ compareResult 업데이트 실행');
+        setCompareResult({
+          ...compareResult,
+          images: latestImages
+        });
+      } else {
+        console.log('ℹ️ compareResult 업데이트 불필요 (변경사항 없음)');
+      }
+    } else {
+      console.log('ℹ️ 삭제된 이미지 없음, 동기화 불필요');
+    }
+  }, [images, showCompareModal]); // ✅ compareResult를 dependency에서 제거하여 무한 루프 방지
+
   // 이미지 비교 선택 토글
   const toggleImageForCompare = (imageId: string) => {
     const newSelected = new Set(selectedForCompare);
     if (newSelected.has(imageId)) {
       newSelected.delete(imageId);
     } else {
-      if (newSelected.size >= 3) {
-        alert('최대 3개까지만 선택할 수 있습니다.');
+      if (newSelected.size >= 4) {
+        alert('최대 4개까지만 선택할 수 있습니다.');
         return;
       }
       newSelected.add(imageId);
@@ -855,6 +975,13 @@ export default function GalleryAdmin() {
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'created_at' | 'name' | 'size' | 'usage_count' | 'folder_path'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  
+  // ✅ 좋아요 관련 상태 (useMemo보다 먼저 정의)
+  const [likedImages, setLikedImages] = useState<Set<string>>(new Set());
+  const [showLikedOnly, setShowLikedOnly] = useState(false);
+  
+  // ✅ 선택 모드 상태 (useMemo보다 먼저 정의)
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
   
   // 동적 카테고리 상태 (useMemo보다 먼저 정의)
   const [dynamicCategories, setDynamicCategories] = useState<any[]>([]);
@@ -1157,6 +1284,11 @@ export default function GalleryAdmin() {
         break;
     }
     
+    // ✅ 좋아요 필터
+    if (showLikedOnly) {
+      filtered = filtered.filter(img => img.is_liked === true);
+    }
+    
     // 정렬
     filtered.sort((a, b) => {
       let aValue, bValue;
@@ -1199,7 +1331,7 @@ export default function GalleryAdmin() {
     });
     
     return filtered;
-  }, [images, filterType, folderFilter, selectedCategoryFilter, dynamicCategories, sortBy, sortOrder]);
+  }, [images, filterType, folderFilter, selectedCategoryFilter, dynamicCategories, sortBy, sortOrder, showLikedOnly]);
   // searchQuery는 의존성에서 제거 (서버 사이드 검색 사용)
   
   // 복사/붙여넣기 상태
@@ -1709,9 +1841,20 @@ export default function GalleryAdmin() {
             usage_count: img.usage_count || 0,
             used_in_posts: img.used_in_posts || [],
             // 메타데이터 존재 여부 (API에서 제공되는 경우)
-            has_metadata: img.has_metadata !== false
+            has_metadata: img.has_metadata !== false,
+            // ✅ 좋아요 상태 추가
+            is_liked: img.is_liked || false
           };
         });
+        
+        // ✅ 좋아요 상태 초기화
+        const liked = new Set<string>();
+        imagesWithMetadata.forEach((img: any) => {
+          if (img.is_liked) {
+            liked.add(img.url);
+          }
+        });
+        setLikedImages(liked);
         
         // 메타데이터가 비어 있는 파일(예: derived/2025-10-14/image_...)을 발견하면 즉시 서버에 upsert 요청
         try {
@@ -1907,6 +2050,25 @@ export default function GalleryAdmin() {
     initializeGallery();
   }, []);
   
+  // ✅ 키보드 단축키 지원
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Esc: 선택 모드 해제 및 선택 초기화
+      if (e.key === 'Escape') {
+        setIsSelectionMode(false);
+        setSelectedImages(new Set());
+      }
+      // Ctrl/Cmd + A: 전체 선택 (선택 모드일 때만)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'a' && isSelectionMode) {
+        e.preventDefault();
+        setSelectedImages(new Set(filteredImages.map(img => getImageUniqueId(img))));
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSelectionMode, filteredImages]);
+  
   // 폴더 필터 또는 includeChildren 변경 시 이미지 재로드
   // 주의: 드롭다운과 체크박스의 onChange에서 이미 fetchImages를 호출하므로,
   // useEffect에서는 제거 (중복 호출 방지)
@@ -1924,6 +2086,62 @@ export default function GalleryAdmin() {
       newSelected.add(imageId);
     }
     setSelectedImages(newSelected);
+  };
+
+  // ✅ 좋아요 토글 함수
+  const handleToggleLike = async (image: ImageMetadata, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const currentLiked = likedImages.has(image.url);
+    const newLikedState = !currentLiked;
+    
+    // 즉시 UI 업데이트 (낙관적 업데이트)
+    setLikedImages(prev => {
+      const newSet = new Set(prev);
+      if (newLikedState) {
+        newSet.add(image.url);
+      } else {
+        newSet.delete(image.url);
+      }
+      return newSet;
+    });
+
+    // API 호출
+    try {
+      const response = await fetch('/api/admin/toggle-image-like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: image.url,
+          isLiked: newLikedState
+        })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || '좋아요 토글 실패');
+      }
+
+      // 이미지 목록 업데이트
+      setImages(prev => prev.map(i => 
+        i.url === image.url 
+          ? { ...i, is_liked: newLikedState } as ImageMetadata
+          : i
+      ));
+    } catch (error: any) {
+      console.error('좋아요 토글 오류:', error);
+      // 실패 시 롤백
+      setLikedImages(prev => {
+        const newSet = new Set(prev);
+        if (currentLiked) {
+          newSet.add(image.url);
+        } else {
+          newSet.delete(image.url);
+        }
+        return newSet;
+      });
+      alert(`좋아요 토글 실패: ${error.message}`);
+    }
   };
 
   // 전체 선택/해제
@@ -2959,6 +3177,161 @@ export default function GalleryAdmin() {
     }
   };
 
+  // ✅ 여러 이미지 일괄 복사/링크/이동 핸들러
+  const handleBulkImageCopyOrLink = async (imageDataArray: any[], targetFolder: string, action: 'copy' | 'link' | 'move') => {
+    try {
+      setIsLoading(true);
+      
+      // 메시지 ID 추출 (targetFolder에서)
+      const messageIdMatch = targetFolder.match(/\/(\d+)$/);
+      const messageId = messageIdMatch ? parseInt(messageIdMatch[1]) : null;
+      
+      console.log('🔍 [일괄 처리 시작] ==========================================');
+      console.log('📋 일괄 이미지 복사/링크 작업:', { 
+        count: imageDataArray.length,
+        targetFolder, 
+        action,
+        messageId,
+        imageDataArray: imageDataArray.map(img => ({ url: img.url, name: img.name }))
+      });
+      
+      const results = [];
+      let successCount = 0;
+      let failCount = 0;
+      
+      // 각 이미지에 대해 순차적으로 처리
+      for (let i = 0; i < imageDataArray.length; i++) {
+        const imageData = imageDataArray[i];
+        console.log(`🔍 [이미지 ${i + 1}/${imageDataArray.length} 처리 시작]`, {
+          index: i,
+          url: imageData.url,
+          name: imageData.name,
+          folder_path: imageData.folder_path
+        });
+        
+        try {
+          // move인 경우 다른 API 호출
+          if (action === 'move') {
+            console.log(`🔍 [이미지 ${i + 1} 이동 API 호출]`, {
+              imageUrl: imageData.url,
+              targetFolder: targetFolder
+            });
+            
+            const moveResponse = await fetch('/api/admin/move-image-to-folder', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageUrl: imageData.url,
+                targetFolder: targetFolder
+              })
+            });
+
+            console.log(`🔍 [이미지 ${i + 1} 이동 API 응답]`, {
+              status: moveResponse.status,
+              statusText: moveResponse.statusText
+            });
+
+            const moveResult = await moveResponse.json();
+            
+            console.log(`🔍 [이미지 ${i + 1} 이동 결과]`, {
+              success: moveResult.success,
+              result: moveResult
+            });
+
+            if (moveResult.success) {
+              successCount++;
+              results.push({ imageUrl: imageData.url, success: true });
+              console.log(`✅ [이미지 ${i + 1} 이동 성공]`, { url: imageData.url });
+            } else {
+              failCount++;
+              results.push({ imageUrl: imageData.url, success: false, error: moveResult.error || moveResult.details });
+              console.error(`❌ [이미지 ${i + 1} 이동 실패]`, { url: imageData.url, error: moveResult.error || moveResult.details });
+            }
+          } else {
+            // copy 또는 link
+            console.log(`🔍 [이미지 ${i + 1} 복사/링크 API 호출]`, {
+              imageUrl: imageData.url,
+              targetFolder: targetFolder,
+              action: action
+            });
+            
+            const response = await fetch('/api/admin/copy-or-link-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageUrl: imageData.url,
+                targetFolder: targetFolder,
+                action: action,
+                messageId: messageId
+              })
+            });
+
+            console.log(`🔍 [이미지 ${i + 1} 복사/링크 API 응답]`, {
+              status: response.status,
+              statusText: response.statusText
+            });
+
+            const result = await response.json();
+            
+            console.log(`🔍 [이미지 ${i + 1} 복사/링크 결과]`, {
+              success: result.success,
+              result: result
+            });
+
+            if (result.success) {
+              successCount++;
+              results.push({ imageUrl: imageData.url, success: true });
+              console.log(`✅ [이미지 ${i + 1} 복사/링크 성공]`, { url: imageData.url });
+            } else {
+              failCount++;
+              results.push({ imageUrl: imageData.url, success: false, error: result.error || result.details });
+              console.error(`❌ [이미지 ${i + 1} 복사/링크 실패]`, { url: imageData.url, error: result.error || result.details });
+            }
+          }
+        } catch (error: any) {
+          failCount++;
+          results.push({ imageUrl: imageData.url, success: false, error: error.message });
+          console.error(`❌ [이미지 ${i + 1} 처리 오류]`, { url: imageData.url, error: error.message, stack: error.stack });
+        }
+        
+        console.log(`🔍 [이미지 ${i + 1} 처리 완료]`, {
+          successCount,
+          failCount,
+          totalProcessed: i + 1,
+          totalRemaining: imageDataArray.length - (i + 1)
+        });
+      }
+      
+      console.log('🔍 [일괄 처리 완료] ==========================================');
+      console.log('📊 최종 결과:', {
+        total: imageDataArray.length,
+        successCount,
+        failCount,
+        results: results.map(r => ({ url: r.imageUrl, success: r.success, error: r.error }))
+      });
+      
+      // 결과 요약
+      const actionText = action === 'copy' ? '복사' : action === 'link' ? '링크 생성' : '이동';
+      if (failCount === 0) {
+        toast.success(`✅ ${imageDataArray.length}개 이미지 ${actionText} 완료!`);
+      } else {
+        toast.warning(`⚠️ ${successCount}개 성공, ${failCount}개 실패`);
+        console.error('❌ 실패한 이미지들:', results.filter(r => !r.success));
+      }
+      
+      // 이미지 목록 새로고침
+      fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery);
+      
+    } catch (error: any) {
+      console.error('❌ 일괄 이미지 복사/링크 오류:', error);
+      toast.error(`❌ 일괄 처리 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+      setShowCopyLinkModal(false);
+      setPendingImageDrop(null);
+    }
+  };
+
   // 이미지 복사/링크 핸들러
   const handleImageCopyOrLink = async (imageData: any, targetFolder: string, action: 'copy' | 'link' | 'move') => {
     try {
@@ -2989,12 +3362,12 @@ export default function GalleryAdmin() {
         const moveResult = await moveResponse.json();
 
         if (moveResult.success) {
-          alert(`✅ 이미지 이동 완료!\n\n${moveResult.message || '이미지가 성공적으로 이동되었습니다.'}\n\n💡 카카오 콘텐츠 생성 페이지에서 변경사항을 보려면 페이지를 새로고침하세요.`);
+          toast.success(`✅ 이미지 이동 완료!\n\n${moveResult.message || '이미지가 성공적으로 이동되었습니다.'}\n\n💡 카카오 콘텐츠 생성 페이지에서 변경사항을 보려면 페이지를 새로고침하세요.`);
           
           // 이미지 목록 새로고침
           fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery);
         } else {
-          alert(`❌ 이미지 이동 실패: ${moveResult.error || moveResult.details || '알 수 없는 오류'}`);
+          toast.error(`❌ 이미지 이동 실패: ${moveResult.error || moveResult.details || '알 수 없는 오류'}`);
         }
         
         setShowCopyLinkModal(false);
@@ -3018,16 +3391,16 @@ export default function GalleryAdmin() {
 
       if (result.success) {
         const actionText = action === 'copy' ? '복사' : action === 'link' ? '링크 생성' : '이동';
-        alert(`✅ 이미지 ${actionText} 완료!\n\n${result.message}`);
+        toast.success(`✅ 이미지 ${actionText} 완료!\n\n${result.message}`);
         
         // 이미지 목록 새로고침
         fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery);
       } else {
-        alert(`❌ 이미지 ${action === 'copy' ? '복사' : action === 'link' ? '링크 생성' : '이동'} 실패: ${result.error || result.details}`);
+        toast.error(`❌ 이미지 ${action === 'copy' ? '복사' : action === 'link' ? '링크 생성' : '이동'} 실패: ${result.error || result.details}`);
       }
     } catch (error: any) {
       console.error('❌ 이미지 복사/링크 오류:', error);
-      alert(`❌ 이미지 ${action === 'copy' ? '복사' : action === 'link' ? '링크 생성' : '이동'} 중 오류가 발생했습니다: ${error.message}`);
+      toast.error(`❌ 이미지 ${action === 'copy' ? '복사' : action === 'link' ? '링크 생성' : '이동'} 중 오류가 발생했습니다: ${error.message}`);
     } finally {
       setIsLoading(false);
       setShowCopyLinkModal(false);
@@ -3272,14 +3645,31 @@ export default function GalleryAdmin() {
     }
   };
 
-  // Phase 4: 폴더 타입 판단 헬퍼 함수
-  const getFolderType = (folderPath: string | undefined): 'uploaded' | 'originals' | 'variants' | 'references' | 'other' => {
+  // Phase 4: 폴더 타입 판단 헬퍼 함수 (실제 폴더 하부 이름 기준)
+  const getFolderType = (folderPath: string | undefined): 
+    'ai-generated' | 'blog' | 'branding' | 'campaigns' | 'components' | 'customers' | 
+    'kakao' | 'goods' | 'mms' | 'products' | 'scraped' | 'uploaded' | 'solapi' | 'website' | 'other' => {
     if (!folderPath) return 'other';
     const path = folderPath.toLowerCase();
+    
+    // ✅ 실제 폴더 하부 이름 기준으로 판단
+    if (path.startsWith('scraped-images/')) return 'scraped';
+    if (path.startsWith('solapi/')) return 'solapi';
     if (path.startsWith('uploaded/')) return 'uploaded';
-    if (path.startsWith('originals/')) return 'originals';
-    if (path.startsWith('variants/')) return 'variants';
-    if (path.startsWith('references/')) return 'references';
+    
+    // originals/ 하위 폴더들
+    if (path.startsWith('originals/ai-generated/')) return 'ai-generated';
+    if (path.startsWith('originals/blog/')) return 'blog';
+    if (path.startsWith('originals/branding/')) return 'branding';
+    if (path.startsWith('originals/campaigns/')) return 'campaigns';
+    if (path.startsWith('originals/components/')) return 'components';
+    if (path.startsWith('originals/customers/')) return 'customers';
+    if (path.startsWith('originals/daily-branding/')) return 'kakao'; // 카카오 = daily-branding
+    if (path.startsWith('originals/goods/')) return 'goods';
+    if (path.startsWith('originals/mms/')) return 'mms';
+    if (path.startsWith('originals/products/')) return 'products';
+    if (path.startsWith('originals/website/')) return 'website';
+    
     return 'other';
   };
 
@@ -3300,6 +3690,37 @@ export default function GalleryAdmin() {
     }
     return formatted;
   };
+  
+  // ✅ 폴더 경로 전체 표시 헬퍼 함수 (줄임 없이)
+  const formatFullFolderPath = (folderPath: string | undefined): string => {
+    if (!folderPath) return '';
+    return folderPath;
+  };
+
+  // ✅ 링크 참조 수 계산 함수 (sms- 태그, upload_source, is_linked 모두 고려)
+  const calculateLinkReferenceCount = (image: ImageMetadata): number => {
+    const tags = (image as any).tags || [];
+    const uploadSource = (image as any).upload_source;
+    const isLinked = (image as any).is_linked === true;
+    
+    let count = 0;
+    
+    // 1. sms-로 시작하는 태그 개수
+    const smsTags = tags.filter((tag: string) => typeof tag === 'string' && tag.startsWith('sms-'));
+    count += smsTags.length;
+    
+    // 2. upload_source가 'link'인 경우
+    if (uploadSource === 'link') {
+      count += 1;
+    }
+    
+    // 3. is_linked가 true인 경우
+    if (isLinked) {
+      count += 1;
+    }
+    
+    return count;
+  };
 
   // Phase 4: 삭제 경고 생성 함수
   const generateDeleteWarning = (image: ImageMetadata): string | null => {
@@ -3308,12 +3729,23 @@ export default function GalleryAdmin() {
 
     // 1. uploaded/ 외 폴더 삭제 경고
     if (folderType !== 'uploaded' && folderType !== 'other') {
-      const folderTypeNames = {
-        'originals': '원본',
-        'variants': '변형',
-        'references': '참조'
+      const folderTypeNames: Record<string, string> = {
+        'ai-generated': 'AI생성',
+        'blog': '블로그',
+        'branding': '브랜딩',
+        'campaigns': '캠페인',
+        'components': '부품',
+        'customers': '고객',
+        'kakao': '카카오',
+        'goods': '굿즈',
+        'mms': 'MMS',
+        'products': '제품',
+        'scraped': '스크랩',
+        'solapi': '솔라피',
+        'website': '웹사이트'
       };
-      warnings.push(`⚠️ ${folderTypeNames[folderType]} 폴더의 이미지입니다.`);
+      const folderTypeName = folderTypeNames[folderType] || folderType;
+      warnings.push(`⚠️ ${folderTypeName} 폴더의 이미지입니다.`);
       warnings.push(`이미지를 삭제하면 연결된 콘텐츠에서 이미지가 깨질 수 있습니다.`);
     }
 
@@ -4028,6 +4460,70 @@ export default function GalleryAdmin() {
                 onImageDrop={async (imageData, targetFolder, event?: DragEvent) => {
                   console.log('📁 이미지 드롭:', { imageData, targetFolder, event });
                   
+                  // ✅ 여러 이미지가 선택되어 있으면 일괄 처리
+                  if (selectedImages.size > 1) {
+                    console.log('🔍 [드롭 이벤트 - 여러 이미지 선택됨]', {
+                      selectedImagesSize: selectedImages.size,
+                      selectedIds: Array.from(selectedImages),
+                      imagesCount: images.length
+                    });
+                    
+                    const selectedIds = Array.from(selectedImages);
+                    const selectedImageObjects = selectedIds.map(id => {
+                      const image = images.find(img => getImageUniqueId(img) === id);
+                      if (image) {
+                        return {
+                          url: image.url || image.cdn_url,
+                          name: image.name,
+                          folder_path: image.folder_path,
+                          ...image
+                        };
+                      }
+                      return null;
+                    }).filter(Boolean) as any[];
+                    
+                    console.log('🔍 [일괄 처리할 이미지 객체 생성 완료]', {
+                      selectedIdsCount: selectedIds.length,
+                      selectedImageObjectsCount: selectedImageObjects.length,
+                      selectedImageObjects: selectedImageObjects.map(img => ({ url: img.url, name: img.name }))
+                    });
+                    
+                    // Alt 키 = 이동, Shift 키 = 링크, Ctrl/Cmd 키 = 복사
+                    const isAltPressed = event?.altKey || false;
+                    const isShiftPressed = event?.shiftKey || false;
+                    const isCtrlPressed = event?.ctrlKey || event?.metaKey || false;
+                    
+                    if (isAltPressed) {
+                      // Alt 키: 바로 이동
+                      await handleBulkImageCopyOrLink(selectedImageObjects, targetFolder, 'move');
+                    } else if (isShiftPressed) {
+                      // Shift 키: 바로 링크 생성
+                      await handleBulkImageCopyOrLink(selectedImageObjects, targetFolder, 'link');
+                    } else if (isCtrlPressed) {
+                      // Ctrl/Cmd 키: 바로 복사
+                      await handleBulkImageCopyOrLink(selectedImageObjects, targetFolder, 'copy');
+                    } else {
+                      // 기본: 첫 번째 이미지로 선택 모달 표시 (일괄 처리 안내)
+                      // ✅ toast.info는 없으므로 toast() 사용
+                      toast(`${selectedImageObjects.length}개 이미지가 선택되어 있습니다. Alt/Shift/Ctrl 키를 누른 채 드롭하면 일괄 처리됩니다.`, {
+                        icon: 'ℹ️',
+                        duration: 4000,
+                      });
+                      // ✅ 여러 이미지 배열도 함께 저장
+                      setPendingImageDrop({ 
+                        imageData, 
+                        targetFolder,
+                        imageDataArray: selectedImageObjects // ✅ 추가
+                      });
+                      setShowCopyLinkModal(true);
+                    }
+                    
+                    // 선택 상태 초기화
+                    setSelectedImages(new Set());
+                    return;
+                  }
+                  
+                  // 단일 이미지 처리 (기존 로직)
                   // Alt 키 = 이동, Shift 키 = 링크, Ctrl/Cmd 키 = 복사, 기본 = 선택 모달
                   const isAltPressed = event?.altKey || false;
                   const isShiftPressed = event?.shiftKey || false;
@@ -4245,6 +4741,48 @@ export default function GalleryAdmin() {
                 
               )}
               
+              {/* ✅ 좋아요 필터 버튼 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">좋아요</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowLikedOnly(!showLikedOnly);
+                  }}
+                  className={`w-full px-3 py-2 text-sm rounded-lg font-medium transition-colors ${
+                    showLikedOnly
+                      ? 'bg-pink-500 text-white hover:bg-pink-600'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  title="좋아요한 이미지만 표시"
+                >
+                  {showLikedOnly ? '❤️ 좋아요' : '🤍 좋아요'}
+                </button>
+              </div>
+              
+              {/* ✅ 선택 모드 토글 버튼 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">선택 모드</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSelectionMode(!isSelectionMode);
+                    // 선택 모드 해제 시 선택도 초기화
+                    if (isSelectionMode) {
+                      setSelectedImages(new Set());
+                    }
+                  }}
+                  className={`w-full px-3 py-2 text-sm rounded-lg font-medium transition-colors ${
+                    isSelectionMode
+                      ? 'bg-blue-500 text-white hover:bg-blue-600'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  title={isSelectionMode ? "선택 모드 활성화 - 이미지 클릭 시 선택됨" : "선택 모드 비활성화 - 이미지 클릭 시 확대"}
+                >
+                  {isSelectionMode ? '✓ 선택 모드' : '☐ 선택 모드'}
+                </button>
+              </div>
+              
               {/* 폴더 필터는 트리 사이드바로 이동 (트리 UI에서 처리) */}
               
               {/* 정렬 기준 */}
@@ -4355,34 +4893,81 @@ export default function GalleryAdmin() {
                   🗑️ 일괄 삭제
                 </button>
                 
-                {/* 상세 보기 버튼 (1-3개 선택 시) */}
-                {selectedImages.size >= 1 && selectedImages.size <= 3 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // selectedImages에서 최대 3개를 selectedForCompare로 변환
-                      const selectedIds = Array.from(selectedImages).slice(0, 3)
-                        .map(id => {
-                          const img = images.find(i => getImageUniqueId(i) === id);
-                          return img?.id;
-                        })
-                        .filter(Boolean) as string[];
-                      
-                      if (selectedIds.length === 0) {
-                        alert('선택한 이미지를 찾을 수 없습니다.');
-                        return;
-                      }
-                      
-                      setSelectedForCompare(new Set(selectedIds));
-                      // handleCompareImages는 selectedForCompare를 사용하므로 약간의 지연 후 호출
-                      setTimeout(() => {
-                        handleCompareImages();
-                      }, 0);
-                    }}
-                    className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
-                  >
-                    {selectedImages.size === 1 ? '상세 보기' : `비교 (${selectedImages.size}개)`}
-                  </button>
+                {/* ✅ 상세 보기 / 비교 버튼 개선 */}
+                {selectedImages.size >= 1 && (
+                  <div className="flex items-center gap-2">
+                    {/* 1개 선택: 상세 보기 */}
+                    {selectedImages.size === 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const imageId = Array.from(selectedImages)[0];
+                          const image = images.find(img => getImageUniqueId(img) === imageId);
+                          if (image) {
+                            setSelectedImageForZoom(image);
+                            setSelectedImages(new Set()); // 선택 초기화
+                          }
+                        }}
+                        className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+                      >
+                        상세 보기
+                      </button>
+                    )}
+                    
+                    {/* 2-4개 선택: 비교 */}
+                    {selectedImages.size >= 2 && selectedImages.size <= 4 && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          console.log('🔍 비교 버튼 클릭:', {
+                            selectedImagesSize: selectedImages.size,
+                            selectedImages: Array.from(selectedImages),
+                            imagesLength: images.length
+                          });
+                          
+                          // selectedImages에서 최대 4개를 imageIds로 변환
+                          const selectedIds = Array.from(selectedImages).slice(0, 4)
+                            .map(id => {
+                              const img = images.find(i => getImageUniqueId(i) === id);
+                              console.log('🔍 이미지 찾기:', {
+                                searchId: id,
+                                found: !!img,
+                                imgId: img?.id,
+                                imgName: img?.name,
+                                getImageUniqueId: getImageUniqueId(img || {} as ImageMetadata)
+                              });
+                              return img?.id;
+                            })
+                            .filter(Boolean) as string[];
+                          
+                          console.log('🔍 변환된 imageIds:', {
+                            selectedIds,
+                            length: selectedIds.length,
+                            originalSelectedImages: Array.from(selectedImages)
+                          });
+                          
+                          if (selectedIds.length === 0) {
+                            console.error('❌ 선택한 이미지를 찾을 수 없습니다:', {
+                              selectedImages: Array.from(selectedImages),
+                              images: images.map(img => ({
+                                id: img.id,
+                                name: img.name,
+                                uniqueId: getImageUniqueId(img)
+                              }))
+                            });
+                            alert('선택한 이미지를 찾을 수 없습니다.');
+                            return;
+                          }
+                          
+                          // ✅ setSelectedForCompare 대신 직접 handleCompareImages에 imageIds 전달
+                          await handleCompareImages(selectedIds);
+                        }}
+                        className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+                      >
+                        비교 ({selectedImages.size}개)
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
               </div>
@@ -4508,11 +5093,24 @@ export default function GalleryAdmin() {
                       onClick={(e) => {
                         // 체크박스나 버튼 클릭은 이벤트 전파 방지
                         if ((e.target as HTMLElement).closest('.compare-checkbox') || 
-                            (e.target as HTMLElement).closest('button')) {
+                            (e.target as HTMLElement).closest('button') ||
+                            (e.target as HTMLElement).closest('input[type="checkbox"]')) {
                           return;
                         }
-                        // 일반 선택만 토글
-                        toggleImageSelection(image);
+                        
+                        // ✅ 선택 모드가 활성화된 경우에만 선택
+                        if (isSelectionMode) {
+                          // Ctrl/Cmd + 클릭: 다중 선택 (기존 선택 유지)
+                          if (e.ctrlKey || e.metaKey) {
+                            toggleImageSelection(image);
+                          } else {
+                            // 단일 클릭: 선택 토글
+                            toggleImageSelection(image);
+                          }
+                        } else {
+                          // ✅ 기본 동작: 확대/상세 보기
+                          setSelectedImageForZoom(image);
+                        }
                       }}
                       draggable
                       onDragStart={(e) => {
@@ -4619,14 +5217,22 @@ export default function GalleryAdmin() {
                         e.currentTarget.style.zIndex = '';
                       }}
                     >
-                      {/* 선택 표시 (일반 선택 - 파란색) */}
-                      {selectedImages.has(getImageUniqueId(image)) && (
-                        <div className="absolute top-2 left-2 z-10">
-                          <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                            <span className="text-white text-xs">✓</span>
-                          </div>
-                        </div>
-                      )}
+                      {/* ✅ 좌상단 체크박스 (항상 표시) */}
+                      <div className="absolute top-2 left-2 z-10">
+                        <input
+                          type="checkbox"
+                          checked={selectedImages.has(getImageUniqueId(image))}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            toggleImageSelection(image);
+                          }}
+                          className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer bg-white"
+                          onClick={(e) => e.stopPropagation()}
+                          title="이미지 선택"
+                        />
+                      </div>
+                      
+                      {/* 선택 표시는 파란색 테두리로 표시되므로 별도 표시 제거 */}
                       
                       {/* 🔗 링크된 이미지 배지 */}
                       {(image as any).is_linked && (
@@ -4683,110 +5289,70 @@ export default function GalleryAdmin() {
                         )}
                       </div>
                       
-                      {/* 이미지 정보 */}
+                      {/* 이미지 정보 (개선된 디자인) */}
                       <div className="p-3">
-                        {/* ✅ 메타데이터 품질 표시 (1단계 추가) */}
-                        {image.has_metadata === false && (
-                          <div className="mb-2 px-2 py-1 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
-                            ⚠️ 메타데이터 없음
-                          </div>
-                        )}
-                        {/* 메타데이터는 있지만 품질이 낮은 경우 */}
-                        {image.has_metadata === true && image.has_quality_metadata === false && image.metadata_quality && (
-                          <div className="mb-2 px-2 py-1 bg-orange-100 border border-orange-300 rounded text-xs text-orange-800">
-                            ⚠️ 메타데이터 불완전 ({image.metadata_quality.score}점)
-                            {image.metadata_quality.issues.length > 0 && (
-                              <div className="mt-1 text-xs">
-                                {image.metadata_quality.issues.slice(0, 2).join(', ')}
-                                {image.metadata_quality.issues.length > 2 && ` +${image.metadata_quality.issues.length - 2}개`}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        {/* 메타데이터 품질이 양호한 경우 (선택적 표시) */}
-                        {image.has_quality_metadata === true && image.metadata_quality && image.metadata_quality.score >= 75 && (
-                          <div className="mb-2 px-2 py-1 bg-green-100 border border-green-300 rounded text-xs text-green-800">
-                            ✅ 메타데이터 양호 ({image.metadata_quality.score}점)
-                          </div>
-                        )}
-                        {/* Phase 5: 폴더 타입 배지 표시 */}
-                        {(() => {
-                          const folderType = getFolderType(image.folder_path);
-                          const badgeConfig = {
-                            'uploaded': { label: '임시 업로드', color: 'bg-gray-100 text-gray-700 border-gray-300' },
-                            'originals': { label: '원본', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-                            'variants': { label: '변형', color: 'bg-purple-100 text-purple-700 border-purple-300' },
-                            'references': { label: '참조', color: 'bg-green-100 text-green-700 border-green-300' },
-                            'other': { label: '기타', color: 'bg-gray-100 text-gray-600 border-gray-300' }
-                          };
-                          const badge = badgeConfig[folderType];
-                          return (
-                            <div className="mb-2 flex items-center gap-2">
+                        {/* ✅ 썸네일: 필수 정보만 표시 */}
+                        <div className="mb-2 space-y-1">
+                          {/* 폴더 타입 배지 */}
+                          {(() => {
+                            const folderType = getFolderType(image.folder_path);
+                            const isLinked = (image as any).is_linked === true;
+                            
+                            const badgeConfig: Record<string, { label: string; color: string }> = {
+                              'ai-generated': { label: 'AI생성', color: 'bg-purple-100 text-purple-700 border-purple-300' },
+                              'blog': { label: '블로그', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+                              'branding': { label: '브랜딩', color: 'bg-pink-100 text-pink-700 border-pink-300' },
+                              'campaigns': { label: '캠페인', color: 'bg-orange-100 text-orange-700 border-orange-300' },
+                              'components': { label: '부품', color: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
+                              'customers': { label: '고객', color: 'bg-teal-100 text-teal-700 border-teal-300' },
+                              'kakao': { label: '카카오', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+                              'goods': { label: '굿즈', color: 'bg-green-100 text-green-700 border-green-300' },
+                              'mms': { label: 'MMS', color: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
+                              'products': { label: '제품', color: 'bg-red-100 text-red-700 border-red-300' },
+                              'scraped': { label: '스크랩', color: 'bg-gray-100 text-gray-700 border-gray-300' },
+                              'uploaded': { label: '업로드', color: 'bg-slate-100 text-slate-700 border-slate-300' },
+                              'solapi': { label: '솔라피', color: 'bg-amber-100 text-amber-700 border-amber-300' },
+                              'website': { label: '웹사이트', color: 'bg-violet-100 text-violet-700 border-violet-300' },
+                              'other': { label: '기타', color: 'bg-gray-100 text-gray-600 border-gray-300' }
+                            };
+                            const badge = badgeConfig[folderType];
+                            
+                            return badge ? (
                               <span className={`px-2 py-0.5 text-xs font-semibold rounded border ${badge.color}`}>
                                 {badge.label}
                               </span>
-                              {image.folder_path && (
-                                <span className="text-xs text-blue-600 truncate flex-1" title={`폴더: ${image.folder_path}`}>
-                                  📁 {image.folder_path}
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })()}
-                        
-                        <div className="text-xs text-gray-600 mb-2 truncate" title={image.name}>
-                          {image.name}
-                        </div>
-                        
-                        {/* 🔗 링크된 이미지 원본 폴더 표시 */}
-                        {(image as any).is_linked && (image as any).original_folder && (
-                          <div className="text-[10px] text-purple-600 mb-1 truncate" title={`원본: ${(image as any).original_folder}`}>
-                            🔗 {(image as any).original_folder.split('/').pop()}
+                            ) : null;
+                          })()}
+                          
+                          {/* 링크 배지 */}
+                          {(image as any).is_linked && (
+                            <span className="px-2 py-0.5 text-xs font-semibold rounded border bg-purple-100 text-purple-700 border-purple-300">
+                              🔗 링크
+                            </span>
+                          )}
+                          
+                          {/* 파일명 */}
+                          <div className="text-xs text-gray-600 truncate" title={`폴더: ${image.folder_path || '없음'}`}>
+                            📄 {image.name}
                           </div>
-                        )}
-                        
-                        {/* 메타데이터 미리보기 */}
-                        {image.alt_text && (
-                          <div className="text-xs text-gray-500 mb-1 truncate" title={image.alt_text}>
-                            {image.alt_text}
-                          </div>
-                        )}
-                        
-                        {image.keywords && image.keywords.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mb-2">
-                            {image.keywords.slice(0, 2).map((keyword, idx) => (
-                              <span key={idx} className="px-1 py-0.5 bg-gray-200 text-gray-700 text-xs rounded">
-                                {keyword}
-                              </span>
-                            ))}
-                            {image.keywords.length > 2 && (
-                              <span className="text-xs text-gray-500">+{image.keywords.length - 2}</span>
+                          
+                          {/* 참조 수 정보 */}
+                          <div className="text-xs text-gray-500 space-y-0.5">
+                            {/* 원본 참조 수 (원본 이미지일 때만) */}
+                            {!(image as any).is_linked && image.usage_count !== undefined && image.usage_count > 0 && (
+                              <div>원본 참조: {image.usage_count}회</div>
                             )}
-                          </div>
-                        )}
-                        
-                        {/* 사용 현황 및 파일 정보 */}
-                        <div className="flex items-center justify-between text-xs text-gray-500">
-                          <div className="flex flex-col">
-                            <span>{image.usage_count || 0}회 사용</span>
-                            {image.file_size && (
-                              <span>{(image.file_size / 1024).toFixed(1)}KB</span>
-                            )}
-                            {image.width && image.height && (
-                              <span>{image.width}×{image.height}</span>
-                            )}
-                          </div>
-                          <div className="flex flex-col items-end">
-                            {image.is_featured && (
-                              <span className="px-1 py-0.5 bg-yellow-200 text-yellow-800 rounded text-xs mb-1">
-                                ⭐ 대표
-                              </span>
-                            )}
-                            {image.optimized_versions && (
-                              <span className="px-1 py-0.5 bg-green-200 text-green-800 rounded text-xs">
-                                📱 최적화됨
-                              </span>
-                            )}
+                            
+                            {/* 링크 참조 수 (링크된 이미지일 때만) */}
+                            {(image as any).is_linked && (() => {
+                              const linkCount = calculateLinkReferenceCount(image);
+                              return linkCount > 0 ? (
+                                <div>링크 참조: {linkCount}개</div>
+                              ) : null;
+                            })()}
+                            
+                            {/* 사용 횟수 (기본) */}
+                            <div>{image.usage_count || 0}회 사용</div>
                           </div>
                         </div>
                         
@@ -4889,7 +5455,7 @@ export default function GalleryAdmin() {
                         )}
                       </div>
                       
-                      {/* 퀵 액션 버튼들: 확대 / 편집 / 삭제만 표시 */}
+                      {/* 퀵 액션 버튼들: 확대 / 편집 / 삭제 / 좋아요 표시 */}
                       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col space-y-1">
                         <button
                           onClick={(e) => {
@@ -4900,6 +5466,19 @@ export default function GalleryAdmin() {
                           title="확대"
                         >
                           🔍
+                        </button>
+                        {/* ✅ 좋아요 버튼 */}
+                        <button
+                          type="button"
+                          onClick={(e) => handleToggleLike(image, e)}
+                          className={`p-1 rounded shadow-sm transition-colors ${
+                            likedImages.has(image.url)
+                              ? 'bg-red-100 hover:bg-red-200'
+                              : 'bg-white hover:bg-gray-50'
+                          }`}
+                          title={likedImages.has(image.url) ? "좋아요 취소" : "좋아요"}
+                        >
+                          {likedImages.has(image.url) ? '❤️' : '🤍'}
                         </button>
                         <button
                           onClick={(e) => {
@@ -5779,6 +6358,102 @@ export default function GalleryAdmin() {
                     </div>
                   </div>
                   
+                  {/* ✅ 모든 배지 표시 (썸네일 내용 포함) */}
+                  <div className="flex gap-2 flex-wrap">
+                    {/* 폴더 타입 배지 (모든 타입) */}
+                    {(() => {
+                      const folderType = getFolderType(selectedImageForZoom.folder_path);
+                      const isLinked = (selectedImageForZoom as any).is_linked === true;
+                      
+                      const badgeConfig: Record<string, { label: string; color: string }> = {
+                        'ai-generated': { label: 'AI생성', color: 'bg-purple-100 text-purple-700 border-purple-300' },
+                        'blog': { label: '블로그', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+                        'branding': { label: '브랜딩', color: 'bg-pink-100 text-pink-700 border-pink-300' },
+                        'campaigns': { label: '캠페인', color: 'bg-orange-100 text-orange-700 border-orange-300' },
+                        'components': { label: '부품', color: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
+                        'customers': { label: '고객', color: 'bg-teal-100 text-teal-700 border-teal-300' },
+                        'kakao': { label: '카카오', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+                        'goods': { label: '굿즈', color: 'bg-green-100 text-green-700 border-green-300' },
+                        'mms': { label: 'MMS', color: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
+                        'products': { label: '제품', color: 'bg-red-100 text-red-700 border-red-300' },
+                        'scraped': { label: '스크랩', color: 'bg-gray-100 text-gray-700 border-gray-300' },
+                        'uploaded': { label: '업로드', color: 'bg-slate-100 text-slate-700 border-slate-300' },
+                        'solapi': { label: '솔라피', color: 'bg-amber-100 text-amber-700 border-amber-300' },
+                        'website': { label: '웹사이트', color: 'bg-violet-100 text-violet-700 border-violet-300' },
+                        'other': { label: '기타', color: 'bg-gray-100 text-gray-600 border-gray-300' }
+                      };
+                      const badge = badgeConfig[folderType];
+                      
+                      return badge ? (
+                        <span className={`px-2 py-0.5 text-xs font-semibold rounded border ${badge.color}`}>
+                          {badge.label}
+                        </span>
+                      ) : null;
+                    })()}
+                    
+                    {/* 링크 배지 */}
+                    {(selectedImageForZoom as any).is_linked && (
+                      <span className="px-2 py-0.5 text-xs font-semibold rounded border bg-purple-100 text-purple-700 border-purple-300">
+                        🔗 링크
+                      </span>
+                    )}
+                    
+                    {/* 메타데이터 배지 */}
+                    {selectedImageForZoom.has_metadata === false && (
+                      <span className="px-2 py-0.5 text-xs font-semibold rounded border bg-gray-100 text-gray-700 border-gray-300">
+                        메타데이터 없음
+                      </span>
+                    )}
+                    {selectedImageForZoom.has_metadata === true && selectedImageForZoom.has_quality_metadata === false && selectedImageForZoom.metadata_quality && (
+                      <span className="px-2 py-0.5 text-xs font-semibold rounded border bg-gray-100 text-gray-700 border-gray-300">
+                        메타데이터 불완전 ({selectedImageForZoom.metadata_quality.score}점)
+                      </span>
+                    )}
+                    {selectedImageForZoom.has_quality_metadata === true && selectedImageForZoom.metadata_quality && selectedImageForZoom.metadata_quality.score >= 75 && (
+                      <span className="px-2 py-0.5 text-xs font-semibold rounded border bg-gray-100 text-gray-700 border-gray-300">
+                        메타데이터 양호 ({selectedImageForZoom.metadata_quality.score}점)
+                      </span>
+                    )}
+                    
+                    {/* 태그 배지 */}
+                    {(() => {
+                      const tags = (selectedImageForZoom as any).tags || [];
+                      const hasProductComposition = Array.isArray(tags) && tags.includes('product-composition');
+                      const hasKakaoContent = Array.isArray(tags) && tags.includes('kakao-content');
+                      
+                      return (
+                        <>
+                          {hasProductComposition && (
+                            <span className="px-2 py-0.5 text-xs font-semibold rounded border bg-amber-100 text-amber-700 border-amber-300">
+                              제품 합성
+                            </span>
+                          )}
+                          {hasKakaoContent && (
+                            <span className="px-2 py-0.5 text-xs font-semibold rounded border bg-yellow-100 text-yellow-700 border-yellow-300">
+                              카카오 콘텐츠
+                            </span>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                  
+                  {/* 참조 수 정보 (썸네일과 동일) */}
+                  <div className="text-xs text-gray-600 space-y-1">
+                    {/* 원본 참조 수 (원본 이미지일 때만) */}
+                    {!(selectedImageForZoom as any).is_linked && selectedImageForZoom.usage_count !== undefined && selectedImageForZoom.usage_count > 0 && (
+                      <div className="font-medium">원본 참조: {selectedImageForZoom.usage_count}회</div>
+                    )}
+                    
+                    {/* 링크 참조 수 (링크된 이미지일 때만) */}
+                    {(selectedImageForZoom as any).is_linked && (() => {
+                      const linkCount = calculateLinkReferenceCount(selectedImageForZoom);
+                      return linkCount > 0 ? (
+                        <div className="font-medium">링크 참조: {linkCount}개</div>
+                      ) : null;
+                    })()}
+                  </div>
+                  
                   {/* 폴더 경로 */}
                   <div className="text-xs text-gray-600">
                     <span className="font-medium">📁</span> {selectedImageForZoom.folder_path || '경로 없음'}
@@ -5804,6 +6479,23 @@ export default function GalleryAdmin() {
                         : '❌ 미사용'}
                     </span>
                   </div>
+                  
+                  {/* 태그 전체 목록 */}
+                  {(() => {
+                    const tags = (selectedImageForZoom as any).tags || [];
+                    return tags.length > 0 ? (
+                      <div className="text-xs text-gray-600">
+                        <div className="font-medium mb-1">태그:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {tags.map((tag: string, idx: number) => (
+                            <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null;
+                  })()}
                   
                   {/* 사용 위치 (details 태그) */}
                   {selectedImageForZoom.used_in && selectedImageForZoom.used_in.length > 0 && (
@@ -7414,6 +8106,7 @@ export default function GalleryAdmin() {
                 onClick={() => {
                   setShowCompareModal(false);
                   setCompareResult(null);
+                  setSelectedImages(new Set()); // ✅ 추가: 선택 상태 초기화
                   setSelectedForCompare(new Set());
                 }}
                 className="text-gray-400 hover:text-gray-600 text-2xl font-light transition-colors"
@@ -7883,7 +8576,11 @@ export default function GalleryAdmin() {
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ 
                             id: imageToDelete.id,
-                            permanent: true 
+                            permanent: true,
+                            // ✅ image_assets 레코드가 없을 수 있으므로 folder_path와 name 전달
+                            folder_path: imageToDelete.folder_path || (imageToDelete as any).folderPath || '',
+                            name: imageToDelete.filename || imageToDelete.name || '',
+                            url: imageToDelete.url || (imageToDelete as any).original_url || ''
                           }),
                         });
 
@@ -7909,19 +8606,85 @@ export default function GalleryAdmin() {
 
                         if (!result.success) {
                           console.error('❌ 삭제 실패:', result);
-                          throw new Error(result.error || '삭제 실패');
+                          throw new Error(result.error || result.details || '삭제 실패');
                         }
+
+                        // ✅ 삭제 검증: Storage와 DB 삭제 확인
+                        console.log('🔍 삭제 결과 검증:', {
+                          success: result.success,
+                          storageDeleted: result.storageDeleted,
+                          metadataDeleted: result.metadataDeleted,
+                          deletedRows: result.deletedRows,
+                          warnings: result.warnings,
+                          deletedId: result.deletedId
+                        });
+
+                        if (result.storageDeleted === false && imageToDelete.filePath) {
+                          console.warn('⚠️ Storage 삭제가 확인되지 않았습니다:', result);
+                          // 경고만 표시하고 계속 진행
+                        }
+
+                        // ✅ 삭제 후 Storage에서 실제로 파일이 삭제되었는지 확인 (선택적)
+                        if (imageToDelete.url || (imageToDelete as any).original_url) {
+                          const imageUrl = imageToDelete.url || (imageToDelete as any).original_url;
+                          console.log('🔍 Storage 파일 존재 여부 확인 시작:', imageUrl);
+                          
+                          try {
+                            // HEAD 요청으로 파일 존재 여부 확인
+                            const headResponse = await fetch(imageUrl, { method: 'HEAD' });
+                            const stillExists = headResponse.ok;
+                            
+                            console.log('🔍 Storage 파일 존재 여부 확인 결과:', {
+                              url: imageUrl,
+                              exists: stillExists,
+                              status: headResponse.status,
+                              statusText: headResponse.statusText
+                            });
+                            
+                            if (stillExists) {
+                              console.warn('⚠️ Storage에서 파일이 아직 존재합니다. (캐시 문제일 수 있음)');
+                            } else {
+                              console.log('✅ Storage에서 파일이 삭제되었습니다.');
+                            }
+                          } catch (headError) {
+                            console.warn('⚠️ Storage 파일 존재 여부 확인 실패 (무시):', headError);
+                          }
+                        }
+
+                        // ✅ 경고 메시지 처리
+                        let successMessage = `✅ 이미지 삭제 완료!\n\n${imageToDelete.filename}`;
+                        if (result.warnings && result.warnings.length > 0) {
+                          successMessage += `\n\n⚠️ 경고:\n${result.warnings.join('\n')}`;
+                        }
+                        successMessage += `\n\n다른 이미지도 삭제할 수 있습니다.`;
+
+                        console.log('✅ 삭제 API 성공, 상태 업데이트 시작:', {
+                          deletedId: imageToDelete.id,
+                          deletedFilename: imageToDelete.filename,
+                          result: result
+                        });
 
                         // ✅ 모달을 닫지 않고 삭제된 이미지만 목록에서 제거
                         setCompareResult((prev: any) => {
                           if (!prev) return null;
+                          const beforeCount = prev.images.length;
                           const filtered = prev.images.filter((i: any) => i.id !== imageToDelete.id);
+                          const afterCount = filtered.length;
+                          
+                          console.log('🔍 compareResult 업데이트:', {
+                            beforeCount,
+                            afterCount,
+                            deletedId: imageToDelete.id
+                          });
                           
                           // 이미지가 1개 이하로 남으면 모달 닫기
                           if (filtered.length <= 1) {
+                            console.log('🔍 이미지가 1개 이하로 남아 모달 닫기');
                             setTimeout(() => {
                               setShowCompareModal(false);
                               setCompareResult(null);
+                              setSelectedImages(new Set()); // ✅ 추가: 선택 상태 초기화
+                              setSelectedForCompare(new Set());
                             }, 100);
                           }
                           
@@ -7932,48 +8695,119 @@ export default function GalleryAdmin() {
                         });
 
                         // ✅ 로컬 images 상태에서 즉시 제거
-                        setImages((prev: any[]) => prev.filter((i: any) => i.id !== imageToDelete.id));
+                        setImages((prev: any[]) => {
+                          const beforeCount = prev.length;
+                          const filtered = prev.filter((i: any) => i.id !== imageToDelete.id);
+                          const afterCount = filtered.length;
+                          
+                          console.log('🔍 images 상태 업데이트:', {
+                            beforeCount,
+                            afterCount,
+                            deletedId: imageToDelete.id,
+                            deletedInState: beforeCount - afterCount
+                          });
+                          
+                          return filtered;
+                        });
                         
                         // ✅ totalCount 업데이트
-                        setTotalCount((prev) => Math.max(0, prev - 1));
+                        setTotalCount((prev) => {
+                          const newCount = Math.max(0, prev - 1);
+                          console.log('🔍 totalCount 업데이트:', {
+                            before: prev,
+                            after: newCount
+                          });
+                          return newCount;
+                        });
 
-                        // ✅ 조건부 즉시 새로고침:
-                        // - 전체 폴더('all')일 경우: 즉시 새로고침 안 함
-                        // - 특정 폴더일 경우: 현재 페이지만 다시 로드
-                        if (folderFilter !== 'all') {
-                          // 특정 폴더: 현재 페이지만 다시 로드
-                          setTimeout(() => {
-                            fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery, false);
-                          }, 300);
-                        }
-
-                        // ✅ 백그라운드 점진적 새로고침 (모든 경우)
-                        // - 로딩 표시 없이 조용히 동기화
-                        // - 실패해도 사용자 경험에 영향 없음
-                        setTimeout(() => {
-                          fetchImages(currentPage, false, folderFilter, includeChildren, searchQuery, false)
-                            .catch(err => {
-                              console.warn('⚠️ 백그라운드 새로고침 실패 (무시):', err);
-                              // 실패해도 사용자에게 알리지 않음 (이미 로컬 상태는 업데이트됨)
+                        // ✅ 강제 새로고침 (삭제 확인을 위해) - await 사용
+                        // ✅ 클로저 문제 해결: 삭제 시점의 폴더 필터 값을 변수에 저장
+                        const currentFolderFilter = folderFilter;
+                        const currentIncludeChildren = includeChildren;
+                        const currentSearchQuery = searchQuery;
+                        const currentPageNum = currentPage;
+                        
+                        console.log('🔄 fetchImages 호출 시작 (삭제 확인)');
+                        console.log('🔍 삭제 시점의 폴더 필터 값 저장:', {
+                          currentFolderFilter,
+                          currentIncludeChildren,
+                          currentSearchQuery,
+                          currentPageNum
+                        });
+                        
+                        setTimeout(async () => {
+                          try {
+                            const deletedId = imageToDelete.id;
+                            const deletedFilename = imageToDelete.filename;
+                            
+                            console.log('🔄 fetchImages 호출 전 상태:', {
+                              deletedId,
+                              deletedFilename,
+                              currentImagesCount: images.length,
+                              deletedExistsInState: images.some((i: any) => i.id === deletedId)
                             });
-                        }, 2000); // 2초 후 백그라운드 동기화
+                            
+                            console.log('🔄 fetchImages 호출 중...', {
+                              currentPage: currentPageNum,
+                              folderFilter: currentFolderFilter,
+                              includeChildren: currentIncludeChildren,
+                              searchQuery: currentSearchQuery,
+                              forceRefresh: true
+                            });
+                            
+                            await fetchImages(currentPageNum, true, currentFolderFilter, currentIncludeChildren, currentSearchQuery, true);
+                            
+                            console.log('✅ fetchImages 완료, 상태 동기화 대기 중...');
+                            
+                            // ✅ fetchImages 완료 후 상태는 자동으로 업데이트됨
+                            // 클로저 문제를 피하기 위해 상태 확인 로직 제거
+                            // fetchImages가 완료되면 images 상태가 자동으로 업데이트되므로
+                            // 별도의 확인 로직이 불필요합니다.
+                            console.log('✅ 이미지 목록 새로고침 완료, compareResult 동기화 예정');
+                            
+                          } catch (error) {
+                            console.error('❌ fetchImages 오류:', error);
+                            console.error('❌ 상세 오류 정보:', {
+                              error: error instanceof Error ? error.message : String(error),
+                              stack: error instanceof Error ? error.stack : undefined
+                            });
+                          }
+                        }, 500);
 
                         // 모달 닫기
                         setShowCompareDeleteConfirm(false);
                         setImageToDelete(null);
 
-                        alert(`✅ 이미지 삭제 완료!\n\n${imageToDelete.filename}\n\n다른 이미지도 삭제할 수 있습니다.`);
+                        // ✅ 토스트 호출을 try-catch 안으로 이동 (오류 방지)
+                        try {
+                          toast.success(`이미지 삭제 완료: ${imageToDelete.filename}`, {
+                            duration: 3000,
+                          });
+                          
+                          // 경고가 있으면 별도 토스트로 표시
+                          if (result.warnings && result.warnings.length > 0) {
+                            toast.warning(result.warnings.join(', '), {
+                              duration: 5000,
+                            });
+                          }
+                        } catch (toastError) {
+                          // 토스트 오류는 무시 (삭제는 성공했으므로)
+                          console.warn('⚠️ 토스트 메시지 표시 실패:', toastError);
+                        }
 
-                      } catch (error: any) {
-                        console.error('❌ 이미지 삭제 오류:', error);
-                        console.error('❌ 상세 오류 정보:', {
-                          imageId: imageToDelete.id,
-                          filename: imageToDelete.filename,
-                          error: error.message,
-                          stack: error.stack
-                        });
-                        alert(`이미지 삭제 중 오류가 발생했습니다:\n\n${error.message}\n\n콘솔을 확인해주세요.`);
-                      }
+                        } catch (error: any) {
+                          console.error('❌ 이미지 삭제 오류:', error);
+                          console.error('❌ 상세 오류 정보:', {
+                            imageId: imageToDelete.id,
+                            filename: imageToDelete.filename,
+                            error: error.message,
+                            stack: error.stack
+                          });
+                          // ✅ 얼럿창 제거 및 토스트 메시지로 대체
+                          toast.error(`삭제 실패: ${error.message}`, {
+                            duration: 5000,
+                          });
+                        }
                     }}
                     className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                   >
@@ -8433,27 +9267,59 @@ export default function GalleryAdmin() {
           <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold mb-4">이미지 작업 선택</h3>
             <p className="text-sm text-gray-600 mb-4">
-              <strong>{pendingImageDrop.imageData.name}</strong> 이미지를<br />
-              <strong>{pendingImageDrop.targetFolder}</strong> 폴더에 어떻게 처리하시겠습니까?
+              {pendingImageDrop.imageDataArray && pendingImageDrop.imageDataArray.length > 1 ? (
+                <>
+                  <strong>{pendingImageDrop.imageDataArray.length}개 이미지</strong>를<br />
+                  <strong>{pendingImageDrop.targetFolder}</strong> 폴더에 어떻게 처리하시겠습니까?
+                </>
+              ) : (
+                <>
+                  <strong>{pendingImageDrop.imageData.name}</strong> 이미지를<br />
+                  <strong>{pendingImageDrop.targetFolder}</strong> 폴더에 어떻게 처리하시겠습니까?
+                </>
+              )}
             </p>
             
             <div className="space-y-3">
               <button
-                onClick={() => handleImageCopyOrLink(pendingImageDrop.imageData, pendingImageDrop.targetFolder, 'copy')}
+                onClick={() => {
+                  if (pendingImageDrop.imageDataArray && pendingImageDrop.imageDataArray.length > 1) {
+                    // ✅ 여러 이미지: 일괄 처리
+                    handleBulkImageCopyOrLink(pendingImageDrop.imageDataArray, pendingImageDrop.targetFolder, 'copy');
+                  } else {
+                    // 단일 이미지: 기존 로직
+                    handleImageCopyOrLink(pendingImageDrop.imageData, pendingImageDrop.targetFolder, 'copy');
+                  }
+                  setShowCopyLinkModal(false);
+                }}
                 className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
               >
                 📋 복사 (파일 복사)
               </button>
               
               <button
-                onClick={() => handleImageCopyOrLink(pendingImageDrop.imageData, pendingImageDrop.targetFolder, 'link')}
+                onClick={() => {
+                  if (pendingImageDrop.imageDataArray && pendingImageDrop.imageDataArray.length > 1) {
+                    handleBulkImageCopyOrLink(pendingImageDrop.imageDataArray, pendingImageDrop.targetFolder, 'link');
+                  } else {
+                    handleImageCopyOrLink(pendingImageDrop.imageData, pendingImageDrop.targetFolder, 'link');
+                  }
+                  setShowCopyLinkModal(false);
+                }}
                 className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
               >
                 🔗 링크 (태그만 추가)
               </button>
               
               <button
-                onClick={() => handleImageCopyOrLink(pendingImageDrop.imageData, pendingImageDrop.targetFolder, 'move')}
+                onClick={() => {
+                  if (pendingImageDrop.imageDataArray && pendingImageDrop.imageDataArray.length > 1) {
+                    handleBulkImageCopyOrLink(pendingImageDrop.imageDataArray, pendingImageDrop.targetFolder, 'move');
+                  } else {
+                    handleImageCopyOrLink(pendingImageDrop.imageData, pendingImageDrop.targetFolder, 'move');
+                  }
+                  setShowCopyLinkModal(false);
+                }}
                 className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
               >
                 📁 이동 (파일 이동)

@@ -472,30 +472,18 @@ export default async function handler(req, res) {
             }
           }
           
-          if (!metadataResults || metadataResults.length === 0) {
-            console.log('🔍 검색 결과 없음');
-            return res.status(200).json({
-              images: [],
-              count: 0,
-              total: 0,
-              pagination: {
-                currentPage: 1,
-                totalPages: 0,
-                pageSize,
-                hasNextPage: false,
-                hasPrevPage: false,
-                nextPage: null,
-                prevPage: null
-              }
-            });
+          // 2. 매칭된 URL만 추출 (메타데이터 검색 결과가 없어도 파일명 검색은 계속 진행)
+          const matchingUrls = new Set(metadataResults ? metadataResults.map(m => m.image_url) : []);
+          
+          if (metadataResults && metadataResults.length > 0) {
+            console.log(`🔍 검색 결과: ${metadataResults.length}개 메타데이터 발견`);
+          } else {
+            console.log('🔍 메타데이터 검색 결과 없음, 파일명 검색으로 진행');
           }
           
-          console.log(`🔍 검색 결과: ${metadataResults.length}개 메타데이터 발견`);
-          
-          // 2. 매칭된 URL만 추출
-          const matchingUrls = new Set(metadataResults.map(m => m.image_url));
-          
           // 3. Storage에서 해당 파일들 찾기 (prefix 필터 적용)
+          // ✅ 파일명으로도 검색 (메타데이터 검색 결과 + 파일명 매칭)
+          const searchTermLower = searchTerm.toLowerCase();
           let allFilesForSearch = [];
           const getAllFilesForSearch = async (folderPath = '') => {
             let offset = 0;
@@ -539,8 +527,11 @@ export default async function handler(req, res) {
                 const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fullPath);
                 const publicUrl = urlData.publicUrl;
                 
-                // URL이 매칭된 메타데이터에 있는지 확인
-                if (matchingUrls.has(publicUrl)) {
+                // ✅ 파일명으로 검색 (검색어가 파일명에 포함되어 있는지 확인)
+                const fileNameMatches = file.name.toLowerCase().includes(searchTermLower);
+                
+                // URL이 매칭된 메타데이터에 있거나, 파일명이 검색어와 일치하는지 확인
+                if (matchingUrls.has(publicUrl) || fileNameMatches) {
                   allFilesForSearch.push({
                     ...file,
                     folderPath: folderPath,
@@ -586,7 +577,11 @@ export default async function handler(req, res) {
                     const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fullPath);
                     const publicUrl = urlData.publicUrl;
                     
-                    if (matchingUrls.has(publicUrl)) {
+                    // ✅ 파일명으로 검색 (검색어가 파일명에 포함되어 있는지 확인)
+                    const fileNameMatches = file.name.toLowerCase().includes(searchTermLower);
+                    
+                    // URL이 매칭된 메타데이터에 있거나, 파일명이 검색어와 일치하는지 확인
+                    if (matchingUrls.has(publicUrl) || fileNameMatches) {
                       // source/channel 필터 추가 확인
                       if (filteredImageUrls && !filteredImageUrls.has(publicUrl)) {
                         continue;
@@ -758,6 +753,13 @@ export default async function handler(req, res) {
                 // image_assets의 ai_tags fallback
                 if (asset?.ai_tags && Array.isArray(asset.ai_tags)) {
                   return asset.ai_tags;
+                }
+                return [];
+              })(),
+              // ✅ tags 추가 (product-composition, kakao-content 등 표시용)
+              tags: (() => {
+                if (metadata?.tags) {
+                  return Array.isArray(metadata.tags) ? metadata.tags : [metadata.tags];
                 }
                 return [];
               })(),
@@ -1824,6 +1826,13 @@ export default async function handler(req, res) {
             // image_assets의 ai_tags fallback
             if (asset?.ai_tags && Array.isArray(asset.ai_tags)) {
               return asset.ai_tags;
+            }
+            return [];
+          })(),
+          // ✅ tags 추가 (product-composition, kakao-content 등 표시용)
+          tags: (() => {
+            if (metadata?.tags) {
+              return Array.isArray(metadata.tags) ? metadata.tags : [metadata.tags];
             }
             return [];
           })(),
