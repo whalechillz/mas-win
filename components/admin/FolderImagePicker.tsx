@@ -359,15 +359,10 @@ const FolderImagePicker: React.FC<Props> = ({
             <div className="flex items-center justify-center h-full">
               <div className="text-center text-gray-500">
                 <div className="text-lg font-medium mb-2">이미지가 없습니다</div>
-                <div className="text-sm mb-4">
+                <div className="text-sm">
                   "{currentFolderPath}" 폴더에 이미지가 없습니다.
                 </div>
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                >
-                  닫기
-                </button>
+                {/* ✅ "닫기" 버튼 제거 - 푸터 버튼 사용 */}
               </div>
             </div>
           ) : (
