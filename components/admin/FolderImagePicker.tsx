@@ -268,66 +268,61 @@ const FolderImagePicker: React.FC<Props> = ({
             </nav>
           )}
 
-          {/* ✅ 업로드 모드 선택 UI (enableUpload가 true일 때만) */}
+          {/* ✅ 업로드 모드 선택 UI (간소화, enableUpload가 true일 때만) */}
           {enableUpload && onUpload && (
-            <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
-              <label className="text-xs font-medium text-gray-600 mb-2 block">
+            <div className="mt-3 p-2 bg-gray-50 rounded-lg border border-gray-200">
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">
                 업로드 모드
               </label>
               
-              {/* 파일명 최적화 (기본) */}
-              <label className="flex items-start cursor-pointer">
-                <input
-                  type="radio"
-                  name="uploadMode"
-                  value="optimize-filename"
-                  checked={uploadMode === 'optimize-filename'}
-                  onChange={(e) => {
-                    const newMode = 'optimize-filename';
-                    if (onUploadModeChange) {
-                      onUploadModeChange(newMode);
-                    } else {
-                      setInternalUploadMode(newMode);
-                    }
-                  }}
-                  className="mt-1 mr-2 w-4 h-4 text-blue-600"
-                />
-                <div className="flex-1">
-                  <span className="text-sm text-gray-700 font-medium">파일명 최적화 (기본)</span>
-                  <p className="text-xs text-gray-500 mt-1">
-                    파일명: 폴더 기반 최적화 + 타임스탬프 + 중복방지<br/>
-                    확장자: 원본 유지<br/>
-                    최적화: 없음 (원본 그대로)
-                  </p>
-                </div>
-              </label>
-              
-              {/* 파일명 유지 */}
-              <label className="flex items-start cursor-pointer">
-                <input
-                  type="radio"
-                  name="uploadMode"
-                  value="preserve-filename"
-                  checked={uploadMode === 'preserve-filename'}
-                  onChange={(e) => {
-                    const newMode = 'preserve-filename';
-                    if (onUploadModeChange) {
-                      onUploadModeChange(newMode);
-                    } else {
-                      setInternalUploadMode(newMode);
-                    }
-                  }}
-                  className="mt-1 mr-2 w-4 h-4 text-blue-600"
-                />
-                <div className="flex-1">
-                  <span className="text-sm text-gray-700 font-medium">파일명 유지</span>
-                  <p className="text-xs text-gray-500 mt-1">
-                    파일명: 원본 그대로<br/>
-                    확장자: 원본 유지<br/>
-                    최적화: 없음 (원본 그대로)
-                  </p>
-                </div>
-              </label>
+              {/* 라디오 버튼을 좌우로 작게 배치 */}
+              <div className="flex items-center gap-4">
+                {/* 파일명 최적화 (기본) */}
+                <label 
+                  className="flex items-center cursor-pointer group"
+                  title="파일명: 폴더 기반 최적화 + 타임스탬프 + 중복방지&#10;확장자: 원본 유지&#10;최적화: 없음 (원본 그대로)"
+                >
+                  <input
+                    type="radio"
+                    name="uploadMode"
+                    value="optimize-filename"
+                    checked={uploadMode === 'optimize-filename'}
+                    onChange={(e) => {
+                      const newMode = 'optimize-filename';
+                      if (onUploadModeChange) {
+                        onUploadModeChange(newMode);
+                      } else {
+                        setInternalUploadMode(newMode);
+                      }
+                    }}
+                    className="mr-1.5 w-3.5 h-3.5 text-blue-600"
+                  />
+                  <span className="text-xs text-gray-700">파일명 최적화</span>
+                </label>
+                
+                {/* 파일명 유지 */}
+                <label 
+                  className="flex items-center cursor-pointer group"
+                  title="파일명: 원본 그대로&#10;확장자: 원본 유지&#10;최적화: 없음 (원본 그대로)"
+                >
+                  <input
+                    type="radio"
+                    name="uploadMode"
+                    value="preserve-filename"
+                    checked={uploadMode === 'preserve-filename'}
+                    onChange={(e) => {
+                      const newMode = 'preserve-filename';
+                      if (onUploadModeChange) {
+                        onUploadModeChange(newMode);
+                      } else {
+                        setInternalUploadMode(newMode);
+                      }
+                    }}
+                    className="mr-1.5 w-3.5 h-3.5 text-blue-600"
+                  />
+                  <span className="text-xs text-gray-700">파일명 유지</span>
+                </label>
+              </div>
             </div>
           )}
         </div>
