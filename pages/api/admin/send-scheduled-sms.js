@@ -23,7 +23,7 @@ export const config = {
 export default async function handler(req, res) {
   // Vercel Cron Job에서 호출하는 경우 Authorization 헤더 확인
   const authHeader = req.headers.authorization;
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = process.env.CRON_SECRET?.trim();
 
   // Vercel Cron Job인지 확인 (x-vercel-cron 헤더가 있으면 Vercel에서 호출)
   const vercelCronHeader = req.headers['x-vercel-cron'];
