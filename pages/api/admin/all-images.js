@@ -337,6 +337,39 @@ const getMetadataQualityIssues = (metadata) => {
 export default async function handler(req, res) {
   console.log('🔍 전체 이미지 조회 API 요청:', req.method, req.url);
   
+  // ✅ 인증 체크 추가 (에디터 이상)
+  try {
+    const { requireAuth } = await import('../../../lib/api-auth');
+    await requireAuth(req, res, { requireEditor: true });
+  } catch (error) {
+    // 모듈을 찾을 수 없는 경우 fallback 처리
+    if (error?.message?.includes('Cannot find module') || error?.code === 'MODULE_NOT_FOUND') {
+      console.error('api-auth 모듈을 찾을 수 없습니다. 기본 인증 체크를 수행합니다.');
+      // 기본 인증 체크 (getServerSession 사용)
+      const { getServerSession } = await import('next-auth/next');
+      const { authOptions } = await import('../auth/[...nextauth]');
+      const session = await getServerSession(req, res, authOptions);
+      
+      if (!session?.user) {
+        return res.status(401).json({
+          success: false,
+          message: '인증이 필요합니다. 로그인해주세요.'
+        });
+      }
+      
+      // 에디터 이상 권한 체크
+      const userRole = session.user.role;
+      if (userRole !== 'admin' && userRole !== 'editor') {
+        return res.status(403).json({
+          success: false,
+          message: '에디터 이상의 권한이 필요합니다.'
+        });
+      }
+    } else {
+      return; // requireAuth에서 이미 응답을 보냄
+    }
+  }
+  
   // ✅ 타임아웃 방지: Vercel Pro 60초 제한 고려하여 60초로 설정
   const timeoutPromise = new Promise((_, reject) => {
     setTimeout(() => reject(new Error('요청 시간 초과 (60초 제한)')), 60000);
@@ -1543,7 +1576,7 @@ export default async function handler(req, res) {
       const urls = imageUrls.map(item => item.url);
       const { data: allMetadata } = await supabase
         .from('image_metadata')
-        .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status')
+        .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status, used_in')
         .in('image_url', urls);
 
       // image_assets 테이블에서 id 및 메타데이터 조회 (비교 기능용 + 메타데이터 fallback)
@@ -1737,14 +1770,35 @@ export default async function handler(req, res) {
         let usedIn = [];
         let lastUsedAt = null;
         
-        if (fullPath) {
+        // ✅ image_metadata에서 직접 used_in 가져오기 (우선)
+        if (metadata?.used_in) {
+          try {
+            usedIn = Array.isArray(metadata.used_in) ? metadata.used_in : JSON.parse(metadata.used_in);
+            // used_in에서 last_used_at 추출
+            if (usedIn.length > 0) {
+              const dates = usedIn
+                .filter(item => item.created_at)
+                .map(item => new Date(item.created_at))
+                .sort((a, b) => b - a);
+              lastUsedAt = dates[0] ? dates[0].toISOString() : null;
+            }
+            // ✅ used_in 배열이 있으면 그 길이를 사용
+            usageCount = usedIn.length > 0 ? usedIn.length : (metadata.usage_count || 0);
+          } catch (e) {
+            console.warn('⚠️ used_in 파싱 실패:', e.message);
+            usedIn = [];
+          }
+        }
+        
+        // used_in이 없으면 image-usage-tracker API로 조회 (fallback)
+        if (usedIn.length === 0 && fullPath) {
           // 🔧 배치로 조회한 사용 위치 정보 사용 (모든 폴더 통일)
           const usageInfo = usageInfoMap.get(url);
           if (usageInfo) {
             usedIn = usageInfo.usedIn;
             lastUsedAt = usageInfo.lastUsedAt;
-            // 배치 조회 결과로 사용 횟수 업데이트 (모든 폴더)
-            usageCount = usageInfo.totalUsage || usedIn.length;
+            // ✅ used_in 배열이 있으면 그 길이를 사용, 없으면 totalUsage 사용
+            usageCount = usedIn.length > 0 ? usedIn.length : (usageInfo.totalUsage || 0);
           }
         }
         

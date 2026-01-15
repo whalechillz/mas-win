@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
 import AdminNav from '../../components/admin/AdminNav';
 import BrandStrategySelector from '../../components/admin/BrandStrategySelector';
 import KakaoAccountEditor from '../../components/admin/kakao/KakaoAccountEditor';
@@ -95,6 +96,7 @@ interface CalendarData {
 
 export default function KakaoContentPage() {
   const router = useRouter();
+  const { data: session, status } = useSession(); // ✅ 인증 체크 추가
   const [calendarData, setCalendarData] = useState<CalendarData | null>(null);
   const [loading, setLoading] = useState(true);
   const [todayStr, setTodayStr] = useState('');
@@ -1425,6 +1427,30 @@ export default function KakaoContentPage() {
     setSelectedDates([selectedDate || todayStr]);
     await handleSelectedDatesAutoCreate();
   };
+
+  // ✅ 인증 체크 추가
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/admin/login');
+    }
+  }, [status, router]);
+
+  // 로딩 중 표시
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">인증 확인 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 세션이 없으면 렌더링 안 함
+  if (!session) {
+    return null;
+  }
 
   if (loading) {
     return (
