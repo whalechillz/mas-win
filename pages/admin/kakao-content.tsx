@@ -288,16 +288,23 @@ export default function KakaoContentPage() {
     // 날짜 클릭 핸들러
     const handleDateClick = (dateStr: string) => {
       if (isCalendarSelectionMode) {
-        // 선택 모드: 체크박스 토글
+        // 선택 모드: 체크박스 토글 (URL 업데이트 안 함 - 다중 선택)
         if (selectedDates.includes(dateStr)) {
           setSelectedDates(selectedDates.filter(d => d !== dateStr));
         } else {
           setSelectedDates([...selectedDates, dateStr]);
         }
       } else {
-        // 보기 모드: 해당 날짜로 이동
+        // 보기 모드: 해당 날짜로 이동 (URL 업데이트 함)
         setSelectedDate(dateStr);
         setSelectedDates([dateStr]);
+        // ✅ 보기 모드에서 날짜 클릭 시 URL 업데이트
+        router.push({
+          pathname: router.pathname,
+          query: { ...router.query, date: dateStr }
+        }, undefined, { shallow: true });
+        // ✅ 선택된 날짜의 데이터 로드
+        loadCalendarData(dateStr);
       }
     };
     
@@ -1427,8 +1434,8 @@ export default function KakaoContentPage() {
           <div className="text-center">
             <Loader className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" />
             <p className="text-gray-600">캘린더 데이터 로딩 중...</p>
-            {todayStr && (
-              <p className="text-sm text-gray-400 mt-2">날짜: {todayStr}</p>
+            {(selectedDate || todayStr) && (
+              <p className="text-sm text-gray-400 mt-2">날짜: {selectedDate || todayStr}</p>
             )}
           </div>
         </div>
@@ -1685,6 +1692,13 @@ export default function KakaoContentPage() {
                         setSelectedDate(newDate);
                         // 선택된 날짜가 변경되면 selectedDates도 업데이트
                         setSelectedDates([newDate]);
+                        // ✅ 날짜 선택 필드 변경 시 URL 업데이트
+                        router.push({
+                          pathname: router.pathname,
+                          query: { ...router.query, date: newDate }
+                        }, undefined, { shallow: true });
+                        // ✅ 선택된 날짜의 데이터 로드
+                        loadCalendarData(newDate);
                       }}
                       className="px-3 py-1 border border-gray-300 rounded text-sm"
                     />
