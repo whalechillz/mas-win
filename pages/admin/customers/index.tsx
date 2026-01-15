@@ -2,9 +2,12 @@ import React, { useEffect, useState, useCallback } from 'react';
 import Head from 'next/head';
 import AdminNav from '../../../components/admin/AdminNav';
 import CustomerMessageHistoryModal from '../../../components/admin/CustomerMessageHistoryModal';
+import CustomerStoryModal from '../../../components/admin/CustomerStoryModal';
 import { useRouter } from 'next/router';
 import { createClient } from '@supabase/supabase-js';
 import { uploadImageToSupabase } from '../../../lib/image-upload-utils';
+import { generateCustomerImageFileName, getCustomerInitials } from '../../../lib/customer-image-filename-generator';
+import { generateCustomerFolderName, getCustomerNameEn } from '../../../lib/customer-folder-name-generator';
 
 type Customer = {
   id: number;
@@ -39,6 +42,8 @@ type Customer = {
   // 이력 통계
   last_consultation_date?: string | null;
   last_service_date?: string | null;
+  // 썸네일 이미지
+  thumbnailUrl?: string | null;
 };
 
 export default function CustomersPage() {
@@ -65,6 +70,8 @@ export default function CustomersPage() {
   const [updatingVipLevels, setUpdatingVipLevels] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedCustomerForImage, setSelectedCustomerForImage] = useState<Customer | null>(null);
+  const [showStoryModal, setShowStoryModal] = useState(false);
+  const [selectedCustomerForStory, setSelectedCustomerForStory] = useState<Customer | null>(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedCustomerForHistory, setSelectedCustomerForHistory] = useState<Customer | null>(null);
   const [showGiftsModal, setShowGiftsModal] = useState(false);
@@ -464,6 +471,7 @@ export default function CustomersPage() {
                   <th className="p-2 text-left cursor-pointer hover:bg-gray-200" onClick={() => handleSort('vip_level')}>
                     VIP {sortBy === 'vip_level' && (sortOrder === 'asc' ? '▲' : '▼')}
                   </th>
+                  <th className="p-2 text-left">썸네일</th>
                   <th className="p-2 text-left cursor-pointer hover:bg-gray-200" onClick={() => handleSort('first_purchase_date')}>
                     최초구매일 {sortBy === 'first_purchase_date' && (sortOrder === 'asc' ? '▲' : '▼')}
                   </th>
@@ -485,6 +493,22 @@ export default function CustomersPage() {
               <tbody>
                 {customers.map(c => (
                   <tr key={c.id} className="border-t">
+                    <td className="p-2">
+                      {c.thumbnailUrl ? (
+                        <img
+                          src={c.thumbnailUrl}
+                          alt={c.name}
+                          className="w-12 h-12 object-cover rounded"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
+                          없음
+                        </div>
+                      )}
+                    </td>
                     <td className="p-2">
                       <button
                         onClick={() => {
@@ -537,6 +561,16 @@ export default function CustomersPage() {
                         </button>
                         <button
                           onClick={() => {
+                            setSelectedCustomerForStory(c);
+                            setShowStoryModal(true);
+                          }}
+                          className="px-2 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700"
+                          title="고객 스토리보드 관리"
+                        >
+                          고객스토리
+                        </button>
+                        <button
+                          onClick={() => {
                             setSelectedCustomerForHistory(c);
                             setShowHistoryModal(true);
                           }}
@@ -564,7 +598,7 @@ export default function CustomersPage() {
                   </tr>
                 ))}
                 {customers.length === 0 && (
-                  <tr><td className="p-4 text-center text-gray-500" colSpan={11}>{loading ? '로딩 중...' : '데이터 없음'}</td></tr>
+                  <tr><td className="p-4 text-center text-gray-500" colSpan={12}>{loading ? '로딩 중...' : '데이터 없음'}</td></tr>
                 )}
               </tbody>
             </table>
@@ -783,6 +817,17 @@ export default function CustomersPage() {
           onClose={() => {
             setShowImageModal(false);
             setSelectedCustomerForImage(null);
+          }}
+        />
+      )}
+
+      {/* 고객 스토리보드 모달 */}
+      {showStoryModal && selectedCustomerForStory && (
+        <CustomerStoryModal
+          customer={selectedCustomerForStory}
+          onClose={() => {
+            setShowStoryModal(false);
+            setSelectedCustomerForStory(null);
           }}
         />
       )}
@@ -1055,6 +1100,8 @@ function CustomerImageModal({ customer, onClose }: {
   const [uploadMode, setUploadMode] = useState<'optimize-filename' | 'preserve-filename'>('optimize-filename');
   const [uploadedImages, setUploadedImages] = useState<any[]>([]);
   const [loadingImages, setLoadingImages] = useState(false);
+  const [viewMode, setViewMode] = useState<'all' | 'story' | 'date' | 'type'>('story');
+  const [selectedStoryScene, setSelectedStoryScene] = useState<number | null>(null);
 
   // 고객 이미지 목록 로드
   const loadCustomerImages = async () => {
@@ -1088,23 +1135,47 @@ function CustomerImageModal({ customer, onClose }: {
     setUploadProgress(0);
 
     try {
-      // 고객 ID를 customer-001 형식으로 변환
-      const customerId = `customer-${String(customer.id).padStart(3, '0')}`;
-      const targetFolder = `originals/customers/${customerId}/${visitDate}`;
+      // 고객 폴더명 생성 (영문 이름 + 전화번호 마지막 4자리)
+      const customerFolderName = customer.phone 
+        ? generateCustomerFolderName({ name: customer.name, phone: customer.phone })
+        : `customer-${String(customer.id).padStart(3, '0')}`;
+      const targetFolder = `originals/customers/${customerFolderName}/${visitDate}`;
       
       let successCount = 0;
       let failCount = 0;
+
+      // 고객 이니셜 및 이름 영문 변환
+      const customerInitials = getCustomerInitials(customer.name);
+      const customerNameEn = getCustomerNameEn(customer.name);
 
       // 모든 파일을 순차적으로 업로드
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         try {
+          // 고객 이미지 파일명 생성 (커스텀 규칙)
+          let customFileName: string | undefined;
+          let storyScene: number | undefined;
+          let imageType: string | undefined;
+          
+          if (uploadMode === 'optimize-filename') {
+            // 파일명 최적화 모드: 고객 이미지 파일명 규칙 적용
+            const fileNameInfo = generateCustomerImageFileName(
+              { name: customer.name, initials: customerInitials },
+              file.name,
+              i + 1
+            );
+            customFileName = fileNameInfo.fileName;
+            storyScene = fileNameInfo.scene;
+            imageType = fileNameInfo.type;
+          }
+
           // 공통 업로드 함수 사용
           const uploadResult = await uploadImageToSupabase(file, {
             targetFolder: targetFolder,
             enableHEICConversion: true,
             enableEXIFBackfill: true,
             uploadMode: uploadMode,
+            customFileName: customFileName,
             onProgress: (progress) => {
               // 전체 진행률 계산 (각 파일의 평균)
               const totalProgress = ((i * 100) + progress) / files.length;
@@ -1123,11 +1194,17 @@ function CustomerImageModal({ customer, onClose }: {
             body: JSON.stringify({
               customerId: customer.id,
               customerName: customer.name,
+              customerNameEn: customerNameEn,
+              customerInitials: customerInitials,
               visitDate: visitDate,
               imageUrl: uploadResult.url,
               filePath: filePath,
               fileName: uploadResult.fileName || file.name,
-              fileSize: uploadResult.metadata?.file_size || file.size
+              originalFileName: file.name,
+              fileSize: uploadResult.metadata?.file_size || file.size,
+              storyScene: storyScene,
+              imageType: imageType,
+              folderName: customerFolderName
             })
           });
 
@@ -1194,12 +1271,18 @@ function CustomerImageModal({ customer, onClose }: {
           </div>
 
           {/* 업로드 모드 선택 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
+            <label className="text-xs font-medium text-gray-600 mb-1.5 block">
               업로드 모드
             </label>
-            <div className="space-y-2">
-              <label className="flex items-start cursor-pointer">
+            
+            {/* 라디오 버튼을 좌우로 작게 배치 */}
+            <div className="flex items-center gap-4">
+              {/* 파일명 최적화 (기본) */}
+              <label 
+                className="flex items-center cursor-pointer group"
+                title="파일명: 폴더 기반 최적화 + 타임스탬프 + 중복방지&#10;확장자: 원본 유지&#10;최적화: 없음 (원본 그대로)"
+              >
                 <input
                   type="radio"
                   name="uploadMode"
@@ -1207,18 +1290,16 @@ function CustomerImageModal({ customer, onClose }: {
                   checked={uploadMode === 'optimize-filename'}
                   onChange={(e) => setUploadMode('optimize-filename')}
                   disabled={uploading}
-                  className="mt-1 mr-2 w-4 h-4 text-blue-600"
+                  className="mr-1.5 w-3.5 h-3.5 text-blue-600"
                 />
-                <div className="flex-1">
-                  <span className="text-sm text-gray-700 font-medium">파일명 최적화 (기본)</span>
-                  <p className="text-xs text-gray-500 mt-1">
-                    파일명: 폴더 기반 최적화 + 타임스탬프 + 중복방지<br/>
-                    확장자: 원본 유지<br/>
-                    최적화: 없음 (원본 그대로)
-                  </p>
-                </div>
+                <span className="text-xs text-gray-700">파일명 최적화</span>
               </label>
-              <label className="flex items-start cursor-pointer">
+              
+              {/* 파일명 유지 */}
+              <label 
+                className="flex items-center cursor-pointer group"
+                title="파일명: 원본 그대로&#10;확장자: 원본 유지&#10;최적화: 없음 (원본 그대로)"
+              >
                 <input
                   type="radio"
                   name="uploadMode"
@@ -1226,16 +1307,9 @@ function CustomerImageModal({ customer, onClose }: {
                   checked={uploadMode === 'preserve-filename'}
                   onChange={(e) => setUploadMode('preserve-filename')}
                   disabled={uploading}
-                  className="mt-1 mr-2 w-4 h-4 text-blue-600"
+                  className="mr-1.5 w-3.5 h-3.5 text-blue-600"
                 />
-                <div className="flex-1">
-                  <span className="text-sm text-gray-700 font-medium">파일명 유지</span>
-                  <p className="text-xs text-gray-500 mt-1">
-                    파일명: 원본 그대로<br/>
-                    확장자: 원본 유지<br/>
-                    최적화: 없음 (원본 그대로)
-                  </p>
-                </div>
+                <span className="text-xs text-gray-700">파일명 유지</span>
               </label>
             </div>
           </div>
@@ -1314,6 +1388,55 @@ function CustomerImageModal({ customer, onClose }: {
             )}
           </div>
 
+          {/* 보기 모드 선택 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              보기 모드
+            </label>
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setViewMode('story')}
+                className={`px-3 py-1 rounded text-sm ${
+                  viewMode === 'story' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                스토리 장면별
+              </button>
+              <button
+                onClick={() => setViewMode('date')}
+                className={`px-3 py-1 rounded text-sm ${
+                  viewMode === 'date' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                날짜별
+              </button>
+              <button
+                onClick={() => setViewMode('type')}
+                className={`px-3 py-1 rounded text-sm ${
+                  viewMode === 'type' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                타입별
+              </button>
+              <button
+                onClick={() => setViewMode('all')}
+                className={`px-3 py-1 rounded text-sm ${
+                  viewMode === 'all' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                전체
+              </button>
+            </div>
+          </div>
+
           {/* 업로드된 이미지 목록 */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-3">
@@ -1322,24 +1445,156 @@ function CustomerImageModal({ customer, onClose }: {
             {loadingImages ? (
               <div className="text-center py-8 text-gray-500">로딩 중...</div>
             ) : uploadedImages.length > 0 ? (
+              <>
+                {/* 스토리 장면별 보기 */}
+                {viewMode === 'story' && (
+                  <div>
+                    <div className="flex gap-2 mb-4 flex-wrap">
+                      {[1, 2, 3, 4, 5, 6, 7].map((scene) => {
+                        const sceneNames = {
+                          1: '행복한 주인공',
+                          2: '행복+불안',
+                          3: '문제 발생',
+                          4: '가이드 만남',
+                          5: '가이드 장소',
+                          6: '성공 회복',
+                          7: '여운 정적'
+                        };
+                        const count = uploadedImages.filter((img: any) => img.story_scene === scene).length;
+                        return (
+                          <button
+                            key={scene}
+                            onClick={() => setSelectedStoryScene(selectedStoryScene === scene ? null : scene)}
+                            className={`px-3 py-1 rounded text-sm ${
+                              selectedStoryScene === scene
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            장면 {scene}: {sceneNames[scene as keyof typeof sceneNames]} ({count})
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                      {uploadedImages
+                        .filter((img: any) => !selectedStoryScene || img.story_scene === selectedStoryScene)
+                        .map((img: any, index: number) => (
+                          <div key={index} className="relative group">
+                            <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                              {img.image_url && (
+                                <img
+                                  src={img.image_url}
+                                  alt={img.english_filename || img.original_filename || '고객 이미지'}
+                                  className="w-full h-full object-cover"
+                                />
+                              )}
+                            </div>
+                            <div className="mt-1 text-xs text-gray-600 truncate" title={img.date_folder}>
+                              장면 {img.story_scene || '?'} | {img.date_folder || '날짜 없음'}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 날짜별 보기 */}
+                {viewMode === 'date' && (
+                  <div>
+                    {Object.entries(
+                      uploadedImages.reduce((acc: any, img: any) => {
+                        const date = img.date_folder || '날짜 없음';
+                        if (!acc[date]) acc[date] = [];
+                        acc[date].push(img);
+                        return acc;
+                      }, {})
+                    )
+                      .sort(([a], [b]) => b.localeCompare(a))
+                      .map(([date, images]: [string, any[]]) => (
+                        <div key={date} className="mb-6">
+                          <h4 className="text-md font-semibold text-gray-800 mb-2">{date} ({images.length}개)</h4>
+                          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            {images.map((img: any, index: number) => (
+                              <div key={index} className="relative group">
+                                <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                                  {img.image_url && (
+                                    <img
+                                      src={img.image_url}
+                                      alt={img.english_filename || img.original_filename || '고객 이미지'}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  )}
+                                </div>
+                                <div className="mt-1 text-xs text-gray-600 truncate">
+                                  장면 {img.story_scene || '?'}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
+
+                {/* 타입별 보기 */}
+                {viewMode === 'type' && (
+                  <div>
+                    {Object.entries(
+                      uploadedImages.reduce((acc: any, img: any) => {
+                        const type = img.image_type || 'unknown';
+                        if (!acc[type]) acc[type] = [];
+                        acc[type].push(img);
+                        return acc;
+                      }, {})
+                    ).map(([type, images]: [string, any[]]) => (
+                      <div key={type} className="mb-6">
+                        <h4 className="text-md font-semibold text-gray-800 mb-2">{type} ({images.length}개)</h4>
+                        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                          {images.map((img: any, index: number) => (
+                            <div key={index} className="relative group">
+                              <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                                {img.image_url && (
+                                  <img
+                                    src={img.image_url}
+                                    alt={img.english_filename || img.original_filename || '고객 이미지'}
+                                    className="w-full h-full object-cover"
+                                  />
+                                )}
+                              </div>
+                              <div className="mt-1 text-xs text-gray-600 truncate">
+                                {img.date_folder || '날짜 없음'}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 전체 보기 */}
+                {viewMode === 'all' && (
               <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {uploadedImages.map((img: any, index: number) => (
                   <div key={index} className="relative group">
                     <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                      {img.imageUrl && (
+                          {img.image_url && (
                         <img
-                          src={img.imageUrl}
-                          alt={img.fileName || '고객 이미지'}
+                              src={img.image_url}
+                              alt={img.english_filename || img.original_filename || '고객 이미지'}
                           className="w-full h-full object-cover"
                         />
                       )}
                     </div>
-                    <div className="mt-1 text-xs text-gray-600 truncate" title={img.visitDate}>
-                      {img.visitDate}
+                        <div className="mt-1 text-xs text-gray-600 truncate" title={img.date_folder}>
+                          {img.date_folder || '날짜 없음'}
                     </div>
                   </div>
                 ))}
               </div>
+                )}
+              </>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 업로드된 이미지가 없습니다.

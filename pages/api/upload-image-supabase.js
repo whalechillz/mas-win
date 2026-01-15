@@ -130,6 +130,7 @@ export default async function handler(req, res) {
     const file = files.file?.[0] || files.image?.[0];
     const targetFolder = fields.targetFolder?.[0] || ''; // targetFolder 파라미터 읽기
     const uploadMode = fields.uploadMode?.[0] || 'optimize-filename'; // 업로드 모드: 'optimize-filename' | 'preserve-filename' | 'auto' | 'preserve-name' | 'preserve-original' (하위 호환)
+    const customFileName = fields.customFileName?.[0] || ''; // 커스텀 파일명 (고객 이미지 등)
     
     // 하위 호환성: 기존 preserveFilename, preserveExtension 파라미터 지원
     const preserveFilename = fields.preserveFilename?.[0] === 'true';
@@ -470,8 +471,15 @@ export default async function handler(req, res) {
       // 동영상은 이미 finalFileName이 설정됨
       uniqueFileName = finalFileName;
     } else {
-      // 이미지 파일명 처리
-      if (effectiveUploadMode === 'optimize-filename') {
+      // 커스텀 파일명이 있으면 우선 사용 (고객 이미지 등)
+      if (customFileName) {
+        uniqueFileName = customFileName;
+        // 확장자가 없으면 outputExtension 추가
+        if (!uniqueFileName.includes('.')) {
+          uniqueFileName = `${uniqueFileName}.${outputExtension}`;
+        }
+        console.log('✅ 커스텀 파일명 사용:', uniqueFileName);
+      } else if (effectiveUploadMode === 'optimize-filename') {
         // 파일명 최적화 모드: 이미 finalFileName이 설정됨 (위에서 처리)
         uniqueFileName = finalFileName;
       } else if (effectiveUploadMode === 'preserve-filename' || 

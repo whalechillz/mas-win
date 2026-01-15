@@ -14,7 +14,21 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     // 이미지 업로드 및 메타데이터 저장
     try {
-      const { customerId, customerName, visitDate, imageUrl, filePath, fileName, fileSize } = req.body;
+      const { 
+        customerId, 
+        customerName, 
+        customerNameEn,
+        customerInitials,
+        visitDate, 
+        imageUrl, 
+        filePath, 
+        fileName, 
+        originalFileName,
+        fileSize,
+        storyScene,
+        imageType,
+        folderName
+      } = req.body;
 
       if (!customerId || !visitDate || !imageUrl) {
         return res.status(400).json({
@@ -40,6 +54,19 @@ export default async function handler(req, res) {
           file_size: fileSize || null,
           // 고객 정보를 메타데이터에 저장 (JSON 필드 활용)
           tags: [`customer-${customerId}`, `visit-${visitDate}`],
+          // 스토리 기반 분류 추가
+          story_scene: storyScene || null,
+          image_type: imageType || null,
+          original_filename: originalFileName || null,
+          english_filename: fileName || null,
+          customer_name_en: customerNameEn || null,
+          customer_initials: customerInitials || null,
+          image_quality: 'final',
+          metadata: {
+            visitDate: visitDate,
+            customerName: customerName,
+            folderName: folderName
+          }
         })
         .select();
 
@@ -52,8 +79,24 @@ export default async function handler(req, res) {
         });
       }
 
-      // customers 테이블에 이미지 URL 연결 (선택적 - 별도 필드가 있다면)
-      // 현재는 image_metadata 테이블의 tags 필드로 연결
+      // customers 테이블 업데이트 (영문 이름, 이니셜, 폴더명)
+      if (customerNameEn || customerInitials || folderName) {
+        const customerUpdateData = {};
+        if (customerNameEn) customerUpdateData.name_en = customerNameEn;
+        if (customerInitials) customerUpdateData.initials = customerInitials;
+        if (folderName) customerUpdateData.folder_name = folderName;
+        
+        const { error: customerUpdateError } = await supabase
+          .from('customers')
+          .update(customerUpdateData)
+          .eq('id', customerId);
+        
+        if (customerUpdateError) {
+          console.warn('⚠️ 고객 정보 업데이트 실패 (계속 진행):', customerUpdateError.message);
+        } else {
+          console.log('✅ 고객 정보 업데이트 완료:', customerUpdateData);
+        }
+      }
 
       return res.status(200).json({
         success: true,

@@ -221,6 +221,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ success: true, phones, count: phones.length });
       }
       
+      // 각 고객의 썸네일 이미지 조회 (최신 이미지)
+      if (data && data.length > 0) {
+        const customerIds = data.map(c => c.id);
+        
+        // 고객별 최신 이미지 조회 (tags에 customer-{id} 포함)
+        const thumbnailPromises = customerIds.map(async (customerId) => {
+          const { data: images } = await supabase
+            .from('image_metadata')
+            .select('image_url')
+            .contains('tags', [`customer-${customerId}`])
+            .order('created_at', { ascending: false })
+            .limit(1);
+          
+          return {
+            customerId,
+            thumbnailUrl: images && images.length > 0 ? images[0].image_url : null
+          };
+        });
+        
+        const thumbnails = await Promise.all(thumbnailPromises);
+        const thumbnailMap = new Map(thumbnails.map(t => [t.customerId, t.thumbnailUrl]));
+        
+        // 고객 데이터에 썸네일 추가
+        const customersWithThumbnails = data.map(customer => ({
+          ...customer,
+          thumbnailUrl: thumbnailMap.get(customer.id) || null
+        }));
+        
+        return res.status(200).json({ 
+          success: true, 
+          data: customersWithThumbnails, 
+          count, 
+          page: pageNum, 
+          pageSize: sizeNum 
+        });
+      }
+      
       return res.status(200).json({ success: true, data, count, page: pageNum, pageSize: sizeNum });
     }
 

@@ -106,6 +106,11 @@ export async function uploadImageToSupabase(
       formData.append('uploadMode', options.uploadMode);
     }
     
+    // 커스텀 파일명 추가 (고객 이미지 등)
+    if (options.customFileName) {
+      formData.append('customFileName', options.customFileName);
+    }
+    
     // 하위 호환성: 기존 옵션들 (uploadMode가 없을 때만 사용)
     if (!options.uploadMode) {
       if (options.preserveFilename) {

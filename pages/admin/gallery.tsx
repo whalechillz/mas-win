@@ -5287,6 +5287,13 @@ export default function GalleryAdmin() {
                             🎬 동영상
                           </div>
                         )}
+                        
+                        {/* 사용 횟수 배지 (왼쪽 하단, 1회 이상만 표시) */}
+                        {!(image as any).is_linked && image.usage_count > 0 && (
+                          <div className="absolute bottom-2 left-2 bg-green-500 text-white px-2 py-1 rounded-md shadow-lg text-xs font-semibold">
+                            {image.usage_count}회
+                          </div>
+                        )}
                       </div>
                       
                       {/* 이미지 정보 (개선된 디자인) */}
@@ -5332,127 +5339,20 @@ export default function GalleryAdmin() {
                           )}
                           
                           {/* 파일명 */}
-                          <div className="text-xs text-gray-600 truncate" title={`폴더: ${image.folder_path || '없음'}`}>
+                          <div className="text-xs text-gray-600 truncate" title={image.name}>
                             📄 {image.name}
                           </div>
                           
-                          {/* 참조 수 정보 */}
-                          <div className="text-xs text-gray-500 space-y-0.5">
-                            {/* 원본 참조 수 (원본 이미지일 때만) */}
-                            {!(image as any).is_linked && image.usage_count !== undefined && image.usage_count > 0 && (
-                              <div>원본 참조: {image.usage_count}회</div>
-                            )}
-                            
-                            {/* 링크 참조 수 (링크된 이미지일 때만) */}
-                            {(image as any).is_linked && (() => {
-                              const linkCount = calculateLinkReferenceCount(image);
-                              return linkCount > 0 ? (
-                                <div>링크 참조: {linkCount}개</div>
-                              ) : null;
-                            })()}
-                            
-                            {/* 사용 횟수 (기본) */}
-                            <div>{image.usage_count || 0}회 사용</div>
-                          </div>
+                          {/* 폴더명 (전체) */}
+                          {image.folder_path && (
+                            <div className="text-xs text-gray-500 truncate" title={image.folder_path}>
+                              📁 {image.folder_path}
+                            </div>
+                          )}
+                          
+                          {/* 사용 횟수는 이미지 위 배지로 표시됨 (1회 이상만) */}
+                          {/* 링크 참조 수는 상세 정보 모달에서만 표시됨 */}
                         </div>
-                        
-                        {/* 🔗 사용 위치 상세 정보 (새로 추가) */}
-                        {image.used_in && image.used_in.length > 0 && (
-                          <div className="mt-2 p-2 bg-gray-50 rounded text-xs border border-gray-200">
-                            <div className="font-semibold mb-1 text-gray-700">
-                              🔗 {image.usage_count || 0}회 사용 ({image.used_in.length}개 위치)
-                            </div>
-                            {/* 폴더 경로 표시 */}
-                            {image.folder_path && (
-                              <div className="text-xs text-gray-500 mb-2 pb-2 border-b border-gray-200">
-                                📁 {formatFolderPath(image.folder_path)}
-                              </div>
-                            )}
-                            <div className="space-y-1 max-h-24 overflow-y-auto">
-                              {image.used_in.slice(0, 3).map((usage, idx) => {
-                                // 🔧 배포되지 않은 블로그 판단: status가 명시적으로 draft/archived이거나, isPublished가 false인 경우만
-                                const isUnpublishedBlog = usage.type === 'blog' && 
-                                  (usage.status === 'draft' || usage.status === 'archived' || 
-                                   (usage.isPublished === false && usage.status !== 'published'));
-                                
-                                // 🔧 id가 없거나 유효하지 않으면 slug 사용, 둘 다 없으면 링크 생성 안 함
-                                const getEditId = () => {
-                                  if (usage.id && usage.id !== 'undefined' && usage.id !== 'null' && String(usage.id).trim() !== '') {
-                                    return usage.id;
-                                  }
-                                  if (usage.slug && usage.slug !== 'undefined' && usage.slug !== 'null' && String(usage.slug).trim() !== '') {
-                                    return usage.slug;
-                                  }
-                                  return null;
-                                };
-                                
-                                const editId = getEditId();
-                                
-                                // 🔧 링크 URL 생성: 배포된 블로그는 usage.url 또는 slug로, 미배포는 editId로
-                                let linkUrl = '#';
-                                if (isUnpublishedBlog) {
-                                  linkUrl = editId ? `/admin/blog?edit=${editId}` : '#';
-                                } else {
-                                  // 배포된 블로그
-                                  if (usage.url) {
-                                    linkUrl = usage.url.startsWith('http') ? usage.url : `http://localhost:3000${usage.url}`;
-                                  } else if (usage.slug) {
-                                    // url이 없으면 slug로 블로그 페이지 링크 생성
-                                    linkUrl = `http://localhost:3000/blog/${usage.slug}`;
-                                  } else {
-                                    linkUrl = '#';
-                                  }
-                                }
-                                
-                                return (
-                                  <div key={idx} className="text-gray-600 flex items-start">
-                                    <span className="mr-1">
-                                      {usage.type === 'blog' && '📰'}
-                                      {usage.type === 'funnel' && '🎯'}
-                                      {usage.type === 'homepage' && '🏠'}
-                                      {usage.type === 'muziik' && '🎵'}
-                                      {usage.type === 'static_page' && '📄'}
-                                    </span>
-                                    <span className="flex-1 truncate">
-                                      {linkUrl !== '#' ? (
-                                        <a 
-                                          href={linkUrl}
-                                          target={isUnpublishedBlog ? undefined : "_blank"}
-                                          rel={isUnpublishedBlog ? undefined : "noopener noreferrer"}
-                                          className={`${isUnpublishedBlog ? 'text-orange-600 hover:text-orange-800' : 'text-blue-600 hover:text-blue-800'} underline`}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            // 🔧 배포되지 않은 블로그는 새 탭에서 열지 않음
-                                            if (isUnpublishedBlog) {
-                                              e.preventDefault();
-                                              if (linkUrl !== '#') {
-                                                window.location.href = linkUrl;
-                                              }
-                                            }
-                                            // 🔧 배포된 블로그는 기본 링크 동작 사용 (target="_blank"로 새 탭에서 열림)
-                                          }}
-                                          title={isUnpublishedBlog ? `초안/미배포: ${usage.title}` : (usage.url || linkUrl)}
-                                        >
-                                          {usage.title}
-                                          {isUnpublishedBlog && ' (초안)'}
-                                        </a>
-                                      ) : (
-                                        <span className="text-gray-500">{usage.title} (링크 없음)</span>
-                                      )}
-                                      {usage.isFeatured && <span className="text-yellow-600 ml-1">(대표)</span>}
-                                      {usage.isInContent && !usage.isFeatured && <span className="text-blue-600 ml-1">(본문)</span>}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                              {image.used_in.length > 3 && (
-                                <div className="text-gray-500 text-xs">
-                                  +{image.used_in.length - 3}개 위치 더...
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
                       </div>
                       
                       {/* 퀵 액션 버튼들: 확대 / 편집 / 삭제 / 좋아요 표시 */}
@@ -6351,13 +6251,6 @@ export default function GalleryAdmin() {
                 
                 {/* 이미지 정보 (개선된 디자인) */}
                 <div className="space-y-3">
-                  {/* 파일명 */}
-                  <div className="bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
-                    <div className="text-sm font-semibold text-gray-800 truncate" title={selectedImageForZoom.name}>
-                      {selectedImageForZoom.name}
-                    </div>
-                  </div>
-                  
                   {/* ✅ 모든 배지 표시 (썸네일 내용 포함) */}
                   <div className="flex gap-2 flex-wrap">
                     {/* 폴더 타입 배지 (모든 타입) */}
@@ -6438,28 +6331,17 @@ export default function GalleryAdmin() {
                     })()}
                   </div>
                   
-                  {/* 참조 수 정보 (썸네일과 동일) */}
-                  <div className="text-xs text-gray-600 space-y-1">
-                    {/* 원본 참조 수 (원본 이미지일 때만) */}
-                    {!(selectedImageForZoom as any).is_linked && selectedImageForZoom.usage_count !== undefined && selectedImageForZoom.usage_count > 0 && (
-                      <div className="font-medium">원본 참조: {selectedImageForZoom.usage_count}회</div>
-                    )}
-                    
-                    {/* 링크 참조 수 (링크된 이미지일 때만) */}
-                    {(selectedImageForZoom as any).is_linked && (() => {
-                      const linkCount = calculateLinkReferenceCount(selectedImageForZoom);
-                      return linkCount > 0 ? (
-                        <div className="font-medium">링크 참조: {linkCount}개</div>
-                      ) : null;
-                    })()}
+                  {/* 파일명 (전체) */}
+                  <div className="text-xs text-gray-600">
+                    <span className="font-medium">📄</span> {selectedImageForZoom.name}
                   </div>
                   
-                  {/* 폴더 경로 */}
+                  {/* 폴더명 (전체) */}
                   <div className="text-xs text-gray-600">
                     <span className="font-medium">📁</span> {selectedImageForZoom.folder_path || '경로 없음'}
                   </div>
                   
-                  {/* 크기, 포맷, 사용현황 (배지 형태) */}
+                  {/* 크기, 포맷, 사용 횟수 (배지 형태) */}
                   <div className="flex gap-2 flex-wrap">
                     {selectedImageForZoom.size && (
                       <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium">
@@ -6469,23 +6351,114 @@ export default function GalleryAdmin() {
                     <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded text-xs font-medium uppercase">
                       {selectedImageForZoom.name.split('.').pop()?.toUpperCase() || ''}
                     </span>
-                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                      selectedImageForZoom.usage_count && selectedImageForZoom.usage_count > 0
-                        ? 'bg-green-50 text-green-700'
-                        : 'bg-gray-50 text-gray-500'
-                    }`}>
-                      {selectedImageForZoom.usage_count && selectedImageForZoom.usage_count > 0 
-                        ? `✅ ${selectedImageForZoom.usage_count}회 사용` 
-                        : '❌ 미사용'}
-                    </span>
+                    {/* 사용 횟수 배지 */}
+                    {!(selectedImageForZoom as any).is_linked && (
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                        selectedImageForZoom.usage_count && selectedImageForZoom.usage_count > 0
+                          ? 'bg-green-50 text-green-700'
+                          : 'bg-gray-50 text-gray-500'
+                      }`}>
+                        {selectedImageForZoom.usage_count && selectedImageForZoom.usage_count > 0 
+                          ? `${selectedImageForZoom.usage_count}회` 
+                          : '미사용'}
+                      </span>
+                    )}
                   </div>
                   
-                  {/* 태그 전체 목록 */}
+                  {/* 사용 위치 링크 리스트 */}
+                  {selectedImageForZoom.used_in && selectedImageForZoom.used_in.length > 0 && (
+                    <div className="text-xs mt-3 pt-3 border-t border-gray-200">
+                      <div className="font-medium text-gray-700 mb-2">사용 위치:</div>
+                      <div className="space-y-1">
+                        {selectedImageForZoom.used_in.map((u: any, idx: number) => {
+                          // 링크 URL 생성
+                          let linkUrl = '#';
+                          const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://www.masgolf.co.kr';
+                          
+                          if (u.type === 'kakao_profile' || u.type === 'kakao_feed') {
+                            // 카카오 콘텐츠: 날짜 파라미터 포함
+                            linkUrl = u.url || (u.date ? `/admin/kakao-content?date=${u.date}` : '#');
+                          } else if (u.type === 'blog') {
+                            // 블로그: 배포 상태 확인
+                            const isUnpublishedBlog = u.status === 'draft' || u.status === 'archived' || 
+                              (u.isPublished === false && u.status !== 'published');
+                            if (isUnpublishedBlog) {
+                              linkUrl = u.id ? `/admin/blog?edit=${u.id}` : '#';
+                            } else {
+                              linkUrl = u.url ? (u.url.startsWith('http') ? u.url : `${siteUrl}${u.url}`) : 
+                                (u.slug ? `${siteUrl}/blog/${u.slug}` : '#');
+                            }
+                          } else if (u.type === 'funnel') {
+                            // 퍼널: 배포 상태 확인
+                            linkUrl = u.url ? (u.url.startsWith('http') ? u.url : `${siteUrl}${u.url}`) : 
+                              (u.slug ? `${siteUrl}/funnel/${u.slug}` : '#');
+                          } else if (u.type === 'homepage') {
+                            // 홈페이지
+                            linkUrl = `${siteUrl}/`;
+                          } else if (u.type === 'muziik') {
+                            // MUZIIK
+                            linkUrl = u.url ? `${siteUrl}${u.url}` : `${siteUrl}/muziik`;
+                          } else if (u.type === 'survey') {
+                            // Survey
+                            linkUrl = `${siteUrl}/survey`;
+                          } else if (u.type === 'static_page') {
+                            // 정적 페이지
+                            linkUrl = u.url ? (u.url.startsWith('http') ? u.url : `${siteUrl}${u.url}`) : '#';
+                          } else if (u.url) {
+                            // 기타: url이 있으면 사용
+                            linkUrl = u.url.startsWith('http') ? u.url : `${siteUrl}${u.url}`;
+                          }
+                          
+                          const icon = 
+                            u.type === 'blog' ? '📰' :
+                            u.type === 'funnel' ? '🎯' :
+                            u.type === 'homepage' ? '🏠' :
+                            u.type === 'muziik' ? '🎵' :
+                            u.type === 'survey' ? '📋' :
+                            (u.type === 'kakao_profile' || u.type === 'kakao_feed') ? '💬' :
+                            u.type === 'static_page' ? '📄' : '🔗';
+                          
+                          return (
+                            <div key={idx} className="text-gray-600 flex items-start">
+                              <span className="mr-1">{icon}</span>
+                              <span className="flex-1">
+                                {linkUrl !== '#' ? (
+                                  <a
+                                    href={linkUrl}
+                                    target={u.type === 'kakao_profile' || u.type === 'kakao_feed' || (u.type === 'blog' && (u.status === 'draft' || u.status === 'archived')) ? undefined : "_blank"}
+                                    rel={u.type === 'kakao_profile' || u.type === 'kakao_feed' || (u.type === 'blog' && (u.status === 'draft' || u.status === 'archived')) ? undefined : "noopener noreferrer"}
+                                    className="text-blue-600 hover:text-blue-800 underline"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      // 관리자 페이지는 새 탭에서 열지 않음
+                                      if (linkUrl.startsWith('/admin/')) {
+                                        e.preventDefault();
+                                        window.location.href = linkUrl;
+                                      }
+                                    }}
+                                    title={linkUrl}
+                                  >
+                                    {u.title || u.url || '링크 없음'}
+                                  </a>
+                                ) : (
+                                  <span className="text-gray-500">{u.title || '링크 없음'}</span>
+                                )}
+                                {u.isFeatured && <span className="text-yellow-600 ml-1">(대표)</span>}
+                                {u.isInContent && !u.isFeatured && <span className="text-blue-600 ml-1">(본문)</span>}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* 키워드 (태그 → 키워드로 변경) */}
                   {(() => {
                     const tags = (selectedImageForZoom as any).tags || [];
                     return tags.length > 0 ? (
-                      <div className="text-xs text-gray-600">
-                        <div className="font-medium mb-1">태그:</div>
+                      <div className="text-xs text-gray-600 mt-3 pt-3 border-t border-gray-200">
+                        <div className="font-medium mb-1">키워드:</div>
                         <div className="flex flex-wrap gap-1">
                           {tags.map((tag: string, idx: number) => (
                             <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded">
@@ -6496,25 +6469,6 @@ export default function GalleryAdmin() {
                       </div>
                     ) : null;
                   })()}
-                  
-                  {/* 사용 위치 (details 태그) */}
-                  {selectedImageForZoom.used_in && selectedImageForZoom.used_in.length > 0 && (
-                    <details className="text-xs mt-2">
-                      <summary className="cursor-pointer text-gray-600 hover:text-gray-800 font-medium">
-                        🔗 사용 위치 ({selectedImageForZoom.used_in.length}개)
-                      </summary>
-                      <div className="mt-2 space-y-1 pl-2 max-h-32 overflow-y-auto">
-                        {selectedImageForZoom.used_in.slice(0, 5).map((u: any, idx: number) => (
-                          <div key={idx} className="text-gray-600">
-                            {u.type === 'blog' && '📰'} {u.type === 'funnel' && '🎯'} {u.type === 'homepage' && '🏠'} {u.type === 'muziik' && '🎵'} {(u.type === 'kakao_profile' || u.type === 'kakao_feed') && '💬'} {u.title || u.url || '링크 없음'}
-                          </div>
-                        ))}
-                        {selectedImageForZoom.used_in.length > 5 && (
-                          <div className="text-gray-400">... 외 {selectedImageForZoom.used_in.length - 5}개</div>
-                        )}
-                      </div>
-                    </details>
-                  )}
                   
                   {/* 삭제 버튼 */}
                   <div className="mt-3 flex justify-end">
@@ -6551,7 +6505,7 @@ export default function GalleryAdmin() {
                     <div
                       key={getImageUniqueId(img)}
                       className={`flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
-                        img.name === selectedImageForZoom.name 
+                        selectedImageForZoom && getImageUniqueId(img) === getImageUniqueId(selectedImageForZoom)
                           ? 'border-blue-500 shadow-lg' 
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
@@ -8203,7 +8157,7 @@ export default function GalleryAdmin() {
                   <div key={img.id || img.url || `compare-${img.name}-${img.folder_path || 'no-folder'}-${index}`} className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6 shadow-lg">
                     {/* 이미지 썸네일 - 원본 비율 유지 */}
                     <div 
-                      className="bg-gray-100 rounded-lg mb-4 overflow-hidden shadow-inner flex items-center justify-center"
+                      className="bg-gray-100 rounded-lg mb-6 overflow-hidden shadow-inner flex items-center justify-center"
                       style={{ 
                         maxHeight: '600px',
                         minHeight: '200px',
@@ -8240,20 +8194,18 @@ export default function GalleryAdmin() {
                     </div>
                     
                     {/* 이미지 정보 (개선된 디자인) */}
-                    <div className="space-y-3">
-                      {/* 파일명 */}
-                      <div className="bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
-                        <div className="text-sm font-semibold text-gray-800 truncate" title={img.filename}>
-                          {img.filename}
-                        </div>
+                    <div className="space-y-3 mt-2">
+                      {/* 파일명 (전체) */}
+                      <div className="text-xs text-gray-600">
+                        <span className="font-medium">📄</span> {img.filename}
                       </div>
                       
-                      {/* 폴더 경로 */}
+                      {/* 폴더명 (전체) */}
                       <div className="text-xs text-gray-600">
                         <span className="font-medium">📁</span> {img.filePath || '경로 없음'}
                       </div>
                       
-                      {/* 크기, 포맷, 사용현황 (배지 형태) */}
+                      {/* 크기, 포맷, 사용 횟수 (배지 형태) */}
                       <div className="flex gap-2 flex-wrap">
                         <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium">
                           {(img.fileSize / 1024).toFixed(1)}KB
@@ -8267,28 +8219,139 @@ export default function GalleryAdmin() {
                             : 'bg-gray-50 text-gray-500'
                         }`}>
                           {img.usage && img.usedIn && img.usedIn.length > 0 
-                            ? `✅ ${img.usageCount}회 사용` 
-                            : '❌ 미사용'}
+                            ? `${img.usageCount}회` 
+                            : '미사용'}
                         </span>
                       </div>
                       
-                      {/* 사용 위치 (간소화 - details 태그) */}
-                      {usedInList.length > 0 && (
-                        <details className="text-xs mt-2">
-                          <summary className="cursor-pointer text-gray-600 hover:text-gray-800 font-medium">
-                            🔗 사용 위치 ({usedInList.length}개)
-                          </summary>
-                          <div className="mt-2 space-y-1 pl-2 max-h-32 overflow-y-auto">
-                            {usedInList.slice(0, 5).map((u: any, idx: number) => (
-                              <div key={idx} className="text-gray-600">
-                                {u.type === 'blog' && '📰'} {u.type === 'funnel' && '🎯'} {u.type === 'homepage' && '🏠'} {u.type === 'muziik' && '🎵'} {(u.type === 'kakao_profile' || u.type === 'kakao_feed') && '💬'} {u.title || u.url || '링크 없음'}
+                      {/* 사용 위치 링크 리스트 (details 제거, 직접 표시) - 디버깅 및 개선 */}
+                      {(() => {
+                        // 디버깅: usedIn 데이터 확인
+                        console.log('🔍 비교 모달 - 이미지 사용 위치 확인:', {
+                          imageId: img.id,
+                          filename: img.filename,
+                          usedIn: img.usedIn,
+                          usedInType: typeof img.usedIn,
+                          usedInLength: Array.isArray(img.usedIn) ? img.usedIn.length : 'not array',
+                          usage: img.usage,
+                          usageCount: img.usageCount,
+                          used_in: (img as any).used_in  // 다른 필드명도 확인
+                        });
+                        
+                        // usedIn 배열 생성
+                        let finalUsedInList = Array.isArray(img.usedIn) ? img.usedIn : (img.usedIn ? [img.usedIn] : []);
+                        
+                        // usedIn이 비어있지만 usageCount가 0보다 크면, used_in 필드도 확인
+                        if (finalUsedInList.length === 0 && img.usageCount > 0) {
+                          console.warn('⚠️ usedIn이 비어있지만 usageCount > 0:', {
+                            imageId: img.id,
+                            usageCount: img.usageCount,
+                            used_in: (img as any).used_in
+                          });
+                          
+                          // used_in 필드도 확인 (all-images.js와 동일한 필드명)
+                          const usedInFromUsedIn = Array.isArray((img as any).used_in) ? (img as any).used_in : [];
+                          if (usedInFromUsedIn.length > 0) {
+                            console.log('✅ used_in 필드에서 사용 위치 발견:', usedInFromUsedIn);
+                            finalUsedInList = usedInFromUsedIn;
+                          }
+                        }
+                        
+                        if (finalUsedInList.length > 0) {
+                          return (
+                            <div className="text-xs mt-3 pt-3 border-t border-gray-200">
+                              <div className="font-medium text-gray-700 mb-2">사용 위치:</div>
+                              <div className="space-y-1">
+                                {finalUsedInList.map((u: any, idx: number) => {
+                              // 링크 URL 생성 (이미지 상세 정보 모달과 동일한 로직)
+                              let linkUrl = '#';
+                              const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://www.masgolf.co.kr';
+                              
+                              if (u.type === 'kakao_profile' || u.type === 'kakao_feed') {
+                                linkUrl = u.url || (u.date ? `/admin/kakao-content?date=${u.date}` : '#');
+                              } else if (u.type === 'blog') {
+                                const isUnpublishedBlog = u.status === 'draft' || u.status === 'archived' || 
+                                  (u.isPublished === false && u.status !== 'published');
+                                if (isUnpublishedBlog) {
+                                  linkUrl = u.id ? `/admin/blog?edit=${u.id}` : '#';
+                                } else {
+                                  linkUrl = u.url ? (u.url.startsWith('http') ? u.url : `${siteUrl}${u.url}`) : 
+                                    (u.slug ? `${siteUrl}/blog/${u.slug}` : '#');
+                                }
+                              } else if (u.type === 'funnel') {
+                                linkUrl = u.url ? (u.url.startsWith('http') ? u.url : `${siteUrl}${u.url}`) : 
+                                  (u.slug ? `${siteUrl}/funnel/${u.slug}` : '#');
+                              } else if (u.type === 'homepage') {
+                                linkUrl = `${siteUrl}/`;
+                              } else if (u.type === 'muziik') {
+                                linkUrl = u.url ? `${siteUrl}${u.url}` : `${siteUrl}/muziik`;
+                              } else if (u.type === 'survey') {
+                                linkUrl = `${siteUrl}/survey`;
+                              } else if (u.type === 'static_page') {
+                                linkUrl = u.url ? (u.url.startsWith('http') ? u.url : `${siteUrl}${u.url}`) : '#';
+                              } else if (u.url) {
+                                linkUrl = u.url.startsWith('http') ? u.url : `${siteUrl}${u.url}`;
+                              }
+                              
+                              const icon = 
+                                u.type === 'blog' ? '📰' :
+                                u.type === 'funnel' ? '🎯' :
+                                u.type === 'homepage' ? '🏠' :
+                                u.type === 'muziik' ? '🎵' :
+                                u.type === 'survey' ? '📋' :
+                                (u.type === 'kakao_profile' || u.type === 'kakao_feed') ? '💬' :
+                                u.type === 'static_page' ? '📄' : '🔗';
+                              
+                              return (
+                                <div key={idx} className="text-gray-600 flex items-start">
+                                  <span className="mr-1">{icon}</span>
+                                  <span className="flex-1">
+                                    {linkUrl !== '#' ? (
+                                      <a
+                                        href={linkUrl}
+                                        target={u.type === 'kakao_profile' || u.type === 'kakao_feed' || (u.type === 'blog' && (u.status === 'draft' || u.status === 'archived')) ? undefined : "_blank"}
+                                        rel={u.type === 'kakao_profile' || u.type === 'kakao_feed' || (u.type === 'blog' && (u.status === 'draft' || u.status === 'archived')) ? undefined : "noopener noreferrer"}
+                                        className="text-blue-600 hover:text-blue-800 underline"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (linkUrl.startsWith('/admin/')) {
+                                            e.preventDefault();
+                                            window.location.href = linkUrl;
+                                          }
+                                        }}
+                                        title={linkUrl}
+                                      >
+                                        {u.title || u.url || '링크 없음'}
+                                      </a>
+                                    ) : (
+                                      <span className="text-gray-500">{u.title || '링크 없음'}</span>
+                                    )}
+                                    {u.isFeatured && <span className="text-yellow-600 ml-1">(대표)</span>}
+                                    {u.isInContent && !u.isFeatured && <span className="text-blue-600 ml-1">(본문)</span>}
+                                  </span>
+                                </div>
+                              );
+                                })}
                               </div>
+                            </div>
+                          );
+                        }
+                        
+                        return null;
+                      })()}
+                      
+                      {/* 키워드 (태그 → 키워드로 변경, 추가) */}
+                      {img.tags && Array.isArray(img.tags) && img.tags.length > 0 && (
+                        <div className="text-xs text-gray-600 mt-3 pt-3 border-t border-gray-200">
+                          <div className="font-medium mb-1">키워드:</div>
+                          <div className="flex flex-wrap gap-1">
+                            {img.tags.map((tag: string, idx: number) => (
+                              <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded">
+                                {tag}
+                              </span>
                             ))}
-                            {usedInList.length > 5 && (
-                              <div className="text-gray-400">... 외 {usedInList.length - 5}개</div>
-                            )}
                           </div>
-                        </details>
+                        </div>
                       )}
                       
                       {/* 사용 위치 - URL별 그룹화 (기존 상세 버전 - 주석 처리) */}
