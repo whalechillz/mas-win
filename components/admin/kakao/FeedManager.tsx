@@ -1000,7 +1000,7 @@ export default function FeedManager({
           <option value="https://www.mas9golf.com">기존 홈페이지 (mas9golf.com)</option>
           <option value="https://masgolf.co.kr/muziik">뮤직 콜라보 (MUZIIK)</option>
           <option value="https://www.masgolf.co.kr/contact">시타 매장 안내</option>
-          <option value="https://www.mas9golf.com/try-a-massgo">시타 예약</option>
+          <option value="https://www.masgolf.co.kr/try-a-massgoo">시타 예약</option>
           <option value="https://smartstore.naver.com/mas9golf">네이버 스마트스토어</option>
         </select>
         {feedData.url && (

@@ -58,7 +58,7 @@ export const menuCategories: MenuCategory[] = [
   },
   {
     id: 'daily-content',
-    name: '데일리 콘텐츠',
+    name: '카톡 콘텐츠',
     icon: '📱',
     color: 'pink',
     description: '소셜 미디어 및 메시지 콘텐츠 관리',
