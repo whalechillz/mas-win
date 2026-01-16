@@ -6205,34 +6205,105 @@ export default function GalleryAdmin() {
                                 const duration = prompt('변환할 길이(초)를 입력하세요 (기본: 5초, 전체: 0):', '5') || '5';
                                 const width = prompt('너비(px)를 입력하세요 (기본: 320):', '320') || '320';
                                 
+                                const requestData = {
+                                  videoUrl: selectedImageForZoom.url,
+                                  folderPath: selectedImageForZoom.folder_path || '',
+                                  fileName: selectedImageForZoom.name || '',
+                                  fps: parseInt(fps),
+                                  duration: parseInt(duration) || 0,
+                                  width: parseInt(width)
+                                };
+                                
+                                console.log('🎬 [GIF 변환 요청]', {
+                                  url: '/api/admin/convert-video-to-gif',
+                                  data: requestData,
+                                  timestamp: new Date().toISOString()
+                                });
+                                
                                 const response = await fetch('/api/admin/convert-video-to-gif', {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({
-                                    videoUrl: selectedImageForZoom.url,
-                                    folderPath: selectedImageForZoom.folder_path || '',
-                                    fileName: selectedImageForZoom.name || '',
-                                    fps: parseInt(fps),
-                                    duration: parseInt(duration) || 0,
-                                    width: parseInt(width)
-                                  })
+                                  body: JSON.stringify(requestData)
+                                });
+                                
+                                console.log('📥 [GIF 변환 응답]', {
+                                  status: response.status,
+                                  statusText: response.statusText,
+                                  ok: response.ok,
+                                  headers: Object.fromEntries(response.headers.entries()),
+                                  timestamp: new Date().toISOString()
                                 });
                                 
                                 if (!response.ok) {
-                                  const error = await response.json();
-                                  throw new Error(error.error || 'GIF 변환 실패');
+                                  let errorData;
+                                  try {
+                                    const responseText = await response.text();
+                                    console.error('❌ [GIF 변환 API 에러 응답]', {
+                                      status: response.status,
+                                      statusText: response.statusText,
+                                      responseText: responseText,
+                                      timestamp: new Date().toISOString()
+                                    });
+                                    
+                                    try {
+                                      errorData = JSON.parse(responseText);
+                                    } catch (e) {
+                                      errorData = { error: responseText };
+                                    }
+                                  } catch (e) {
+                                    console.error('❌ [응답 읽기 실패]', e);
+                                    errorData = { error: '응답을 읽을 수 없습니다.' };
+                                  }
+                                  
+                                  console.error('❌ [GIF 변환 에러 상세]', {
+                                    errorData,
+                                    requiresFfmpeg: errorData.requiresFfmpeg,
+                                    isVercel: errorData.isVercel,
+                                    error: errorData.error,
+                                    details: errorData.details,
+                                    timestamp: new Date().toISOString()
+                                  });
+                                  
+                                  throw new Error(errorData.error || errorData.message || 'GIF 변환 실패');
                                 }
                                 
-                                const data = await response.json();
+                                const responseText = await response.text();
+                                console.log('📥 [GIF 변환 응답 본문]', responseText.substring(0, 500));
+                                
+                                let data;
+                                try {
+                                  data = JSON.parse(responseText);
+                                } catch (e) {
+                                  console.error('❌ [JSON 파싱 실패]', e);
+                                  throw new Error('응답을 파싱할 수 없습니다.');
+                                }
+                                
+                                console.log('✅ [GIF 변환 성공]', {
+                                  success: data.success,
+                                  fileName: data.fileName,
+                                  imageUrl: data.imageUrl,
+                                  size: data.size,
+                                  format: data.format,
+                                  timestamp: new Date().toISOString()
+                                });
+                                
                                 if (data.success) {
                                   alert(`✅ GIF 변환 완료!\n파일명: ${data.fileName}\n크기: ${(data.size / 1024).toFixed(2)}KB`);
                                   setSelectedImageForZoom(null);
                                   setTimeout(async () => {
                                     await fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
                                   }, 500);
+                                } else {
+                                  throw new Error(data.error || 'GIF 변환 실패');
                                 }
                               } catch (error: any) {
-                                console.error('❌ GIF 변환 오류:', error);
+                                console.error('❌ [GIF 변환 오류 전체]', {
+                                  error,
+                                  message: error.message,
+                                  stack: error.stack,
+                                  name: error.name,
+                                  timestamp: new Date().toISOString()
+                                });
                                 alert(`GIF 변환 실패: ${error.message}`);
                               } finally {
                                 setIsConverting(false);

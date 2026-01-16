@@ -49,21 +49,44 @@ export default async function handler(req, res) {
     fs.writeFileSync(tempVideoPath, Buffer.from(arrayBuffer));
 
     // ffmpeg 설치 여부 확인
-    console.log('🔍 ffmpeg 설치 여부 확인 중...');
+    console.log('🔍 [ffmpeg 체크] 시작...');
+    console.log('   - 환경 변수 VERCEL:', process.env.VERCEL);
+    console.log('   - 플랫폼:', process.platform);
+    console.log('   - Node.js 버전:', process.version);
+    
+    let ffmpegPath = null;
     try {
-      await execAsync('which ffmpeg');
-      console.log('✅ ffmpeg 설치 확인됨');
+      const { stdout } = await execAsync('which ffmpeg');
+      ffmpegPath = stdout.trim();
+      console.log('✅ [ffmpeg 체크] 설치 확인됨:', ffmpegPath);
+      
+      // 버전 확인
+      try {
+        const { stdout: version } = await execAsync('ffmpeg -version | head -1');
+        console.log('✅ [ffmpeg 버전]', version.trim());
+      } catch (e) {
+        console.warn('⚠️ [ffmpeg 버전 확인 실패]', e.message);
+      }
     } catch (ffmpegCheckError) {
       const isVercel = process.env.VERCEL === '1';
-      console.error('❌ ffmpeg가 설치되어 있지 않습니다:', ffmpegCheckError);
+      console.error('❌ [ffmpeg 체크] 설치되지 않음:', {
+        error: ffmpegCheckError.message,
+        code: ffmpegCheckError.code,
+        isVercel,
+        platform: process.platform
+      });
+      
+      const errorMessage = isVercel 
+        ? 'Vercel 환경에서는 동영상 변환 기능을 사용할 수 없습니다. 로컬 환경에서만 사용 가능합니다.'
+        : `ffmpeg가 설치되어 있지 않습니다. 시스템에 ffmpeg를 설치해주세요.\n\n설치 방법:\n- macOS: brew install ffmpeg\n- Ubuntu/Debian: sudo apt-get install ffmpeg\n- Windows: https://ffmpeg.org/download.html\n\n오류 상세: ${ffmpegCheckError.message}`;
       
       return res.status(500).json({
         success: false,
-        error: isVercel 
-          ? 'Vercel 환경에서는 동영상 변환 기능을 사용할 수 없습니다. 로컬 환경에서만 사용 가능합니다.'
-          : 'ffmpeg가 설치되어 있지 않습니다. 시스템에 ffmpeg를 설치해주세요.\n\n설치 방법:\n- macOS: brew install ffmpeg\n- Ubuntu/Debian: sudo apt-get install ffmpeg\n- Windows: https://ffmpeg.org/download.html',
+        error: errorMessage,
         requiresFfmpeg: true,
-        isVercel: isVercel
+        isVercel: isVercel,
+        platform: process.platform,
+        details: ffmpegCheckError.message
       });
     }
 
