@@ -1,11 +1,36 @@
 const { chromium } = require('playwright');
+const fs = require('fs');
+const path = require('path');
 
 (async () => {
-  console.log('🎬 동영상 변환 오류 재현 테스트 시작...\n');
+  console.log('🎬 동영상 변환 오류 재현 테스트 시작 (Chrome Canary)...\n');
+  
+  // Chrome Canary 실행 파일 경로 찾기
+  const canaryPaths = [
+    '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary', // macOS
+    'C:\\Program Files\\Google\\Chrome Canary\\Application\\chrome.exe', // Windows
+    'C:\\Program Files (x86)\\Google\\Chrome Canary\\Application\\chrome.exe', // Windows 32-bit
+  ];
+  
+  let executablePath = null;
+  for (const canaryPath of canaryPaths) {
+    if (fs.existsSync(canaryPath)) {
+      executablePath = canaryPath;
+      console.log(`✅ Chrome Canary 발견: ${canaryPath}`);
+      break;
+    }
+  }
+  
+  if (!executablePath) {
+    console.log('⚠️ Chrome Canary를 찾을 수 없습니다. 기본 Chromium을 사용합니다.');
+    console.log('   Chrome Canary 설치 경로:');
+    canaryPaths.forEach(p => console.log(`   - ${p}`));
+  }
   
   const browser = await chromium.launch({
     headless: false,
-    slowMo: 500
+    slowMo: 500,
+    ...(executablePath && { executablePath }) // Chrome Canary 경로가 있으면 사용
   });
   
   const context = await browser.newContext({
@@ -378,9 +403,15 @@ const { chromium } = require('playwright');
     
   } catch (error) {
     console.error('\n❌ 테스트 중 오류 발생:', error);
+    console.error('   에러 상세:', error.message);
+    console.error('   스택:', error.stack);
     await page.screenshot({ path: 'test-video-conversion-error.png', fullPage: true });
+    console.log('\n📸 에러 스크린샷 저장: test-video-conversion-error.png');
+    console.log('\n⏳ 브라우저를 10초간 열어둡니다. 확인 후 자동으로 닫힙니다...');
+    await page.waitForTimeout(10000);
     throw error;
   } finally {
+    console.log('\n🔒 브라우저 종료 중...');
     await browser.close();
   }
 })();
