@@ -136,7 +136,7 @@ export default async function handler(req, res) {
           console.warn('⚠️ [ffmpeg 경고]', stderr.substring(0, 500));
         }
       }
-    } catch (execError: any) {
+    } catch (execError) {
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
       console.error('❌ [ffmpeg 실행 실패]', {
         error: execError.message,
