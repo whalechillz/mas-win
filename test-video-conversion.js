@@ -3,28 +3,28 @@ const fs = require('fs');
 const path = require('path');
 
 (async () => {
-  console.log('🎬 동영상 변환 오류 재현 테스트 시작 (Chrome Canary)...\n');
+  console.log('🎬 동영상 변환 오류 재현 테스트 시작 (Chrome Beta)...\n');
   
-  // Chrome Canary 실행 파일 경로 찾기
-  const canaryPaths = [
-    '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary', // macOS
-    'C:\\Program Files\\Google\\Chrome Canary\\Application\\chrome.exe', // Windows
-    'C:\\Program Files (x86)\\Google\\Chrome Canary\\Application\\chrome.exe', // Windows 32-bit
+  // Chrome Beta 실행 파일 경로 찾기
+  const betaPaths = [
+    '/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta', // macOS
+    'C:\\Program Files\\Google\\Chrome Beta\\Application\\chrome.exe', // Windows
+    'C:\\Program Files (x86)\\Google\\Chrome Beta\\Application\\chrome.exe', // Windows 32-bit
   ];
   
   let executablePath = null;
-  for (const canaryPath of canaryPaths) {
-    if (fs.existsSync(canaryPath)) {
-      executablePath = canaryPath;
-      console.log(`✅ Chrome Canary 발견: ${canaryPath}`);
+  for (const betaPath of betaPaths) {
+    if (fs.existsSync(betaPath)) {
+      executablePath = betaPath;
+      console.log(`✅ Chrome Beta 발견: ${betaPath}`);
       break;
     }
   }
   
   if (!executablePath) {
-    console.log('⚠️ Chrome Canary를 찾을 수 없습니다. 기본 Chromium을 사용합니다.');
-    console.log('   Chrome Canary 설치 경로:');
-    canaryPaths.forEach(p => console.log(`   - ${p}`));
+    console.log('⚠️ Chrome Beta를 찾을 수 없습니다. 기본 Chromium을 사용합니다.');
+    console.log('   Chrome Beta 설치 경로:');
+    betaPaths.forEach(p => console.log(`   - ${p}`));
   }
   
   const browser = await chromium.launch({
@@ -105,7 +105,7 @@ const path = require('path');
     // 로그인 페이지로 리다이렉트되었는지 확인
     const currentUrl = page.url();
     if (currentUrl.includes('/api/auth/signin') || currentUrl.includes('/login')) {
-      console.log('⚠️ 로그인이 필요합니다. Chrome Canary 브라우저에서 수동으로 로그인해주세요.');
+      console.log('⚠️ 로그인이 필요합니다. Chrome Beta 브라우저에서 수동으로 로그인해주세요.');
       console.log('⏳ 90초 대기 중... (로그인 완료 후 자동으로 계속 진행됩니다.)');
       console.log('   💡 팁: 로그인 후 갤러리 페이지로 이동하면 자동으로 계속 진행됩니다.');
       console.log('   💡 브라우저를 닫지 마세요!');
