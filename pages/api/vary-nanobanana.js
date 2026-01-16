@@ -242,12 +242,42 @@ export default async function handler(req, res) {
       
       const imageBuffer = await imageFetchResponse.arrayBuffer();
       
+      // 원본 이미지의 메타데이터 먼저 조회 (폴더 경로 결정을 위해)
+      let originalMetadata = null;
+      let targetFolderPath = folderPath;
+      let targetDateFolder = folderPath.split('/').pop() || new Date().toISOString().slice(0, 10);
+      
+      try {
+        const { data: metadata, error: metadataError } = await supabase
+          .from('image_metadata')
+          .select('*')
+          .eq('image_url', imageUrl)
+          .maybeSingle();
+
+        if (!metadataError && metadata) {
+          originalMetadata = metadata;
+          
+          // 원본이 고객 폴더인 경우 그대로 사용
+          if (metadata.folder_path && metadata.folder_path.includes('originals/customers/')) {
+            targetFolderPath = metadata.folder_path;
+            targetDateFolder = metadata.date_folder || targetDateFolder;
+            console.log('✅ 원본이 고객 폴더입니다. 같은 폴더에 저장:', targetFolderPath);
+          } else if (metadata.folder_path) {
+            // 원본 메타데이터에 folder_path가 있으면 우선 사용
+            targetFolderPath = metadata.folder_path;
+            targetDateFolder = metadata.date_folder || targetDateFolder;
+          }
+        }
+      } catch (metadataError) {
+        console.warn('⚠️ 원본 메타데이터 조회 실패 (기본 경로 사용):', metadataError);
+      }
+      
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 8);
       const baseFileName = `nanobanana-variation-${timestamp}-${randomString}.${originalExtension}`;
       
-      const uniqueFileName = await generateUniqueFileName(folderPath, baseFileName);
-      const objectPath = folderPath ? `${folderPath}/${uniqueFileName}` : uniqueFileName;
+      const uniqueFileName = await generateUniqueFileName(targetFolderPath, baseFileName);
+      const objectPath = targetFolderPath ? `${targetFolderPath}/${uniqueFileName}` : uniqueFileName;
       
       const contentType = finalOutputFormat === 'jpeg' 
         ? 'image/jpeg' 
@@ -274,19 +304,63 @@ export default async function handler(req, res) {
       
       console.log('✅ Supabase 저장 완료:', publicUrl);
 
+      // 원본 이미지의 메타데이터 복사
+      let newMetadata = {
+        image_url: publicUrl,
+        folder_path: targetFolderPath,
+        date_folder: targetDateFolder,
+        english_filename: uniqueFileName,
+        original_filename: uniqueFileName,
+        prompt: finalPrompt, // 새 프롬프트 사용
+        title: title,
+        excerpt: excerpt,
+        content_type: contentType || 'gallery',
+        brand_strategy: brandStrategy || 'professional',
+        upload_source: 'variation-nanobanana', // Nanobanana 변형으로 생성된 이미지 표시
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        usage_count: 0,
+        is_featured: false
+      };
+
+      // 원본 메타데이터가 있으면 복사
+      if (originalMetadata) {
+        console.log('📋 원본 메타데이터 발견, 복사 중...', {
+          originalUrl: imageUrl,
+          newUrl: publicUrl
+        });
+
+        // 원본 메타데이터 복사 (파일명, prompt 제외)
+        newMetadata = {
+          ...newMetadata,
+          alt_text: originalMetadata.alt_text || null,
+          description: originalMetadata.description || null,
+          tags: originalMetadata.tags || null,
+          category_id: originalMetadata.category_id || null,
+          file_size: imageBuffer.byteLength,
+          width: originalMetadata.width || null,
+          height: originalMetadata.height || null,
+          format: finalOutputFormat,
+          status: originalMetadata.status || 'active',
+          // 고객 이미지 관련 필드도 복사
+          story_scene: originalMetadata.story_scene || null,
+          image_type: originalMetadata.image_type || null,
+          customer_name_en: originalMetadata.customer_name_en || null,
+          customer_initials: originalMetadata.customer_initials || null,
+          original_filename: originalMetadata.original_filename || uniqueFileName,
+          // GPS 및 촬영일시 복사
+          gps_lat: originalMetadata.gps_lat || null,
+          gps_lng: originalMetadata.gps_lng || null,
+          taken_at: originalMetadata.taken_at || null
+        };
+      }
+
+      // 이미지 메타데이터 저장
       const { error: metadataError } = await supabase
         .from('image_metadata')
-        .insert({
-          image_url: publicUrl,
-          original_url: generatedImageUrl,
-          prompt: finalPrompt,
-          title: title,
-          excerpt: excerpt,
-          content_type: contentType || 'gallery',
-          brand_strategy: brandStrategy || 'professional',
-          created_at: new Date().toISOString(),
-          usage_count: 0,
-          is_featured: false
+        .upsert(newMetadata, {
+          onConflict: 'image_url',
+          ignoreDuplicates: false
         });
 
       if (metadataError) {

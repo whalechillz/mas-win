@@ -2410,7 +2410,8 @@ export default function GalleryAdmin() {
                 imageUrl: result.images[i].originalUrl || result.images[i],
                 fileName: `replicate-variation-${Date.now()}-${i + 1}.png`,
                 blogPostId: null,
-                folderPath: targetFolderPath // 현재 폴더 경로 전달
+                folderPath: targetFolderPath, // 현재 폴더 경로 전달
+                originalImageUrl: imageUrl // 원본 이미지 URL (메타데이터 복사용)
               })
             });
             
@@ -5715,28 +5716,82 @@ export default function GalleryAdmin() {
                           setIsRotating(true);
                           setShowRotateMenu(false);
                           try {
-                            // 1. 클라이언트에서 Canvas로 회전 처리
-                            const metadata = await getImageMetadata(selectedImageForZoom.url);
-                            const format = metadata.hasAlpha ? 'png' : 'jpg';
+                            // 1. 원본 파일명에서 확장자 추출
+                            const originalFileName = selectedImageForZoom.name || '';
+                            const originalExtension = originalFileName.split('.').pop()?.toLowerCase() || 'png';
+                            const baseName = originalFileName.replace(/\.[^/.]+$/, '') || `rotated-${Date.now()}`;
                             
+                            // 2. GIF는 서버 사이드 API 사용 (애니메이션 보존을 위해 첫 프레임만 회전)
+                            if (originalExtension === 'gif') {
+                              const response = await fetch('/api/admin/rotate-image', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  imageUrl: selectedImageForZoom.url,
+                                  rotation: -90,
+                                  folderPath: selectedImageForZoom.folder_path || '',
+                                  fileName: originalFileName,
+                                  format: 'auto'
+                                })
+                              });
+                              
+                              if (!response.ok) {
+                                const error = await response.json();
+                                throw new Error(error.error || '회전 실패');
+                              }
+                              
+                              const data = await response.json();
+                              if (data.success) {
+                                alert(`✅ 이미지가 반시계방향으로 90도 회전되었습니다.\n포맷: ${data.format.toUpperCase()}\n크기: ${(data.size / 1024).toFixed(2)}KB\n⚠️ GIF는 첫 프레임만 회전됩니다.`);
+                                setSelectedImageForZoom(null);
+                                setTimeout(async () => {
+                                  await fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+                                }, 500);
+                              }
+                              return;
+                            }
+                            
+                            // 3. 메타데이터 확인 (투명도 체크)
+                            const metadata = await getImageMetadata(selectedImageForZoom.url);
+                            
+                            // 4. 원본 확장자에 따라 포맷 결정
+                            let targetFormat: 'webp' | 'png' | 'jpg' = 'png';
+                            let targetExtension = originalExtension;
+                            
+                            if (originalExtension === 'webp') {
+                              targetFormat = 'webp';
+                              targetExtension = 'webp';
+                            } else if (originalExtension === 'jpg' || originalExtension === 'jpeg') {
+                              targetFormat = 'jpg';
+                              targetExtension = 'jpg';
+                            } else if (originalExtension === 'png') {
+                              targetFormat = 'png';
+                              targetExtension = 'png';
+                            } else {
+                              // 기타 확장자는 투명도에 따라 결정
+                              targetFormat = metadata.hasAlpha ? 'png' : 'jpg';
+                              targetExtension = metadata.hasAlpha ? 'png' : 'jpg';
+                            }
+                            
+                            // 5. 클라이언트에서 Canvas로 회전 처리
                             const rotatedBlob = await rotateImageWithCanvas(
                               selectedImageForZoom.url,
                               -90,
-                              format
+                              targetFormat
                             );
                             
-                            // 2. 새 파일명 생성
-                            const baseName = selectedImageForZoom.name?.replace(/\.[^/.]+$/, '') || `rotated-${Date.now()}`;
-                            const extension = format === 'webp' ? 'webp' : format === 'jpg' ? 'jpg' : 'png';
-                            const newFileName = `${baseName}-rotated-90.${extension}`;
+                            // 6. 새 파일명 생성: 원본 파일명 + 회전 각도 + 원본 확장자
+                            const rotationAngle = Math.abs(-90); // 90
+                            const newFileName = `${baseName}-rotated-${rotationAngle}.${targetExtension}`;
                             
-                            // 3. FormData 생성
+                            // 7. FormData 생성
                             const formData = new FormData();
                             formData.append('image', rotatedBlob, newFileName);
                             formData.append('folderPath', selectedImageForZoom.folder_path || '');
                             formData.append('fileName', newFileName);
+                            formData.append('originalImageUrl', selectedImageForZoom.url);
                             
-                            // 4. 서버에 업로드
+                            // 8. 서버에 업로드
                             const response = await fetch('/api/admin/upload-processed-image', {
                               method: 'POST',
                               body: formData
@@ -5749,7 +5804,7 @@ export default function GalleryAdmin() {
                             
                             const data = await response.json();
                             if (data.success) {
-                              alert(`✅ 이미지가 반시계방향으로 90도 회전되었습니다.\n포맷: ${format.toUpperCase()}\n크기: ${(data.size / 1024).toFixed(2)}KB`);
+                              alert(`✅ 이미지가 반시계방향으로 90도 회전되었습니다.\n포맷: ${targetExtension.toUpperCase()}\n크기: ${(data.size / 1024).toFixed(2)}KB`);
                               // 확대 모달 닫기
                               setSelectedImageForZoom(null);
                               // 약간의 지연 후 이미지 목록 새로고침 (Supabase 반영 시간 고려)
@@ -5774,28 +5829,82 @@ export default function GalleryAdmin() {
                           setIsRotating(true);
                           setShowRotateMenu(false);
                           try {
-                            // 1. 클라이언트에서 Canvas로 회전 처리
-                            const metadata = await getImageMetadata(selectedImageForZoom.url);
-                            const format = metadata.hasAlpha ? 'png' : 'jpg';
+                            // 1. 원본 파일명에서 확장자 추출
+                            const originalFileName = selectedImageForZoom.name || '';
+                            const originalExtension = originalFileName.split('.').pop()?.toLowerCase() || 'png';
+                            const baseName = originalFileName.replace(/\.[^/.]+$/, '') || `rotated-${Date.now()}`;
                             
+                            // 2. GIF는 서버 사이드 API 사용 (애니메이션 보존을 위해 첫 프레임만 회전)
+                            if (originalExtension === 'gif') {
+                              const response = await fetch('/api/admin/rotate-image', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  imageUrl: selectedImageForZoom.url,
+                                  rotation: 90,
+                                  folderPath: selectedImageForZoom.folder_path || '',
+                                  fileName: originalFileName,
+                                  format: 'auto'
+                                })
+                              });
+                              
+                              if (!response.ok) {
+                                const error = await response.json();
+                                throw new Error(error.error || '회전 실패');
+                              }
+                              
+                              const data = await response.json();
+                              if (data.success) {
+                                alert(`✅ 이미지가 시계방향으로 90도 회전되었습니다.\n포맷: ${data.format.toUpperCase()}\n크기: ${(data.size / 1024).toFixed(2)}KB\n⚠️ GIF는 첫 프레임만 회전됩니다.`);
+                                setSelectedImageForZoom(null);
+                                setTimeout(async () => {
+                                  await fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+                                }, 500);
+                              }
+                              return;
+                            }
+                            
+                            // 3. 메타데이터 확인 (투명도 체크)
+                            const metadata = await getImageMetadata(selectedImageForZoom.url);
+                            
+                            // 4. 원본 확장자에 따라 포맷 결정
+                            let targetFormat: 'webp' | 'png' | 'jpg' = 'png';
+                            let targetExtension = originalExtension;
+                            
+                            if (originalExtension === 'webp') {
+                              targetFormat = 'webp';
+                              targetExtension = 'webp';
+                            } else if (originalExtension === 'jpg' || originalExtension === 'jpeg') {
+                              targetFormat = 'jpg';
+                              targetExtension = 'jpg';
+                            } else if (originalExtension === 'png') {
+                              targetFormat = 'png';
+                              targetExtension = 'png';
+                            } else {
+                              // 기타 확장자는 투명도에 따라 결정
+                              targetFormat = metadata.hasAlpha ? 'png' : 'jpg';
+                              targetExtension = metadata.hasAlpha ? 'png' : 'jpg';
+                            }
+                            
+                            // 5. 클라이언트에서 Canvas로 회전 처리
                             const rotatedBlob = await rotateImageWithCanvas(
                               selectedImageForZoom.url,
                               90,
-                              format
+                              targetFormat
                             );
                             
-                            // 2. 새 파일명 생성
-                            const baseName = selectedImageForZoom.name?.replace(/\.[^/.]+$/, '') || `rotated-${Date.now()}`;
-                            const extension = format === 'webp' ? 'webp' : format === 'jpg' ? 'jpg' : 'png';
-                            const newFileName = `${baseName}-rotated-90.${extension}`;
+                            // 6. 새 파일명 생성: 원본 파일명 + 회전 각도 + 원본 확장자
+                            const rotationAngle = Math.abs(90); // 90
+                            const newFileName = `${baseName}-rotated-${rotationAngle}.${targetExtension}`;
                             
-                            // 3. FormData 생성
+                            // 7. FormData 생성
                             const formData = new FormData();
                             formData.append('image', rotatedBlob, newFileName);
                             formData.append('folderPath', selectedImageForZoom.folder_path || '');
                             formData.append('fileName', newFileName);
+                            formData.append('originalImageUrl', selectedImageForZoom.url);
                             
-                            // 4. 서버에 업로드
+                            // 8. 서버에 업로드
                             const response = await fetch('/api/admin/upload-processed-image', {
                               method: 'POST',
                               body: formData
@@ -5808,7 +5917,7 @@ export default function GalleryAdmin() {
                             
                             const data = await response.json();
                             if (data.success) {
-                              alert(`✅ 이미지가 시계방향으로 90도 회전되었습니다.\n포맷: ${format.toUpperCase()}\n크기: ${(data.size / 1024).toFixed(2)}KB`);
+                              alert(`✅ 이미지가 시계방향으로 90도 회전되었습니다.\n포맷: ${targetExtension.toUpperCase()}\n크기: ${(data.size / 1024).toFixed(2)}KB`);
                               // 확대 모달 닫기
                               setSelectedImageForZoom(null);
                               // 약간의 지연 후 이미지 목록 새로고침 (Supabase 반영 시간 고려)
@@ -5870,6 +5979,7 @@ export default function GalleryAdmin() {
                             formData.append('image', convertedBlob, newFileName);
                             formData.append('folderPath', selectedImageForZoom.folder_path || '');
                             formData.append('fileName', newFileName);
+                            formData.append('originalImageUrl', selectedImageForZoom.url);
                             
                             // 4. 서버에 업로드
                             const response = await fetch('/api/admin/upload-processed-image', {
@@ -5932,6 +6042,7 @@ export default function GalleryAdmin() {
                             formData.append('image', convertedBlob, newFileName);
                             formData.append('folderPath', selectedImageForZoom.folder_path || '');
                             formData.append('fileName', newFileName);
+                            formData.append('originalImageUrl', selectedImageForZoom.url);
                             
                             // 4. 서버에 업로드
                             const response = await fetch('/api/admin/upload-processed-image', {
@@ -5993,6 +6104,7 @@ export default function GalleryAdmin() {
                             formData.append('image', convertedBlob, newFileName);
                             formData.append('folderPath', selectedImageForZoom.folder_path || '');
                             formData.append('fileName', newFileName);
+                            formData.append('originalImageUrl', selectedImageForZoom.url);
                             
                             // 4. 서버에 업로드
                             const response = await fetch('/api/admin/upload-processed-image', {

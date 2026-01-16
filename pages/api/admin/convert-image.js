@@ -21,7 +21,8 @@ export default async function handler(req, res) {
       maxWidth, 
       maxHeight, 
       folderPath, 
-      fileName 
+      fileName,
+      originalImageUrl // 원본 이미지 URL (메타데이터 복사용)
     } = req.body;
     
     if (!imageUrl || !format) {
@@ -126,8 +127,75 @@ export default async function handler(req, res) {
       .from(bucket)
       .getPublicUrl(uploadPath);
 
-    // 메타데이터 추출
+    // 메타데이터 추출 (메타데이터 복사 전에 필요)
     const metadata = await sharp(processedBuffer).metadata();
+
+    // 원본 이미지의 메타데이터 복사
+    if (originalImageUrl || imageUrl) {
+      try {
+        const sourceImageUrl = originalImageUrl || imageUrl;
+        // 원본 이미지의 메타데이터 조회
+        const { data: originalMetadata, error: metadataError } = await supabase
+          .from('image_metadata')
+          .select('*')
+          .eq('image_url', sourceImageUrl)
+          .maybeSingle();
+
+        if (!metadataError && originalMetadata) {
+          console.log('📋 원본 메타데이터 발견, 복사 중...', {
+            originalUrl: sourceImageUrl,
+            newUrl: urlData.publicUrl
+          });
+
+          // 새 메타데이터 생성 (파일명 관련 필드 제외)
+          const newMetadata = {
+            image_url: urlData.publicUrl,
+            folder_path: folderPath,
+            // 원본 메타데이터 복사 (파일명 관련 필드 제외)
+            alt_text: originalMetadata.alt_text || null,
+            title: originalMetadata.title || null,
+            description: originalMetadata.description || null,
+            tags: originalMetadata.tags || null,
+            prompt: originalMetadata.prompt || null,
+            category_id: originalMetadata.category_id || null,
+            file_size: processedBuffer.length,
+            width: metadata.width || null,
+            height: metadata.height || null,
+            format: fileExtension,
+            upload_source: 'conversion', // 변환으로 생성된 이미지 표시
+            status: originalMetadata.status || 'active',
+            // 고객 이미지 관련 필드도 복사
+            story_scene: originalMetadata.story_scene || null,
+            image_type: originalMetadata.image_type || null,
+            customer_name_en: originalMetadata.customer_name_en || null,
+            customer_initials: originalMetadata.customer_initials || null,
+            date_folder: originalMetadata.date_folder || null,
+            english_filename: newFileName, // 새 파일명만 설정
+            original_filename: originalMetadata.original_filename || newFileName,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+
+          // 메타데이터 저장 (upsert 사용)
+          const { error: saveError } = await supabase
+            .from('image_metadata')
+            .upsert(newMetadata, {
+              onConflict: 'image_url',
+              ignoreDuplicates: false
+            });
+
+          if (saveError) {
+            console.warn('⚠️ 메타데이터 저장 실패 (계속 진행):', saveError);
+          } else {
+            console.log('✅ 메타데이터 복사 완료');
+          }
+        } else {
+          console.log('ℹ️ 원본 메타데이터를 찾을 수 없습니다:', sourceImageUrl);
+        }
+      } catch (metadataCopyError) {
+        console.warn('⚠️ 메타데이터 복사 중 오류 (계속 진행):', metadataCopyError);
+      }
+    }
 
     const originalSize = imageBuffer.length;
     const newSize = processedBuffer.length;

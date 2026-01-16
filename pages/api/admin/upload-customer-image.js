@@ -42,15 +42,15 @@ export default async function handler(req, res) {
       // image_metadata 테이블에 저장 (upsert 사용 - image_url 기준)
       const metadataPayload = {
         image_url: imageUrl,  // UNIQUE 컬럼
-        folder_path: filePath.substring(0, filePath.lastIndexOf('/')),
-        date_folder: visitDate,
-        source: 'customer',
-        channel: 'customer',
-        title: `${customerName} - ${visitDate}`,
-        alt_text: `${customerName} 고객 방문 이미지 (${visitDate})`,
-        file_size: fileSize || null,
-        // 고객 정보를 메타데이터에 저장 (JSON 필드 활용)
-        tags: [`customer-${customerId}`, `visit-${visitDate}`],
+          folder_path: filePath.substring(0, filePath.lastIndexOf('/')),
+          date_folder: visitDate,
+          source: 'customer',
+          channel: 'customer',
+          title: `${customerName} - ${visitDate}`,
+          alt_text: `${customerName} 고객 방문 이미지 (${visitDate})`,
+          file_size: fileSize || null,
+          // 고객 정보를 메타데이터에 저장 (JSON 필드 활용)
+          tags: [`customer-${customerId}`, `visit-${visitDate}`],
         // 스토리 기반 분류 추가
         story_scene: storyScene || null,
         image_type: imageType || null,
@@ -409,7 +409,7 @@ export default async function handler(req, res) {
           // created_at에서 날짜 추출
           if (!img.date_folder && img.created_at) {
             img.date_folder = img.created_at.slice(0, 10);
-          }
+      }
           // 모두 실패하면 unknown
           if (!img.date_folder) {
             img.date_folder = 'unknown';

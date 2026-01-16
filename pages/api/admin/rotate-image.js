@@ -51,30 +51,44 @@ export default async function handler(req, res) {
       height: originalMetadata.height
     });
 
-    // 포맷 결정
+    // 포맷 결정: 원본 확장자 우선 유지
     let targetFormat = format;
     if (format === 'auto') {
-      // 투명도가 있으면 WebP, 없으면 원본 포맷 유지
-      targetFormat = hasAlpha ? 'webp' : (originalMetadata.format || 'jpg');
+      // 원본 파일명에서 확장자 추출
+      const originalExtension = fileName?.split('.').pop()?.toLowerCase() || originalMetadata.format || 'jpg';
+      
+      if (originalExtension === 'webp') {
+        targetFormat = 'webp';
+      } else if (originalExtension === 'png') {
+        targetFormat = 'png';
+      } else if (originalExtension === 'jpg' || originalExtension === 'jpeg') {
+        targetFormat = 'jpg';
+      } else if (originalExtension === 'gif') {
+        // GIF는 첫 프레임만 회전 (애니메이션 손실)
+        targetFormat = 'gif';
+      } else {
+        // 기타 확장자는 투명도에 따라 결정
+        targetFormat = hasAlpha ? 'webp' : (originalMetadata.format || 'jpg');
+      }
     }
 
-    // 회전 적용
+    // 회전 적용 (EXIF orientation 자동 처리)
     let processedImage = sharp(imageBuffer).rotate(rotation);
 
-    // 포맷 변환
+    // 포맷 변환 (품질 90%로 상향)
     let processedBuffer;
     let contentType;
     let fileExtension;
 
     if (targetFormat === 'webp') {
       processedBuffer = await processedImage
-        .webp({ quality: 85, effort: 4 })
+        .webp({ quality: 90, effort: 4 })  // 85 → 90
         .toBuffer();
       contentType = 'image/webp';
       fileExtension = 'webp';
     } else if (targetFormat === 'png') {
       processedBuffer = await processedImage
-        .png({ compressionLevel: 9, adaptiveFiltering: true })
+        .png({ compressionLevel: 9, adaptiveFiltering: true })  // 무손실
         .toBuffer();
       contentType = 'image/png';
       fileExtension = 'png';
@@ -84,18 +98,26 @@ export default async function handler(req, res) {
         processedImage = processedImage.flatten({ background: { r: 255, g: 255, b: 255 } });
       }
       processedBuffer = await processedImage
-        .jpeg({ quality: 85, progressive: true, mozjpeg: true })
+        .jpeg({ quality: 90, progressive: true, mozjpeg: true })  // 85 → 90
         .toBuffer();
       contentType = 'image/jpeg';
       fileExtension = 'jpg';
+    } else if (targetFormat === 'gif') {
+      // GIF는 첫 프레임만 회전 (애니메이션 손실)
+      // Sharp는 GIF의 첫 프레임만 처리
+      processedBuffer = await processedImage
+        .gif()  // GIF 형식 유지 (압축 없음)
+        .toBuffer();
+      contentType = 'image/gif';
+      fileExtension = 'gif';
     } else {
-      // 원본 포맷 유지
+      // 원본 포맷 유지 (압축 없음)
       processedBuffer = await processedImage.toBuffer();
       contentType = `image/${originalMetadata.format}`;
       fileExtension = originalMetadata.format || 'jpg';
     }
 
-    // 새 파일명 생성
+    // 새 파일명 생성: 원본 파일명 + 회전 각도 + 원본 확장자
     const baseName = fileName?.replace(/\.[^/.]+$/, '') || `rotated-${Date.now()}`;
     const newFileName = `${baseName}-rotated-${Math.abs(rotation)}.${fileExtension}`;
 

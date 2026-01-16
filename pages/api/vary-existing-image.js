@@ -264,7 +264,34 @@ const PRESETS = {
       const dateStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
       const yearMonth = dateStr.slice(0, 7); // YYYY-MM
       const fileName = `existing-variation-${Date.now()}.png`;
-      const objectPath = `uploaded/${yearMonth}/${dateStr}/${fileName}`; // uploaded/YYYY-MM/YYYY-MM-DD/ 형식으로 변경
+      
+      // 원본 이미지의 메타데이터 먼저 조회 (폴더 경로 결정을 위해)
+      let originalMetadata = null;
+      let targetFolderPath = `uploaded/${yearMonth}/${dateStr}`;
+      let targetDateFolder = dateStr;
+      
+      try {
+        const { data: metadata, error: metadataError } = await supabase
+          .from('image_metadata')
+          .select('*')
+          .eq('image_url', imageUrl)
+          .maybeSingle();
+
+        if (!metadataError && metadata) {
+          originalMetadata = metadata;
+          
+          // 원본이 고객 폴더인 경우 그대로 사용
+          if (metadata.folder_path && metadata.folder_path.includes('originals/customers/')) {
+            targetFolderPath = metadata.folder_path;
+            targetDateFolder = metadata.date_folder || dateStr;
+            console.log('✅ 원본이 고객 폴더입니다. 같은 폴더에 저장:', targetFolderPath);
+          }
+        }
+      } catch (metadataError) {
+        console.warn('⚠️ 원본 메타데이터 조회 실패 (기본 경로 사용):', metadataError);
+      }
+      
+      const objectPath = `${targetFolderPath}/${fileName}`;
       
       // Supabase Storage에 업로드
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -285,20 +312,63 @@ const PRESETS = {
       
       console.log('✅ Supabase 저장 완료:', publicUrl);
 
-      // 이미지 메타데이터 저장 (프롬프트 포함)
+      // 원본 이미지의 메타데이터 복사
+      let newMetadata = {
+        image_url: publicUrl,
+        folder_path: targetFolderPath,
+        date_folder: targetDateFolder,
+        english_filename: fileName,
+        original_filename: fileName,
+        prompt: prompt, // 새 프롬프트 사용
+        title: title || '기존 이미지 변형',
+        excerpt: excerpt || '기존 이미지를 변형하여 생성된 이미지',
+        content_type: contentType || 'blog',
+        brand_strategy: brandStrategy || 'professional',
+        upload_source: 'variation-fal', // FAL 변형으로 생성된 이미지 표시
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        usage_count: 0,
+        is_featured: false
+      };
+
+      // 원본 메타데이터가 있으면 복사
+      if (originalMetadata) {
+        console.log('📋 원본 메타데이터 발견, 복사 중...', {
+          originalUrl: imageUrl,
+          newUrl: publicUrl
+        });
+
+        // 원본 메타데이터 복사 (파일명, prompt 제외)
+        newMetadata = {
+          ...newMetadata,
+          alt_text: originalMetadata.alt_text || null,
+          description: originalMetadata.description || null,
+          tags: originalMetadata.tags || null,
+          category_id: originalMetadata.category_id || null,
+          file_size: imageBuffer.byteLength,
+          width: originalMetadata.width || null,
+          height: originalMetadata.height || null,
+          format: 'png',
+          status: originalMetadata.status || 'active',
+          // 고객 이미지 관련 필드도 복사
+          story_scene: originalMetadata.story_scene || null,
+          image_type: originalMetadata.image_type || null,
+          customer_name_en: originalMetadata.customer_name_en || null,
+          customer_initials: originalMetadata.customer_initials || null,
+          original_filename: originalMetadata.original_filename || fileName,
+          // GPS 및 촬영일시 복사
+          gps_lat: originalMetadata.gps_lat || null,
+          gps_lng: originalMetadata.gps_lng || null,
+          taken_at: originalMetadata.taken_at || null
+        };
+      }
+
+      // 이미지 메타데이터 저장
       const { error: metadataError } = await supabase
         .from('image_metadata')
-        .insert({
-          image_url: publicUrl,
-          original_url: generatedImageUrl,
-          prompt: prompt,
-          title: title || '기존 이미지 변형',
-          excerpt: excerpt || '기존 이미지를 변형하여 생성된 이미지',
-          content_type: contentType || 'blog',
-          brand_strategy: brandStrategy || 'professional',
-          created_at: new Date().toISOString(),
-          usage_count: 0,
-          is_featured: false
+        .upsert(newMetadata, {
+          onConflict: 'image_url',
+          ignoreDuplicates: false
         });
 
       if (metadataError) {

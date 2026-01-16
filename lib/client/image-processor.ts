@@ -57,8 +57,8 @@ export async function rotateImageWithCanvas(
       // Blob으로 변환
       const mimeType = format === 'webp' ? 'image/webp' : 
                       format === 'jpg' ? 'image/jpeg' : 'image/png';
-      const quality = format === 'webp' ? 0.85 : 
-                     format === 'jpg' ? 0.85 : undefined;
+      const quality = format === 'webp' ? 0.90 :  // 85% → 90%
+                     format === 'jpg' ? 0.90 : undefined;  // 85% → 90%
       
       canvas.toBlob(
         (blob) => {

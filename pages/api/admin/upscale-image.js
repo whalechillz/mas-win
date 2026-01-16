@@ -165,29 +165,96 @@ export default async function handler(req, res) {
       
       console.log('✅ Supabase 저장 완료:', publicUrl);
 
-      // 이미지 메타데이터 저장 (EXIF 포함)
-      const metadataToSave = {
+      // 원본 이미지의 메타데이터 복사
+      let metadataToSave = {
         image_url: publicUrl,
-        original_url: imageUrl,
-        file_name: fileName,
+        folder_path: `originals/ai-generated/${dateStr}`,
         date_folder: dateStr,
-        width: originalExif?.width ? originalExif.width * scale : null,
-        height: originalExif?.height ? originalExif.height * scale : null,
-        file_size: imageBuffer.byteLength
+        english_filename: fileName,
+        original_filename: fileName,
+        file_size: imageBuffer.byteLength,
+        upload_source: 'upscale', // 업스케일로 생성된 이미지 표시
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
-      // EXIF 데이터가 있으면 추가
-      if (originalExif) {
-        if (originalExif.gps_lat) metadataToSave.gps_lat = originalExif.gps_lat;
-        if (originalExif.gps_lng) metadataToSave.gps_lng = originalExif.gps_lng;
-        if (originalExif.taken_at) metadataToSave.taken_at = originalExif.taken_at;
+      // 원본 이미지의 메타데이터 조회
+      try {
+        const { data: originalMetadata, error: metadataError } = await supabase
+          .from('image_metadata')
+          .select('*')
+          .eq('image_url', imageUrl)
+          .maybeSingle();
+
+        if (!metadataError && originalMetadata) {
+          console.log('📋 원본 메타데이터 발견, 복사 중...', {
+            originalUrl: imageUrl,
+            newUrl: publicUrl
+          });
+
+          // 원본 메타데이터 복사 (파일명 관련 필드 제외)
+          metadataToSave = {
+            ...metadataToSave,
+            alt_text: originalMetadata.alt_text || null,
+            title: originalMetadata.title || null,
+            description: originalMetadata.description || null,
+            tags: originalMetadata.tags || null,
+            prompt: originalMetadata.prompt || null,
+            category_id: originalMetadata.category_id || null,
+            width: originalExif?.width ? originalExif.width * scale : (originalMetadata.width ? originalMetadata.width * scale : null),
+            height: originalExif?.height ? originalExif.height * scale : (originalMetadata.height ? originalMetadata.height * scale : null),
+            format: 'png',
+            status: originalMetadata.status || 'active',
+            // 고객 이미지 관련 필드도 복사
+            story_scene: originalMetadata.story_scene || null,
+            image_type: originalMetadata.image_type || null,
+            customer_name_en: originalMetadata.customer_name_en || null,
+            customer_initials: originalMetadata.customer_initials || null,
+            date_folder: originalMetadata.date_folder || dateStr,
+            original_filename: originalMetadata.original_filename || fileName
+          };
+
+          // EXIF 데이터가 있으면 추가
+          if (originalExif) {
+            if (originalExif.gps_lat) metadataToSave.gps_lat = originalExif.gps_lat;
+            if (originalExif.gps_lng) metadataToSave.gps_lng = originalExif.gps_lng;
+            if (originalExif.taken_at) metadataToSave.taken_at = originalExif.taken_at;
+          } else if (originalMetadata.gps_lat || originalMetadata.gps_lng) {
+            // 원본 메타데이터에서 GPS 정보 복사
+            if (originalMetadata.gps_lat) metadataToSave.gps_lat = originalMetadata.gps_lat;
+            if (originalMetadata.gps_lng) metadataToSave.gps_lng = originalMetadata.gps_lng;
+            if (originalMetadata.taken_at) metadataToSave.taken_at = originalMetadata.taken_at;
+          }
+        } else {
+          // 원본 메타데이터가 없으면 EXIF만 사용
+          metadataToSave.width = originalExif?.width ? originalExif.width * scale : null;
+          metadataToSave.height = originalExif?.height ? originalExif.height * scale : null;
+          if (originalExif) {
+            if (originalExif.gps_lat) metadataToSave.gps_lat = originalExif.gps_lat;
+            if (originalExif.gps_lng) metadataToSave.gps_lng = originalExif.gps_lng;
+            if (originalExif.taken_at) metadataToSave.taken_at = originalExif.taken_at;
+          }
+        }
+      } catch (metadataCopyError) {
+        console.warn('⚠️ 메타데이터 복사 중 오류 (계속 진행):', metadataCopyError);
+        // 기본 메타데이터만 저장
+        metadataToSave.width = originalExif?.width ? originalExif.width * scale : null;
+        metadataToSave.height = originalExif?.height ? originalExif.height * scale : null;
       }
 
-      await fetch(`${req.headers.origin || 'http://localhost:3000'}/api/admin/upsert-image-metadata`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(metadataToSave)
-      });
+      // 메타데이터 저장 (upsert 사용)
+      const { error: saveError } = await supabase
+        .from('image_metadata')
+        .upsert(metadataToSave, {
+          onConflict: 'image_url',
+          ignoreDuplicates: false
+        });
+
+      if (saveError) {
+        console.warn('⚠️ 메타데이터 저장 실패:', saveError);
+      } else {
+        console.log('✅ 메타데이터 저장 완료');
+      }
 
       // EXIF 백필 비동기 실행
       fetch(`${req.headers.origin || 'http://localhost:3000'}/api/admin/backfill-exif`, {

@@ -1157,7 +1157,7 @@ function CustomerImageModal({ customer, onClose }: {
 
   useEffect(() => {
     if (!isSlugMode) {
-      loadCustomerImages();
+    loadCustomerImages();
     }
   }, [customer.id, isSlugMode]);
 
@@ -1587,7 +1587,7 @@ function CustomerImageModal({ customer, onClose }: {
                       .map(([date, images]: [string, any[]]) => (
                         <div key={date} className="mb-6">
                           <h4 className="text-md font-semibold text-gray-800 mb-2">{date} ({images.length}개)</h4>
-                          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                             {images.map((img: any, index: number) => {
                               // 파일명 정규화 (공백, %20 제거)
                               const normalizeDisplayFileName = (name: string) => {
@@ -1602,22 +1602,22 @@ function CustomerImageModal({ customer, onClose }: {
                               const fileName = normalizeDisplayFileName(img.english_filename || img.original_filename || '');
                               const isVideo = fileName.toLowerCase().match(/\.(mp4|mov|avi|webm|mkv)$/);
                               return (
-                              <div key={index} className="relative group">
-                                <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                  <div key={index} className="relative group">
+                    <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                                   {img.image_url && (
                                     <MediaRenderer
                                       url={img.image_url}
                                       alt={fileName}
-                                      className="w-full h-full object-cover"
+                          className="w-full h-full object-cover"
                                       showControls={false}
                                       onVideoClick={isVideo ? () => setSelectedVideoUrl(img.image_url) : undefined}
                                       onClick={!isVideo ? () => {
                                         setSelectedImageUrl(img.image_url);
                                         setSelectedImageFileName(fileName);
                                       } : undefined}
-                                    />
-                                  )}
-                                </div>
+                        />
+                      )}
+                    </div>
                                 <div 
                                   className="mt-1 text-xs text-gray-600 truncate" 
                                   title={`${fileName} | ${img.date_folder || '날짜 없음'} | 장면 ${img.story_scene || '?'}${img.metadataMissing ? ' | (Storage에서 가져옴)' : ''}`}
@@ -1627,10 +1627,10 @@ function CustomerImageModal({ customer, onClose }: {
                               </div>
                               );
                             })}
-                          </div>
-                        </div>
-                      ))}
+                    </div>
                   </div>
+                ))}
+              </div>
                 )}
 
                 {/* 타입별 보기 */}
