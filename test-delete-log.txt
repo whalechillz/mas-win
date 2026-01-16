@@ -1,0 +1,56 @@
+(node:14960) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/m2/MASLABS/win.masgolf.co.kr/scripts/test-specific-image-delete.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/m2/MASLABS/win.masgolf.co.kr/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[dotenv@17.2.2] injecting env (42) from .env.local -- tip: ⚙️  suppress all logs with { quiet: true }
+🧪 특정 이미지 삭제 테스트 시작...
+
+📋 대상 파일: test-delete-1768386334011.png
+
+1️⃣ 로그인...
+   🔴 [error] Failed to load resource: the server responded with a status of 404 (Not Found)
+   ✅ 로그인 폼 발견
+   ✅ 로그인 완료
+
+2️⃣ 갤러리 페이지로 이동...
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: all, effectiveFolderFilter: all, prefix: , customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: all, effectiveFolderFilter: all, prefix: , customIncludeChildren: true, effectiveIncludeChildren: true}
+   ✅ 갤러리 페이지 로드 완료
+
+3️⃣ 삭제 전 상태 확인...
+   📦 Storage 파일 존재: ✅ 있음
+   📦 Storage 파일 개수: 2개
+   💾 image_assets 레코드: 1개
+   💾 image_assets ID: 3024033a-fecb-4294-b35d-a1873e4ac2cf
+   💾 file_path: originals/test-delete
+   💾 cdn_url: https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/or...
+   📋 image_metadata 레코드: 0개
+
+4️⃣ API를 통해 이미지 찾기...
+   📝 [log] ✅ 폴더 목록 로드 성공: 1162개 (9.23초, 캐시: 신규)
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 14, children: Array(14), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   ❌ 이미지를 찾을 수 없습니다.
+   💡 API 응답 확인 중...
+   📊 API 응답: {
+  success: undefined,
+  total: 2,
+  imagesCount: 2,
+  firstFewImages: [
+    {
+      name: 'test-delete-1768386334011.png',
+      filename: undefined,
+      id: '3024033a-fecb-4294-b35d-a1873e4ac2cf'
+    },
+    {
+      name: 'test-delete-1768386244726.png',
+      filename: undefined,
+      id: 'c490c455-b7ab-4985-89c3-2a35cd03881c'
+    }
+  ]
+}
+
+❌ 테스트 중 오류 발생: Error: 이미지를 찾을 수 없습니다.
+    at file:///Users/m2/MASLABS/win.masgolf.co.kr/scripts/test-specific-image-delete.js:162:13
+❌ 상세 오류: Error: 이미지를 찾을 수 없습니다.
+    at file:///Users/m2/MASLABS/win.masgolf.co.kr/scripts/test-specific-image-delete.js:162:13

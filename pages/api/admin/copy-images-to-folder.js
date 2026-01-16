@@ -94,12 +94,40 @@ export default async function handler(req, res) {
         
         const imageBlob = new Blob([imageBuffer], { type: mimeType });
 
-        // 2. 파일명 생성 (같은 폴더이거나 중복 파일명인 경우 순번 추가)
-        let newFileName = image.name;
+        // 2. 파일명 생성 및 정규화 (공백, %20 등 제거)
+        // 파일명에서 URL 인코딩된 문자 디코딩 및 정규화
+        let normalizedImageName = image.name;
+        try {
+          // URL 디코딩
+          normalizedImageName = decodeURIComponent(image.name);
+        } catch {
+          // 디코딩 실패 시 원본 사용
+          normalizedImageName = image.name;
+        }
         
-        if (isSameFolder || existingFileNames.has(image.name.toLowerCase())) {
+        // 앞뒤 공백 및 %20 제거
+        normalizedImageName = normalizedImageName.trim().replace(/^%20+|%20+$/g, '').replace(/^ +| +$/g, '');
+        
+        // 파일명 정규화 함수
+        const sanitizeFileName = (fileName) => {
+          // 앞뒤 공백, %20 제거
+          let sanitized = fileName.trim().replace(/^%20+|%20+$/g, '').replace(/^ +| +$/g, '');
+          // 중간 공백을 언더스코어로 변환 (선택적)
+          // sanitized = sanitized.replace(/\s+/g, '_');
+          return sanitized;
+        };
+        
+        let newFileName = sanitizeFileName(normalizedImageName);
+        
+        console.log('🔍 [파일명 정규화]', {
+          원본: image.name,
+          디코딩: normalizedImageName,
+          정규화: newFileName
+        });
+        
+        if (isSameFolder || existingFileNames.has(newFileName.toLowerCase())) {
           // 파일명에서 확장자 분리
-          const baseName = image.name.replace(/\.[^/.]+$/, '');
+          const baseName = newFileName.replace(/\.[^/.]+$/, '');
           const extension = fileExtension;
           
           // 순번 추가
@@ -178,6 +206,8 @@ export default async function handler(req, res) {
           image_url: urlData.publicUrl,
           original_path: finalPath,
           file_name: newFileName,
+          english_filename: newFileName, // 정규화된 파일명 저장
+          original_filename: image.name, // 원본 파일명 보존
           folder_path: targetFolder,
           alt_text: image.alt_text || '',
           title: image.title || image.name,
@@ -185,16 +215,124 @@ export default async function handler(req, res) {
           tags: Array.isArray(image.keywords) ? image.keywords : (image.keywords ? [image.keywords] : []),
           file_size: imageBuffer.byteLength,
           upload_source: 'copy',
-          status: 'active'
+          status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         };
 
+        // 고객 폴더인 경우 추가 메타데이터 설정
+        if (targetFolder.startsWith('originals/customers/')) {
+          // 폴더 경로에서 고객 정보 추출
+          // 예: originals/customers/joseotdae-7010/2023-06-20
+          const pathParts = targetFolder.split('/');
+          const customerFolderName = pathParts[2]; // joseotdae-7010
+          const dateFolder = pathParts[3]; // 2023-06-20
+          
+          console.log('🔍 [갤러리 업로드] 고객 폴더 감지:', {
+            targetFolder,
+            customerFolderName,
+            dateFolder
+          });
+          
+          // 고객 정보 조회
+          const { data: customerData, error: customerError } = await supabase
+            .from('customers')
+            .select('id, name, name_en, initials')
+            .eq('folder_name', customerFolderName)
+            .single();
+          
+          if (!customerError && customerData) {
+            console.log('✅ [갤러리 업로드] 고객 정보 조회 성공:', customerData);
+            
+            metadata.source = 'customer';
+            metadata.channel = 'customer';
+            metadata.date_folder = dateFolder;
+            metadata.customer_name_en = customerData.name_en;
+            metadata.customer_initials = customerData.initials;
+            
+            // tags 설정 (기존 keywords가 있으면 추가, 없으면 기본 tags만)
+            if (Array.isArray(image.keywords) && image.keywords.length > 0) {
+              metadata.tags = [
+                `customer-${customerData.id}`,
+                `visit-${dateFolder}`,
+                ...image.keywords
+              ];
+            } else if (image.keywords) {
+              metadata.tags = [
+                `customer-${customerData.id}`,
+                `visit-${dateFolder}`,
+                image.keywords
+              ];
+            } else {
+              // keywords가 없으면 기본 tags만 설정
+              metadata.tags = [
+                `customer-${customerData.id}`,
+                `visit-${dateFolder}`
+              ];
+            }
+            metadata.metadata = {
+              visitDate: dateFolder,
+              customerName: customerData.name,
+              folderName: customerFolderName
+            };
+            
+            // 파일명에서 story_scene 추출 시도
+            // 형식: {이니셜}_s{장면코드}_{타입}_{번호}.webp
+            const sceneMatch = newFileName.match(/_s(\d+)_/);
+            if (sceneMatch) {
+              const sceneNum = parseInt(sceneMatch[1], 10);
+              if (sceneNum >= 1 && sceneNum <= 7) {
+                metadata.story_scene = sceneNum;
+                console.log('✅ [갤러리 업로드] story_scene 추출:', sceneNum);
+              }
+            }
+            
+            // 파일명에서 image_type 추출 시도
+            const typeMatch = newFileName.match(/_s\d+_(.+?)_\d+\./);
+            if (typeMatch) {
+              metadata.image_type = typeMatch[1];
+              console.log('✅ [갤러리 업로드] image_type 추출:', typeMatch[1]);
+            }
+            
+            // 파일 확장자로 image_type 보정
+            const fileExt = newFileName.split('.').pop()?.toLowerCase();
+            if (fileExt && ['mp4', 'mov', 'avi', 'webm', 'mkv'].includes(fileExt)) {
+              metadata.image_type = 'video';
+            } else if (fileExt === 'gif') {
+              metadata.image_type = 'gif';
+            } else if (!metadata.image_type) {
+              metadata.image_type = 'image';
+            }
+            
+            // customer-{timestamp} 형식 파일 처리
+            if (newFileName.startsWith('customer-') && !metadata.story_scene) {
+              // 기본값으로 story_scene을 null로 명시적으로 설정 (미할당)
+              metadata.story_scene = null;
+              console.log('ℹ️ [갤러리 업로드] customer- 형식 파일, story_scene은 null로 설정 (미할당)');
+            }
+          } else {
+            console.warn('⚠️ [갤러리 업로드] 고객 정보 조회 실패:', customerError?.message || '고객을 찾을 수 없음');
+          }
+        }
+
+        // upsert 사용 (image_url 기준)
         const { error: metadataError } = await supabase
           .from('image_metadata')
-          .insert(metadata);
+          .upsert(metadata, {
+            onConflict: 'image_url',
+            ignoreDuplicates: false
+          });
 
         if (metadataError) {
           console.warn('⚠️ 메타데이터 저장 실패:', metadataError);
           // 메타데이터 저장 실패해도 이미지는 저장되었으므로 계속 진행
+        } else {
+          console.log('✅ [갤러리 업로드] 메타데이터 저장 성공:', {
+            image_url: urlData.publicUrl,
+            customer_id: metadata.metadata?.customerName ? '있음' : '없음',
+            story_scene: metadata.story_scene || '없음',
+            image_type: metadata.image_type || '없음'
+          });
         }
 
         copiedImages.push({

@@ -1,0 +1,28 @@
+🚀 테스트 시작: 제품 합성 관리 페이지 접속
+[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+✅ 로그인 페이지 로드 완료
+❌ 테스트 실패: page.fill: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator('input[type="email"]')
+
+    at /Users/m2/MASLABS/win.masgolf.co.kr/test-reproduce-main-image-issue.js:49:16 {
+  name: 'TimeoutError'
+}
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.fill: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator('input[type="email"]')
+
+    at /Users/m2/MASLABS/win.masgolf.co.kr/test-reproduce-main-image-issue.js:49:16 {
+  name: 'TimeoutError'
+}
+
+Node.js v24.2.0

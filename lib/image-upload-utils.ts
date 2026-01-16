@@ -6,6 +6,7 @@ interface UploadOptions {
   enableHEICConversion?: boolean; // HEIC 파일 자동 변환
   enableEXIFBackfill?: boolean; // EXIF 메타데이터 백필
   uploadMode?: 'optimize-filename' | 'preserve-filename' | 'auto' | 'preserve-name' | 'preserve-original'; // 업로드 모드 (새 모드: optimize-filename, preserve-filename | 기존 모드: 하위 호환)
+  customFileName?: string; // 커스텀 파일명 (고객 이미지 업로드 시 사용)
   onProgress?: (progress: number) => void; // 업로드 진행률 콜백 (0-100)
   // 하위 호환성: 기존 옵션들 (deprecated)
   preserveFilename?: boolean; // 원본 파일명 전체 유지 옵션 (deprecated, uploadMode 사용 권장)

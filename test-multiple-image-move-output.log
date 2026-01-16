@@ -1,0 +1,203 @@
+🧪 여러 이미지 일괄 이동 테스트 시작 (2개 이상)...
+
+📋 소스 폴더: originals/composed/2025-12-11
+📋 대상 폴더: originals/goods/bucket-hat-muziik-white/gallery
+
+1️⃣ 로그인...
+   🔴 [error] Failed to load resource: the server responded with a status of 404 (Not Found)
+   ✅ 로그인 폼 발견
+   ✅ 로그인 완료
+
+2️⃣ 갤러리 페이지로 이동 및 로딩 대기 (1분 이상)...
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: all, effectiveFolderFilter: all, prefix: , customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: all, effectiveFolderFilter: all, prefix: , customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 [log] 📸 API 응답 - 동영상 파일 없음: {total: 20, sampleFiles: Array(5)}
+   🔴 [error] Failed to load resource: the server responded with a status of 504 (Gateway Timeout)
+   📝 [log] 📁 폴더 트리 구조: {totalFolders: 1174, rootChildren: 4, rootChildrenNames: Array(4), originals: Object, scrapedImages: Object}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   🔴 [error] Failed to load resource: the server responded with a status of 504 (Gateway Timeout)
+   🔴 [error] Failed to load resource: the server responded with a status of 504 (Gateway Timeout)
+   ✅ 네트워크 유휴 상태 대기 완료
+   ⏳ 추가 대기 중... (60초)
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 📸 API 응답 - 동영상 파일 없음: {total: 20, sampleFiles: Array(5)}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 📸 API 응답 - 동영상 파일 없음: {total: 20, sampleFiles: Array(5)}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: originals/composed/2025-12-11, effectiveFolderFilter: originals/composed/2025-12-11, prefix: originals%2Fcomposed%2F2025-12-11, customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 [log] 🔍 폴더 필터 적용: originals/composed/2025-12-11
+   📝 [log] 🔍 필터링 전 이미지 수: 60
+   📝 [log] 🔍 폴더 불일치: {imgFolderPath: originals/goods/bucket-hat-muziik-black/gallery, filterPath: originals/composed/2025-12-11, includeChildren: true, imgName: composed-1-a10ed3c2-fd40-4dae-8063-7b245ab7b2f2-1765456065490.png}
+   📝 [log] 🔍 폴더 불일치: {imgFolderPath: originals/products/secret-weapon-black/gallery, filterPath: originals/composed/2025-12-11, includeChildren: true, imgName: branding-1768378000243-zigt37.webp}
+   📝 [log] 🔍 폴더 불일치: {imgFolderPath: originals/daily-branding/kakao/2026-01-13/account1/feed, filterPath: originals/composed/2025-12-11, includeChildren: true, imgName: branding-1768378000243-zigt37.webp}
+   📝 [log] 🔍 폴더 불일치: {imgFolderPath: originals/daily-branding/kakao/2026-01-27/account2/feed, filterPath: originals/composed/2025-12-11, includeChildren: true, imgName: kakao-account2-feed-1768367876722-1-1.jpg}
+   📝 [log] 🔍 폴더 불일치: {imgFolderPath: originals/daily-branding/kakao/2026-01-16/account1/background, filterPath: originals/composed/2025-12-11, includeChildren: true, imgName: composed-1-4023b2e7-24db-499e-b065-8ecc53551c69-1768367079189.webp}
+   📝 [log] 🔍 특정 폴더 필터링 후: 0 (이전: 60 )
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: originals/composed/2025-12-11, effectiveFolderFilter: originals/composed/2025-12-11, prefix: originals%2Fcomposed%2F2025-12-11, customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 📸 API 응답 - 동영상 파일 없음: {total: 2, sampleFiles: Array(2)}
+   📝 [log] 🔍 폴더 필터 적용: originals/composed/2025-12-11
+   📝 [log] 🔍 필터링 전 이미지 수: 2
+   📝 [log] 🔍 특정 폴더 필터링 후: 2 (이전: 2 )
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 📸 API 응답 - 동영상 파일 없음: {total: 2, sampleFiles: Array(2)}
+   📝 [log] 🔍 폴더 필터 적용: originals/composed/2025-12-11
+   📝 [log] 🔍 필터링 전 이미지 수: 2
+   📝 [log] 🔍 특정 폴더 필터링 후: 2 (이전: 2 )
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: originals/goods/bucket-hat-muziik-white/gallery, effectiveFolderFilter: originals/goods/bucket-hat-muziik-white/gallery, prefix: originals%2Fgoods%2Fbucket-hat-muziik-white%2Fgallery, customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 [log] 🔍 폴더 필터 적용: originals/goods/bucket-hat-muziik-white/gallery
+   📝 [log] 🔍 필터링 전 이미지 수: 2
+   📝 [log] 🔍 특정 폴더 필터링 후: 0 (이전: 2 )
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: originals/goods/bucket-hat-muziik-white/gallery, effectiveFolderFilter: originals/goods/bucket-hat-muziik-white/gallery, prefix: originals%2Fgoods%2Fbucket-hat-muziik-white%2Fgallery, customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🎬 API 응답 - 동영상 파일 발견: {total: 20, videoCount: 1, videoFiles: Array(1)}
+   📝 [log] 🔍 폴더 필터 적용: originals/goods/bucket-hat-muziik-white/gallery
+   📝 [log] 🔍 필터링 전 이미지 수: 20
+   📝 [log] 🔍 특정 폴더 필터링 후: 20 (이전: 20 )
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🎬 최종 이미지 목록 - 동영상 파일: {total: 20, videoCount: 1, videoFiles: Array(1)}
+   📝 [log] 🎬 API 응답 - 동영상 파일 발견: {total: 20, videoCount: 1, videoFiles: Array(1)}
+   📝 [log] 🔍 폴더 필터 적용: originals/goods/bucket-hat-muziik-white/gallery
+   📝 [log] 🔍 필터링 전 이미지 수: 20
+   📝 [log] 🔍 특정 폴더 필터링 후: 20 (이전: 20 )
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🎬 최종 이미지 목록 - 동영상 파일: {total: 20, videoCount: 1, videoFiles: Array(1)}
+   🔴 [error] 동영상 로드 실패: https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/goods/bucket-hat-muziik-white/gallery/goods-1767596777779-dd2n0j.mp4
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: originals/composed/2025-12-11, effectiveFolderFilter: originals/composed/2025-12-11, prefix: originals%2Fcomposed%2F2025-12-11, customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 [log] 🔍 폴더 필터 적용: originals/composed/2025-12-11
+   📝 [log] 🔍 필터링 전 이미지 수: 20
+   📝 [log] 🔍 특정 폴더 필터링 후: 0 (이전: 20 )
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: originals/composed/2025-12-11, effectiveFolderFilter: originals/composed/2025-12-11, prefix: originals%2Fcomposed%2F2025-12-11, customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 📸 API 응답 - 동영상 파일 없음: {total: 2, sampleFiles: Array(2)}
+   📝 [log] 🔍 폴더 필터 적용: originals/composed/2025-12-11
+   📝 [log] 🔍 필터링 전 이미지 수: 2
+   📝 [log] 🔍 특정 폴더 필터링 후: 2 (이전: 2 )
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 📸 API 응답 - 동영상 파일 없음: {total: 2, sampleFiles: Array(2)}
+   📝 [log] 🔍 폴더 필터 적용: originals/composed/2025-12-11
+   📝 [log] 🔍 필터링 전 이미지 수: 2
+   📝 [log] 🔍 특정 폴더 필터링 후: 2 (이전: 2 )
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   ✅ 1분 대기 완료
+
+3️⃣ 소스 폴더로 이동: originals/composed/2025-12-11...
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: originals, effectiveFolderFilter: originals, prefix: originals, customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 [log] 🔍 폴더 필터 적용: originals
+   📝 [log] 🔍 필터링 전 이미지 수: 2
+   📝 [log] 🔍 특정 폴더 필터링 후: 2 (이전: 2 )
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: originals, effectiveFolderFilter: originals, prefix: originals, customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📁 폴더 클릭: originals
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: originals/composed, effectiveFolderFilter: originals/composed, prefix: originals%2Fcomposed, customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 [log] 🔍 폴더 필터 적용: originals/composed
+   📝 [log] 🔍 필터링 전 이미지 수: 2
+   📝 [log] 🔍 특정 폴더 필터링 후: 2 (이전: 2 )
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: originals/composed, effectiveFolderFilter: originals/composed, prefix: originals%2Fcomposed, customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📁 폴더 클릭: composed
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: originals/composed/2025-12-11, effectiveFolderFilter: originals/composed/2025-12-11, prefix: originals%2Fcomposed%2F2025-12-11, customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 [log] 🔍 폴더 필터 적용: originals/composed/2025-12-11
+   📝 [log] 🔍 필터링 전 이미지 수: 2
+   📝 [log] 🔍 특정 폴더 필터링 후: 2 (이전: 2 )
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: originals/composed/2025-12-11, effectiveFolderFilter: originals/composed/2025-12-11, prefix: originals%2Fcomposed%2F2025-12-11, customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 📸 API 응답 - 동영상 파일 없음: {total: 2, sampleFiles: Array(2)}
+   📝 [log] 🔍 폴더 필터 적용: originals/composed/2025-12-11
+   📝 [log] 🔍 필터링 전 이미지 수: 2
+   📝 [log] 🔍 특정 폴더 필터링 후: 2 (이전: 2 )
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 📸 API 응답 - 동영상 파일 없음: {total: 2, sampleFiles: Array(2)}
+   📝 [log] 🔍 폴더 필터 적용: originals/composed/2025-12-11
+   📝 [log] 🔍 필터링 전 이미지 수: 2
+   📝 [log] 🔍 특정 폴더 필터링 후: 2 (이전: 2 )
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📁 폴더 클릭: 2025-12-11
+   ⏳ 이미지 로드 대기 중... (10초)
+   📝 [log] 📸 API 응답 - 동영상 파일 없음: {total: 20, sampleFiles: Array(5)}
+   📝 [log] 🔍 폴더 필터 적용: originals/composed/2025-12-11
+   📝 [log] 🔍 필터링 전 이미지 수: 20
+   📝 [log] 🔍 특정 폴더 필터링 후: 0 (이전: 20 )
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 📸 API 응답 - 동영상 파일 없음: {total: 20, sampleFiles: Array(5)}
+   📝 [log] 🔍 폴더 필터 적용: originals/composed/2025-12-11
+   📝 [log] 🔍 필터링 전 이미지 수: 20
+   📝 [log] 🔍 특정 폴더 필터링 후: 0 (이전: 20 )
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 13, children: Array(13), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📊 소스 폴더의 이미지 개수: 0개
+
+   ⚠️ 소스 폴더에 이미지가 2개 미만입니다. 테스트를 계속 진행합니다...
+
+4️⃣ 이미지 2개 이상 선택...
+   📊 선택할 이미지 개수: 0개
+
+   ⚠️ 선택 메시지를 찾을 수 없습니다.
+
+5️⃣ 드래그 시작 전 상태 확인...
+   📊 드래그 시작 전 상태: { selectedImagesSize: 0, imagesCount: 0 }
+
+6️⃣ 대상 폴더 찾기: originals/goods/bucket-hat-muziik-white/gallery...
+   ✅ 대상 폴더 찾기 완료
+
+7️⃣ 드래그 앤 드롭 시작 (Alt 키 - 이동)...
+❌ 테스트 실패: TypeError: Cannot read properties of undefined (reading 'dragTo')
+    at /Users/m2/MASLABS/win.masgolf.co.kr/scripts/test-multiple-image-move.js:180:22
+/Users/m2/MASLABS/win.masgolf.co.kr/scripts/test-multiple-image-move.js:180
+    await firstImage.dragTo(targetFolderElement, {
+                     ^
+
+TypeError: Cannot read properties of undefined (reading 'dragTo')
+    at /Users/m2/MASLABS/win.masgolf.co.kr/scripts/test-multiple-image-move.js:180:22
+
+Node.js v24.2.0

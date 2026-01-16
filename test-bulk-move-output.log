@@ -1,0 +1,49 @@
+(node:19510) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/m2/MASLABS/win.masgolf.co.kr/scripts/test-bulk-image-move.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/m2/MASLABS/win.masgolf.co.kr/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[dotenv@17.2.2] injecting env (42) from .env.local -- tip: 📡 auto-backup env with Radar: https://dotenvx.com/radar
+🧪 여러 이미지 일괄 이동 문제 재현 테스트 시작...
+
+📋 소스 폴더: originals/composed/2025-12-11
+📋 대상 폴더: originals/goods/bucket-hat-muziik-white/gallery
+
+1️⃣ 로그인...
+   🔴 [error] Failed to load resource: the server responded with a status of 404 (Not Found)
+   ✅ 로그인 폼 발견
+   ✅ 로그인 완료
+
+2️⃣ 갤러리 페이지로 이동...
+   ✅ 갤러리 페이지 로드 완료
+
+3️⃣ 소스 폴더 선택: originals/composed/2025-12-11...
+   📁 폴더 클릭: originals
+   ⚠️ 폴더 "originals"를 찾을 수 없습니다.
+   📁 폴더 클릭: composed
+   ⚠️ 폴더 "composed"를 찾을 수 없습니다.
+   📁 폴더 클릭: 2025-12-11
+   ⚠️ 폴더 "2025-12-11"를 찾을 수 없습니다.
+   ✅ 폴더 선택 완료
+
+4️⃣ 폴더 내 이미지 확인...
+   📊 발견된 이미지 요소: 0개
+   ⚠️ 이미지가 2개 미만입니다. 테스트를 계속 진행합니다...
+   📊 선택할 이미지 개수: 0개
+
+5️⃣ 이미지 선택...
+   ✅ 이미지 선택 완료
+
+6️⃣ 선택된 이미지 개수 확인...
+   📊 선택 상태: { selectionMode: false, selectedCount: 0, bulkActionBar: false }
+
+7️⃣ 대상 폴더로 드래그 앤 드롭: originals/goods/bucket-hat-muziik-white/gallery...
+❌ 테스트 실패: Error: 대상 폴더를 찾을 수 없습니다.
+    at file:///Users/m2/MASLABS/win.masgolf.co.kr/scripts/test-bulk-image-move.js:199:13
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+Error: 대상 폴더를 찾을 수 없습니다.
+    at file:///Users/m2/MASLABS/win.masgolf.co.kr/scripts/test-bulk-image-move.js:199:13
+
+Node.js v24.2.0

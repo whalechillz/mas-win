@@ -1,0 +1,110 @@
+(node:19634) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/m2/MASLABS/win.masgolf.co.kr/scripts/test-specific-image-delete.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/m2/MASLABS/win.masgolf.co.kr/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[dotenv@17.2.2] injecting env (42) from .env.local -- tip: ⚙️  write to custom object with { processEnv: myObject }
+🧪 특정 이미지 삭제 테스트 시작...
+
+📋 대상 파일: test-delete-1768386334011.png
+
+1️⃣ 로그인...
+   🔴 [error] Failed to load resource: the server responded with a status of 404 (Not Found)
+   ✅ 로그인 폼 발견
+   ✅ 로그인 완료
+
+2️⃣ 갤러리 페이지로 이동...
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: all, effectiveFolderFilter: all, prefix: , customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: all, effectiveFolderFilter: all, prefix: , customIncludeChildren: true, effectiveIncludeChildren: true}
+   ✅ 갤러리 페이지 로드 완료
+
+3️⃣ 삭제 전 상태 확인...
+   📦 Storage 파일 존재: ✅ 있음
+   📦 Storage 파일 개수: 2개
+   💾 image_assets 레코드: 1개
+   💾 image_assets ID: 6faa56a9-8cdc-4ee5-abb1-2a851587da37
+   💾 file_path: originals/test-delete
+   💾 cdn_url: https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/or...
+   📋 image_metadata 레코드: 0개
+
+4️⃣ API를 통해 이미지 찾기...
+   📝 [log] 📊 API 응답: {success: undefined, total: 2, imagesCount: 2}
+   📝 [log] ✅ 이미지 발견: {id: 6faa56a9-8cdc-4ee5-abb1-2a851587da37, name: test-delete-1768386334011.png, filename: undefined}
+   ✅ 이미지 발견:
+      - ID: 6faa56a9-8cdc-4ee5-abb1-2a851587da37
+      - 파일명: test-delete-1768386334011.png
+      - URL: https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/or...
+      - 폴더: originals/test-delete
+
+5️⃣ 검색으로 이미지 찾기...
+   📝 [log] 🔄 fetchImages 호출: {customFolderFilter: all, effectiveFolderFilter: all, prefix: , customIncludeChildren: true, effectiveIncludeChildren: true}
+   ✅ 검색 완료
+
+6️⃣ API를 통해 직접 삭제 시도...
+   📋 삭제할 이미지 ID: 6faa56a9-8cdc-4ee5-abb1-2a851587da37
+   📋 삭제할 파일명: test-delete-1768386334011.png
+
+   📝 [log] 🗑️ 삭제 API 호출 시작... {imageId: 6faa56a9-8cdc-4ee5-abb1-2a851587da37, filename: test-delete-1768386334011.png, folder_path: originals/test-delete}
+   📝 [log] ✅ 폴더 목록 로드 성공: 1153개 (12.37초, 캐시: 신규)
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 14, children: Array(14), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📝 [log] 📡 API 응답 상태: 200 OK
+   📝 [log] 📦 API 응답 데이터: {success: true, message: 이미지가 영구 삭제되었습니다., deletedId: 6faa56a9-8cdc-4ee5-abb1-2a851587da37, deletedRows: 1, storageDeleted: true}
+   📊 삭제 API 응답:
+      - 성공: ✅
+      - 상태: 200
+      - 메시지: 이미지가 영구 삭제되었습니다.
+      - Storage 삭제: ✅
+      - DB 삭제 행 수: 1
+      - 메타데이터 삭제: ❌
+      - 경고: image_metadata에서 삭제된 행이 없습니다 (이미 삭제되었거나 존재하지 않을 수 있음)
+
+🔟 삭제 후 상태 확인...
+   📝 [log] 📸 API 응답 - 동영상 파일 없음: {total: 20, sampleFiles: Array(5)}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 14, children: Array(14), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}
+   📦 Storage 파일 존재: ❌ 여전히 있음
+   📦 Storage 파일 개수: 2개 (이전: 2개)
+   💾 image_assets 레코드: 1개 (이전: 1개)
+   📋 image_metadata 레코드: 0개 (이전: 0개)
+
+1️⃣1️⃣ API를 통해 삭제 확인...
+   📊 API 확인 결과:
+      - 이미지 발견: ✅ 삭제됨
+      - 전체 이미지 수: 0
+      - 응답 이미지 수: 0
+
+📊 최종 요약:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 대상 파일: test-delete-1768386334011.png
+📋 이미지 ID: 6faa56a9-8cdc-4ee5-abb1-2a851587da37
+
+삭제 전:
+   📦 Storage: ✅ 있음
+   💾 image_assets: 1개
+   📋 image_metadata: 0개
+
+삭제 후:
+   📦 Storage: ❌ 여전히 있음
+   💾 image_assets: 1개
+   📋 image_metadata: 0개
+   📊 API: ✅ 삭제됨
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 삭제 관련 콘솔 로그 요약:
+   🔴 Failed to load resource: the server responded with a status of 404 (Not Found)
+   📝 🔄 fetchImages 호출: {customFolderFilter: all, effectiveFolderFilter: all, prefix: , customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 🔄 fetchImages 호출: {customFolderFilter: all, effectiveFolderFilter: all, prefix: , customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 📊 API 응답: {success: undefined, total: 2, imagesCount: 2}
+   📝 ✅ 이미지 발견: {id: 6faa56a9-8cdc-4ee5-abb1-2a851587da37, name: test-delete-1768386334011.png, filename: undefined}
+   📝 🔄 fetchImages 호출: {customFolderFilter: all, effectiveFolderFilter: all, prefix: , customIncludeChildren: true, effectiveIncludeChildren: true}
+   📝 🗑️ 삭제 API 호출 시작... {imageId: 6faa56a9-8cdc-4ee5-abb1-2a851587da37, filename: test-delete-1768386334011.png, folder_path: originals/test-delete}
+   📝 📡 API 응답 상태: 200 OK
+   📝 📦 API 응답 데이터: {success: true, message: 이미지가 영구 삭제되었습니다., deletedId: 6faa56a9-8cdc-4ee5-abb1-2a851587da37, deletedRows: 1, storageDeleted: true}
+   📝 📸 API 응답 - 동영상 파일 없음: {total: 20, sampleFiles: Array(5)}
+
+✅ 테스트 완료!
+
+💡 브라우저를 닫으려면 아무 키나 누르세요...
+   📝 [log] 📸 API 응답 - 동영상 파일 없음: {total: 20, sampleFiles: Array(5)}
+   📝 [log] 🔍 originals 폴더 렌더링: {path: originals, hasChildren: true, childrenCount: 14, children: Array(14), isExpanded: true}
+   📝 [log] 🔍 scraped-images 폴더 렌더링: {path: scraped-images, hasChildren: true, childrenCount: 1, children: Array(1), isExpanded: false}

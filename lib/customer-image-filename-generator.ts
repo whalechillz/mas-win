@@ -1,6 +1,7 @@
 /**
  * 고객 이미지 파일명 생성 유틸리티
- * 형식: {이니셜}_s{장면코드}_{타입}_{번호}.webp
+ * 형식: {영문이름}_s{장면코드}_{타입}_{번호}.webp
+ * 예: joseotdae_s6_signature_01.webp
  */
 
 import { translateKoreanToEnglish } from './korean-to-english-translator';
@@ -151,19 +152,77 @@ export function extractNumber(fileName: string): number {
 
 /**
  * 고객 이미지 파일명 생성
- * 형식: {이니셜}_s{장면코드}_{타입}_{번호}.webp
+ * 형식: {영문이름}_s{장면코드}_{타입}_{번호}.webp
+ * 예: joseotdae_s6_signature_01.webp
  */
 export function generateCustomerImageFileName(
-  customer: { name: string; initials?: string },
+  customer: { name: string; initials?: string; name_en?: string },
   originalFileName: string,
   index?: number
 ): { fileName: string; scene: number; type: string } {
-  const initials = customer.initials || getCustomerInitials(customer.name);
+  // 고객 영문 이름 가져오기 (이니셜이 아닌 풀네임)
+  const { translateKoreanToEnglish } = require('./korean-to-english-translator');
+  const customerNameEn = customer.name_en || translateKoreanToEnglish(customer.name);
+  // 하이픈과 공백 제거하고 소문자로 변환
+  const nameEn = customerNameEn
+    .toLowerCase()
+    .replace(/[가-힣\s]/g, '') // 한글과 공백 제거
+    .replace(/[^a-z0-9]/g, '') // 특수문자 제거
+    .replace(/-+/g, '') // 하이픈 제거
+    || (customer.initials || getCustomerInitials(customer.name));
+  
   const scene = classifyStoryScene(originalFileName);
-  const type = extractImageType(originalFileName);
+  let type = extractImageType(originalFileName);
   const num = index !== undefined ? index : extractNumber(originalFileName);
   
-  const fileName = `${initials}_s${scene}_${type}_${String(num).padStart(2, '0')}.webp`;
+  // type이 unknown인 경우 원본 파일명에서 영문 변환 시도
+  if (type === 'unknown') {
+    // 확장자 제거
+    const baseName = originalFileName.replace(/\.[^/.]+$/, '');
+    
+    // 고객 이름 제거 (파일명 앞부분에 고객 이름이 있을 수 있음)
+    let cleanedName = baseName;
+    if (customer.name) {
+      // 한글 이름 제거
+      cleanedName = cleanedName.replace(new RegExp(customer.name, 'g'), '');
+      // 영문 이름 제거 시도
+      const nameEn = translateKoreanToEnglish(customer.name);
+      if (nameEn && nameEn !== customer.name) {
+        cleanedName = cleanedName.replace(new RegExp(nameEn, 'gi'), '');
+      }
+    }
+    
+    // 언더스코어나 하이픈으로 분리된 부분 중 의미있는 부분 추출
+    const parts = cleanedName.split(/[_\-\s]+/).filter(part => part.length > 0);
+    
+    // 각 부분을 영문으로 변환
+    const translatedParts = parts.map(part => {
+      const translated = translateKoreanToEnglish(part);
+      // 한글 제거 및 특수문자 정리
+      return translated
+        .toLowerCase()
+        .replace(/[가-힣\s]/g, '-') // 한글과 공백을 하이픈으로
+        .replace(/[^a-z0-9-]/g, '') // 특수문자 제거
+        .replace(/-+/g, '-') // 연속 하이픈 제거
+        .replace(/^-|-$/g, ''); // 앞뒤 하이픈 제거
+    }).filter(part => part.length > 0);
+    
+    if (translatedParts.length > 0) {
+      // 변환된 부분들을 하이픈으로 연결
+      const translatedType = translatedParts.join('-');
+      if (translatedType && translatedType.length > 0) {
+        type = translatedType;
+      }
+    }
+    
+    // 여전히 unknown이면 기본값 사용
+    if (type === 'unknown') {
+      type = 'image';
+    }
+  }
+  
+  // 새 형식: {영문이름}_s{장면코드}_{타입}_{번호}.webp
+  const fileName = `${nameEn}_s${scene}_${type}_${String(num).padStart(2, '0')}.webp`;
   
   return {
     fileName,

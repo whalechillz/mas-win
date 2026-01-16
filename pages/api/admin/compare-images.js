@@ -188,6 +188,16 @@ async function checkImageUsage(imageId, filePath, fileName, cdnUrl) {
           isInContent: item.isInContent
         })));
       }
+      // Survey 페이지 추가
+      if (data.usage.survey && data.usage.survey.length > 0) {
+        usedIn.push(...data.usage.survey.map(item => ({
+          type: 'survey',
+          title: item.title,
+          url: item.url,
+          isFeatured: item.isFeatured,
+          isInContent: item.isInContent
+        })));
+      }
       if (data.usage.staticPages && data.usage.staticPages.length > 0) {
         usedIn.push(...data.usage.staticPages.map(page => ({
           type: 'static_page',
@@ -287,6 +297,24 @@ export default async function handler(req, res) {
       });
     }
 
+    // 각 이미지의 메타데이터 조회 (tags + used_in 포함)
+    const imageMetadataMap = new Map();
+    if (images.length > 0) {
+      const cdnUrls = images.map(img => img.cdn_url).filter(Boolean);
+      if (cdnUrls.length > 0) {
+        const { data: metadataList, error: metadataError } = await supabase
+          .from('image_metadata')
+          .select('image_url, tags, alt_text, title, description, used_in, usage_count')
+          .in('image_url', cdnUrls);
+        
+        if (!metadataError && metadataList) {
+          metadataList.forEach(meta => {
+            imageMetadataMap.set(meta.image_url, meta);
+          });
+        }
+      }
+    }
+
     // 각 이미지의 사용 현황 확인 및 pHash 계산
     const imagesWithUsage = await Promise.all(
       images.map(async (img) => {
@@ -297,15 +325,48 @@ export default async function handler(req, res) {
           cdn_url: img.cdn_url
         });
         
-        const usage = await checkImageUsage(img.id, img.file_path, img.filename, img.cdn_url);
+        // ✅ image_metadata에서 직접 used_in 가져오기 (우선)
+        const metadata = imageMetadataMap.get(img.cdn_url);
+        let usedIn = [];
+        let usageCount = 0;
+        
+        if (metadata?.used_in) {
+          try {
+            usedIn = Array.isArray(metadata.used_in) ? metadata.used_in : JSON.parse(metadata.used_in);
+            usageCount = usedIn.length > 0 ? usedIn.length : (metadata.usage_count || 0);
+            console.log(`✅ image_metadata에서 used_in 발견:`, {
+              imageId: img.id,
+              usedInCount: usedIn.length,
+              usageCount
+            });
+          } catch (e) {
+            console.warn('⚠️ used_in 파싱 실패:', e.message);
+            usedIn = [];
+          }
+        }
+        
+        // used_in이 없으면 image-usage-tracker API로 조회 (fallback)
+        if (usedIn.length === 0) {
+          const usage = await checkImageUsage(img.id, img.file_path, img.filename, img.cdn_url);
+          usedIn = usage.usedIn || [];
+          usageCount = usage.usageCount || 0;
+          console.log(`✅ image-usage-tracker API에서 사용 위치 조회:`, {
+            imageId: img.id,
+            usedInCount: usedIn.length,
+            usageCount
+          });
+        }
+        
+        // 메타데이터에서 tags 가져오기
+        const tags = metadata?.tags || img.ai_tags || [];
         
         console.log(`✅ 이미지 사용 현황 확인 완료:`, {
           id: img.id,
           filename: img.filename,
-          used: usage.used,
-          usageCount: usage.usageCount,
-          usedInCount: usage.usedIn?.length || 0,
-          usedIn: usage.usedIn
+          used: usedIn.length > 0,
+          usageCount: usageCount,
+          usedInCount: usedIn.length,
+          usedIn: usedIn
         });
         
         // pHash 및 이미지 픽셀 사이즈 계산 (이미지 다운로드 필요)
@@ -355,9 +416,10 @@ export default async function handler(req, res) {
 
         const result = {
           ...img,
-          usage: usage.used,
-          usageCount: usage.usageCount,
-          usedIn: usage.usedIn || [],
+          tags: Array.isArray(tags) ? tags : (tags ? [tags] : []),
+          usage: usedIn.length > 0,
+          usageCount: usageCount,
+          usedIn: usedIn,
           phash,
           width,
           height,
@@ -407,6 +469,7 @@ export default async function handler(req, res) {
           altText: img.alt_text,
           title: img.title,
           description: img.description,
+          tags: img.tags || img.ai_tags || [],
           aiTags: img.ai_tags,
           usage: img.usage,
           usageCount: img.usageCount,

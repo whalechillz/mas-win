@@ -6,11 +6,138 @@
 import { createServerSupabase } from '../../../lib/supabase';
 
 /**
+ * URL 정규화 (쿼리 파라미터 제거, 디코딩)
+ */
+function normalizeImageUrl(url) {
+  if (!url) return null;
+  // 쿼리 파라미터와 해시 제거
+  const cleanUrl = url.split('?')[0].split('#')[0];
+  // URL 디코딩
+  try {
+    return decodeURIComponent(cleanUrl);
+  } catch {
+    return cleanUrl;
+  }
+}
+
+/**
+ * Storage URL에서 파일 경로 추출
+ */
+function extractStoragePath(url) {
+  if (!url) return null;
+  // Supabase Storage URL 형식: https://xxx.supabase.co/storage/v1/object/public/bucket-name/path/to/file.jpg
+  const match = url.match(/\/storage\/v1\/object\/public\/[^/]+\/(.+)$/);
+  if (match) {
+    return decodeURIComponent(match[1]);
+  }
+  return null;
+}
+
+/**
+ * 이미지 메타데이터 찾기 (다중 방법 시도)
+ */
+async function findImageMetadata(supabase, imageUrl) {
+  // 1. 정규화된 URL로 정확히 일치하는 경우
+  const normalizedUrl = normalizeImageUrl(imageUrl);
+  let { data: metadata } = await supabase
+    .from('image_metadata')
+    .select('id, usage_count, used_in')
+    .eq('image_url', normalizedUrl)
+    .maybeSingle();
+  
+  if (metadata) {
+    return metadata;
+  }
+  
+  // 2. 원본 URL로도 시도
+  if (imageUrl !== normalizedUrl) {
+    const { data: metadata2 } = await supabase
+      .from('image_metadata')
+      .select('id, usage_count, used_in')
+      .eq('image_url', imageUrl)
+      .maybeSingle();
+    
+    if (metadata2) {
+      return metadata2;
+    }
+  }
+  
+  // 3. Storage 경로 추출 후 image_assets를 통해 찾기
+  const storagePath = extractStoragePath(imageUrl);
+  if (storagePath) {
+    // image_assets에서 파일 경로로 찾기
+    const { data: asset } = await supabase
+      .from('image_assets')
+      .select('id, file_path, cdn_url')
+      .or(`file_path.eq.${storagePath},cdn_url.eq.${normalizedUrl},cdn_url.eq.${imageUrl}`)
+      .maybeSingle();
+    
+    if (asset) {
+      // image_assets의 cdn_url로 image_metadata 찾기
+      const { data: metadata3 } = await supabase
+        .from('image_metadata')
+        .select('id, usage_count, used_in')
+        .eq('image_url', asset.cdn_url || asset.file_path)
+        .maybeSingle();
+      
+      if (metadata3) {
+        return metadata3;
+      }
+      
+      // image_metadata가 없으면 생성
+      const bucket = process.env.NEXT_PUBLIC_IMAGE_BUCKET || 'blog-images';
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const publicUrl = asset.cdn_url || `${supabaseUrl}/storage/v1/object/public/${bucket}/${storagePath}`;
+      
+      const { data: newMetadata, error: createError } = await supabase
+        .from('image_metadata')
+        .insert({
+          image_url: publicUrl,
+          title: storagePath.split('/').pop().replace(/\.[^/.]+$/, ''),
+          upload_source: 'auto_created',
+          status: 'active',
+          usage_count: 0,
+          used_in: []
+        })
+        .select('id, usage_count, used_in')
+        .single();
+      
+      if (!createError && newMetadata) {
+        return newMetadata;
+      }
+    }
+  }
+  
+  // 4. 파일명으로 검색 (마지막 수단)
+  const fileName = imageUrl.split('/').pop().split('?')[0];
+  if (fileName) {
+    const { data: metadataList } = await supabase
+      .from('image_metadata')
+      .select('id, usage_count, used_in, image_url')
+      .ilike('image_url', `%${fileName}%`)
+      .limit(5);
+    
+    if (metadataList && metadataList.length > 0) {
+      // 파일명이 정확히 일치하는 것 우선
+      const exactMatch = metadataList.find(m => m.image_url.includes(fileName));
+      if (exactMatch) {
+        return exactMatch;
+      }
+      // 첫 번째 결과 반환
+      return metadataList[0];
+    }
+  }
+  
+  return null;
+}
+
+/**
  * 배포 완료 시 이미지 사용 기록 업데이트
  */
 async function updateImageUsageOnPublish(calendarData) {
   const supabase = createServerSupabase();
-  const imageUrls = [];
+  // 이미지 URL과 사용 위치 정보를 함께 저장
+  const imageUsageMap = new Map(); // imageUrl -> [{ type, title, url, date, account, ... }]
   
   // 프로필 콘텐츠 이미지 수집 (배포 완료된 항목만)
   if (calendarData.profileContent) {
@@ -20,11 +147,38 @@ async function updateImageUsageOnPublish(calendarData) {
       
       for (const schedule of accountData.dailySchedule) {
         if (schedule.status === 'published' && schedule.publishedAt) {
+          const date = schedule.date;
           if (schedule.background?.imageUrl) {
-            imageUrls.push(schedule.background.imageUrl);
+            const imageUrl = schedule.background.imageUrl;
+            if (!imageUsageMap.has(imageUrl)) {
+              imageUsageMap.set(imageUrl, []);
+            }
+            imageUsageMap.get(imageUrl).push({
+              type: 'kakao_profile',
+              title: `카카오 프로필 배경 - ${date}`,
+              url: `/admin/kakao-content?date=${date}`,
+              date: date,
+              account: accountKey,
+              isBackground: true,
+              isProfile: false,
+              created_at: new Date().toISOString()
+            });
           }
           if (schedule.profile?.imageUrl) {
-            imageUrls.push(schedule.profile.imageUrl);
+            const imageUrl = schedule.profile.imageUrl;
+            if (!imageUsageMap.has(imageUrl)) {
+              imageUsageMap.set(imageUrl, []);
+            }
+            imageUsageMap.get(imageUrl).push({
+              type: 'kakao_profile',
+              title: `카카오 프로필 이미지 - ${date}`,
+              url: `/admin/kakao-content?date=${date}`,
+              date: date,
+              account: accountKey,
+              isBackground: false,
+              isProfile: true,
+              created_at: new Date().toISOString()
+            });
           }
         }
       }
@@ -34,58 +188,95 @@ async function updateImageUsageOnPublish(calendarData) {
   // 피드 콘텐츠 이미지 수집 (배포 완료된 항목만)
   if (calendarData.kakaoFeed?.dailySchedule) {
     for (const feed of calendarData.kakaoFeed.dailySchedule) {
+      const date = feed.date;
       for (const accountKey of ['account1', 'account2']) {
         const feedData = feed[accountKey];
         if (feedData?.status === 'published' && feedData.imageUrl) {
-          imageUrls.push(feedData.imageUrl);
+          const imageUrl = feedData.imageUrl;
+          if (!imageUsageMap.has(imageUrl)) {
+            imageUsageMap.set(imageUrl, []);
+          }
+          imageUsageMap.get(imageUrl).push({
+            type: 'kakao_feed',
+            title: `카카오 피드 - ${date}`,
+            url: `/admin/kakao-content?date=${date}`,
+            date: date,
+            account: accountKey,
+            created_at: new Date().toISOString()
+          });
         }
       }
     }
   }
   
-  // ✅ 중복 제거: 같은 URL이 여러 번 카운팅되지 않도록 Set 사용
-  const uniqueImageUrls = [...new Set(imageUrls)];
-  
   // 각 이미지 URL에 대해 사용 기록 업데이트
   let updatedCount = 0;
-  for (const imageUrl of uniqueImageUrls) {
+  for (const [imageUrl, usedInEntries] of imageUsageMap.entries()) {
     try {
-      // image_metadata 테이블 업데이트
-      const { data: metadata } = await supabase
-        .from('image_metadata')
-        .select('id, usage_count')
-        .eq('image_url', imageUrl)
-        .maybeSingle();
+      // ✅ 개선된 이미지 메타데이터 찾기 (다중 방법 시도)
+      const metadata = await findImageMetadata(supabase, imageUrl);
       
       if (metadata) {
-        // ✅ 중복 증가 방지: 이미 배포 완료된 이미지는 카운팅하지 않음
-        // (이미 publishedAt이 설정되어 있고, usage_count가 증가했다고 가정)
-        // 단, 이번 배포에서 처음 사용되는 이미지만 카운팅
+        // 기존 used_in 배열 가져오기
+        let existingUsedIn = [];
+        if (metadata.used_in) {
+          try {
+            existingUsedIn = Array.isArray(metadata.used_in) ? metadata.used_in : JSON.parse(metadata.used_in);
+          } catch (e) {
+            existingUsedIn = [];
+          }
+        }
+        
+        // 중복 제거: 같은 type, date, account 조합이 이미 있으면 추가하지 않음
+        const existingKeys = new Set(
+          existingUsedIn.map((u) => `${u.type}-${u.date}-${u.account || ''}`)
+        );
+        
+        const newEntries = usedInEntries.filter((entry) => {
+          const key = `${entry.type}-${entry.date}-${entry.account || ''}`;
+          return !existingKeys.has(key);
+        });
+        
+        // 새로운 항목만 추가
+        const updatedUsedIn = [...existingUsedIn, ...newEntries];
+        
+        // ✅ usage_count를 used_in 배열의 실제 길이로 설정 (더 정확함)
+        const newUsageCount = updatedUsedIn.length;
+        
         await supabase
           .from('image_metadata')
           .update({
-            usage_count: (metadata.usage_count || 0) + 1,
+            usage_count: newUsageCount,
+            used_in: updatedUsedIn,
             last_used_at: new Date().toISOString()
           })
           .eq('id', metadata.id);
-        updatedCount++;
+        
+        if (newEntries.length > 0) {
+          updatedCount++;
+        }
+      } else {
+        console.warn(`⚠️ 이미지 메타데이터를 찾을 수 없음: ${imageUrl.substring(0, 100)}...`);
       }
       
       // image_assets 테이블도 업데이트 (있는 경우)
-      const { data: asset } = await supabase
-        .from('image_assets')
-        .select('id, usage_count')
-        .eq('file_path', imageUrl)
-        .maybeSingle();
-      
-      if (asset) {
-        await supabase
+      const storagePath = extractStoragePath(imageUrl);
+      if (storagePath) {
+        const { data: asset } = await supabase
           .from('image_assets')
-          .update({
-            usage_count: (asset.usage_count || 0) + 1,
-            last_used_at: new Date().toISOString()
-          })
-          .eq('id', asset.id);
+          .select('id, usage_count')
+          .or(`file_path.eq.${storagePath},cdn_url.ilike.%${storagePath.split('/').pop()}%`)
+          .maybeSingle();
+        
+        if (asset) {
+          await supabase
+            .from('image_assets')
+            .update({
+              usage_count: (asset.usage_count || 0) + usedInEntries.length,
+              last_used_at: new Date().toISOString()
+            })
+            .eq('id', asset.id);
+        }
       }
     } catch (error) {
       console.warn(`⚠️ 이미지 사용 기록 업데이트 실패 (${imageUrl}):`, error.message);

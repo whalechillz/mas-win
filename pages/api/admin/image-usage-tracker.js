@@ -303,14 +303,15 @@ function extractImagePathsFromHTML(htmlContent) {
   return [...new Set(imagePaths)]; // 중복 제거
 }
 
-// 홈페이지 및 MUZIIK 페이지에서 이미지 사용 확인
+// 홈페이지, MUZIIK, Survey 페이지에서 이미지 사용 확인
 // 주의: 실제 페이지에서는 Supabase Storage 이미지가 사용되지 않으므로,
 // 소스 코드 분석만으로는 정확한 사용 여부를 확인할 수 없습니다.
 // 현재는 Supabase Storage URL이 직접 포함된 경우만 확인합니다.
 async function checkHomepageAndMuziikUsage(imageUrl, filePath, fileName) {
   const usage = {
     homepage: [],
-    muziik: []
+    muziik: [],
+    survey: []
   };
   
   try {
@@ -394,8 +395,31 @@ async function checkHomepageAndMuziikUsage(imageUrl, filePath, fileName) {
         }
       }
     }
+    // Survey 페이지 (pages/survey/index.tsx)
+    const surveyIndexPath = path.join(process.cwd(), 'pages', 'survey', 'index.tsx');
+    if (fs.existsSync(surveyIndexPath)) {
+      const content = fs.readFileSync(surveyIndexPath, 'utf8');
+      const supabaseUrlPattern = /https?:\/\/[^"'\s]+supabase\.co[^"'\s]+/gi;
+      const matches = content.match(supabaseUrlPattern);
+      if (matches) {
+        for (const match of matches) {
+          if (match.includes(filePath) || match.includes(fileName)) {
+            usage.survey.push({
+              type: 'survey',
+              title: '설문 조사 페이지',
+              url: '/survey',
+              location: '메인 페이지',
+              isFeatured: false,
+              isInContent: true
+            });
+            break;
+          }
+        }
+      }
+    }
+    
   } catch (error) {
-    console.warn('⚠️ 홈페이지/MUZIIK 사용 확인 오류:', error.message);
+    console.warn('⚠️ 홈페이지/MUZIIK/Survey 사용 확인 오류:', error.message);
   }
   
   return usage;
@@ -649,6 +673,7 @@ const trackImageUsageAcrossSite = async (imageUrl) => {
       const homepageMuziikUsage = await checkHomepageAndMuziikUsage(imageUrl, filePath, fileName);
       usage.homepage = homepageMuziikUsage.homepage;
       usage.muziik = homepageMuziikUsage.muziik;
+      usage.survey = homepageMuziikUsage.survey || [];
     } catch (error) {
       console.warn('⚠️ 홈페이지/MUZIIK 사용 확인 오류:', error.message);
       usage.homepage = [];
@@ -664,7 +689,7 @@ const trackImageUsageAcrossSite = async (imageUrl) => {
     // 현재는 위치 개수로 계산 (향후 개선 가능)
     usage.totalUsage = usage.blogPosts.length + usage.funnelPages.length + usage.staticPages.length + 
                        (usage.kakaoProfile?.length || 0) + (usage.kakaoFeed?.length || 0) +
-                       usage.homepage.length + usage.muziik.length;
+                       usage.homepage.length + usage.muziik.length + (usage.survey?.length || 0);
     
     // used_in 배열 구성 (비교 API에서 사용)
     usage.used_in = [
@@ -701,6 +726,13 @@ const trackImageUsageAcrossSite = async (imageUrl) => {
       })),
       ...usage.muziik.map(item => ({
         type: 'muziik',
+        title: item.title,
+        url: item.url,
+        isFeatured: item.isFeatured,
+        isInContent: item.isInContent
+      })),
+      ...(usage.survey || []).map(item => ({
+        type: 'survey',
         title: item.title,
         url: item.url,
         isFeatured: item.isFeatured,
@@ -766,6 +798,7 @@ export default async function handler(req, res) {
           kakaoFeed: (usage.kakaoFeed || []).length,
           homepage: usage.homepage.length,
           muziik: usage.muziik.length,
+          survey: (usage.survey || []).length,
           isUsed: usage.totalUsage > 0,
           isSafeToDelete: usage.totalUsage === 0
         }
