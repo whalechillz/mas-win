@@ -1723,6 +1723,7 @@ export default function GalleryAdmin() {
   // 비교 모달 개별 삭제 확인 모달
   const [showCompareDeleteConfirm, setShowCompareDeleteConfirm] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<any>(null);
+  const [isDeletingCompareImage, setIsDeletingCompareImage] = useState<string | null>(null); // 삭제 중인 이미지 ID
   const [bulkEditForm, setBulkEditForm] = useState({
     alt_text: '',
     keywords: '', // 쉼표 구분, 추가 모드
@@ -8861,6 +8862,11 @@ export default function GalleryAdmin() {
                       <div className="mt-3 flex justify-end">
                         <button
                           onClick={() => {
+                            // 삭제 중이면 클릭 무시
+                            if (isDeletingCompareImage) {
+                              return;
+                            }
+                            
                             console.log('🗑️ 삭제 버튼 클릭:', {
                               id: img.id,
                               filename: img.filename,
@@ -8876,10 +8882,15 @@ export default function GalleryAdmin() {
                             setImageToDelete(img);
                             setShowCompareDeleteConfirm(true);
                           }}
-                          className="px-4 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors font-medium"
-                          title="삭제"
+                          disabled={isDeletingCompareImage === img.id}
+                          className={`px-4 py-1.5 text-white text-sm rounded-lg transition-colors font-medium ${
+                            isDeletingCompareImage === img.id
+                              ? 'bg-gray-400 cursor-not-allowed'
+                              : 'bg-red-500 hover:bg-red-600'
+                          }`}
+                          title={isDeletingCompareImage === img.id ? '삭제 중...' : '삭제'}
                         >
-                          삭제
+                          {isDeletingCompareImage === img.id ? '삭제 중...' : '삭제'}
                         </button>
                       </div>
                     </div>
@@ -8923,6 +8934,11 @@ export default function GalleryAdmin() {
                   </button>
                   <button
                     onClick={async () => {
+                      // 삭제 중이면 클릭 무시
+                      if (isDeletingCompareImage) {
+                        return;
+                      }
+                      
                       if (!imageToDelete) {
                         console.error('❌ 삭제할 이미지가 없습니다');
                         return;
@@ -8935,6 +8951,9 @@ export default function GalleryAdmin() {
                         setImageToDelete(null);
                         return;
                       }
+
+                      // 삭제 시작: 상태 설정
+                      setIsDeletingCompareImage(imageToDelete.id);
 
                       try {
                         console.log('🗑️ 이미지 삭제 시작:', {
@@ -9148,6 +9167,9 @@ export default function GalleryAdmin() {
                           }
                         }, 500);
 
+                        // ✅ 삭제 완료 후 상태 초기화
+                        setIsDeletingCompareImage(null);
+                        
                         // 모달 닫기
                         setShowCompareDeleteConfirm(false);
                         setImageToDelete(null);
@@ -9181,11 +9203,19 @@ export default function GalleryAdmin() {
                           toast.error(`삭제 실패: ${error.message}`, {
                             duration: 5000,
                           });
+                          
+                          // ✅ 에러 발생 시에도 상태 초기화
+                          setIsDeletingCompareImage(null);
                         }
                     }}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                    disabled={isDeletingCompareImage === imageToDelete?.id}
+                    className={`px-4 py-2 text-white rounded-lg transition-colors ${
+                      isDeletingCompareImage === imageToDelete?.id
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-red-500 hover:bg-red-600'
+                    }`}
                   >
-                    삭제
+                    {isDeletingCompareImage === imageToDelete?.id ? '삭제 중...' : '삭제'}
                   </button>
                 </div>
               </div>
