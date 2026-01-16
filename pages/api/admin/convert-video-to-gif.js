@@ -167,11 +167,18 @@ export default async function handler(req, res) {
 
     // GIF 파일 확인
     if (!fs.existsSync(tempGifPath)) {
+      console.error('❌ [GIF 파일 확인] 파일이 생성되지 않음:', tempGifPath);
       throw new Error('GIF 파일 생성 실패');
     }
-
+    
     const gifBuffer = fs.readFileSync(tempGifPath);
     const gifSize = gifBuffer.length;
+    
+    console.log('✅ [GIF 파일 생성] 완료:', {
+      path: tempGifPath,
+      size: `${(gifSize / 1024).toFixed(2)}KB`,
+      timestamp: new Date().toISOString()
+    });
 
     // Supabase Storage에 업로드
     const bucket = 'blog-images';
