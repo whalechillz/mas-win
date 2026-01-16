@@ -91,7 +91,14 @@ export default async function handler(req, res) {
     }
 
     // ffmpeg로 GIF 변환
-    console.log('🎬 GIF 변환 중...', { fps, duration, width });
+    console.log('🎬 [GIF 변환] 시작...', { 
+      fps, 
+      duration, 
+      width,
+      inputPath: tempVideoPath,
+      outputPath: tempGifPath,
+      timestamp: new Date().toISOString()
+    });
     
     // ffmpeg 명령어 구성
     let ffmpegCommand = `ffmpeg -i "${tempVideoPath}"`;
@@ -107,16 +114,41 @@ export default async function handler(req, res) {
     // GIF 옵션: 팔레트 생성으로 품질 향상
     ffmpegCommand += ` -y "${tempGifPath}"`;
 
-    console.log('🔧 ffmpeg 명령어:', ffmpegCommand);
+    console.log('🔧 [ffmpeg 명령어]', ffmpegCommand);
 
     // ffmpeg 실행
+    console.log('⏳ [ffmpeg 실행] 시작...');
+    const startTime = Date.now();
+    
     let stdout, stderr;
     try {
       const result = await execAsync(ffmpegCommand);
       stdout = result.stdout;
       stderr = result.stderr;
+      
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.log(`✅ [ffmpeg 실행] 완료 (${elapsed}초)`);
+      
+      if (stderr) {
+        if (stderr.includes('frame=')) {
+          console.log('📊 [ffmpeg 출력]', stderr.substring(0, 500));
+        } else {
+          console.warn('⚠️ [ffmpeg 경고]', stderr.substring(0, 500));
+        }
+      }
     } catch (execError: any) {
-      console.error('❌ ffmpeg 실행 오류:', execError);
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.error('❌ [ffmpeg 실행 실패]', {
+        error: execError.message,
+        code: execError.code,
+        signal: execError.signal,
+        stdout: execError.stdout?.substring(0, 500),
+        stderr: execError.stderr?.substring(0, 1000),
+        elapsed: `${elapsed}초`,
+        command: ffmpegCommand,
+        timestamp: new Date().toISOString()
+      });
+      
       // stderr에 "command not found"가 포함되어 있는지 확인
       if (execError.stderr && execError.stderr.includes('command not found')) {
         const isVercel = process.env.VERCEL === '1';
@@ -126,14 +158,11 @@ export default async function handler(req, res) {
             ? 'Vercel 환경에서는 동영상 변환 기능을 사용할 수 없습니다. 로컬 환경에서만 사용 가능합니다.'
             : 'ffmpeg가 설치되어 있지 않습니다. 시스템에 ffmpeg를 설치해주세요.',
           requiresFfmpeg: true,
-          isVercel: isVercel
+          isVercel: isVercel,
+          details: execError.stderr
         });
       }
       throw execError;
-    }
-    
-    if (stderr && !stderr.includes('frame=')) {
-      console.warn('⚠️ ffmpeg 경고:', stderr);
     }
 
     // GIF 파일 확인
