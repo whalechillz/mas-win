@@ -105,17 +105,31 @@ const path = require('path');
     // 로그인 페이지로 리다이렉트되었는지 확인
     const currentUrl = page.url();
     if (currentUrl.includes('/api/auth/signin') || currentUrl.includes('/login')) {
-      console.log('⚠️ 로그인이 필요합니다. 브라우저에서 수동으로 로그인해주세요.');
-      console.log('⏳ 60초 대기 중... (로그인 완료 후 자동 진행)');
+      console.log('⚠️ 로그인이 필요합니다. Chrome Canary 브라우저에서 수동으로 로그인해주세요.');
+      console.log('⏳ 90초 대기 중... (로그인 완료 후 자동으로 계속 진행됩니다.)');
       console.log('   💡 팁: 로그인 후 갤러리 페이지로 이동하면 자동으로 계속 진행됩니다.');
-      await page.waitForTimeout(60000);
+      console.log('   💡 브라우저를 닫지 마세요!');
       
-      // 현재 URL 확인
-      const newUrl = page.url();
-      console.log(`   📍 현재 URL: ${newUrl}`);
+      // URL 변경 감지 (로그인 완료 후 리다이렉트 감지)
+      let lastUrl = currentUrl;
+      for (let i = 0; i < 18; i++) { // 90초 = 18 * 5초
+        await page.waitForTimeout(5000);
+        const newUrl = page.url();
+        if (newUrl !== lastUrl && !newUrl.includes('/api/auth/signin') && !newUrl.includes('/login')) {
+          console.log(`   ✅ URL 변경 감지: ${newUrl}`);
+          console.log('   ✅ 로그인 완료로 보입니다. 계속 진행합니다...');
+          break;
+        }
+        lastUrl = newUrl;
+        if (i % 3 === 0) { // 15초마다 진행 상황 출력
+          console.log(`   ⏳ 대기 중... (${(i + 1) * 5}초 경과)`);
+        }
+      }
       
       // 갤러리 페이지가 아니면 다시 이동
-      if (!newUrl.includes('/admin/gallery')) {
+      const finalUrl = page.url();
+      if (!finalUrl.includes('/admin/gallery')) {
+        console.log('   📍 갤러리 페이지로 이동...');
         await page.goto('http://localhost:3000/admin/gallery', { waitUntil: 'networkidle' });
         await page.waitForTimeout(3000);
       }
