@@ -1,0 +1,204 @@
+import { createClient } from '@supabase/supabase-js';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
+
+const execAsync = promisify(exec);
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const tempDir = path.join(os.tmpdir(), `video-compress-${Date.now()}`);
+  let tempVideoPath = null;
+  let tempCompressedPath = null;
+
+  try {
+    const { videoUrl, folderPath, fileName, bitrate, crf = 23 } = req.body;
+
+    if (!videoUrl) {
+      return res.status(400).json({ error: '동영상 URL이 필요합니다.' });
+    }
+
+    // 임시 디렉토리 생성
+    fs.mkdirSync(tempDir, { recursive: true });
+
+    // 파일명 생성
+    const baseName = fileName ? fileName.replace(/\.[^/.]+$/, '') : `video-${Date.now()}`;
+    const videoExtension = path.extname(fileName || 'video.mp4') || '.mp4';
+    const outputFileName = `${baseName}-compressed${videoExtension}`;
+    tempCompressedPath = path.join(tempDir, outputFileName);
+
+    // 동영상 다운로드
+    console.log('📥 동영상 다운로드 중:', videoUrl);
+    const videoResponse = await fetch(videoUrl);
+    if (!videoResponse.ok) {
+      throw new Error('동영상 다운로드 실패');
+    }
+
+    const arrayBuffer = await videoResponse.arrayBuffer();
+    const originalSize = arrayBuffer.byteLength;
+    tempVideoPath = path.join(tempDir, `input${videoExtension}`);
+    fs.writeFileSync(tempVideoPath, Buffer.from(arrayBuffer));
+
+    // ffmpeg로 압축
+    console.log('🎬 동영상 압축 중...', { bitrate, crf });
+    
+    // ffmpeg 명령어 구성
+    let ffmpegCommand = `ffmpeg -i "${tempVideoPath}"`;
+    
+    // 비디오 코덱 설정
+    ffmpegCommand += ` -vcodec libx264`;
+    
+    // 비트레이트 또는 CRF 설정
+    if (bitrate) {
+      ffmpegCommand += ` -b:v ${bitrate}`;
+    } else {
+      // CRF 사용 (18-28, 낮을수록 고품질)
+      ffmpegCommand += ` -crf ${crf}`;
+    }
+    
+    // 프리셋 설정 (압축 속도)
+    ffmpegCommand += ` -preset slow`;
+    
+    // 오디오 코덱 설정 (원본 유지)
+    ffmpegCommand += ` -acodec copy`;
+    
+    // 출력 파일
+    ffmpegCommand += ` -y "${tempCompressedPath}"`;
+
+    console.log('🔧 ffmpeg 명령어:', ffmpegCommand);
+
+    // ffmpeg 실행
+    const { stdout, stderr } = await execAsync(ffmpegCommand);
+    
+    if (stderr && !stderr.includes('frame=')) {
+      console.warn('⚠️ ffmpeg 경고:', stderr);
+    }
+
+    // 압축된 파일 확인
+    if (!fs.existsSync(tempCompressedPath)) {
+      throw new Error('압축 파일 생성 실패');
+    }
+
+    const compressedBuffer = fs.readFileSync(tempCompressedPath);
+    const compressedSize = compressedBuffer.length;
+
+    // Supabase Storage에 업로드
+    const bucket = 'blog-images';
+    const uploadPath = folderPath ? `${folderPath}/${outputFileName}` : outputFileName;
+
+    console.log('💾 압축된 동영상 Supabase Storage에 업로드 중:', uploadPath);
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(uploadPath, compressedBuffer, {
+        contentType: `video/${videoExtension.slice(1)}`,
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error('❌ Supabase 업로드 오류:', uploadError);
+      throw uploadError;
+    }
+
+    // 공개 URL 생성
+    const { data: urlData } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(uploadPath);
+
+    // 원본 동영상의 메타데이터 복사
+    try {
+      const { data: originalMetadata, error: metadataError } = await supabase
+        .from('image_metadata')
+        .select('*')
+        .eq('image_url', videoUrl)
+        .maybeSingle();
+
+      if (!metadataError && originalMetadata) {
+        const newMetadata = {
+          image_url: urlData.publicUrl,
+          folder_path: folderPath,
+          alt_text: originalMetadata.alt_text || null,
+          title: originalMetadata.title || null,
+          description: originalMetadata.description || null,
+          tags: originalMetadata.tags || null,
+          prompt: originalMetadata.prompt || null,
+          category_id: originalMetadata.category_id || null,
+          file_size: compressedSize,
+          width: originalMetadata.width || null,
+          height: originalMetadata.height || null,
+          format: videoExtension.slice(1),
+          upload_source: 'video-compression',
+          status: originalMetadata.status || 'active',
+          story_scene: originalMetadata.story_scene || null,
+          image_type: originalMetadata.image_type || null,
+          customer_name_en: originalMetadata.customer_name_en || null,
+          customer_initials: originalMetadata.customer_initials || null,
+          date_folder: originalMetadata.date_folder || null,
+          english_filename: outputFileName,
+          original_filename: originalMetadata.original_filename || outputFileName,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        const { error: saveError } = await supabase
+          .from('image_metadata')
+          .upsert(newMetadata, {
+            onConflict: 'image_url',
+            ignoreDuplicates: false
+          });
+
+        if (saveError) {
+          console.warn('⚠️ 메타데이터 저장 실패 (계속 진행):', saveError);
+        } else {
+          console.log('✅ 메타데이터 복사 완료');
+        }
+      }
+    } catch (metadataCopyError) {
+      console.warn('⚠️ 메타데이터 복사 중 오류 (계속 진행):', metadataCopyError);
+    }
+
+    console.log('✅ 동영상 압축 완료:', urlData.publicUrl);
+
+    res.json({
+      success: true,
+      imageUrl: urlData.publicUrl,
+      fileName: outputFileName,
+      size: compressedSize,
+      originalSize: originalSize
+    });
+
+  } catch (error) {
+    console.error('❌ 동영상 압축 오류:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        success: false,
+        error: error.message || '동영상 압축 중 오류가 발생했습니다.' 
+      });
+    }
+  } finally {
+    // 임시 파일 정리
+    try {
+      if (tempVideoPath && fs.existsSync(tempVideoPath)) {
+        fs.unlinkSync(tempVideoPath);
+      }
+      if (tempCompressedPath && fs.existsSync(tempCompressedPath)) {
+        fs.unlinkSync(tempCompressedPath);
+      }
+      if (fs.existsSync(tempDir)) {
+        fs.rmdirSync(tempDir);
+      }
+    } catch (cleanupError) {
+      console.warn('⚠️ 임시 파일 정리 실패:', cleanupError);
+    }
+  }
+}

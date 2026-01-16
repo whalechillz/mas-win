@@ -1601,9 +1601,10 @@ function CustomerImageModal({ customer, onClose }: {
                               };
                               const fileName = normalizeDisplayFileName(img.english_filename || img.original_filename || '');
                               const isVideo = fileName.toLowerCase().match(/\.(mp4|mov|avi|webm|mkv)$/);
+                              const isGif = fileName.toLowerCase().endsWith('.gif');
                               return (
                   <div key={index} className="relative group">
-                    <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                    <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
                                   {img.image_url && (
                                     <MediaRenderer
                                       url={img.image_url}
@@ -1616,6 +1617,20 @@ function CustomerImageModal({ customer, onClose }: {
                                         setSelectedImageFileName(fileName);
                                       } : undefined}
                         />
+                      )}
+                      
+                      {/* 동영상 배지 */}
+                      {isVideo && (
+                        <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-500 text-white shadow-lg">
+                          동영상
+                        </span>
+                      )}
+                      
+                      {/* 애니메이션 GIF 배지 */}
+                      {!isVideo && isGif && (
+                        <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-orange-500 text-white shadow-lg">
+                          움짤
+                        </span>
                       )}
                     </div>
                                 <div 

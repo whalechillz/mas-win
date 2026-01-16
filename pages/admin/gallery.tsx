@@ -5990,17 +5990,17 @@ export default function GalleryAdmin() {
                   <button
                     data-convert-button
                     onClick={() => setShowConvertMenu(!showConvertMenu)}
-                    disabled={isConverting || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')}
+                    disabled={isConverting}
                     className={`px-3 py-1 text-sm rounded transition-colors ${
-                      isConverting || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')
+                      isConverting
                         ? 'bg-green-300 text-white cursor-not-allowed'
                         : 'bg-green-500 text-white hover:bg-green-600'
                     }`}
-                    title={selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' ? '동영상은 변환할 수 없습니다' : '변환'}
+                    title="변환"
                   >
                     {isConverting ? '변환 중...' : '변환'}
                   </button>
-                  {showConvertMenu && !isConverting && selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) !== 'video' && (
+                  {showConvertMenu && !isConverting && selectedImageForZoom && (
                     <div data-convert-menu className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-10 min-w-[200px]">
                       <div className="px-3 py-2 text-xs text-gray-500 border-b">포맷 선택</div>
                       <button
@@ -6188,6 +6188,156 @@ export default function GalleryAdmin() {
                       >
                         PNG (무손실, 투명도 지원)
                       </button>
+                      
+                      {/* 동영상 변환 옵션 */}
+                      {getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' && (
+                        <>
+                          <div className="px-3 py-2 text-xs text-gray-500 border-t border-b">동영상 변환</div>
+                          <button
+                            onClick={async () => {
+                              if (!selectedImageForZoom) return;
+                              setIsConverting(true);
+                              setShowConvertMenu(false);
+                              try {
+                                // FPS, 길이, 해상도 입력 받기
+                                const fps = prompt('FPS를 입력하세요 (기본: 10):', '10') || '10';
+                                const duration = prompt('변환할 길이(초)를 입력하세요 (기본: 5초, 전체: 0):', '5') || '5';
+                                const width = prompt('너비(px)를 입력하세요 (기본: 320):', '320') || '320';
+                                
+                                const response = await fetch('/api/admin/convert-video-to-gif', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    videoUrl: selectedImageForZoom.url,
+                                    folderPath: selectedImageForZoom.folder_path || '',
+                                    fileName: selectedImageForZoom.name || '',
+                                    fps: parseInt(fps),
+                                    duration: parseInt(duration) || 0,
+                                    width: parseInt(width)
+                                  })
+                                });
+                                
+                                if (!response.ok) {
+                                  const error = await response.json();
+                                  throw new Error(error.error || 'GIF 변환 실패');
+                                }
+                                
+                                const data = await response.json();
+                                if (data.success) {
+                                  alert(`✅ GIF 변환 완료!\n파일명: ${data.fileName}\n크기: ${(data.size / 1024).toFixed(2)}KB`);
+                                  setSelectedImageForZoom(null);
+                                  setTimeout(async () => {
+                                    await fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+                                  }, 500);
+                                }
+                              } catch (error: any) {
+                                console.error('❌ GIF 변환 오류:', error);
+                                alert(`GIF 변환 실패: ${error.message}`);
+                              } finally {
+                                setIsConverting(false);
+                              }
+                            }}
+                            className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                          >
+                            GIF로 변환 (FPS/길이/해상도 설정)
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (!selectedImageForZoom) return;
+                              setIsConverting(true);
+                              setShowConvertMenu(false);
+                              try {
+                                // 비트레이트, CRF 입력 받기
+                                const bitrate = prompt('비트레이트를 입력하세요 (예: 1000k, 기본: 자동):', '') || '';
+                                const crf = prompt('CRF 값을 입력하세요 (18-28, 낮을수록 고품질, 기본: 23):', '23') || '23';
+                                
+                                const response = await fetch('/api/admin/compress-video', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    videoUrl: selectedImageForZoom.url,
+                                    folderPath: selectedImageForZoom.folder_path || '',
+                                    fileName: selectedImageForZoom.name || '',
+                                    bitrate: bitrate || undefined,
+                                    crf: parseInt(crf) || 23
+                                  })
+                                });
+                                
+                                if (!response.ok) {
+                                  const error = await response.json();
+                                  throw new Error(error.error || '압축 실패');
+                                }
+                                
+                                const data = await response.json();
+                                if (data.success) {
+                                  const reduction = data.originalSize > 0 
+                                    ? ((1 - data.size / data.originalSize) * 100).toFixed(1)
+                                    : '0';
+                                  alert(`✅ 동영상 압축 완료!\n파일명: ${data.fileName}\n크기: ${(data.size / 1024 / 1024).toFixed(2)}MB\n원본 대비: ${reduction}% 감소`);
+                                  setSelectedImageForZoom(null);
+                                  setTimeout(async () => {
+                                    await fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+                                  }, 500);
+                                }
+                              } catch (error: any) {
+                                console.error('❌ 압축 오류:', error);
+                                alert(`압축 실패: ${error.message}`);
+                              } finally {
+                                setIsConverting(false);
+                              }
+                            }}
+                            className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                          >
+                            압축 (비트레이트/CRF 설정)
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (!selectedImageForZoom) return;
+                              setIsConverting(true);
+                              setShowConvertMenu(false);
+                              try {
+                                // 시작 시간, 길이 입력 받기
+                                const startTime = prompt('시작 시간을 입력하세요 (예: 00:00:10 또는 10):', '00:00:00') || '00:00:00';
+                                const duration = prompt('길이(초)를 입력하세요 (예: 5):', '5') || '5';
+                                
+                                const response = await fetch('/api/admin/extract-video-segment', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    videoUrl: selectedImageForZoom.url,
+                                    folderPath: selectedImageForZoom.folder_path || '',
+                                    fileName: selectedImageForZoom.name || '',
+                                    startTime: startTime,
+                                    duration: parseInt(duration) || 5
+                                  })
+                                });
+                                
+                                if (!response.ok) {
+                                  const error = await response.json();
+                                  throw new Error(error.error || '구간 추출 실패');
+                                }
+                                
+                                const data = await response.json();
+                                if (data.success) {
+                                  alert(`✅ 구간 추출 완료!\n파일명: ${data.fileName}\n크기: ${(data.size / 1024 / 1024).toFixed(2)}MB\n시작: ${startTime}, 길이: ${duration}초`);
+                                  setSelectedImageForZoom(null);
+                                  setTimeout(async () => {
+                                    await fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+                                  }, 500);
+                                }
+                              } catch (error: any) {
+                                console.error('❌ 구간 추출 오류:', error);
+                                alert(`구간 추출 실패: ${error.message}`);
+                              } finally {
+                                setIsConverting(false);
+                              }
+                            }}
+                            className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 rounded-b-lg"
+                          >
+                            구간 추출 (시작 시간/길이 설정)
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
