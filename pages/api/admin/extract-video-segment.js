@@ -51,6 +51,25 @@ export default async function handler(req, res) {
     tempVideoPath = path.join(tempDir, `input${videoExtension}`);
     fs.writeFileSync(tempVideoPath, Buffer.from(arrayBuffer));
 
+    // ffmpeg 설치 여부 확인
+    console.log('🔍 ffmpeg 설치 여부 확인 중...');
+    try {
+      await execAsync('which ffmpeg');
+      console.log('✅ ffmpeg 설치 확인됨');
+    } catch (ffmpegCheckError) {
+      const isVercel = process.env.VERCEL === '1';
+      console.error('❌ ffmpeg가 설치되어 있지 않습니다:', ffmpegCheckError);
+      
+      return res.status(500).json({
+        success: false,
+        error: isVercel 
+          ? 'Vercel 환경에서는 동영상 구간 추출 기능을 사용할 수 없습니다. 로컬 환경에서만 사용 가능합니다.'
+          : 'ffmpeg가 설치되어 있지 않습니다. 시스템에 ffmpeg를 설치해주세요.',
+        requiresFfmpeg: true,
+        isVercel: isVercel
+      });
+    }
+
     // ffmpeg로 구간 추출
     console.log('🎬 동영상 구간 추출 중...', { startTime, duration });
     
@@ -61,7 +80,26 @@ export default async function handler(req, res) {
     console.log('🔧 ffmpeg 명령어:', ffmpegCommand);
 
     // ffmpeg 실행
-    const { stdout, stderr } = await execAsync(ffmpegCommand);
+    let stdout, stderr;
+    try {
+      const result = await execAsync(ffmpegCommand);
+      stdout = result.stdout;
+      stderr = result.stderr;
+    } catch (execError: any) {
+      console.error('❌ ffmpeg 실행 오류:', execError);
+      if (execError.stderr && execError.stderr.includes('command not found')) {
+        const isVercel = process.env.VERCEL === '1';
+        return res.status(500).json({
+          success: false,
+          error: isVercel 
+            ? 'Vercel 환경에서는 동영상 구간 추출 기능을 사용할 수 없습니다. 로컬 환경에서만 사용 가능합니다.'
+            : 'ffmpeg가 설치되어 있지 않습니다. 시스템에 ffmpeg를 설치해주세요.',
+          requiresFfmpeg: true,
+          isVercel: isVercel
+        });
+      }
+      throw execError;
+    }
     
     if (stderr && !stderr.includes('frame=')) {
       console.warn('⚠️ ffmpeg 경고:', stderr);

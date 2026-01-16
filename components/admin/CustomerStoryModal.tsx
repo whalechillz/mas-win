@@ -803,6 +803,7 @@ function UnassignedImagesSection({
         {images.map((image, index) => {
           const fileName = normalizeDisplayFileName(image.english_filename || image.original_filename);
           const isVideo = fileName.toLowerCase().match(/\.(mp4|mov|avi|webm|mkv)$/);
+          const isGif = fileName.toLowerCase().endsWith('.gif');
           
           // imageUrl 정규화 (드래그 시 정확한 URL 전달)
           const getImageUrl = () => {
@@ -843,7 +844,7 @@ function UnassignedImagesSection({
                 onDragStart(e, image.id || null, normalizedImageUrl || image.image_url);
               }}
               onDragEnd={onDragEnd}
-              className={`cursor-move transition-all rounded overflow-hidden border-2 border-blue-200 bg-white shadow-sm ${
+              className={`cursor-move transition-all rounded overflow-hidden border-2 border-blue-200 bg-white shadow-sm relative ${
                 draggedImage === imageIdentifier ? 'opacity-50 scale-95' : 'hover:shadow-md hover:border-blue-400 hover:scale-105'
               }`}
             >
@@ -863,6 +864,21 @@ function UnassignedImagesSection({
                   window.dispatchEvent(event);
                 } : undefined}
               />
+              
+              {/* 동영상 배지 */}
+              {isVideo && (
+                <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-500 text-white shadow-lg">
+                  동영상
+                </span>
+              )}
+              
+              {/* 애니메이션 GIF 배지 */}
+              {!isVideo && isGif && (
+                <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-orange-500 text-white shadow-lg">
+                  움짤
+                </span>
+              )}
+              
               <div className="p-1 text-xs bg-white truncate" title={fileName}>
                 {fileName}
               </div>
@@ -975,6 +991,7 @@ function StoryboardView({
               {imagesByScene[sceneNum]?.map((image: ImageMetadata) => {
                 const fileName = normalizeDisplayFileName(image.english_filename || image.original_filename);
                 const isVideo = fileName.toLowerCase().match(/\.(mp4|mov|avi|webm|mkv)$/);
+                const isGif = fileName.toLowerCase().endsWith('.gif');
                 
                 // 고유 식별자 생성: imageId가 있으면 id, 없으면 imageUrl 사용
                 const imageIdentifier = image.id !== null ? image.id : (image.image_url || 'unknown');
@@ -1004,10 +1021,25 @@ function StoryboardView({
                         window.dispatchEvent(event);
                       } : undefined}
                     />
+                    
+                    {/* 동영상 배지 */}
+                    {isVideo && (
+                      <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-500 text-white shadow-lg">
+                        동영상
+                      </span>
+                    )}
+                    
+                    {/* 애니메이션 GIF 배지 */}
+                    {!isVideo && isGif && (
+                      <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-orange-500 text-white shadow-lg">
+                        움짤
+                      </span>
+                    )}
+                    
                     {/* 제거 버튼 */}
                     <button
                       onClick={() => onRemoveFromScene(image.id)}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 z-20"
                       title="장면에서 제거"
                     >
                       ×
@@ -1038,8 +1070,9 @@ function ListView({ images }: { images: ImageMetadata[] }) {
       {images.map((image) => {
         const fileName = normalizeDisplayFileName(image.english_filename || image.original_filename);
         const isVideo = fileName.toLowerCase().match(/\.(mp4|mov|avi|webm|mkv)$/);
+        const isGif = fileName.toLowerCase().endsWith('.gif');
         return (
-          <div key={image.id} className="border rounded-lg overflow-hidden">
+          <div key={image.id} className="border rounded-lg overflow-hidden relative">
             <MediaRenderer
               url={image.image_url}
               alt={image.alt_text || fileName}
@@ -1055,6 +1088,21 @@ function ListView({ images }: { images: ImageMetadata[] }) {
                 window.dispatchEvent(event);
               } : undefined}
             />
+            
+            {/* 동영상 배지 */}
+            {isVideo && (
+              <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-500 text-white shadow-lg">
+                동영상
+              </span>
+            )}
+            
+            {/* 애니메이션 GIF 배지 */}
+            {!isVideo && isGif && (
+              <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-orange-500 text-white shadow-lg">
+                움짤
+              </span>
+            )}
+            
             <div className="p-2 text-xs">
               <div className="truncate" title={fileName}>
                 {fileName}
