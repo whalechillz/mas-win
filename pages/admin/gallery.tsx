@@ -5834,6 +5834,7 @@ export default function GalleryAdmin() {
                             formData.append('folderPath', selectedImageForZoom.folder_path || '');
                             formData.append('fileName', newFileName);
                             formData.append('originalImageUrl', selectedImageForZoom.url);
+                            formData.append('uploadSource', 'rotation'); // 회전 작업 표시
                             
                             // 8. 서버에 업로드
                             const response = await fetch('/api/admin/upload-processed-image', {
@@ -5947,6 +5948,7 @@ export default function GalleryAdmin() {
                             formData.append('folderPath', selectedImageForZoom.folder_path || '');
                             formData.append('fileName', newFileName);
                             formData.append('originalImageUrl', selectedImageForZoom.url);
+                            formData.append('uploadSource', 'rotation'); // 회전 작업 표시
                             
                             // 8. 서버에 업로드
                             const response = await fetch('/api/admin/upload-processed-image', {
@@ -6024,6 +6026,7 @@ export default function GalleryAdmin() {
                             formData.append('folderPath', selectedImageForZoom.folder_path || '');
                             formData.append('fileName', newFileName);
                             formData.append('originalImageUrl', selectedImageForZoom.url);
+                            formData.append('uploadSource', 'conversion'); // 변환 작업 표시
                             
                             // 4. 서버에 업로드
                             const response = await fetch('/api/admin/upload-processed-image', {
@@ -6087,6 +6090,7 @@ export default function GalleryAdmin() {
                             formData.append('folderPath', selectedImageForZoom.folder_path || '');
                             formData.append('fileName', newFileName);
                             formData.append('originalImageUrl', selectedImageForZoom.url);
+                            formData.append('uploadSource', 'conversion'); // 변환 작업 표시
                             
                             // 4. 서버에 업로드
                             const response = await fetch('/api/admin/upload-processed-image', {
@@ -6149,6 +6153,7 @@ export default function GalleryAdmin() {
                             formData.append('folderPath', selectedImageForZoom.folder_path || '');
                             formData.append('fileName', newFileName);
                             formData.append('originalImageUrl', selectedImageForZoom.url);
+                            formData.append('uploadSource', 'conversion'); // 변환 작업 표시
                             
                             // 4. 서버에 업로드
                             const response = await fetch('/api/admin/upload-processed-image', {

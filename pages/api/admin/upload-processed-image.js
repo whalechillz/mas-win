@@ -35,6 +35,7 @@ export default async function handler(req, res) {
     const folderPath = fields.folderPath?.[0] || '';
     const fileName = fields.fileName?.[0] || `processed-${Date.now()}.png`;
     const originalImageUrl = fields.originalImageUrl?.[0] || '';
+    const uploadSource = fields.uploadSource?.[0] || 'conversion'; // FormData에서 받기
 
     if (!file) {
       return res.status(400).json({ error: '이미지 파일이 필요합니다.' });
@@ -48,6 +49,18 @@ export default async function handler(req, res) {
                        fileExtension === 'gif' ? 'image/gif' :
                        file.mimetype || 'image/png';
 
+    // 원본 확장자와 새 확장자 비교하여 upsert 결정
+    let originalExtension = '';
+    if (originalImageUrl) {
+      // URL에서 파일명 추출 (query parameter 제거)
+      const urlPath = originalImageUrl.split('?')[0];
+      originalExtension = urlPath.split('.').pop()?.toLowerCase() || '';
+    }
+    
+    // 같은 확장자면 덮어쓰기 (upsert: true), 다르면 새 파일 생성 (upsert: false)
+    const isSameExtension = originalExtension && fileExtension && 
+                            originalExtension === fileExtension;
+
     // 파일을 Buffer로 읽기
     const fileBuffer = fs.readFileSync(file.filepath);
 
@@ -55,13 +68,19 @@ export default async function handler(req, res) {
     const bucket = 'blog-images';
     const uploadPath = folderPath ? `${folderPath}/${fileName}` : fileName;
 
-    console.log('💾 처리된 이미지 Supabase Storage에 업로드 중:', uploadPath);
+    console.log('💾 처리된 이미지 Supabase Storage에 업로드 중:', {
+      uploadPath,
+      originalExtension,
+      newExtension: fileExtension,
+      isSameExtension,
+      upsert: isSameExtension
+    });
 
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(uploadPath, fileBuffer, {
         contentType,
-        upsert: false
+        upsert: isSameExtension // 같은 확장자면 덮어쓰기, 다르면 새 파일 생성
       });
 
     if (uploadError) {
@@ -105,7 +124,7 @@ export default async function handler(req, res) {
             width: originalMetadata.width || null,
             height: originalMetadata.height || null,
             format: fileExtension,
-            upload_source: 'rotation', // 회전으로 생성된 이미지 표시
+            upload_source: uploadSource, // FormData에서 받은 값 사용 (rotation, conversion 등)
             status: originalMetadata.status || 'active',
             // 고객 이미지 관련 필드도 복사
             story_scene: originalMetadata.story_scene || null,
