@@ -3841,6 +3841,16 @@ export default function GalleryAdmin() {
               return imgUrl !== targetUrl && fullPath !== imageName && img.name !== imageName;
             }));
             
+            // ✅ 삭제된 이미지들을 selectedImages에서도 제거
+            matchingImages.forEach(img => {
+              const imageId = getImageUniqueId(img);
+              setSelectedImages(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(imageId);
+                return newSet;
+              });
+            });
+            
             // 현재 확대된 이미지가 삭제된 경우 모달 닫기
             if (selectedImageForZoom) {
               const zoomUrl = selectedImageForZoom.url || selectedImageForZoom.cdn_url;
@@ -3849,7 +3859,9 @@ export default function GalleryAdmin() {
               }
             }
             
-            alert(`이미지가 삭제되었습니다. (중복 표시된 ${duplicateCount}개 항목 모두 UI에서 제거됨)`);
+            toast.success(`이미지가 삭제되었습니다. (중복 표시된 ${duplicateCount}개 항목 모두 UI에서 제거됨)`, {
+              duration: 2000,
+            });
             
             // ✅ totalCount 업데이트
             setTotalCount((prev) => Math.max(0, prev - duplicateCount));
@@ -3873,7 +3885,9 @@ export default function GalleryAdmin() {
             }, 2000);
           } else {
             const error = await response.json().catch(() => ({ error: '삭제 실패' }));
-            alert(`이미지 삭제 실패: ${error.error || '알 수 없는 오류'}`);
+            toast.error(`이미지 삭제 실패: ${error.error || '알 수 없는 오류'}`, {
+              duration: 3000,
+            });
           }
           return;
         }
@@ -3883,7 +3897,9 @@ export default function GalleryAdmin() {
       const image = matchingImages[0];
       
       if (!image) {
-        alert('삭제할 이미지를 찾을 수 없습니다.');
+        toast.error('삭제할 이미지를 찾을 수 없습니다.', {
+          duration: 2000,
+        });
         return;
       }
 
@@ -3924,12 +3940,22 @@ export default function GalleryAdmin() {
               return fullPath !== imageName && img.name !== imageName;
             }));
             
+            // ✅ 삭제된 이미지를 selectedImages에서도 제거
+            const deletedImageId = getImageUniqueId(image);
+            setSelectedImages(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(deletedImageId);
+              return newSet;
+            });
+            
             // 현재 확대된 이미지가 삭제된 경우 모달 닫기
             if (selectedImageForZoom && selectedImageForZoom.name === imageName) {
               setSelectedImageForZoom(null);
             }
             
-            alert('링크가 삭제되었습니다.\n\n원본 이미지는 그대로 유지됩니다.');
+            toast.success('링크가 삭제되었습니다. 원본 이미지는 그대로 유지됩니다.', {
+              duration: 2000,
+            });
             
             // 목록 새로고침
             setTimeout(() => {
@@ -3937,11 +3963,15 @@ export default function GalleryAdmin() {
             }, 500);
           } else {
             const errorData = await response.json().catch(() => ({ error: '링크 삭제 실패' }));
-            alert(`링크 삭제 실패: ${errorData.error || '알 수 없는 오류'}`);
+            toast.error(`링크 삭제 실패: ${errorData.error || '알 수 없는 오류'}`, {
+              duration: 3000,
+            });
           }
         } catch (error) {
           console.error('링크 삭제 오류:', error);
-          alert('링크 삭제 중 오류가 발생했습니다.');
+          toast.error('링크 삭제 중 오류가 발생했습니다.', {
+            duration: 3000,
+          });
         }
         return; // 링크 삭제 후 종료
       }
@@ -3979,12 +4009,22 @@ export default function GalleryAdmin() {
           return fullPath !== imageName && img.name !== imageName;
         }));
         
+        // ✅ 삭제된 이미지를 selectedImages에서도 제거
+        const deletedImageId = getImageUniqueId(image);
+        setSelectedImages(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(deletedImageId);
+          return newSet;
+        });
+        
         // 현재 확대된 이미지가 삭제된 경우 모달 닫기
         if (selectedImageForZoom && selectedImageForZoom.name === imageName) {
           setSelectedImageForZoom(null);
         }
         
-        alert('이미지가 삭제되었습니다.');
+        toast.success('이미지가 삭제되었습니다.', {
+          duration: 2000,
+        });
         
         // ✅ totalCount 업데이트
         setTotalCount((prev) => Math.max(0, prev - 1));
@@ -4015,11 +4055,15 @@ export default function GalleryAdmin() {
           errorData = { error: `서버 오류 (${response.status})` };
         }
         const errorMessage = errorData.error || errorData.details || '알 수 없는 오류';
-        alert(`삭제 실패: ${errorMessage}`);
+        toast.error(`삭제 실패: ${errorMessage}`, {
+          duration: 3000,
+        });
       }
     } catch (error) {
       console.error('이미지 삭제 오류:', error);
-      alert('이미지 삭제 중 오류가 발생했습니다.');
+      toast.error('이미지 삭제 중 오류가 발생했습니다.', {
+        duration: 3000,
+      });
     }
   };
 
