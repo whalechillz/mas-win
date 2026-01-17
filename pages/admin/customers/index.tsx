@@ -692,6 +692,16 @@ export default function CustomersPage() {
                         >
                           🎁 선물
                         </button>
+                        <button
+                          onClick={() => {
+                            setSelectedCustomerForMerge(c);
+                            setShowMergeModal(true);
+                          }}
+                          className="px-2 py-1 text-xs bg-purple-500 text-white rounded hover:bg-purple-600"
+                          title="다른 고객과 병합"
+                        >
+                          🔗 병합
+                        </button>
                         <button onClick={() => handleDelete(c)} className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600">
                           삭제
                         </button>
