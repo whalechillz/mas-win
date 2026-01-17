@@ -423,9 +423,71 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { id } = req.query as Record<string, string>;
       if (!id) return res.status(400).json({ success: false, message: 'id가 필요합니다.' });
       
-      const { error } = await supabase.from('customers').delete().eq('id', id);
-      if (error) return res.status(500).json({ success: false, message: error.message });
-      return res.status(200).json({ success: true, message: '고객이 삭제되었습니다.' });
+      const hardDelete = req.headers['x-hard-delete'] === 'true';
+      
+      // 하드 삭제인 경우: bookings의 customer_profile_id를 null로 설정 후 삭제
+      if (hardDelete) {
+        // bookings의 customer_profile_id를 null로 설정
+        const { error: updateBookingsError } = await supabase
+          .from('bookings')
+          .update({ customer_profile_id: null })
+          .eq('customer_profile_id', id);
+        
+        if (updateBookingsError) {
+          console.error('❌ bookings 업데이트 오류:', updateBookingsError);
+          return res.status(500).json({ 
+            success: false, 
+            message: '예약 정보 업데이트 실패: ' + updateBookingsError.message 
+          });
+        }
+        
+        // 고객 삭제
+        const { error: deleteError } = await supabase
+          .from('customers')
+          .delete()
+          .eq('id', id);
+        
+        if (deleteError) {
+          return res.status(500).json({ 
+            success: false, 
+            message: deleteError.message 
+          });
+        }
+        
+        return res.status(200).json({ 
+          success: true, 
+          message: '고객이 완전히 삭제되었습니다. (예약 이력은 유지됩니다.)' 
+        });
+      } else {
+        // 소프트 삭제: is_deleted 플래그 설정 (컬럼이 있는 경우)
+        // 먼저 일반 삭제 시도
+        const { error: deleteError } = await supabase
+          .from('customers')
+          .delete()
+          .eq('id', id);
+        
+        if (deleteError) {
+          // 외래키 제약조건 오류인 경우 안내 메시지
+          if (deleteError.message.includes('foreign key') || deleteError.message.includes('bookings')) {
+            return res.status(400).json({ 
+              success: false, 
+              message: '시타 이력이 있는 고객은 삭제할 수 없습니다. 고객 병합 기능을 사용하거나 하드 삭제를 시도하세요.',
+              hasBookings: true,
+              suggestion: '고객 병합 API를 사용하거나 X-Hard-Delete: true 헤더를 추가하여 삭제하세요.'
+            });
+          }
+          
+          return res.status(500).json({ 
+            success: false, 
+            message: deleteError.message 
+          });
+        }
+        
+        return res.status(200).json({ 
+          success: true, 
+          message: '고객이 삭제되었습니다.' 
+        });
+      }
     }
 
     return res.status(405).json({ success: false, message: 'Method not allowed' });

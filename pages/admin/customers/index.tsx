@@ -209,21 +209,124 @@ export default function CustomersPage() {
 
   const handleDelete = async (c: Customer) => {
     if (!confirm(`정말 ${c.name} 고객을 삭제하시겠습니까?`)) return;
-    const res = await fetch(`/api/admin/customers?id=${c.id}`, {
-      method: 'DELETE',
-      credentials: 'include', // ✅ 쿠키 포함 명시 (Playwright 호환)
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    const json = await res.json();
-    if (json.success) {
-      alert('고객이 삭제되었습니다.');
-      fetchCustomers(page);
-    } else {
-      alert(json.message || '삭제 실패');
+    
+    try {
+      const res = await fetch(`/api/admin/customers?id=${c.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const json = await res.json();
+      
+      if (json.success) {
+        alert('고객이 삭제되었습니다.');
+        fetchCustomers(page);
+      } else {
+        // 외래키 제약조건 오류인 경우 병합 안내
+        if (json.hasBookings) {
+          const merge = confirm(
+            `${json.message}\n\n고객 병합을 진행하시겠습니까? (다른 고객과 병합하여 시타 이력을 유지할 수 있습니다.)`
+          );
+          if (merge) {
+            // 병합 모달 열기
+            setSelectedCustomerForMerge(c);
+            setShowMergeModal(true);
+          }
+        } else {
+          alert(json.message || '삭제 실패');
+        }
+      }
+    } catch (error: any) {
+      console.error('고객 삭제 오류:', error);
+      alert('삭제 중 오류가 발생했습니다: ' + error.message);
     }
   };
+
+  const [showMergeModal, setShowMergeModal] = useState(false);
+  const [selectedCustomerForMerge, setSelectedCustomerForMerge] = useState<Customer | null>(null);
+  const [mergeTargetSearch, setMergeTargetSearch] = useState('');
+  const [mergeTargets, setMergeTargets] = useState<Customer[]>([]);
+  const [merging, setMerging] = useState(false);
+
+  const handleMerge = async (sourceCustomer: Customer, targetCustomer: Customer) => {
+    if (!confirm(
+      `고객 병합을 진행하시겠습니까?\n\n` +
+      `소스: ${sourceCustomer.name} (${sourceCustomer.phone})\n` +
+      `타겟: ${targetCustomer.name} (${targetCustomer.phone})\n\n` +
+      `시타 이력은 모두 유지되며, 소스 고객은 삭제됩니다.`
+    )) return;
+
+    setMerging(true);
+    try {
+      const res = await fetch('/api/admin/customers/merge', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sourceCustomerId: sourceCustomer.id,
+          targetCustomerId: targetCustomer.id,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (json.success) {
+        alert(
+          `고객 병합이 완료되었습니다.\n\n` +
+          `이동된 예약: ${json.data.movedBookings}건\n` +
+          `이전 전화번호 이력: ${json.data.previousPhonesCount}개`
+        );
+        setShowMergeModal(false);
+        setSelectedCustomerForMerge(null);
+        setMergeTargetSearch('');
+        setMergeTargets([]);
+        fetchCustomers(page);
+      } else {
+        alert(json.error || '고객 병합 실패');
+      }
+    } catch (error: any) {
+      console.error('고객 병합 오류:', error);
+      alert('고객 병합 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setMerging(false);
+    }
+  };
+
+  // 병합 대상 고객 검색
+  useEffect(() => {
+    if (!showMergeModal || !mergeTargetSearch || mergeTargetSearch.length < 2) {
+      setMergeTargets([]);
+      return;
+    }
+
+    const searchCustomers = async () => {
+      try {
+        const res = await fetch(
+          `/api/admin/customers?q=${encodeURIComponent(mergeTargetSearch)}&pageSize=10`,
+          {
+            credentials: 'include',
+          }
+        );
+        const json = await res.json();
+        if (json.success && json.data) {
+          // 소스 고객 제외
+          const filtered = json.data.filter(
+            (c: Customer) => c.id !== selectedCustomerForMerge?.id
+          );
+          setMergeTargets(filtered);
+        }
+      } catch (error) {
+        console.error('고객 검색 오류:', error);
+      }
+    };
+
+    const timeoutId = setTimeout(searchCustomers, 300);
+    return () => clearTimeout(timeoutId);
+  }, [mergeTargetSearch, showMergeModal, selectedCustomerForMerge]);
 
   const handleEdit = useCallback((c: Customer) => {
     setEditingCustomer(c);
@@ -882,6 +985,24 @@ export default function CustomersPage() {
             setShowMessageSendModal(false);
             setSelectedCustomerForInfo(null);
           }}
+        />
+      )}
+
+      {/* 고객 병합 모달 */}
+      {showMergeModal && selectedCustomerForMerge && (
+        <CustomerMergeModal
+          sourceCustomer={selectedCustomerForMerge}
+          onClose={() => {
+            setShowMergeModal(false);
+            setSelectedCustomerForMerge(null);
+            setMergeTargetSearch('');
+            setMergeTargets([]);
+          }}
+          onMerge={handleMerge}
+          mergeTargetSearch={mergeTargetSearch}
+          setMergeTargetSearch={setMergeTargetSearch}
+          mergeTargets={mergeTargets}
+          merging={merging}
         />
       )}
     </>
@@ -2567,3 +2688,132 @@ OPEN 09:00~17:00(월~금)`;
   );
 }
 
+
+// 고객 병합 모달 컴포넌트
+function CustomerMergeModal({
+  sourceCustomer,
+  onClose,
+  onMerge,
+  mergeTargetSearch,
+  setMergeTargetSearch,
+  mergeTargets,
+  merging
+}: {
+  sourceCustomer: Customer;
+  onClose: () => void;
+  onMerge: (source: Customer, target: Customer) => void;
+  mergeTargetSearch: string;
+  setMergeTargetSearch: (value: string) => void;
+  mergeTargets: Customer[];
+  merging: boolean;
+}) {
+  return createPortal(
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-900">고객 병합</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {/* 소스 고객 정보 */}
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <h3 className="font-semibold text-gray-700 mb-2">병합할 고객 (소스)</h3>
+              <div className="text-sm">
+                <p><strong>이름:</strong> {sourceCustomer.name}</p>
+                <p><strong>전화번호:</strong> {sourceCustomer.phone}</p>
+                <p className="text-gray-600 mt-2">
+                  ⚠️ 이 고객의 시타 이력이 타겟 고객으로 이동되고, 소스 고객은 삭제됩니다.
+                </p>
+              </div>
+            </div>
+
+            {/* 타겟 고객 검색 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                병합 대상 고객 검색 (이름 또는 전화번호)
+              </label>
+              <input
+                type="text"
+                value={mergeTargetSearch}
+                onChange={(e) => setMergeTargetSearch(e.target.value)}
+                placeholder="고객 이름 또는 전화번호 입력..."
+                className="w-full px-3 py-2 border rounded-md"
+                disabled={merging}
+              />
+            </div>
+
+            {/* 검색 결과 */}
+            {mergeTargets.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  검색 결과 ({mergeTargets.length}명)
+                </h4>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {mergeTargets.map((target) => (
+                    <div
+                      key={target.id}
+                      className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                      onClick={() => {
+                        if (!merging) {
+                          onMerge(sourceCustomer, target);
+                        }
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{target.name}</p>
+                          <p className="text-sm text-gray-600">{target.phone}</p>
+                          {target.first_purchase_date && (
+                            <p className="text-xs text-gray-500">
+                              최초구매: {target.first_purchase_date}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!merging) {
+                              onMerge(sourceCustomer, target);
+                            }
+                          }}
+                          disabled={merging}
+                          className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 disabled:opacity-50"
+                        >
+                          {merging ? '병합 중...' : '병합'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {mergeTargetSearch && mergeTargets.length === 0 && (
+              <p className="text-sm text-gray-500 text-center py-4">
+                검색 결과가 없습니다.
+              </p>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2 mt-6">
+            <button
+              onClick={onClose}
+              disabled={merging}
+              className="px-4 py-2 border rounded text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
