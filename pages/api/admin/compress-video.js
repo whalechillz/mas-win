@@ -102,7 +102,7 @@ export default async function handler(req, res) {
       const result = await execAsync(ffmpegCommand);
       stdout = result.stdout;
       stderr = result.stderr;
-    } catch (execError: any) {
+    } catch (execError) {
       console.error('❌ ffmpeg 실행 오류:', execError);
       if (execError.stderr && execError.stderr.includes('command not found')) {
         const isVercel = process.env.VERCEL === '1';
