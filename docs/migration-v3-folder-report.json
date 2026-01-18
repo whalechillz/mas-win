@@ -1,0 +1,962 @@
+{
+  "timestamp": "2026-01-17T09:49:22.153Z",
+  "summary": {
+    "totalFolders": 102,
+    "success": 204,
+    "failed": 0,
+    "skipped": 0
+  },
+  "byYear": {
+    "2022": {
+      "total": 1,
+      "success": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "2023": {
+      "total": 30,
+      "success": 60,
+      "failed": 0,
+      "skipped": 0
+    },
+    "2024": {
+      "total": 29,
+      "success": 58,
+      "failed": 0,
+      "skipped": 0
+    },
+    "2025": {
+      "total": 39,
+      "success": 78,
+      "failed": 0,
+      "skipped": 0
+    },
+    "2026": {
+      "total": 3,
+      "success": 6,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "folders": [
+    {
+      "original": "2022.04.18.장진수",
+      "converted": "jangjinsu-8189-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 602,
+      "phone": "01091938189",
+      "year": 2022
+    },
+    {
+      "original": "2023.05.17.황인석",
+      "converted": "hwanginseok-8206-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 1647,
+      "phone": "01037918206",
+      "year": 2023
+    },
+    {
+      "original": "2023.05.19.김석구",
+      "converted": "kimseokgu-6302-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 13542,
+      "phone": "01086316302",
+      "year": 2023
+    },
+    {
+      "original": "2023.05.23.박중진",
+      "converted": "parkjungjin-8580-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2156,
+      "phone": "01048938580",
+      "year": 2023
+    },
+    {
+      "original": "2023.05.31.채문석",
+      "converted": "chaemunseok-7973-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 1655,
+      "phone": "01052587973",
+      "year": 2023
+    },
+    {
+      "original": "2023.06.05.이수원",
+      "converted": "leesuwon-7146-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2327,
+      "phone": "01087107146",
+      "year": 2023
+    },
+    {
+      "original": "2023.06.07.김영필",
+      "converted": "kimyeotpit-7272-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2190,
+      "phone": "01036097272",
+      "year": 2023
+    },
+    {
+      "original": "2023.06.09.김선옥",
+      "converted": "kimseonok-6420-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 1662,
+      "phone": "01029486420",
+      "year": 2023
+    },
+    {
+      "original": "2023.06.12.김영진-010-8832-9806",
+      "converted": "kimyeotjin-4452-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 372,
+      "phone": "01046224452",
+      "year": 2023
+    },
+    {
+      "original": "2023.06.14.이윤희-010-3532-4572",
+      "converted": "leeyunhui-4572-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 1692,
+      "phone": "01035324572",
+      "year": 2023
+    },
+    {
+      "original": "2023.06.20.조성대",
+      "converted": "joseongdae-7010-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2112,
+      "phone": "01038917010",
+      "year": 2023
+    },
+    {
+      "original": "2023.06.21.김한구",
+      "converted": "kimhangu-3445-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 1693,
+      "phone": "01052623445",
+      "year": 2023
+    },
+    {
+      "original": "2023.06.27.조보현-010-8752-8857",
+      "converted": "jobohyeon-8857-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 13719,
+      "phone": "01087528857",
+      "year": 2023
+    },
+    {
+      "original": "2023.07.03.이강석",
+      "converted": "leegatseok-8200-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 1689,
+      "phone": "01072378200",
+      "year": 2023
+    },
+    {
+      "original": "2023.07.12.민호식",
+      "converted": "minhosik-5549-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2041,
+      "phone": "01067695549",
+      "year": 2023
+    },
+    {
+      "original": "2023.07.13.하종천",
+      "converted": "hajotcheon-5458-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 1715,
+      "phone": "01052815458",
+      "year": 2023
+    },
+    {
+      "original": "2023.07.17.심원섭",
+      "converted": "shimwonseom-5250-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 1701,
+      "phone": "01047095250",
+      "year": 2023
+    },
+    {
+      "original": "2023.07.19.김찬기",
+      "converted": "kimchangi-3802-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 1702,
+      "phone": "01063353802",
+      "year": 2023
+    },
+    {
+      "original": "2023.07.24.이준희",
+      "converted": "leejunhui-2495-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 1831,
+      "phone": "01021852495",
+      "year": 2023
+    },
+    {
+      "original": "2023.07.26.유병묵",
+      "converted": "yoobyeotmuk-7724-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 14128,
+      "phone": "01038307724",
+      "year": 2023
+    },
+    {
+      "original": "2023.08.04.강병부",
+      "converted": "kangbyeotbu-4758-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 1783,
+      "phone": "01073774758",
+      "year": 2023
+    },
+    {
+      "original": "2023.08.08.안영호",
+      "converted": "ahnyeotho-0506-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 1772,
+      "phone": "01052480506",
+      "year": 2023
+    },
+    {
+      "original": "2023.08.16.송화용",
+      "converted": "songhwayot-8385-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 1781,
+      "phone": "01054188385",
+      "year": 2023
+    },
+    {
+      "original": "2023.08.23.문광배",
+      "converted": "moongwatbae-4258-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 1761,
+      "phone": "01043584258",
+      "year": 2023
+    },
+    {
+      "original": "2023.08.29.박진욱",
+      "converted": "parkjinuk-8333-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2484,
+      "phone": "01054358333",
+      "year": 2023
+    },
+    {
+      "original": "2023.10.26.김순복",
+      "converted": "kimsunbok-2469-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2145,
+      "phone": "01085672469",
+      "year": 2023
+    },
+    {
+      "original": "2023.11.27.김봉현-010-4880-7159",
+      "converted": "kimbothyeon-4648-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 680,
+      "phone": "01037804648",
+      "year": 2023
+    },
+    {
+      "original": "2023.11.27.이경민",
+      "converted": "leegyeotmin-8813-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 1986,
+      "phone": "01089738813",
+      "year": 2023
+    },
+    {
+      "original": "2023.12.08.한귀용",
+      "converted": "hangwiyot-7115-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2149,
+      "phone": "01087047115",
+      "year": 2023
+    },
+    {
+      "original": "2023.12.12.김용석",
+      "converted": "kimyotseok-4453-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 1997,
+      "phone": "01087164453",
+      "year": 2023
+    },
+    {
+      "original": "2023.12.18.정해선",
+      "converted": "jeonghaeseon-0712-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2003,
+      "phone": "01052580712",
+      "year": 2023
+    },
+    {
+      "original": "2024.01.02.조영수",
+      "converted": "choyeotsu-7526-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2024,
+      "phone": "01037247526",
+      "year": 2024
+    },
+    {
+      "original": "2024.01.10 이종수",
+      "converted": "20240110ijotsu-unknown-1",
+      "status": "success",
+      "reason": "",
+      "customerId": null,
+      "phone": null,
+      "year": 2024
+    },
+    {
+      "original": "2024.01.10.김재희",
+      "converted": "kimjaehui-3272-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2034,
+      "phone": "01066823272",
+      "year": 2024
+    },
+    {
+      "original": "2024.01.14.유홍근",
+      "converted": "yoohotgeun-5160-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2057,
+      "phone": "01037685160",
+      "year": 2024
+    },
+    {
+      "original": "2024.03.06.이옥형",
+      "converted": "leeokhyeot-1493-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2093,
+      "phone": "01052621493",
+      "year": 2024
+    },
+    {
+      "original": "2024.05.28.제동환",
+      "converted": "jedothwan-8282-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2204,
+      "phone": "01052268282",
+      "year": 2024
+    },
+    {
+      "original": "2024.08.30.이수원",
+      "converted": "leesuwon-7146-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2327,
+      "phone": "01087107146",
+      "year": 2024
+    },
+    {
+      "original": "2024.09.10.이용복",
+      "converted": "leeyotbok-8505-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2350,
+      "phone": "01052378505",
+      "year": 2024
+    },
+    {
+      "original": "2024.09.10.최석호",
+      "converted": "choiseokho-1801-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2304,
+      "phone": "01054281801",
+      "year": 2024
+    },
+    {
+      "original": "2024.10.04.임태희",
+      "converted": "limtaehui-0506-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2382,
+      "phone": "01054410506",
+      "year": 2024
+    },
+    {
+      "original": "2024.10.11.윤효영",
+      "converted": "yoonhyoyeot-6175-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2383,
+      "phone": "01031926175",
+      "year": 2024
+    },
+    {
+      "original": "2024.10.15.박성우",
+      "converted": "parkseotu-6003-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2398,
+      "phone": "01090686003",
+      "year": 2024
+    },
+    {
+      "original": "2024.10.21.김종철",
+      "converted": "kimjotcheot-6654-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 15203,
+      "phone": "01088886654",
+      "year": 2024
+    },
+    {
+      "original": "2024.10.26.신재식",
+      "converted": "shinjaesik-4391-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 2407,
+      "phone": "01052694391",
+      "year": 2024
+    },
+    {
+      "original": "2024.10.29.이남구",
+      "converted": "leenalgu-8768-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 13799,
+      "phone": "01091708768",
+      "year": 2024
+    },
+    {
+      "original": "2024.10.31.김선애",
+      "converted": "kimseonae-1211-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 13600,
+      "phone": "01037201211",
+      "year": 2024
+    },
+    {
+      "original": "2024.11.05.박성원",
+      "converted": "parkseongwon-6712-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 13924,
+      "phone": "01033946712",
+      "year": 2024
+    },
+    {
+      "original": "2024.11.05.전진용",
+      "converted": "jeonjinyot-9699",
+      "status": "success",
+      "reason": "",
+      "customerId": 266,
+      "phone": "01053839699",
+      "year": 2024
+    },
+    {
+      "original": "2024.11.06.권성수",
+      "converted": "kwonseotsu-0199",
+      "status": "success",
+      "reason": "",
+      "customerId": 2027,
+      "phone": "01089310199",
+      "year": 2024
+    },
+    {
+      "original": "2024.11.11.김수환",
+      "converted": "kimsuhwan-2183",
+      "status": "success",
+      "reason": "",
+      "customerId": 15182,
+      "phone": "01037772183",
+      "year": 2024
+    },
+    {
+      "original": "2024.11.12.박영관",
+      "converted": "parkyeotgwan-1311",
+      "status": "success",
+      "reason": "",
+      "customerId": 13890,
+      "phone": "01037111311",
+      "year": 2024
+    },
+    {
+      "original": "2024.11.13.최승남",
+      "converted": "choiseutnal-2216",
+      "status": "success",
+      "reason": "",
+      "customerId": 13748,
+      "phone": "01071492216",
+      "year": 2024
+    },
+    {
+      "original": "2024.11.18.방광설",
+      "converted": "banggwatseot-0007",
+      "status": "success",
+      "reason": "",
+      "customerId": 2413,
+      "phone": "01026690007",
+      "year": 2024
+    },
+    {
+      "original": "2024.11.22.김사빈",
+      "converted": "kimsabin-2528",
+      "status": "success",
+      "reason": "",
+      "customerId": 2424,
+      "phone": "01052762528",
+      "year": 2024
+    },
+    {
+      "original": "2024.11.24.유재영",
+      "converted": "yoojaeyeot-6257",
+      "status": "success",
+      "reason": "",
+      "customerId": 2509,
+      "phone": "01072996257",
+      "year": 2024
+    },
+    {
+      "original": "2024.11.25.연재화",
+      "converted": "yeonjaehwa-1456",
+      "status": "success",
+      "reason": "",
+      "customerId": 2425,
+      "phone": "01035861456",
+      "year": 2024
+    },
+    {
+      "original": "2024.12.05.조양현",
+      "converted": "joyanghyeon-1813",
+      "status": "success",
+      "reason": "",
+      "customerId": 2437,
+      "phone": "01037551813",
+      "year": 2024
+    },
+    {
+      "original": "2024.12.12.조보현-010-8752-8857",
+      "converted": "jobohyeon-8857",
+      "status": "success",
+      "reason": "",
+      "customerId": 13719,
+      "phone": "01087528857",
+      "year": 2024
+    },
+    {
+      "original": "2024.12.31.장근수",
+      "converted": "janggeunsu-2788",
+      "status": "success",
+      "reason": "",
+      "customerId": 13800,
+      "phone": "01047672788",
+      "year": 2024
+    },
+    {
+      "original": "2025.01.08.김성묵",
+      "converted": "kimseotmuk-4401",
+      "status": "success",
+      "reason": "",
+      "customerId": 2483,
+      "phone": "01037274401",
+      "year": 2025
+    },
+    {
+      "original": "2025.01.14.묵현상",
+      "converted": "mukhyeonsat-6791",
+      "status": "success",
+      "reason": "",
+      "customerId": 2235,
+      "phone": "01045986791",
+      "year": 2025
+    },
+    {
+      "original": "2025.01.24.강성동",
+      "converted": "kangseotdot-5787",
+      "status": "success",
+      "reason": "",
+      "customerId": 2480,
+      "phone": "01043665787",
+      "year": 2025
+    },
+    {
+      "original": "2025.02.12.최범규",
+      "converted": "choibeolgyu-6508",
+      "status": "success",
+      "reason": "",
+      "customerId": 13718,
+      "phone": "01053026508",
+      "year": 2025
+    },
+    {
+      "original": "2025.02.20.박용옥",
+      "converted": "parkyotok-7873",
+      "status": "success",
+      "reason": "",
+      "customerId": 2500,
+      "phone": "01053397873",
+      "year": 2025
+    },
+    {
+      "original": "2025.02.21.정형표",
+      "converted": "junghyeotpyo-1255",
+      "status": "success",
+      "reason": "",
+      "customerId": 2501,
+      "phone": "01031661255",
+      "year": 2025
+    },
+    {
+      "original": "2025.02.27.이순길",
+      "converted": "leesungit-6560",
+      "status": "success",
+      "reason": "",
+      "customerId": 2505,
+      "phone": "01094006560",
+      "year": 2025
+    },
+    {
+      "original": "2025.03.13.김홍창",
+      "converted": "kimhotchat-9751",
+      "status": "success",
+      "reason": "",
+      "customerId": 13628,
+      "phone": "01085249751",
+      "year": 2025
+    },
+    {
+      "original": "2025.04.10.이희익",
+      "converted": "leehuiik-0519",
+      "status": "success",
+      "reason": "",
+      "customerId": 15208,
+      "phone": "01086130519",
+      "year": 2025
+    },
+    {
+      "original": "2025.04.18.박봉수",
+      "converted": "parkbotsu-0002",
+      "status": "success",
+      "reason": "",
+      "customerId": 1469,
+      "phone": "01052620002",
+      "year": 2025
+    },
+    {
+      "original": "2025.04.25.채영태",
+      "converted": "chaeyeottae-7508",
+      "status": "success",
+      "reason": "",
+      "customerId": 13633,
+      "phone": "01037157508",
+      "year": 2025
+    },
+    {
+      "original": "2025.04.29.최범규",
+      "converted": "choibeolgyu-6508-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 13718,
+      "phone": "01053026508",
+      "year": 2025
+    },
+    {
+      "original": "2025.04.30.강원식",
+      "converted": "kangwonsik-6350",
+      "status": "success",
+      "reason": "",
+      "customerId": 13544,
+      "phone": "01033036350",
+      "year": 2025
+    },
+    {
+      "original": "2025.05.30.박영구",
+      "converted": "parkyeotgu-7773",
+      "status": "success",
+      "reason": "",
+      "customerId": 13563,
+      "phone": "01053297773",
+      "year": 2025
+    },
+    {
+      "original": "2025.06.02.김상현",
+      "converted": "kimsathyeon-6800",
+      "status": "success",
+      "reason": "",
+      "customerId": 13572,
+      "phone": "01038756800",
+      "year": 2025
+    },
+    {
+      "original": "2025.06.04.홍기봉-010-5270-8688",
+      "converted": "honggibot-8688",
+      "status": "success",
+      "reason": "",
+      "customerId": 13576,
+      "phone": "01052708688",
+      "year": 2025
+    },
+    {
+      "original": "2025.06.05.민호식",
+      "converted": "minhosik-5549",
+      "status": "success",
+      "reason": "",
+      "customerId": 2041,
+      "phone": "01067695549",
+      "year": 2025
+    },
+    {
+      "original": "2025.09.08.김학규",
+      "converted": "kimhakgyu-5084",
+      "status": "success",
+      "reason": "",
+      "customerId": 13747,
+      "phone": "01088445084",
+      "year": 2025
+    },
+    {
+      "original": "2025.09.08.조병섭",
+      "converted": "chobyeotseom-2002",
+      "status": "success",
+      "reason": "",
+      "customerId": 2444,
+      "phone": "01040252002",
+      "year": 2025
+    },
+    {
+      "original": "2025.09.26.윤종덕",
+      "converted": "yoonjotdeok-9809",
+      "status": "success",
+      "reason": "",
+      "customerId": 13759,
+      "phone": "01090179809",
+      "year": 2025
+    },
+    {
+      "original": "2025.10.13.안중철",
+      "converted": "ahnjutcheot-3665",
+      "status": "success",
+      "reason": "",
+      "customerId": 2018,
+      "phone": "01052133665",
+      "year": 2025
+    },
+    {
+      "original": "2025.10.14.정윤호",
+      "converted": "jungyunho-2942",
+      "status": "success",
+      "reason": "",
+      "customerId": 2305,
+      "phone": "01052322942",
+      "year": 2025
+    },
+    {
+      "original": "2025.10.14.채영태",
+      "converted": "chaeyeottae-7508-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 13633,
+      "phone": "01037157508",
+      "year": 2025
+    },
+    {
+      "original": "2025.10.15.문은경",
+      "converted": "mooneungyeot-6710",
+      "status": "success",
+      "reason": "",
+      "customerId": 13838,
+      "phone": "01067526710",
+      "year": 2025
+    },
+    {
+      "original": "2025.10.17.이주동",
+      "converted": "leejudot-2716",
+      "status": "success",
+      "reason": "",
+      "customerId": 13833,
+      "phone": "01052362716",
+      "year": 2025
+    },
+    {
+      "original": "2025.10.23.김종안",
+      "converted": "kimjotan-3957",
+      "status": "success",
+      "reason": "",
+      "customerId": 1229,
+      "phone": "01053523957",
+      "year": 2025
+    },
+    {
+      "original": "2025.10.28.원종문",
+      "converted": "wonjongmun-0002",
+      "status": "success",
+      "reason": "",
+      "customerId": 13802,
+      "phone": "01030480002",
+      "year": 2025
+    },
+    {
+      "original": "2025.11.06.강상휘",
+      "converted": "kangsathwi-4111",
+      "status": "success",
+      "reason": "",
+      "customerId": 13493,
+      "phone": "01027904111",
+      "year": 2025
+    },
+    {
+      "original": "2025.11.06.장가반",
+      "converted": "janggaban-3336",
+      "status": "success",
+      "reason": "",
+      "customerId": 13716,
+      "phone": "01052763336",
+      "year": 2025
+    },
+    {
+      "original": "2025.11.11.김홍창",
+      "converted": "kimhotchat-9751-1",
+      "status": "success",
+      "reason": "",
+      "customerId": 13628,
+      "phone": "01085249751",
+      "year": 2025
+    },
+    {
+      "original": "2025.11.11.정태웅",
+      "converted": "jungtaeut-8562",
+      "status": "success",
+      "reason": "",
+      "customerId": 1004,
+      "phone": "01040178562",
+      "year": 2025
+    },
+    {
+      "original": "2025.11.20.김승훈",
+      "converted": "kimseuthun-4375",
+      "status": "success",
+      "reason": "",
+      "customerId": 1543,
+      "phone": "01057594375",
+      "year": 2025
+    },
+    {
+      "original": "2025.11.23.신희갑",
+      "converted": "shinhuigap-7773",
+      "status": "success",
+      "reason": "",
+      "customerId": 37,
+      "phone": "01084427773",
+      "year": 2025
+    },
+    {
+      "original": "2025.11.24.이상천",
+      "converted": "leesatcheon-5282",
+      "status": "success",
+      "reason": "",
+      "customerId": 650,
+      "phone": "01052695282",
+      "year": 2025
+    },
+    {
+      "original": "2025.12.02.김원풍운",
+      "converted": "kimwonputun-4416",
+      "status": "success",
+      "reason": "",
+      "customerId": 15185,
+      "phone": "01087144416",
+      "year": 2025
+    },
+    {
+      "original": "2025.12.18.김석구",
+      "converted": "kimseokgu-6302",
+      "status": "success",
+      "reason": "",
+      "customerId": 13542,
+      "phone": "01086316302",
+      "year": 2025
+    },
+    {
+      "original": "2025.12.18.김정석",
+      "converted": "kimjeotseok-8351",
+      "status": "success",
+      "reason": "",
+      "customerId": 13941,
+      "phone": "01037248351",
+      "year": 2025
+    },
+    {
+      "original": "2025.12.19. 강영길",
+      "converted": "kangyeotgit-5774",
+      "status": "success",
+      "reason": "",
+      "customerId": 13725,
+      "phone": "01036155774",
+      "year": 2025
+    },
+    {
+      "original": "2025.12.26.박동렬",
+      "converted": "parkdotryeot-5411",
+      "status": "success",
+      "reason": "",
+      "customerId": 2442,
+      "phone": "01095945411",
+      "year": 2025
+    },
+    {
+      "original": "2026.01.05.신희갑",
+      "converted": "shinhuigap-7773",
+      "status": "success",
+      "reason": "",
+      "customerId": 37,
+      "phone": "01084427773",
+      "year": 2026
+    },
+    {
+      "original": "2026.01.07.박진욱",
+      "converted": "parkjinuk-8333",
+      "status": "success",
+      "reason": "",
+      "customerId": 2484,
+      "phone": "01054358333",
+      "year": 2026
+    },
+    {
+      "original": "2026.01.08.김가영",
+      "converted": "kimgayeot-0599",
+      "status": "success",
+      "reason": "",
+      "customerId": 1109,
+      "phone": "01033240599",
+      "year": 2026
+    }
+  ],
+  "errors": []
+}

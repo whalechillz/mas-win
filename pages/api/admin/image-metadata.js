@@ -442,6 +442,151 @@ export default async function handler(req, res) {
         metadata: data
       });
       
+    } else if (req.method === 'PATCH') {
+      // 이미지 메타데이터 수정 (대표 이미지 설정 등)
+      const { imageId, isSceneRepresentative, storyScene, displayOrder } = req.body;
+      
+      if (!imageId) {
+        return res.status(400).json({ error: 'imageId가 필요합니다.' });
+      }
+
+      try {
+        // 먼저 현재 이미지 정보 조회 (folder_path도 포함)
+        const { data: currentImage, error: fetchError } = await supabase
+          .from('image_metadata')
+          .select('id, customer_id, story_scene, is_scene_representative, image_url, folder_path, tags')
+          .eq('id', imageId)
+          .single();
+
+        if (fetchError || !currentImage) {
+          return res.status(404).json({ error: '이미지를 찾을 수 없습니다.' });
+        }
+
+        // 대표 이미지 설정 시 동영상 체크
+        if (isSceneRepresentative === true) {
+          const videoExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv'];
+          const imageUrl = currentImage.image_url?.toLowerCase() || '';
+          const isVideo = videoExtensions.some(ext => imageUrl.includes(ext));
+          
+          if (isVideo) {
+            return res.status(400).json({ 
+              success: false,
+              error: '동영상은 대표 이미지로 설정할 수 없습니다. 이미지만 대표 이미지로 설정 가능합니다.' 
+            });
+          }
+          
+          if (!currentImage.story_scene) {
+            return res.status(400).json({ 
+              success: false,
+              error: '장면이 할당되지 않은 이미지는 대표 이미지로 설정할 수 없습니다.' 
+            });
+          }
+          
+          const scene = storyScene || currentImage.story_scene;
+          
+          // 해당 장면의 기존 대표 이미지 모두 해제
+          // customer_id가 있으면 customer_id로, 없으면 folder_path와 tags로 필터링
+          let unsetQuery = supabase
+            .from('image_metadata')
+            .update({ 
+              is_scene_representative: false,
+              updated_at: new Date().toISOString()
+            })
+            .eq('story_scene', scene)
+            .eq('is_scene_representative', true);
+          
+          if (currentImage.customer_id) {
+            // customer_id가 있으면 customer_id로 필터링 (VARCHAR이므로 문자열로 변환)
+            unsetQuery = unsetQuery.eq('customer_id', String(currentImage.customer_id));
+          } else if (currentImage.folder_path) {
+            // customer_id가 없으면 folder_path로 필터링
+            // folder_path에서 고객 폴더명 추출 (예: originals/customers/choiseokho-1801/2020-09-02/...)
+            const customerFolderMatch = currentImage.folder_path.match(/customers\/([^\/]+)/);
+            if (customerFolderMatch) {
+              const customerFolder = customerFolderMatch[1];
+              unsetQuery = unsetQuery.ilike('folder_path', `%customers/${customerFolder}%`);
+            } else {
+              // folder_path에서 고객 폴더를 추출할 수 없으면 tags로 확인
+              if (currentImage.tags && Array.isArray(currentImage.tags)) {
+                const customerTag = currentImage.tags.find((tag) => 
+                  typeof tag === 'string' && tag.startsWith('customer-')
+                );
+                if (customerTag) {
+                  unsetQuery = unsetQuery.contains('tags', [customerTag]);
+                }
+              }
+            }
+          } else if (currentImage.tags && Array.isArray(currentImage.tags)) {
+            // folder_path도 없으면 tags로만 확인
+            const customerTag = currentImage.tags.find((tag) => 
+              typeof tag === 'string' && tag.startsWith('customer-')
+            );
+            if (customerTag) {
+              unsetQuery = unsetQuery.contains('tags', [customerTag]);
+            }
+          }
+
+          const { error: unsetError } = await unsetQuery;
+
+          if (unsetError) {
+            console.error('기존 대표 이미지 해제 오류:', unsetError);
+            // 계속 진행 (트랜잭션이 아니므로)
+          } else {
+            console.log('✅ 기존 대표 이미지 해제 완료:', {
+              scene,
+              customerId: currentImage.customer_id,
+              folderPath: currentImage.folder_path
+            });
+          }
+        }
+
+        // 이미지 메타데이터 업데이트
+        const updateData = {
+          updated_at: new Date().toISOString()
+        };
+
+        if (isSceneRepresentative !== undefined) {
+          updateData.is_scene_representative = isSceneRepresentative;
+        }
+
+        if (displayOrder !== undefined) {
+          updateData.display_order = displayOrder;
+        }
+
+        if (storyScene !== undefined) {
+          updateData.story_scene = storyScene;
+        }
+
+        const { data: updatedImage, error: updateError } = await supabase
+          .from('image_metadata')
+          .update(updateData)
+          .eq('id', imageId)
+          .select()
+          .single();
+
+        if (updateError) {
+          throw updateError;
+        }
+
+        console.log('✅ 이미지 메타데이터 업데이트 완료:', {
+          imageId,
+          isSceneRepresentative,
+          storyScene: storyScene || currentImage.story_scene
+        });
+
+        return res.status(200).json({
+          success: true,
+          image: updatedImage
+        });
+
+      } catch (error) {
+        console.error('이미지 메타데이터 수정 오류:', error);
+        return res.status(500).json({
+          success: false,
+          error: error.message || '이미지 메타데이터 수정 실패'
+        });
+      }
+      
     } else {
       return res.status(405).json({
         error: '지원하지 않는 HTTP 메서드입니다.'

@@ -24,14 +24,16 @@ const ToolbarButton: React.FC<{ onClick: () => void; active?: boolean; label: st
 
 type ViewMode = 'wysiwyg' | 'markdown' | 'source';
 
-export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onChangeMarkdown }) => {
+const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onChangeMarkdown }) => {
   const [mounted, setMounted] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('wysiwyg');
-  useEffect(() => { setMounted(true); }, []);
+  
+  useEffect(() => { 
+    setMounted(true); 
+  }, []);
 
-
-  if (typeof window === 'undefined') return null;
-
+  // ✅ useEditor는 항상 호출되어야 함 (React Hooks 규칙)
+  // mounted가 false일 때는 editor가 null이 될 수 있음
   const editor = useEditor({
     immediatelyRender: false, // ✅ TipTap 3.6.5+ SSR hydration 에러 방지 (필수)
     extensions: [
@@ -163,7 +165,10 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
     }
   }, [editor]);
 
-  if (!mounted || !editor) return null;
+  // ✅ SSR 환경이거나 editor가 아직 준비되지 않았으면 로딩 표시
+  if (typeof window === 'undefined' || !mounted || !editor) {
+    return <div className="text-center py-4 text-gray-500">에디터 로딩 중...</div>;
+  }
 
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -318,6 +323,10 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ valueMarkdown, onCha
   );
 };
 
+// ✅ Default export (dynamic import용)
 export default TipTapEditor;
+
+// ✅ Named export (기존 코드 호환성)
+export { TipTapEditor };
 
 

@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import MediaRenderer from './MediaRenderer';
+import SceneDetailView from './customers/SceneDetailView';
+import ReviewTabView from './customers/ReviewTabView';
 
 interface CustomerStoryModalProps {
   customer: {
@@ -54,6 +56,7 @@ const normalizeDisplayFileName = (name: string | null | undefined): string => {
 };
 
 export default function CustomerStoryModal({ customer, onClose }: CustomerStoryModalProps) {
+  const [activeTab, setActiveTab] = useState<'storyboard' | 'scene-detail' | 'reviews'>('storyboard');
   const [viewMode, setViewMode] = useState<'storyboard' | 'list'>('storyboard');
   const [images, setImages] = useState<ImageMetadata[]>([]);
   const [sceneDescriptions, setSceneDescriptions] = useState<Record<number, string>>({});
@@ -66,12 +69,83 @@ export default function CustomerStoryModal({ customer, onClose }: CustomerStoryM
   const [selectedVideoUrl, setSelectedVideoUrl] = useState<string | null>(null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [selectedImageFileName, setSelectedImageFileName] = useState<string | null>(null);
+  
+  // 블로그 생성 관련 state
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [showBlogGenerateModal, setShowBlogGenerateModal] = useState(false);
+  const [blogType, setBlogType] = useState<'storyboard' | 'integrated' | 'review-only'>('storyboard');
+  const [anonymizeName, setAnonymizeName] = useState(false);
+  const [referencedReviewIds, setReferencedReviewIds] = useState<number[]>([]);
+  const [showReferenceSelector, setShowReferenceSelector] = useState(false);
+  const [availableReviews, setAvailableReviews] = useState<any[]>([]);
 
   // 이미지 로드
   useEffect(() => {
     loadCustomerImages();
     loadSceneDescriptions();
   }, [customer.id]);
+
+  // 참조할 글 목록 로드
+  useEffect(() => {
+    if (showReferenceSelector || showBlogGenerateModal) {
+      loadAvailableReviews();
+    }
+  }, [showReferenceSelector, showBlogGenerateModal, customer.id]);
+
+  // 사용 가능한 글 목록 로드
+  const loadAvailableReviews = async () => {
+    try {
+      const response = await fetch(`/api/admin/customer-reviews?customerId=${customer.id}`);
+      const result = await response.json();
+      if (result.success) {
+        setAvailableReviews(result.reviews || []);
+      }
+    } catch (error) {
+      console.error('글 목록 로드 오류:', error);
+    }
+  };
+
+  // 블로그 생성 실행
+  const handleGenerateBlog = async () => {
+    setIsGenerating(true);
+    try {
+      const response = await fetch('/api/admin/generate-blog-from-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId: customer.id,
+          reviewId: null,
+          reviewContent: '',
+          reviewImages: [],
+          referencedReviewIds: referencedReviewIds,
+          blogType: blogType,
+          framework: 'storybrand',
+          anonymizeName: anonymizeName
+        })
+      });
+      const result = await response.json();
+      if (result.success) {
+        alert('✅ 블로그 초안이 생성되었습니다!\n\n"글 목록" 탭에서 확인하실 수 있습니다.');
+        // 글 목록 새로고침 이벤트 트리거
+        window.dispatchEvent(new CustomEvent('refreshReviewList'));
+        // 글 목록 탭으로 이동
+        setActiveTab('reviews');
+        // 모달 닫기
+        setShowBlogGenerateModal(false);
+        // 상태 초기화
+        setReferencedReviewIds([]);
+        setAnonymizeName(false);
+        setBlogType('storyboard');
+      } else {
+        throw new Error(result.error || '블로그 생성 실패');
+      }
+    } catch (error) {
+      console.error('블로그 생성 오류:', error);
+      alert('블로그 생성 실패: ' + (error as Error).message);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   // 비디오 및 이미지 모달 이벤트 리스너
   useEffect(() => {
@@ -440,6 +514,74 @@ export default function CustomerStoryModal({ customer, onClose }: CustomerStoryM
     }
   };
 
+  // 동영상 체크 함수
+  const isVideo = (imageUrl: string | null): boolean => {
+    if (!imageUrl) return false;
+    const videoExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv'];
+    const lowerUrl = imageUrl.toLowerCase();
+    return videoExtensions.some(ext => lowerUrl.includes(ext));
+  };
+
+  // 대표 이미지 설정 핸들러
+  const handleSetSceneRepresentative = async (imageId: number, storyScene: number) => {
+    try {
+      const response = await fetch('/api/admin/image-metadata', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageId,
+          isSceneRepresentative: true,
+          storyScene
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || '대표 이미지 설정 실패');
+      }
+
+      // 이미지 목록 새로고침
+      await loadCustomerImages();
+      console.log('✅ 대표 이미지 설정 완료:', { imageId, storyScene });
+    } catch (error) {
+      console.error('대표 이미지 설정 오류:', error);
+      const errorMessage = error instanceof Error ? error.message : '대표 이미지 설정에 실패했습니다.';
+      alert(errorMessage);
+    }
+  };
+
+  // 대표 이미지 취소 핸들러
+  const handleUnsetSceneRepresentative = async (imageId: number) => {
+    if (!confirm('대표 이미지를 취소하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/image-metadata', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageId,
+          isSceneRepresentative: false
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || '대표 이미지 취소 실패');
+      }
+
+      // 이미지 목록 새로고침
+      await loadCustomerImages();
+      console.log('✅ 대표 이미지 취소 완료:', { imageId });
+    } catch (error) {
+      console.error('대표 이미지 취소 오류:', error);
+      alert('대표 이미지 취소에 실패했습니다.');
+    }
+  };
+
   // API 함수들
   const loadCustomerImages = async () => {
     setLoading(true);
@@ -636,59 +778,308 @@ export default function CustomerStoryModal({ customer, onClose }: CustomerStoryM
           </button>
         </div>
 
-        {/* 탭 */}
-        <div className="p-4 border-b flex gap-2">
-          <button
-            onClick={() => setViewMode('storyboard')}
-            className={`px-4 py-2 rounded ${
-              viewMode === 'storyboard' 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-200 hover:bg-gray-300'
-            }`}
-          >
-            스토리보드
-          </button>
-          <button
-            onClick={() => setViewMode('list')}
-            className={`px-4 py-2 rounded ${
-              viewMode === 'list' 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-200 hover:bg-gray-300'
-            }`}
-          >
-            목록보기
-          </button>
+        {/* 상위 탭 메뉴 */}
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-4 px-4 items-center justify-between">
+            <div className="flex space-x-4">
+              <button
+                onClick={() => setActiveTab('storyboard')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'storyboard'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                스토리보드
+              </button>
+              <button
+                onClick={() => setActiveTab('scene-detail')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'scene-detail'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                장면별 상세
+              </button>
+              <button
+                onClick={() => setActiveTab('reviews')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'reviews'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                글 목록
+              </button>
+            </div>
+            {/* 블로그 생성 버튼 */}
+            <button
+              onClick={() => setShowBlogGenerateModal(true)}
+              disabled={isGenerating}
+              className={`px-4 py-2 rounded flex items-center gap-2 text-sm ${
+                isGenerating
+                  ? 'bg-gray-400 text-white cursor-not-allowed'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
+            >
+              {isGenerating ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  생성 중...
+                </>
+              ) : (
+                <>
+                  🚀 블로그 초안 생성
+                </>
+              )}
+            </button>
+          </nav>
         </div>
 
         {/* 컨텐츠 */}
         <div className="flex-1 overflow-y-auto p-4">
           {loading ? (
             <div className="text-center py-8 text-gray-500">로딩 중...</div>
-          ) : viewMode === 'storyboard' ? (
-            <StoryboardView
-              unassignedImages={unassignedImages}
-              imagesByScene={imagesByScene}
-              sceneDescriptions={sceneDescriptions}
-              editingScene={editingScene}
-              editingDescription={editingDescription}
-              onDescriptionChange={handleDescriptionChange}
-              onEditClick={setEditingScene}
-              onSave={handleDescriptionSave}
-              onDragStart={handleDragStart}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onRemoveFromScene={handleRemoveFromScene}
-              onDragEnd={handleDragEnd}
-              draggedImage={draggedImage}
-              dragOverScene={dragOverScene}
-              dragOverUnassigned={dragOverUnassigned}
-              setDragOverUnassigned={setDragOverUnassigned}
-            />
-          ) : (
-            <ListView images={images} />
-          )}
+          ) : activeTab === 'storyboard' ? (
+            <>
+              {/* 스토리보드 상단: 블로그 생성 버튼 */}
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setViewMode('storyboard')}
+                    className={`px-4 py-2 rounded ${
+                      viewMode === 'storyboard' 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-gray-200 hover:bg-gray-300'
+                  }`}
+                >
+                  스토리보드
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`px-4 py-2 rounded ${
+                    viewMode === 'list' 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-gray-200 hover:bg-gray-300'
+                  }`}
+                >
+                  목록보기
+                </button>
+                </div>
+              </div>
+              {viewMode === 'storyboard' ? (
+                <StoryboardView
+                  unassignedImages={unassignedImages}
+                  imagesByScene={imagesByScene}
+                  sceneDescriptions={sceneDescriptions}
+                  editingScene={editingScene}
+                  editingDescription={editingDescription}
+                  onDescriptionChange={handleDescriptionChange}
+                  onEditClick={setEditingScene}
+                  onSave={handleDescriptionSave}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onRemoveFromScene={handleRemoveFromScene}
+                  onSetSceneRepresentative={handleSetSceneRepresentative}
+                  onUnsetSceneRepresentative={handleUnsetSceneRepresentative}
+                  onDragEnd={handleDragEnd}
+                  draggedImage={draggedImage}
+                  dragOverScene={dragOverScene}
+                  dragOverUnassigned={dragOverUnassigned}
+                  setDragOverUnassigned={setDragOverUnassigned}
+                />
+              ) : (
+                <ListView images={images} />
+              )}
+            </>
+          ) : activeTab === 'scene-detail' ? (
+            <SceneDetailView customerId={customer.id} />
+          ) : activeTab === 'reviews' ? (
+            <ReviewTabView customerId={customer.id} />
+          ) : null}
         </div>
+
+        {/* 블로그 생성 설정 모달 */}
+        {showBlogGenerateModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-[200] flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <h3 className="text-xl font-bold mb-4">블로그 초안 생성 설정</h3>
+              
+              {/* 생성 모드 선택 */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">생성 모드:</label>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="blogType"
+                      value="storyboard"
+                      checked={blogType === 'storyboard'}
+                      onChange={(e) => setBlogType(e.target.value as any)}
+                      className="mr-2"
+                    />
+                    <span>스토리보드 중심 (기본)</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="blogType"
+                      value="integrated"
+                      checked={blogType === 'integrated'}
+                      onChange={(e) => setBlogType(e.target.value as any)}
+                      className="mr-2"
+                    />
+                    <span>스토리보드 + 후기 통합</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="blogType"
+                      value="review-only"
+                      checked={blogType === 'review-only'}
+                      onChange={(e) => setBlogType(e.target.value as any)}
+                      className="mr-2"
+                    />
+                    <span>고객 후기 중심</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* 이름 익명화 옵션 */}
+              <div className="mb-4">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={anonymizeName}
+                    onChange={(e) => setAnonymizeName(e.target.checked)}
+                    className="mr-2"
+                  />
+                  <span>이름 익명화 (예: 임O희 형식)</span>
+                </label>
+              </div>
+
+              {/* 참조할 글 선택 */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  참조할 글 선택:
+                </label>
+                <button
+                  onClick={() => setShowReferenceSelector(true)}
+                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm flex items-center gap-2"
+                >
+                  📚 참조 글 선택
+                </button>
+                {referencedReviewIds.length > 0 && (
+                  <div className="mt-2 text-sm text-gray-600">
+                    선택됨: {referencedReviewIds.length}개
+                  </div>
+                )}
+              </div>
+
+              {/* 버튼 */}
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => {
+                    setShowBlogGenerateModal(false);
+                    setReferencedReviewIds([]);
+                    setAnonymizeName(false);
+                    setBlogType('storyboard');
+                  }}
+                  className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleGenerateBlog}
+                  disabled={isGenerating}
+                  className={`px-4 py-2 rounded text-white ${
+                    isGenerating
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
+                >
+                  {isGenerating ? '생성 중...' : '생성하기'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 참조 글 선택 모달 */}
+        {showReferenceSelector && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-[300] flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <h3 className="text-xl font-bold mb-4">참조할 글 선택 (다중 선택 가능)</h3>
+              
+              <div className="space-y-2 mb-4 max-h-[400px] overflow-y-auto">
+                {availableReviews.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">참조할 글이 없습니다.</p>
+                ) : (
+                  availableReviews.map((review) => {
+                    const isSelected = referencedReviewIds.includes(review.id);
+                    const title = review.blog_draft_title || review.topic || '제목 없음';
+                    const date = review.consultation_date
+                      ? new Date(review.consultation_date).toLocaleDateString('ko-KR')
+                      : '';
+                    
+                    return (
+                      <label
+                        key={review.id}
+                        className={`flex items-start p-3 border rounded cursor-pointer hover:bg-gray-50 ${
+                          isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setReferencedReviewIds([...referencedReviewIds, review.id]);
+                            } else {
+                              setReferencedReviewIds(referencedReviewIds.filter(id => id !== review.id));
+                            }
+                          }}
+                          className="mt-1 mr-3"
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium">{title}</div>
+                          <div className="text-sm text-gray-500">{date}</div>
+                          {review.consultation_type && (
+                            <div className="text-xs text-gray-400 mt-1">
+                              {review.consultation_type === 'blog_draft' ? '📝 초안' : 
+                               review.consultation_type === 'review' ? '후기' :
+                               review.consultation_type === 'phone' ? '전화' : review.consultation_type}
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowReferenceSelector(false)}
+                  className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={() => {
+                    setShowReferenceSelector(false);
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  확인
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 비디오 및 이미지 전체 화면 모달 (Portal 사용) */}
         {typeof window !== 'undefined' && createPortal(
@@ -910,12 +1301,21 @@ function StoryboardView({
   onDragLeave,
   onDrop,
   onRemoveFromScene,
+  onSetSceneRepresentative,
+  onUnsetSceneRepresentative,
   onDragEnd,
   draggedImage,
   dragOverScene,
   dragOverUnassigned,
   setDragOverUnassigned
 }: any) {
+  // 동영상 체크 함수
+  const isVideo = (imageUrl: string | null): boolean => {
+    if (!imageUrl) return false;
+    const videoExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv'];
+    const lowerUrl = imageUrl.toLowerCase();
+    return videoExtensions.some(ext => lowerUrl.includes(ext));
+  };
   return (
     <div className="space-y-6">
       {/* 미할당 이미지 섹션 */}
@@ -990,7 +1390,7 @@ function StoryboardView({
             <div className="grid grid-cols-4 gap-4">
               {imagesByScene[sceneNum]?.map((image: ImageMetadata) => {
                 const fileName = normalizeDisplayFileName(image.english_filename || image.original_filename);
-                const isVideo = fileName.toLowerCase().match(/\.(mp4|mov|avi|webm|mkv)$/);
+                const isVideoFile = fileName.toLowerCase().match(/\.(mp4|mov|avi|webm|mkv)$/);
                 const isGif = fileName.toLowerCase().endsWith('.gif');
                 
                 // 고유 식별자 생성: imageId가 있으면 id, 없으면 imageUrl 사용
@@ -1011,11 +1411,11 @@ function StoryboardView({
                       alt={image.alt_text || fileName}
                       className="w-full h-32 object-cover"
                       showControls={false}
-                      onVideoClick={isVideo ? () => {
+                      onVideoClick={isVideoFile ? () => {
                         const event = new CustomEvent('openVideoModal', { detail: { url: image.image_url } });
                         window.dispatchEvent(event);
                       } : undefined}
-                      onClick={!isVideo ? () => {
+                      onClick={!isVideoFile ? () => {
                         const normalizedFileName = normalizeDisplayFileName(image.english_filename || image.original_filename);
                         const event = new CustomEvent('openImageModal', { detail: { url: image.image_url, fileName: normalizedFileName } });
                         window.dispatchEvent(event);
@@ -1023,27 +1423,68 @@ function StoryboardView({
                     />
                     
                     {/* 동영상 배지 */}
-                    {isVideo && (
+                    {isVideoFile && (
                       <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-500 text-white shadow-lg">
                         동영상
                       </span>
                     )}
                     
                     {/* 애니메이션 GIF 배지 */}
-                    {!isVideo && isGif && (
+                    {!isVideoFile && isGif && (
                       <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-orange-500 text-white shadow-lg">
                         움짤
                       </span>
                     )}
                     
-                    {/* 제거 버튼 */}
-                    <button
-                      onClick={() => onRemoveFromScene(image.id)}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 z-20"
-                      title="장면에서 제거"
-                    >
-                      ×
-                    </button>
+                    {/* 대표 이미지 배지 (클릭 가능) - 동영상 제외 */}
+                    {image.story_scene && !isVideo(image.image_url) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (image.is_scene_representative) {
+                            onUnsetSceneRepresentative(image.id);
+                          } else {
+                            onSetSceneRepresentative(image.id, image.story_scene);
+                          }
+                        }}
+                        className={`absolute top-2 left-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
+                          image.is_scene_representative
+                            ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                            : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100'
+                        }`}
+                        title={image.is_scene_representative ? '대표 이미지 취소 (클릭)' : '대표 이미지로 설정 (클릭)'}
+                      >
+                        {image.is_scene_representative ? '⭐ 대표' : '○ 일반'}
+                      </button>
+                    )}
+                    
+                    {/* 액션 버튼들 (호버 시 표시) */}
+                    <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                      {/* 대표로 설정 버튼 (배지가 보이지 않을 때만 표시, 동영상 제외) */}
+                      {!image.is_scene_representative && image.story_scene && !isVideo(image.image_url) && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSetSceneRepresentative(image.id, image.story_scene);
+                          }}
+                          className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-yellow-600 text-xs"
+                          title="대표 이미지로 설정"
+                        >
+                          ⭐
+                        </button>
+                      )}
+                      {/* 제거 버튼 */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRemoveFromScene(image.id);
+                        }}
+                        className="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                        title="장면에서 제거"
+                      >
+                        ×
+                      </button>
+                    </div>
                     <div className="p-2 text-xs bg-white truncate" title={fileName}>
                       {fileName}
                     </div>

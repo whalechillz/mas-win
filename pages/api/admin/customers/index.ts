@@ -212,6 +212,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         query = query.eq('opt_out', optout === 'true');
       }
 
+      // 이미지가 있는 고객만 필터링
+      if (req.query.hasImages === 'true') {
+        // tags 배열에서 customer-{id} 패턴을 찾아서 고객 ID 추출
+        const { data: allImages, error: imagesError } = await supabase
+          .from('image_metadata')
+          .select('tags')
+          .not('tags', 'is', null);
+        
+        if (!imagesError && allImages && allImages.length > 0) {
+          // tags 배열에서 customer-{id} 패턴 추출
+          const customerIds = new Set<number>();
+          
+          allImages.forEach((img: any) => {
+            if (img.tags && Array.isArray(img.tags)) {
+              img.tags.forEach((tag: string) => {
+                if (typeof tag === 'string' && tag.startsWith('customer-')) {
+                  const customerId = parseInt(tag.replace('customer-', ''), 10);
+                  if (!isNaN(customerId)) {
+                    customerIds.add(customerId);
+                  }
+                }
+              });
+            }
+          });
+          
+          const customerIdArray = Array.from(customerIds);
+          
+          if (customerIdArray.length > 0) {
+            query = query.in('id', customerIdArray);
+          } else {
+            // 이미지가 있는 고객이 없으면 빈 결과 반환
+            return res.status(200).json({ 
+              success: true, 
+              data: [], 
+              count: 0, 
+              page: pageNum, 
+              pageSize: sizeNum 
+            });
+          }
+        } else {
+          // 이미지가 없으면 빈 결과 반환
+          return res.status(200).json({ 
+            success: true, 
+            data: [], 
+            count: 0, 
+            page: pageNum, 
+            pageSize: sizeNum 
+          });
+        }
+      }
+
       const { data, error, count } = await query;
       if (error) return res.status(500).json({ success: false, message: error.message });
       
@@ -221,22 +272,118 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ success: true, phones, count: phones.length });
       }
       
-      // 각 고객의 썸네일 이미지 조회 (최신 이미지)
+      // 각 고객의 썸네일 이미지 조회 (대표 이미지 우선)
       if (data && data.length > 0) {
         const customerIds = data.map(c => c.id);
         
-        // 고객별 최신 이미지 조회 (tags에 customer-{id} 포함)
+        // 고객별 썸네일 조회 (대표 이미지 우선, 없으면 최신 이미지)
+        // 각 고객의 folder_name도 함께 조회하여 정확한 필터링
+        const customerInfoMap = new Map();
+        const { data: customerInfos } = await supabase
+          .from('customers')
+          .select('id, folder_name')
+          .in('id', customerIds);
+        
+        customerInfos?.forEach((c: any) => {
+          customerInfoMap.set(c.id, c.folder_name);
+        });
+
+        // 동영상 확장자 목록
+        const videoExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv'];
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic', '.heif', '.bmp'];
+        
+        // 이미지 URL이 이미지인지 확인하는 함수
+        const isImage = (url: string): boolean => {
+          if (!url) return false;
+          const lowerUrl = url.toLowerCase();
+          // 동영상 확장자 체크
+          if (videoExtensions.some(ext => lowerUrl.includes(ext))) {
+            return false;
+          }
+          // 이미지 확장자 체크
+          const extMatch = lowerUrl.match(/\.([a-z0-9]+)(\?|$)/i);
+          if (extMatch) {
+            const ext = `.${extMatch[1]}`;
+            return imageExtensions.includes(ext);
+          }
+          // 확장자가 없거나 확인 불가능한 경우, 동영상 확장자가 없으면 이미지로 간주
+          return !videoExtensions.some(ext => lowerUrl.includes(ext));
+        };
+
         const thumbnailPromises = customerIds.map(async (customerId) => {
-          const { data: images } = await supabase
+          const folderName = customerInfoMap.get(customerId);
+          
+          // 고객별 이미지 조회 쿼리 생성 (tags 또는 folder_path로 필터링)
+          let query = supabase
             .from('image_metadata')
-            .select('image_url')
-            .contains('tags', [`customer-${customerId}`])
+            .select('image_url');
+          
+          // tags와 folder_path 모두 확인
+          if (folderName) {
+            query = query.or(`tags.cs.{customer-${customerId}},folder_path.ilike.%customers/${folderName}%`);
+          } else {
+            query = query.contains('tags', [`customer-${customerId}`]);
+          }
+          
+          // 동영상 제외: NOT LIKE로 동영상 확장자 제외
+          query = query.not('image_url', 'ilike', '%.mp4%')
+            .not('image_url', 'ilike', '%.mov%')
+            .not('image_url', 'ilike', '%.avi%')
+            .not('image_url', 'ilike', '%.webm%')
+            .not('image_url', 'ilike', '%.mkv%');
+          
+          // 1순위: 대표 이미지 조회 (is_scene_representative = true)
+          const { data: representativeImages } = await query
+            .eq('is_scene_representative', true)
             .order('created_at', { ascending: false })
-            .limit(1);
+            .limit(10); // 여러 개 가져와서 필터링
+          
+          if (representativeImages && representativeImages.length > 0) {
+            // 확장자로 이미지만 필터링
+            const imageOnly = representativeImages.filter(img => isImage(img.image_url));
+            if (imageOnly.length > 0) {
+              return {
+                customerId,
+                thumbnailUrl: imageOnly[0].image_url
+              };
+            }
+          }
+          
+          // 2순위: 최신 이미지 조회 (대표 이미지가 없는 경우)
+          // 쿼리 다시 생성 (이전 쿼리가 이미 실행됨)
+          let latestQuery = supabase
+            .from('image_metadata')
+            .select('image_url');
+          
+          if (folderName) {
+            latestQuery = latestQuery.or(`tags.cs.{customer-${customerId}},folder_path.ilike.%customers/${folderName}%`);
+          } else {
+            latestQuery = latestQuery.contains('tags', [`customer-${customerId}`]);
+          }
+          
+          // 동영상 제외
+          latestQuery = latestQuery.not('image_url', 'ilike', '%.mp4%')
+            .not('image_url', 'ilike', '%.mov%')
+            .not('image_url', 'ilike', '%.avi%')
+            .not('image_url', 'ilike', '%.webm%')
+            .not('image_url', 'ilike', '%.mkv%');
+          
+          const { data: latestImages } = await latestQuery
+            .order('created_at', { ascending: false })
+            .limit(10); // 여러 개 가져와서 필터링
+          
+          if (latestImages && latestImages.length > 0) {
+            // 확장자로 이미지만 필터링
+            const imageOnly = latestImages.filter(img => isImage(img.image_url));
+            return {
+              customerId,
+              thumbnailUrl: imageOnly.length > 0 ? imageOnly[0].image_url : null
+            };
+          }
           
           return {
             customerId,
-            thumbnailUrl: images && images.length > 0 ? images[0].image_url : null
+            thumbnailUrl: null
           };
         });
         

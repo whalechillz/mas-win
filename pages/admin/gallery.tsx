@@ -5,6 +5,7 @@ import Head from 'next/head';
 import AdminNav from '../../components/admin/AdminNav';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 import { ImageMetadataModal } from '../../components/ImageMetadataModal';
 import FolderTree from '../../components/gallery/FolderTree';
 import { createClient } from '@supabase/supabase-js';
@@ -88,6 +89,7 @@ interface ImageMetadata {
 
 export default function GalleryAdmin() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [canRender, setCanRender] = useState(false);
   const [images, setImages] = useState<ImageMetadata[]>([]);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
@@ -972,6 +974,7 @@ export default function GalleryAdmin() {
   const [filterType, setFilterType] = useState<'all' | 'featured' | 'unused' | 'duplicates' | 'category' | 'logos'>('all');
   const [folderFilter, setFolderFilter] = useState<string>('all'); // 폴더 필터 추가
   const [includeChildren, setIncludeChildren] = useState<boolean>(true); // 하위 폴더 포함
+  const [initialFolderSet, setInitialFolderSet] = useState<boolean>(false); // 초기 폴더 설정 여부 추적
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'created_at' | 'name' | 'size' | 'usage_count' | 'folder_path'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -1115,14 +1118,28 @@ export default function GalleryAdmin() {
     return () => clearTimeout(timer);
   }, [status, session, DEBUG_MODE]);
 
-  // 초기 로드 (컴포넌트 마운트 시 한 번만 실행)
+  // URL 쿼리 파라미터에서 폴더 경로 읽기 및 초기 로드
   useEffect(() => {
-    if (initialLoadRef.current) {
-      initialLoadRef.current = false;
-      // 초기 로드: 검색어 없이 전체 이미지 로드
-      fetchImages(1, true);
+    if (router.isReady && initialLoadRef.current) {
+      const folderPath = router.query.folder as string;
+      if (folderPath) {
+        const decodedFolderPath = decodeURIComponent(folderPath);
+        setFolderFilter(decodedFolderPath);
+        setInitialFolderSet(true);
+        initialLoadRef.current = false;
+        console.log('📁 URL에서 폴더 경로 읽기:', decodedFolderPath);
+        // 폴더 필터가 설정되면 해당 폴더로 이미지 로드
+        fetchImages(1, true, decodedFolderPath, includeChildren, '');
+      } else {
+        // URL 파라미터가 없으면 일반 초기 로드
+        if (initialLoadRef.current) {
+          initialLoadRef.current = false;
+          setInitialFolderSet(true);
+          fetchImages(1, true);
+        }
+      }
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [router.isReady, router.query.folder, includeChildren]); // eslint-disable-line react-hooks/exhaustive-deps
   
   // 디바운스된 검색어가 변경될 때만 검색 실행
   useEffect(() => {

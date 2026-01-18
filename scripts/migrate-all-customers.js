@@ -72,6 +72,38 @@ const STORY_SCENE_MAP = {
 };
 
 /**
+ * 폴더명에서 전화번호 추출
+ * 예: "2023.06.12.김영진-010-8832-9806" -> "010-8832-9806"
+ * 예: "2023.06.20.조성대" -> null
+ */
+function extractPhoneFromFolderName(folderName) {
+  // 전화번호 패턴: 0XX-XXXX-XXXX 또는 0XX-XXX-XXXX
+  const phoneMatch = folderName.match(/(0\d{2}[-]\d{3,4}[-]\d{4})/);
+  return phoneMatch ? phoneMatch[1] : null;
+}
+
+/**
+ * 폴더명에서 고객 이름 추출
+ * 예: "2023.06.20.조성대" -> "조성대"
+ * 예: "2023.06.12.김영진-010-8832-9806" -> "김영진"
+ */
+function extractCustomerNameFromFolder(folderName) {
+  // 날짜 패턴 제거 (YYYY.MM.DD. 또는 YYYY-MM-DD 형식)
+  let name = folderName
+    .replace(/^\d{4}[.\-]\d{1,2}[.\-]\d{1,2}[.\-]\s*/, '') // 날짜 제거
+    .replace(/^\d{4}\d{2}\d{2}[.\-]\s*/, '') // YYYYMMDD 형식
+    .trim();
+
+  // 전화번호 제거 (예: "김영진-010-8832-9806" -> "김영진")
+  name = name.replace(/[-]\s*0\d{2}[-]\d{3,4}[-]\d{4}.*$/, '').trim();
+  
+  // 공백 제거
+  name = name.replace(/\s+/g, '').trim();
+
+  return name || null;
+}
+
+/**
  * 고객 이름에서 이니셜 추출 (영문만 반환)
  */
 function getCustomerInitials(name) {
@@ -536,11 +568,13 @@ async function updateCustomerInfo(customerId, nameEn, initials, folderName) {
 }
 
 /**
- * 로컬 폴더에서 고객 이름 추출 (연도별 폴더 구조: YYYY.MM.DD.고객이름)
+ * 로컬 폴더에서 고객 이름과 전화번호 추출 (연도별 폴더 구조: YYYY.MM.DD.고객이름)
+ * 반환: [{ name: '김영진', phone: '010-8832-9806', folderPath: '...', year: '2023' }, ...]
  */
 function extractCustomerNamesFromFiles(folderPath) {
-  const customerNames = new Set();
-  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.heic', '.heif', '.pdf', '.mp4'];
+  const customerMap = new Map(); // name+phone을 키로 사용하여 중복 제거
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.heic', '.heif', '.pdf', '.mp4', '.mov'];
+  let debugCount = 0;
   
   function scanDir(dir) {
     if (!fs.existsSync(dir)) return;
@@ -554,20 +588,63 @@ function extractCustomerNamesFromFiles(folderPath) {
         const stat = fs.statSync(fullPath);
         
         if (stat.isDirectory()) {
-          // 연도별 폴더 구조: "YYYY.MM.DD.고객이름" 형식 (2022, 2023, 2024, 2025, 2026)
-          const yearMatch = item.match(/^(202[2-6])\.(\d{2})\.(\d{2})\.(.+)$/);
+          // 연도별 폴더 구조: "YYYY.MM.DD.고객이름" 또는 "YYYY.MM.DD.고객이름-전화번호"
+          // 패턴: YYYY.M.D 또는 YYYY.MM.DD 모두 지원
+          const yearMatch = item.match(/^(202[2-6])\.(\d{1,2})\.(\d{1,2})\.(.+)$/);
           if (yearMatch) {
+            debugCount++;
+            if (debugCount <= 5) {
+              console.log(`[DEBUG] Found folder: ${item}`);
+            }
             const year = yearMatch[1];
             // YEAR_FILTER가 설정되어 있으면 해당 연도만 처리
             if (YEAR_FILTER.length > 0 && !YEAR_FILTER.includes(year)) {
-              return; // 이 연도는 스킵
+              continue; // 이 연도는 스킵 (return이 아니라 continue)
             }
-            const customerName = yearMatch[4];
-            // "-고객정보없음" 같은 접미사 제거
-            const cleanName = customerName.split('-')[0].split('(')[0].trim();
-            if (/[가-힣]/.test(cleanName) && cleanName.length >= 2 && cleanName.length <= 10) {
-              customerNames.add(cleanName);
+            
+            const folderContent = yearMatch[4];
+            const phone = extractPhoneFromFolderName(folderContent);
+            // folderContent는 이미 날짜가 제거된 상태이므로, 직접 전화번호만 제거하면 됨
+            let customerName = folderContent;
+            if (phone) {
+              customerName = customerName.replace(new RegExp('[-]\\s*' + phone.replace(/[-\s]/g, '[-\\s]') + '.*$'), '').trim();
             }
+            customerName = customerName.replace(/\s+/g, '').trim();
+            
+            // "-unmatched" 같은 접미사 제거
+            customerName = customerName.replace(/-unmatched.*$/, '').trim();
+            
+            // 조합형 한글을 완성형으로 정규화 (macOS 파일 시스템 대응)
+            customerName = normalizeKorean(customerName);
+            
+            // 한글 문자 길이 계산 (정규화 후)
+            const nameLength = customerName ? customerName.length : 0;
+            const isValid = customerName && /[가-힣]/.test(customerName) && nameLength >= 2 && nameLength <= 10;
+            if (debugCount <= 5) {
+              console.log(`[DEBUG] ${item} -> name: "${customerName}", phone: ${phone}, valid: ${isValid}, length: ${nameLength} (JS: ${customerName ? customerName.length : 0})`);
+            }
+            
+            if (isValid) {
+              // 날짜 추출 (YYYY-MM-DD 형식)
+              const month = String(yearMatch[2]).padStart(2, '0');
+              const day = String(yearMatch[3]).padStart(2, '0');
+              const visitDate = `${year}-${month}-${day}`;
+              
+              // 키: name + phone + date (같은 고객이라도 날짜별로 구분)
+              const key = phone ? `${customerName}||${phone}||${visitDate}` : `${customerName}||${visitDate}`;
+              
+              if (!customerMap.has(key)) {
+                customerMap.set(key, {
+                  name: customerName,
+                  phone: phone,
+                  folderPath: fullPath,
+                  year: year,
+                  visitDate: visitDate
+                });
+              }
+            }
+            // 날짜 폴더는 하위를 스캔하지 않음 (이미 고객 폴더이므로)
+            continue;
           }
           
           // 연도 폴더 (예: 2024, 2025, 2026) - 하위 폴더도 스캔
@@ -575,28 +652,16 @@ function extractCustomerNamesFromFiles(folderPath) {
             const year = item;
             // YEAR_FILTER가 설정되어 있으면 해당 연도만 처리
             if (YEAR_FILTER.length > 0 && !YEAR_FILTER.includes(year)) {
-              continue; // 이 연도는 스킵 (return이 아니라 continue)
+              continue; // 이 연도는 스킵
             }
+            // 연도 폴더는 하위를 재귀적으로 스캔
+            scanDir(fullPath);
+            continue;
           }
           
+          // 기타 폴더는 재귀적으로 스캔
           if (!item.startsWith('.') && !item.includes('_temp')) {
             scanDir(fullPath);
-          }
-        } else if (stat.isFile()) {
-          const ext = path.extname(item).toLowerCase();
-          if (imageExtensions.includes(ext)) {
-            // 파일명에서 고객 이름 추출 (첫 번째 언더스코어 이전)
-            const nameWithoutExt = path.basename(item, ext);
-            const normalized = normalizeKorean(nameWithoutExt);
-            const firstUnderscore = normalized.indexOf('_');
-            
-            if (firstUnderscore > 0) {
-              const potentialName = normalized.substring(0, firstUnderscore);
-              // 한글이 포함되어 있고 길이가 2-4자인 경우만
-              if (/[가-힣]/.test(potentialName) && potentialName.length >= 2 && potentialName.length <= 4) {
-                customerNames.add(potentialName);
-              }
-            }
           }
         }
       } catch (e) {
@@ -606,7 +671,150 @@ function extractCustomerNamesFromFiles(folderPath) {
   }
   
   scanDir(folderPath);
-  return Array.from(customerNames);
+  console.log(`[DEBUG] Total folders found: ${debugCount}, Unique customers: ${customerMap.size}`);
+  return Array.from(customerMap.values());
+}
+
+/**
+ * 이름 변경 보고서 생성 (마이그레이션 전 실행)
+ */
+async function generateNameChangeReport() {
+  console.log('📋 이름 변경 보고서 생성 중...\n');
+  
+  const customerData = extractCustomerNamesFromFiles(LOCAL_FOLDER);
+  const report = {
+    timestamp: new Date().toISOString(),
+    totalFolders: customerData.length,
+    customers: [],
+    byYear: {},
+    duplicates: []
+  };
+  
+  // 연도별 통계
+  const yearStats = {};
+  
+  for (let i = 0; i < customerData.length; i++) {
+    const customer = customerData[i];
+    console.log(`[${i + 1}/${customerData.length}] 처리 중: ${customer.name}${customer.phone ? ` (${customer.phone})` : ''}...`);
+    
+    // 고객 정보 조회
+    const customerInfo = await findCustomerId(customer.name, customer.phone);
+    
+    let folderName = null;
+    let nameEn = null;
+    let status = 'unknown';
+    let reason = '';
+    let customerId = null;
+    
+    if (customerInfo) {
+      folderName = generateFolderName(customerInfo.dbName || customer.name, customerInfo.phone, customerInfo.id, customer.visitDate);
+      nameEn = translateKoreanToEnglish(customerInfo.dbName || customer.name);
+      customerId = customerInfo.id;
+      status = 'success';
+      
+      if (customerInfo.isDuplicate && !customer.phone) {
+        status = 'warning';
+        reason = '중복 이름 (전화번호 없음)';
+        report.duplicates.push({
+          name: customer.name,
+          folderPath: customer.folderPath,
+          reason: '전화번호가 없어 중복 이름 구분 불가'
+        });
+      }
+    } else {
+      status = 'failed';
+      reason = '고객 정보 없음';
+    }
+    
+    // 파일 목록 조회 (고객 폴더 경로 사용)
+    const imageFiles = findImageFiles(customer.folderPath, customer.name, true);
+    const fileChanges = [];
+    
+    // 모든 파일에 대해 변환 이름 생성
+    for (let j = 0; j < imageFiles.length; j++) {
+      const imageFile = imageFiles[j];
+      const originalFileName = path.basename(imageFile);
+      const ext = path.extname(originalFileName).toLowerCase();
+      
+      if (ext === '.pdf') continue; // PDF는 제외
+      
+      let newFileName;
+      if (customerInfo) {
+        newFileName = generateNewFileName(
+          originalFileName, 
+          customerInfo.dbName || customer.name, 
+          j + 1, 
+          folderName
+        );
+      }
+      
+      // 패턴을 찾을 수 없으면 기본 파일명 생성
+      if (!newFileName) {
+        const nameEnForFile = nameEn || translateKoreanToEnglish(customer.name);
+        let extForFile = 'webp';
+        if (ext === '.gif') extForFile = 'gif';
+        else if (['.mp4', '.mov', '.avi', '.mkv', '.webm'].includes(ext)) {
+          extForFile = ext.slice(1);
+        }
+        newFileName = `${nameEnForFile.replace(/[^a-z0-9]/g, '')}_s1_image_${String(j + 1).padStart(2, '0')}.${extForFile}`;
+      }
+      
+      fileChanges.push({
+        original: originalFileName,
+        converted: newFileName
+      });
+    }
+    
+    report.customers.push({
+      originalFolder: path.basename(customer.folderPath),
+      fullFolderPath: customer.folderPath,
+      customerName: customer.name,
+      phone: customer.phone,
+      year: customer.year,
+      convertedFolder: folderName,
+      nameEn: nameEn,
+      customerId: customerId,
+      status: status,
+      reason: reason,
+      fileCount: imageFiles.length,
+      files: fileChanges // 모든 파일 변환 리스트
+    });
+    
+    // 연도별 통계
+    if (!yearStats[customer.year]) {
+      yearStats[customer.year] = { total: 0, success: 0, failed: 0, unknown: 0 };
+    }
+    yearStats[customer.year].total++;
+    if (status === 'success') yearStats[customer.year].success++;
+    else if (status === 'failed') yearStats[customer.year].failed++;
+    else yearStats[customer.year].unknown++;
+  }
+  
+  report.byYear = yearStats;
+  
+  // 보고서 저장
+  const reportPath = path.join(__dirname, '../docs/migration-v3-name-change-report.json');
+  const reportDir = path.dirname(reportPath);
+  if (!fs.existsSync(reportDir)) {
+    fs.mkdirSync(reportDir, { recursive: true });
+  }
+  
+  fs.writeFileSync(reportPath, JSON.stringify(report, null, 2), 'utf8');
+  
+  console.log(`\n✅ 보고서 생성 완료: ${reportPath}`);
+  console.log(`\n📊 요약:`);
+  console.log(`   총 폴더: ${report.totalFolders}개`);
+  console.log(`   성공: ${report.customers.filter(c => c.status === 'success').length}개`);
+  console.log(`   실패: ${report.customers.filter(c => c.status === 'failed').length}개`);
+  console.log(`   경고: ${report.customers.filter(c => c.status === 'warning').length}개`);
+  console.log(`   중복 이름: ${report.duplicates.length}개`);
+  
+  console.log(`\n📅 연도별 통계:`);
+  for (const [year, stats] of Object.entries(yearStats)) {
+    console.log(`   ${year}년: 총 ${stats.total}, 성공 ${stats.success}, 실패 ${stats.failed}, 미확인 ${stats.unknown}`);
+  }
+  
+  return report;
 }
 
 /**
@@ -615,40 +823,40 @@ function extractCustomerNamesFromFiles(folderPath) {
 async function migrateAllCustomers() {
   console.log('🔄 모든 고객 이미지 마이그레이션 시작...\n');
   
-  // 1. 로컬 폴더에서 고객 이름 추출
-  console.log('📂 로컬 폴더에서 고객 이름 추출 중...');
-  const customerNames = extractCustomerNamesFromFiles(LOCAL_FOLDER);
-  console.log(`✅ 발견된 고객: ${customerNames.length}명\n`);
+  // 1. 로컬 폴더에서 고객 이름과 전화번호 추출
+  console.log('📂 로컬 폴더에서 고객 정보 추출 중...');
+  const customerData = extractCustomerNamesFromFiles(LOCAL_FOLDER);
+  console.log(`✅ 발견된 고객: ${customerData.length}명\n`);
   
-  if (customerNames.length === 0) {
+  if (customerData.length === 0) {
     console.log('❌ 고객 이미지를 찾을 수 없습니다.');
     return;
   }
   
   // 2. 각 고객별로 마이그레이션
   const results = {
-    total: customerNames.length,
+    total: customerData.length,
     success: 0,
     failed: 0,
     skipped: 0,
     details: []
   };
   
-  for (let i = 0; i < customerNames.length; i++) {
-    const customerName = customerNames[i];
+  for (let i = 0; i < customerData.length; i++) {
+    const customer = customerData[i];
     console.log(`\n${'='.repeat(60)}`);
-    console.log(`[${i + 1}/${customerNames.length}] 고객: ${customerName}`);
+    console.log(`[${i + 1}/${customerData.length}] 고객: ${customer.name}${customer.phone ? ` (${customer.phone})` : ''}`);
     console.log('='.repeat(60));
     
     try {
-      // 고객 ID 찾기
-      const customerInfo = await findCustomerId(customerName);
+      // 전화번호와 함께 고객 ID 찾기
+      const customerInfo = await findCustomerId(customer.name, customer.phone);
       
       if (!customerInfo) {
-        console.log(`   ⏭️  DB에 고객이 없어 스킵: ${customerName}`);
+        console.log(`   ⏭️  DB에 고객이 없어 스킵: ${customer.name}`);
         results.skipped++;
         results.details.push({
-          customerName,
+          customerName: customer.name,
           status: 'skipped',
           reason: '고객이 DB에 없음'
         });
@@ -656,20 +864,20 @@ async function migrateAllCustomers() {
       }
       
       // 이름 매핑이 적용된 경우 표시
-      if (customerInfo.dbName && customerInfo.dbName !== customerName) {
-        console.log(`   📝 이름 매핑: "${customerName}" → "${customerInfo.dbName}" (ID: ${customerInfo.id})`);
+      if (customerInfo.dbName && customerInfo.dbName !== customer.name) {
+        console.log(`   📝 이름 매핑: "${customer.name}" → "${customerInfo.dbName}" (ID: ${customerInfo.id})`);
       }
       
       if (customerInfo.isDuplicate) {
-        console.log(`   ⚠️  중복 이름: ${customerInfo.dbName || customerName} (ID: ${customerInfo.id})`);
+        console.log(`   ⚠️  중복 이름: ${customerInfo.dbName || customer.name} (ID: ${customerInfo.id})`);
         console.log(`   가장 최근 업데이트된 고객을 사용합니다.`);
       }
       
       // DB 이름 사용 (매핑된 경우)
-      const actualCustomerName = customerInfo.dbName || customerName;
+      const actualCustomerName = customerInfo.dbName || customer.name;
       
-      // 폴더명 생성
-      const folderName = generateFolderName(actualCustomerName, customerInfo.phone, customerInfo.id);
+      // 폴더명 생성 (날짜별 폴더 구조)
+      const folderName = generateFolderName(actualCustomerName, customerInfo.phone, customerInfo.id, customer.visitDate);
       
       // 고객 정보에서 이니셜과 영문 이름 가져오기 (이미 있으면 사용)
       let nameEn = customerInfo.name_en || translateKoreanToEnglish(actualCustomerName);
@@ -695,13 +903,13 @@ async function migrateAllCustomers() {
         
         // 여전히 없으면 생성
         if (!initials || initials === 'unknown' || initials === 'cus') {
-          initials = getCustomerInitials(customerName);
+          initials = getCustomerInitials(actualCustomerName);
           if (!initials || initials === 'unknown') {
             // 이름의 첫 글자 사용 (한글인 경우)
-            if (/[가-힣]/.test(customerName)) {
-              initials = customerName.charAt(0).toLowerCase();
+            if (/[가-힣]/.test(actualCustomerName)) {
+              initials = actualCustomerName.charAt(0).toLowerCase();
             } else {
-              initials = customerName.charAt(0).toLowerCase();
+              initials = actualCustomerName.charAt(0).toLowerCase();
             }
           }
         }
@@ -711,7 +919,7 @@ async function migrateAllCustomers() {
       await updateCustomerInfo(customerInfo.id, nameEn, initials, folderName);
       
       // 이미지 파일 찾기
-      const imageFiles = findImageFiles(LOCAL_FOLDER, customerName, true);
+      const imageFiles = findImageFiles(customer.folderPath, actualCustomerName, true);
       console.log(`   📸 발견된 이미지: ${imageFiles.length}개`);
       
       if (imageFiles.length === 0) {
@@ -904,7 +1112,7 @@ async function migrateAllCustomers() {
           }
           
           // 패턴 추출
-          const pattern = extractPattern(originalFileName, customerName);
+          const pattern = extractPattern(originalFileName, actualCustomerName);
           
           // 메타데이터 저장
           await saveMetadata({
@@ -936,7 +1144,7 @@ async function migrateAllCustomers() {
       
       results.success++;
       results.details.push({
-        customerName,
+        customerName: customer.name,
         dbName: actualCustomerName,
         customerId: customerInfo.id,
         status: 'success',
@@ -948,7 +1156,7 @@ async function migrateAllCustomers() {
       console.error(`   ❌ 오류: ${error.message}`);
       results.failed++;
       results.details.push({
-        customerName,
+        customerName: customer.name,
         status: 'failed',
         error: error.message
       });
@@ -970,9 +1178,33 @@ async function migrateAllCustomers() {
   fs.writeFileSync(resultsFile, JSON.stringify(results, null, 2));
 }
 
-// 실행
+// 메인 실행
 if (require.main === module) {
-  migrateAllCustomers().catch(console.error);
+  const args = process.argv.slice(2);
+  
+  if (args.includes('--report') || args.includes('-r')) {
+    // 보고서만 생성
+    generateNameChangeReport()
+      .then(() => {
+        console.log('\n✅ 보고서 생성 완료');
+        process.exit(0);
+      })
+      .catch(error => {
+        console.error('❌ 오류:', error);
+        process.exit(1);
+      });
+  } else {
+    // 실제 마이그레이션 실행
+    migrateAllCustomers()
+      .then(() => {
+        console.log('\n✅ 마이그레이션 완료');
+        process.exit(0);
+      })
+      .catch(error => {
+        console.error('❌ 오류:', error);
+        process.exit(1);
+      });
+  }
 }
 
-module.exports = { migrateAllCustomers };
+module.exports = { migrateAllCustomers, generateNameChangeReport };

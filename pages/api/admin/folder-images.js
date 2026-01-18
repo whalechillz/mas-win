@@ -21,17 +21,22 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { folder } = req.query;
+    const { folder, includeChildren = 'true' } = req.query;
 
     if (!folder || typeof folder !== 'string') {
       return res.status(400).json({ error: 'folder 파라미터가 필요합니다.' });
     }
 
     const folderPath = folder.trim();
+    const shouldIncludeChildren = includeChildren === 'true' || includeChildren === true;
 
-    console.log(`📁 [folder-images] 폴더 이미지 조회 시작: "${folderPath}"`);
+    console.log(`📁 [folder-images] 폴더 이미지 조회 시작: "${folderPath}" (하위 폴더 포함: ${shouldIncludeChildren})`);
 
-    // Storage에서 직접 조회만 수행 (빠름)
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.heic', '.heif'];
+    const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
+    const mediaExtensions = [...imageExtensions, ...videoExtensions];
+
+    // Storage에서 직접 조회
     let allFiles = [];
     let offset = 0;
     const batchSize = 1000;
@@ -62,9 +67,6 @@ export default async function handler(req, res) {
       const mediaFiles = files.filter(file => {
         if (!file.id) return false; // 폴더 제외
 
-        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.heic', '.heif'];
-        const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
-        const mediaExtensions = [...imageExtensions, ...videoExtensions];
         const isMedia = mediaExtensions.some(ext => 
           file.name.toLowerCase().endsWith(ext)
         );
@@ -76,6 +78,41 @@ export default async function handler(req, res) {
       });
 
       allFiles = allFiles.concat(mediaFiles);
+      
+      // 하위 폴더 목록 수집 (includeChildren이 true인 경우)
+      const subFolders = shouldIncludeChildren ? files.filter(file => !file.id) : [];
+      
+      // 하위 폴더의 이미지도 조회
+      if (subFolders.length > 0) {
+        for (const subFolder of subFolders) {
+          const subFolderPath = `${folderPath}/${subFolder.name}`;
+          const { data: subFiles } = await supabase.storage
+            .from('blog-images')
+            .list(subFolderPath, {
+              limit: 1000,
+              sortBy: { column: 'created_at', order: 'desc' }
+            });
+          
+          if (subFiles && subFiles.length > 0) {
+            const subMediaFiles = subFiles.filter(file => {
+              if (!file.id) return false;
+              const isMedia = mediaExtensions.some(ext => 
+                file.name.toLowerCase().endsWith(ext)
+              );
+              return isMedia && file.name.toLowerCase() !== '.keep.png';
+            });
+            
+            // 하위 폴더의 파일도 추가
+            subMediaFiles.forEach(file => {
+              allFiles.push({
+                ...file,
+                _subFolder: subFolder.name // 하위 폴더 정보 저장
+              });
+            });
+          }
+        }
+      }
+      
       offset += batchSize;
 
       // 마지막 배치면 종료
@@ -86,7 +123,10 @@ export default async function handler(req, res) {
 
     // URL 생성 및 응답 데이터 구성
     const media = allFiles.map(file => {
-      const filePath = `${folderPath}/${file.name}`;
+      const subFolder = file._subFolder || '';
+      const filePath = subFolder 
+        ? `${folderPath}/${subFolder}/${file.name}`
+        : `${folderPath}/${file.name}`;
       const { data: { publicUrl } } = supabase.storage
         .from('blog-images')
         .getPublicUrl(filePath);
@@ -95,11 +135,12 @@ export default async function handler(req, res) {
         name: file.name,
         url: publicUrl,
         size: file.metadata?.size || 0,
-        created_at: file.created_at || new Date().toISOString()
+        created_at: file.created_at || new Date().toISOString(),
+        folder: subFolder || null
       };
     });
 
-    console.log(`✅ [folder-images] 폴더 미디어 조회 완료: "${folderPath}" - ${media.length}개 파일`);
+    console.log(`✅ [folder-images] 폴더 미디어 조회 완료: "${folderPath}" - ${media.length}개 파일 (하위 폴더 포함: ${shouldIncludeChildren})`);
 
     return res.status(200).json({
       images: media,

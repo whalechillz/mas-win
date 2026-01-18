@@ -76,7 +76,7 @@ const FolderImagePicker: React.FC<Props> = ({
 
     try {
       const response = await fetch(
-        `/api/admin/folder-images?folder=${encodeURIComponent(currentFolderPath)}`
+        `/api/admin/folder-images?folder=${encodeURIComponent(currentFolderPath)}&includeChildren=true`
       );
 
       if (!response.ok) {

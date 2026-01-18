@@ -144,15 +144,20 @@ export default async function handler(req, res) {
         console.warn('⚠️ 고객 정보 조회 실패 (계속 진행):', customerError?.message);
       }
 
-      // 2. image_metadata에서 조회 (개선: tags 필터 + folder_path 필터 OR 조건)
-      // tags가 없어도 folder_path로 이미지를 로드할 수 있도록 개선
+      // 2. image_metadata에서 조회 (개선: tags 필터 + folder_path 필터 AND 조건으로 엄격하게 필터링)
+      // 다른 고객 이미지가 포함되지 않도록 AND 조건 사용
       let metadataQuery = supabase
         .from('image_metadata')
         .select('*');
       
-      // tags 또는 folder_path로 필터링 (OR 조건)
+      // tags와 folder_path를 AND 조건으로 필터링하여 더 엄격하게 매칭
       if (customerData?.folder_name) {
-        metadataQuery = metadataQuery.or(`tags.cs.{customer-${customerId}},folder_path.ilike.%customers/${customerData.folder_name}%`);
+        const exactFolderPath = `originals/customers/${customerData.folder_name}`;
+        // AND 조건: tags에 customer-{id}가 포함되고, folder_path가 정확한 경로로 시작
+        // 이렇게 하면 다른 고객의 이미지가 포함되지 않음
+        metadataQuery = metadataQuery
+          .contains('tags', [`customer-${customerId}`])
+          .ilike('folder_path', `${exactFolderPath}/%`);
       } else {
         // folder_name이 없으면 tags만 사용
         metadataQuery = metadataQuery.contains('tags', [`customer-${customerId}`]);
@@ -306,80 +311,103 @@ export default async function handler(req, res) {
               }
             });
             
-            storageImages = storageFiles.map(file => {
-              const fileDate = dateFilter || file.dateFolder || 'unknown';
-              const filePath = dateFilter 
-                ? `${folderPath}/${file.name}`
-                : `${baseFolderPath}/${fileDate}/${file.name}`;
-              
-              const { data: { publicUrl } } = supabase.storage
-                .from(bucketName)
-                .getPublicUrl(filePath);
+            // 고객명 추출 (폴더명에서, 예: choiseokho-1801 -> choiseokho)
+            const expectedCustomerName = customerData?.folder_name?.split('-')[0]?.toLowerCase() || '';
+            
+            storageImages = storageFiles
+              .map(file => {
+                const fileDate = dateFilter || file.dateFolder || 'unknown';
+                const filePath = dateFilter 
+                  ? `${folderPath}/${file.name}`
+                  : `${baseFolderPath}/${fileDate}/${file.name}`;
+                
+                const { data: { publicUrl } } = supabase.storage
+                  .from(bucketName)
+                  .getPublicUrl(filePath);
 
-              const normalizedFileName = normalizeFileName(file.name);
-              const normalizedFileNameWithoutExt = getFileNameWithoutExt(file.name);
-              
-              // 확장자 포함 버전과 확장자 제거 버전 모두 확인
-              const matchingMetadata = metadataFileMap.get(normalizedFileName) || 
-                                      metadataFileMap.get(normalizedFileNameWithoutExt);
-              
-              // URL 정규화 (인코딩 문제 해결)
-              let normalizedPublicUrl = publicUrl;
-              try {
-                const urlObj = new URL(publicUrl);
-                normalizedPublicUrl = decodeURIComponent(urlObj.origin + urlObj.pathname);
-              } catch {
-                normalizedPublicUrl = decodeURIComponent(publicUrl.split('?')[0]);
-              }
-              
-              // metadata 이미지 목록에서 URL로도 확인 (인코딩 차이 고려)
-              let metadataByUrl = null;
-              if (!matchingMetadata) {
-                metadataByUrl = (metadataImages || []).find(meta => {
-                  if (!meta.image_url) return false;
+                const normalizedFileName = normalizeFileName(file.name);
+                const normalizedFileNameWithoutExt = getFileNameWithoutExt(file.name);
+                
+                // 확장자 포함 버전과 확장자 제거 버전 모두 확인
+                const matchingMetadata = metadataFileMap.get(normalizedFileName) || 
+                                        metadataFileMap.get(normalizedFileNameWithoutExt);
+                
+                // URL 정규화 (인코딩 문제 해결)
+                let normalizedPublicUrl = publicUrl;
+                try {
+                  const urlObj = new URL(publicUrl);
+                  normalizedPublicUrl = decodeURIComponent(urlObj.origin + urlObj.pathname);
+                } catch {
+                  normalizedPublicUrl = decodeURIComponent(publicUrl.split('?')[0]);
+                }
+                
+                // metadata 이미지 목록에서 URL로도 확인 (인코딩 차이 고려)
+                let metadataByUrl = null;
+                if (!matchingMetadata) {
+                  metadataByUrl = (metadataImages || []).find(meta => {
+                    if (!meta.image_url) return false;
+                    try {
+                      const metaUrlObj = new URL(meta.image_url);
+                      const normalizedMetaUrl = decodeURIComponent(metaUrlObj.origin + metaUrlObj.pathname);
+                      return normalizedMetaUrl === normalizedPublicUrl || meta.image_url === publicUrl;
+                    } catch {
+                      return meta.image_url === publicUrl;
+                    }
+                  });
+                }
+                
+                const finalMetadata = matchingMetadata || metadataByUrl;
+                
+                return {
+                  id: finalMetadata?.id || null,
+                  image_url: publicUrl,
+                  english_filename: file.name,
+                  original_filename: file.name,
+                  date_folder: fileDate,
+                  story_scene: finalMetadata?.story_scene || null,
+                  image_type: extractImageTypeFromFileName(file.name) || finalMetadata?.image_type || null,
+                  isFromStorage: !finalMetadata, // metadata에 없으면 Storage에서 가져온 파일
+                  metadataMissing: !finalMetadata, // metadata에 없는 파일
+                  // 고객명 확인용 필드 추가
+                  _customerNameFromFile: file.name.split('_')[0]?.toLowerCase() || ''
+                };
+              })
+              .filter(img => {
+                // 1. 파일명에서 고객명 추출하여 확인 (다른 고객 이미지 제외)
+                if (expectedCustomerName && img._customerNameFromFile) {
+                  // 파일명의 첫 부분이 고객명과 일치하는지 확인 (예: choiseokho_s1_...)
+                  if (img._customerNameFromFile !== expectedCustomerName) {
+                    // metadata에 있는 이미지는 tags로 이미 필터링되었으므로 통과
+                    // metadata에 없는 Storage 이미지만 필터링
+                    if (!img.id) {
+                      return false; // 다른 고객의 Storage 이미지 제외
+                    }
+                  }
+                }
+                
+                // 2. metadata에 없는 파일만 필터링 (id가 null인 파일)
+                // 단, 이미 metadata 목록에 있는 URL과 중복되지 않는 경우만
+                const isDuplicate = (metadataImages || []).some(meta => {
+                  if (!meta.image_url || !img.image_url) return false;
                   try {
                     const metaUrlObj = new URL(meta.image_url);
+                    const imgUrlObj = new URL(img.image_url);
                     const normalizedMetaUrl = decodeURIComponent(metaUrlObj.origin + metaUrlObj.pathname);
-                    return normalizedMetaUrl === normalizedPublicUrl || meta.image_url === publicUrl;
+                    const normalizedImgUrl = decodeURIComponent(imgUrlObj.origin + imgUrlObj.pathname);
+                    return normalizedMetaUrl === normalizedImgUrl;
                   } catch {
-                    return meta.image_url === publicUrl;
+                    return meta.image_url === img.image_url;
                   }
                 });
-              }
-              
-              const finalMetadata = matchingMetadata || metadataByUrl;
-              
-              return {
-                id: finalMetadata?.id || null,
-                image_url: publicUrl,
-                english_filename: file.name,
-                original_filename: file.name,
-                date_folder: fileDate,
-                story_scene: finalMetadata?.story_scene || null,
-                image_type: extractImageTypeFromFileName(file.name) || finalMetadata?.image_type || null,
-                isFromStorage: !finalMetadata, // metadata에 없으면 Storage에서 가져온 파일
-                metadataMissing: !finalMetadata // metadata에 없는 파일
-              };
-            })
-            .filter(img => {
-              // metadata에 없는 파일만 필터링 (id가 null인 파일)
-              // 단, 이미 metadata 목록에 있는 URL과 중복되지 않는 경우만
-              const isDuplicate = (metadataImages || []).some(meta => {
-                if (!meta.image_url || !img.image_url) return false;
-                try {
-                  const metaUrlObj = new URL(meta.image_url);
-                  const imgUrlObj = new URL(img.image_url);
-                  const normalizedMetaUrl = decodeURIComponent(metaUrlObj.origin + metaUrlObj.pathname);
-                  const normalizedImgUrl = decodeURIComponent(imgUrlObj.origin + imgUrlObj.pathname);
-                  return normalizedMetaUrl === normalizedImgUrl;
-                } catch {
-                  return meta.image_url === img.image_url;
-                }
+                
+                // metadata에 없고 중복도 아닌 파일만 반환
+                return !img.id && !isDuplicate;
+              })
+              .map(img => {
+                // _customerNameFromFile 필드 제거 (응답에 포함하지 않음)
+                const { _customerNameFromFile, ...rest } = img;
+                return rest;
               });
-              
-              // metadata에 없고 중복도 아닌 파일만 반환
-              return !img.id && !isDuplicate;
-            });
 
             // metadata와 병합
             allImages = [...(metadataImages || []), ...storageImages];

@@ -5,6 +5,7 @@ import AdminNav from '../../../components/admin/AdminNav';
 import CustomerMessageHistoryModal from '../../../components/admin/CustomerMessageHistoryModal';
 import CustomerStoryModal from '../../../components/admin/CustomerStoryModal';
 import MediaRenderer from '../../../components/admin/MediaRenderer';
+import ReviewTimelineView from '../../../components/admin/customers/ReviewTimelineView';
 import { useRouter } from 'next/router';
 import { createClient } from '@supabase/supabase-js';
 import { uploadImageToSupabase } from '../../../lib/image-upload-utils';
@@ -52,7 +53,12 @@ export default function CustomersPage() {
   const router = useRouter();
   const [q, setQ] = useState('');
   const [onlyOptOut, setOnlyOptOut] = useState(false);
+  const [onlyWithImages, setOnlyWithImages] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  
+  // 기타 메뉴 드롭다운 상태
+  const [showActionMenu, setShowActionMenu] = useState(false);
+  const [selectedCustomerForActions, setSelectedCustomerForActions] = useState<Customer | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(100); // 기본값 100개
   const [count, setCount] = useState(0);
@@ -88,6 +94,7 @@ export default function CustomersPage() {
     const searchValue = typeof searchOverride === 'string' ? searchOverride : q;
     const params = new URLSearchParams({ q: searchValue, page: String(nextPage), pageSize: String(pageSize), sortBy, sortOrder });
     if (onlyOptOut) params.set('optout', 'true');
+    if (onlyWithImages) params.set('hasImages', 'true');
     const res = await fetch(`/api/admin/customers?${params.toString()}`, {
       credentials: 'include', // ✅ 쿠키 포함 명시 (Playwright 호환)
       headers: {
@@ -180,7 +187,20 @@ export default function CustomersPage() {
     }, 300); // 300ms 지연
     return () => clearTimeout(timer);
     // eslint-disable-line react-hooks/exhaustive-deps
-  }, [q, onlyOptOut]);
+  }, [q, onlyOptOut, onlyWithImages]);
+
+  // 고객 이미지 업데이트 이벤트 리스너 (대표 이미지 설정 시 썸네일 새로고침)
+  useEffect(() => {
+    const handleCustomerImagesUpdated = (e: CustomEvent) => {
+      console.log('🔄 고객 이미지 업데이트 이벤트 수신, 고객 리스트 새로고침');
+      fetchCustomers(page);
+    };
+    
+    window.addEventListener('customerImagesUpdated', handleCustomerImagesUpdated as EventListener);
+    return () => {
+      window.removeEventListener('customerImagesUpdated', handleCustomerImagesUpdated as EventListener);
+    };
+  }, [page]);
 
   const handleSort = (column: string) => {
     if (sortBy === column) {
@@ -491,8 +511,24 @@ export default function CustomersPage() {
                 className="px-3 py-2 border rounded-md"
               />
               <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input type="checkbox" checked={onlyOptOut} onChange={() => setOnlyOptOut(!onlyOptOut)} />
+                <input 
+                  type="checkbox" 
+                  checked={onlyOptOut} 
+                  onChange={(e) => {
+                    setOnlyOptOut(e.target.checked);
+                  }} 
+                />
                 수신거부만
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input 
+                  type="checkbox" 
+                  checked={onlyWithImages} 
+                  onChange={(e) => {
+                    setOnlyWithImages(e.target.checked);
+                  }} 
+                />
+                이미지 있는 고객만
               </label>
               <select
                 value={pageSize}
@@ -506,36 +542,38 @@ export default function CustomersPage() {
                 <option value={500}>500개씩</option>
                 <option value={1000}>1000개씩</option>
               </select>
-              <button
-                onClick={async () => {
-                  setUpdatingVipLevels(true);
-                  try {
-                    const res = await fetch('/api/admin/customers/update-vip-levels', {
-                      method: 'POST',
-                      credentials: 'include', // ✅ 쿠키 포함 명시 (Playwright 호환)
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                    });
-                    const json = await res.json();
-                    if (json.success) {
-                      alert(`VIP 레벨 업데이트 완료!\n${json.message}\n\n분포:\n- Platinum: ${json.stats?.distribution?.platinum || 0}명\n- Gold: ${json.stats?.distribution?.gold || 0}명\n- Silver: ${json.stats?.distribution?.silver || 0}명\n- Bronze: ${json.stats?.distribution?.bronze || 0}명\n- 비구매자: ${json.stats?.distribution?.noPurchase || 0}명`);
-                      fetchCustomers(1);
-                    } else {
-                      alert('VIP 레벨 업데이트 실패: ' + json.message);
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={async () => {
+                    setUpdatingVipLevels(true);
+                    try {
+                      const res = await fetch('/api/admin/customers/update-vip-levels', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                      });
+                      const json = await res.json();
+                      if (json.success) {
+                        alert(`VIP 레벨 업데이트 완료!\n${json.message}\n\n분포:\n- Platinum: ${json.stats?.distribution?.platinum || 0}명\n- Gold: ${json.stats?.distribution?.gold || 0}명\n- Silver: ${json.stats?.distribution?.silver || 0}명\n- Bronze: ${json.stats?.distribution?.bronze || 0}명\n- 비구매자: ${json.stats?.distribution?.noPurchase || 0}명`);
+                        fetchCustomers(1);
+                      } else {
+                        alert('VIP 레벨 업데이트 실패: ' + json.message);
+                      }
+                    } catch (error) {
+                      console.error('VIP 레벨 업데이트 오류:', error);
+                      alert('VIP 레벨 업데이트 중 오류가 발생했습니다.');
+                    } finally {
+                      setUpdatingVipLevels(false);
                     }
-                  } catch (error) {
-                    console.error('VIP 레벨 업데이트 오류:', error);
-                    alert('VIP 레벨 업데이트 중 오류가 발생했습니다.');
-                  } finally {
-                    setUpdatingVipLevels(false);
-                  }
-                }}
-                disabled={updatingVipLevels}
-                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
-              >
-                {updatingVipLevels ? '업데이트 중...' : '⭐ VIP 레벨 자동 업데이트'}
-              </button>
+                  }}
+                  disabled={updatingVipLevels}
+                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
+                >
+                  {updatingVipLevels ? '업데이트 중...' : '⭐ VIP 레벨 자동 업데이트'}
+                </button>
+              </div>
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -567,6 +605,7 @@ export default function CustomersPage() {
             <table className="min-w-full text-sm">
               <thead className="bg-gray-100">
                 <tr>
+                  <th className="p-2 text-left">썸네일</th>
                   <th className="p-2 text-left cursor-pointer hover:bg-gray-200" onClick={() => handleSort('name')}>
                     이름 {sortBy === 'name' && (sortOrder === 'asc' ? '▲' : '▼')}
                   </th>
@@ -576,7 +615,6 @@ export default function CustomersPage() {
                   <th className="p-2 text-left cursor-pointer hover:bg-gray-200" onClick={() => handleSort('vip_level')}>
                     VIP {sortBy === 'vip_level' && (sortOrder === 'asc' ? '▲' : '▼')}
                   </th>
-                  <th className="p-2 text-left">썸네일</th>
                   <th className="p-2 text-left cursor-pointer hover:bg-gray-200" onClick={() => handleSort('first_purchase_date')}>
                     최초구매일 {sortBy === 'first_purchase_date' && (sortOrder === 'asc' ? '▲' : '▼')}
                   </th>
@@ -591,7 +629,6 @@ export default function CustomersPage() {
                   </th>
                   <th className="p-2 text-left">설문</th>
                   <th className="p-2 text-left">시타예약</th>
-                  <th className="p-2 text-left">수신거부</th>
                   <th className="p-2 text-left">액션</th>
                 </tr>
               </thead>
@@ -649,9 +686,8 @@ export default function CustomersPage() {
                         <span className="text-gray-400 text-xs">-</span>
                       )}
                     </td>
-                    <td className="p-2">{c.opt_out ? '예' : '아니오'}</td>
                     <td className="p-2">
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 items-center">
                         <button onClick={() => handleEdit(c)} className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">
                           수정
                         </button>
@@ -681,33 +717,74 @@ export default function CustomersPage() {
                           }}
                           className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
                         >
-                          📱 메시지
+                          메시지
                         </button>
-                        <button
-                          onClick={() => {
-                            setSelectedCustomerForGifts(c);
-                            setShowGiftsModal(true);
-                          }}
-                          className="px-2 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600"
-                        >
-                          🎁 선물
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedCustomerForMerge(c);
-                            setShowMergeModal(true);
-                          }}
-                          className="px-2 py-1 text-xs bg-purple-500 text-white rounded hover:bg-purple-600"
-                          title="다른 고객과 병합"
-                        >
-                          🔗 병합
-                        </button>
-                        <button onClick={() => handleDelete(c)} className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600">
-                          삭제
-                        </button>
-                        <button onClick={() => handleToggleOptOut(c)} className="px-2 py-1 text-xs border rounded hover:bg-gray-100">
-                          {c.opt_out ? '수신허용' : '수신거부'}
-                        </button>
+                        
+                        {/* 기타 메뉴 드롭다운 */}
+                        <div className="relative inline-block">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedCustomerForActions(c);
+                              setShowActionMenu(showActionMenu && selectedCustomerForActions?.id === c.id ? false : true);
+                            }}
+                            className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                          >
+                            기타 ▼
+                          </button>
+                          
+                          {showActionMenu && selectedCustomerForActions?.id === c.id && (
+                            <div 
+                              className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleOptOut(c);
+                                  setShowActionMenu(false);
+                                }}
+                                className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-100 ${
+                                  c.opt_out ? 'text-red-600' : 'text-green-600'
+                                }`}
+                              >
+                                {c.opt_out ? '✅ 수신허용' : '🚫 수신거부'}
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedCustomerForMerge(c);
+                                  setShowMergeModal(true);
+                                  setShowActionMenu(false);
+                                }}
+                                className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 text-purple-600"
+                              >
+                                🔗 병합
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedCustomerForGifts(c);
+                                  setShowGiftsModal(true);
+                                  setShowActionMenu(false);
+                                }}
+                                className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 text-yellow-600"
+                              >
+                                🎁 선물
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(c);
+                                  setShowActionMenu(false);
+                                }}
+                                className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 text-red-600"
+                              >
+                                🗑️ 삭제
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -1227,6 +1304,7 @@ function CustomerImageModal({ customer, onClose }: {
   customer: Customer;
   onClose: () => void;
 }) {
+  const [activeTab, setActiveTab] = useState<'images' | 'reviews'>('images');
   const [visitDate, setVisitDate] = useState(new Date().toISOString().slice(0, 10));
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -1240,6 +1318,102 @@ function CustomerImageModal({ customer, onClose }: {
   const [selectedDateFilter, setSelectedDateFilter] = useState<string | null>(null);
   const [slug, setSlug] = useState<string>('');
   const [isSlugMode, setIsSlugMode] = useState(false);
+
+  // 동영상 체크 함수
+  const isVideo = (imageUrl: string | null): boolean => {
+    if (!imageUrl) return false;
+    const videoExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv'];
+    const lowerUrl = imageUrl.toLowerCase();
+    return videoExtensions.some(ext => lowerUrl.includes(ext));
+  };
+
+  // 갤러리 관리 페이지로 이동 (새 창)
+  const handleOpenGallery = () => {
+    // 고객 폴더명 가져오기 (folder_name이 있으면 사용, 없으면 생성)
+    const customerFolderName = customer.folder_name || (customer.phone 
+      ? generateCustomerFolderName({ name: customer.name, phone: customer.phone })
+      : `customer-${String(customer.id).padStart(3, '0')}`);
+    
+    const folderPath = `originals/customers/${customerFolderName}`;
+    const galleryUrl = `/admin/gallery?folder=${encodeURIComponent(folderPath)}`;
+    window.open(galleryUrl, '_blank');
+  };
+
+  // 대표 이미지 설정 핸들러
+  const handleSetSceneRepresentative = async (imageId: number, storyScene: number | null) => {
+    if (!storyScene) {
+      alert('장면이 할당되지 않은 이미지는 대표 이미지로 설정할 수 없습니다.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/image-metadata', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageId,
+          isSceneRepresentative: true,
+          storyScene
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || '대표 이미지 설정 실패');
+      }
+
+      // 이미지 목록 새로고침
+      await loadCustomerImages(selectedDateFilter);
+      
+      // 고객 리스트 썸네일 새로고침을 위한 이벤트 발생
+      window.dispatchEvent(new CustomEvent('customerImagesUpdated', { 
+        detail: { customerId: customer.id } 
+      }));
+      
+      console.log('✅ 대표 이미지 설정 완료:', { imageId, storyScene });
+    } catch (error) {
+      console.error('대표 이미지 설정 오류:', error);
+      alert('대표 이미지 설정에 실패했습니다.');
+    }
+  };
+
+  // 대표 이미지 취소 핸들러
+  const handleUnsetSceneRepresentative = async (imageId: number) => {
+    if (!confirm('대표 이미지를 취소하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/image-metadata', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageId,
+          isSceneRepresentative: false
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || '대표 이미지 취소 실패');
+      }
+
+      // 이미지 목록 새로고침
+      await loadCustomerImages(selectedDateFilter);
+      
+      // 고객 리스트 썸네일 새로고침을 위한 이벤트 발생
+      window.dispatchEvent(new CustomEvent('customerImagesUpdated', { 
+        detail: { customerId: customer.id } 
+      }));
+      
+      console.log('✅ 대표 이미지 취소 완료:', { imageId });
+    } catch (error) {
+      console.error('대표 이미지 취소 오류:', error);
+      alert('대표 이미지 취소에 실패했습니다.');
+    }
+  };
 
   // 고객 이미지 목록 로드
   const loadCustomerImages = async (dateFilter?: string | null) => {
@@ -1474,13 +1648,56 @@ function CustomerImageModal({ customer, onClose }: {
           <h2 className="text-xl font-bold text-gray-900">
             고객 이미지 관리: {customer.name}
           </h2>
-          <button 
-            onClick={onClose} 
-            disabled={uploading}
-            className={`text-gray-400 hover:text-gray-600 ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >✕</button>
+          <div className="flex items-center gap-2">
+            {/* 갤러리 관리 버튼 */}
+            <button
+              onClick={handleOpenGallery}
+              disabled={uploading}
+              className={`px-3 py-1.5 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm flex items-center gap-1.5 transition-colors ${
+                uploading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              title={`갤러리 관리에서 ${customer.folder_name || customer.name} 폴더 열기`}
+            >
+              📁 갤러리 관리
+            </button>
+            <button 
+              onClick={onClose} 
+              disabled={uploading}
+              className={`text-gray-400 hover:text-gray-600 ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >✕</button>
+          </div>
         </div>
 
+        {/* 탭 메뉴 */}
+        <div className="border-b border-gray-200 mb-4">
+          <nav className="flex space-x-4">
+            <button
+              onClick={() => setActiveTab('images')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'images'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              이미지
+            </button>
+            <button
+              onClick={() => setActiveTab('reviews')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'reviews'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              후기 타임라인
+            </button>
+          </nav>
+        </div>
+
+        {/* 탭 내용 */}
+        {activeTab === 'reviews' ? (
+          <ReviewTimelineView customerId={customer.id} />
+        ) : (
         <div className="space-y-6">
           {/* 방문일자 선택 */}
           <div>
@@ -1731,7 +1948,7 @@ function CustomerImageModal({ customer, onClose }: {
                                 }
                               };
                               const fileName = normalizeDisplayFileName(img.english_filename || img.original_filename || '');
-                              const isVideo = fileName.toLowerCase().match(/\.(mp4|mov|avi|webm|mkv)$/);
+                              const isVideoFile = fileName.toLowerCase().match(/\.(mp4|mov|avi|webm|mkv)$/);
                               const isGif = fileName.toLowerCase().endsWith('.gif');
                               return (
                   <div key={index} className="relative group">
@@ -1742,8 +1959,8 @@ function CustomerImageModal({ customer, onClose }: {
                                       alt={fileName}
                           className="w-full h-full object-cover"
                                       showControls={false}
-                                      onVideoClick={isVideo ? () => setSelectedVideoUrl(img.image_url) : undefined}
-                                      onClick={!isVideo ? () => {
+                                      onVideoClick={isVideoFile ? () => setSelectedVideoUrl(img.image_url) : undefined}
+                                      onClick={!isVideoFile ? () => {
                                         setSelectedImageUrl(img.image_url);
                                         setSelectedImageFileName(fileName);
                                       } : undefined}
@@ -1751,22 +1968,61 @@ function CustomerImageModal({ customer, onClose }: {
                       )}
                       
                       {/* 동영상 배지 */}
-                      {isVideo && (
+                      {isVideoFile && (
                         <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-500 text-white shadow-lg">
                           동영상
                         </span>
                       )}
                       
                       {/* 애니메이션 GIF 배지 */}
-                      {!isVideo && isGif && (
+                      {!isVideoFile && isGif && (
                         <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-orange-500 text-white shadow-lg">
                           움짤
                         </span>
                       )}
+                      
+                      {/* 대표 이미지 배지 (클릭 가능) - 동영상 제외 */}
+                      {img.story_scene && !isVideo(img.image_url) && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (img.is_scene_representative) {
+                              handleUnsetSceneRepresentative(img.id);
+                            } else {
+                              handleSetSceneRepresentative(img.id, img.story_scene);
+                            }
+                          }}
+                          className={`absolute top-2 left-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
+                            img.is_scene_representative
+                              ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                              : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100'
+                          }`}
+                          title={img.is_scene_representative ? '대표 이미지 취소 (클릭)' : '대표 이미지로 설정 (클릭)'}
+                        >
+                          {img.is_scene_representative ? '⭐ 대표' : '○ 일반'}
+                        </button>
+                      )}
+                      
+                      {/* 액션 버튼들 (호버 시 표시) */}
+                      <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                        {/* 대표로 설정 버튼 (배지가 보이지 않을 때만 표시, 동영상 제외) */}
+                        {!img.is_scene_representative && img.story_scene && !isVideo(img.image_url) && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSetSceneRepresentative(img.id, img.story_scene);
+                            }}
+                            className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-yellow-600 text-xs"
+                            title="대표 이미지로 설정"
+                          >
+                            ⭐
+                          </button>
+                        )}
+                      </div>
                     </div>
                                 <div 
                                   className="mt-1 text-xs text-gray-600 truncate" 
-                                  title={`${fileName} | ${img.date_folder || '날짜 없음'} | 장면 ${img.story_scene || '?'}${img.metadataMissing ? ' | (Storage에서 가져옴)' : ''}`}
+                                  title={`${fileName} | ${img.date_folder || '날짜 없음'} | 장면 ${img.story_scene || '?'}${img.metadataMissing ? ' | (Storage에서 가져옴)' : ''}${img.is_scene_representative ? ' | ⭐ 대표' : ''}`}
                                 >
                                   {fileName}
                                 </div>
@@ -1805,27 +2061,73 @@ function CustomerImageModal({ customer, onClose }: {
                               }
                             };
                             const fileName = normalizeDisplayFileName(img.english_filename || img.original_filename || '');
-                            const isVideo = fileName.toLowerCase().match(/\.(mp4|mov|avi|webm|mkv)$/);
+                            const isVideoFile = fileName.toLowerCase().match(/\.(mp4|mov|avi|webm|mkv)$/);
                             return (
                               <div key={index} className="relative group">
-                                <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                                <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
                                   {img.image_url && (
                                     <MediaRenderer
                                       url={img.image_url}
                                       alt={fileName}
                                       className="w-full h-full object-cover"
                                       showControls={false}
-                                      onVideoClick={isVideo ? () => setSelectedVideoUrl(img.image_url) : undefined}
-                                      onClick={!isVideo ? () => {
+                                      onVideoClick={isVideoFile ? () => setSelectedVideoUrl(img.image_url) : undefined}
+                                      onClick={!isVideoFile ? () => {
                                         setSelectedImageUrl(img.image_url);
                                         setSelectedImageFileName(fileName);
                                       } : undefined}
                                     />
                                   )}
+                                  
+                                  {/* 동영상 배지 */}
+                                  {isVideoFile && (
+                                    <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-500 text-white shadow-lg">
+                                      동영상
+                                    </span>
+                                  )}
+                                  
+                                  {/* 대표 이미지 배지 (클릭 가능) */}
+                                  {img.story_scene && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (img.is_scene_representative) {
+                                          handleUnsetSceneRepresentative(img.id);
+                                        } else {
+                                          handleSetSceneRepresentative(img.id, img.story_scene);
+                                        }
+                                      }}
+                                      className={`absolute top-2 left-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
+                                        img.is_scene_representative
+                                          ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                                          : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100'
+                                      }`}
+                                      title={img.is_scene_representative ? '대표 이미지 취소 (클릭)' : '대표 이미지로 설정 (클릭)'}
+                                    >
+                                      {img.is_scene_representative ? '⭐ 대표' : '○ 일반'}
+                                    </button>
+                                  )}
+                                  
+                                  {/* 액션 버튼들 (호버 시 표시) */}
+                                  <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                    {/* 대표로 설정 버튼 (배지가 보이지 않을 때만 표시) */}
+                                    {!img.is_scene_representative && img.story_scene && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleSetSceneRepresentative(img.id, img.story_scene);
+                                        }}
+                                        className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-yellow-600 text-xs"
+                                        title="대표 이미지로 설정"
+                                      >
+                                        ⭐
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                                 <div 
                                   className="mt-1 text-xs text-gray-600 truncate" 
-                                  title={`${fileName} | ${img.date_folder || '날짜 없음'}`}
+                                  title={`${fileName} | ${img.date_folder || '날짜 없음'} | 타입: ${img.image_type || 'unknown'}${img.is_scene_representative ? ' | ⭐ 대표' : ''}`}
                                 >
                                   {fileName}
                                 </div>
@@ -1853,27 +2155,73 @@ function CustomerImageModal({ customer, onClose }: {
                     }
                   };
                   const fileName = normalizeDisplayFileName(img.english_filename || img.original_filename || '');
-                  const isVideo = fileName.toLowerCase().match(/\.(mp4|mov|avi|webm|mkv)$/);
+                  const isVideoFile = fileName.toLowerCase().match(/\.(mp4|mov|avi|webm|mkv)$/);
                   return (
                     <div key={index} className="relative group">
-                      <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                      <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
                         {img.image_url && (
                           <MediaRenderer
                             url={img.image_url}
                             alt={fileName}
                             className="w-full h-full object-cover"
                             showControls={false}
-                            onVideoClick={isVideo ? () => setSelectedVideoUrl(img.image_url) : undefined}
-                            onClick={!isVideo ? () => {
+                            onVideoClick={isVideoFile ? () => setSelectedVideoUrl(img.image_url) : undefined}
+                            onClick={!isVideoFile ? () => {
                               setSelectedImageUrl(img.image_url);
                               setSelectedImageFileName(fileName);
                             } : undefined}
                           />
                         )}
+                        
+                        {/* 동영상 배지 */}
+                        {isVideoFile && (
+                          <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-500 text-white shadow-lg">
+                            동영상
+                          </span>
+                        )}
+                        
+                        {/* 대표 이미지 배지 (클릭 가능) */}
+                        {img.story_scene && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (img.is_scene_representative) {
+                                handleUnsetSceneRepresentative(img.id);
+                              } else {
+                                handleSetSceneRepresentative(img.id, img.story_scene);
+                              }
+                            }}
+                            className={`absolute top-2 left-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
+                              img.is_scene_representative
+                                ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                                : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100'
+                            }`}
+                            title={img.is_scene_representative ? '대표 이미지 취소 (클릭)' : '대표 이미지로 설정 (클릭)'}
+                          >
+                            {img.is_scene_representative ? '⭐ 대표' : '○ 일반'}
+                          </button>
+                        )}
+                        
+                        {/* 액션 버튼들 (호버 시 표시) */}
+                        <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                          {/* 대표로 설정 버튼 (배지가 보이지 않을 때만 표시) */}
+                          {!img.is_scene_representative && img.story_scene && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSetSceneRepresentative(img.id, img.story_scene);
+                              }}
+                              className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-yellow-600 text-xs"
+                              title="대표 이미지로 설정"
+                            >
+                              ⭐
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <div 
                         className="mt-1 text-xs text-gray-600 truncate" 
-                        title={`${fileName} | ${img.date_folder || '날짜 없음'} | 장면 ${img.story_scene || '?'}`}
+                        title={`${fileName} | ${img.date_folder || '날짜 없음'} | 장면 ${img.story_scene || '?'}${img.is_scene_representative ? ' | ⭐ 대표' : ''}`}
                       >
                         {fileName}
                       </div>
@@ -1890,6 +2238,7 @@ function CustomerImageModal({ customer, onClose }: {
             )}
           </div>
         </div>
+        )}
 
         <div className="flex justify-end mt-6">
           <button
@@ -2719,28 +3068,43 @@ function CustomerMergeModal({
 }) {
   return createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-gray-900">고객 병합</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 text-2xl"
             >
               ✕
             </button>
           </div>
 
+          {/* 안내 메시지 강화 */}
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <h3 className="font-semibold text-yellow-800 mb-2 flex items-center gap-2">
+              ⚠️ 병합 안내
+            </h3>
+            <ul className="text-sm text-yellow-700 space-y-1 list-disc list-inside">
+              <li>소스 고객의 모든 데이터가 타겟 고객으로 이동됩니다</li>
+              <li>시타 예약, 구매 이력, 이미지 등 모든 정보가 병합됩니다</li>
+              <li>소스 고객은 삭제되며, 이 작업은 되돌릴 수 없습니다</li>
+              <li>병합 전에 타겟 고객 정보를 반드시 확인하세요</li>
+            </ul>
+          </div>
+
           <div className="space-y-4">
             {/* 소스 고객 정보 */}
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <h3 className="font-semibold text-gray-700 mb-2">병합할 고객 (소스)</h3>
-              <div className="text-sm">
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <h3 className="font-semibold text-red-800 mb-2 flex items-center gap-2">
+                📤 병합될 고객 (소스)
+              </h3>
+              <div className="space-y-1 text-sm">
                 <p><strong>이름:</strong> {sourceCustomer.name}</p>
-                <p><strong>전화번호:</strong> {sourceCustomer.phone}</p>
-                <p className="text-gray-600 mt-2">
-                  ⚠️ 이 고객의 시타 이력이 타겟 고객으로 이동되고, 소스 고객은 삭제됩니다.
-                </p>
+                <p><strong>전화:</strong> {sourceCustomer.phone}</p>
+                <p><strong>VIP:</strong> {sourceCustomer.vip_level || 'NONE'}</p>
+                <p><strong>최초구매일:</strong> {sourceCustomer.first_purchase_date ? new Date(sourceCustomer.first_purchase_date).toLocaleDateString('ko-KR') : '-'}</p>
+                <p><strong>최근 연락:</strong> {sourceCustomer.last_contact_date ? new Date(sourceCustomer.last_contact_date).toLocaleDateString('ko-KR') : '-'}</p>
               </div>
             </div>
 
@@ -2754,7 +3118,7 @@ function CustomerMergeModal({
                 value={mergeTargetSearch}
                 onChange={(e) => setMergeTargetSearch(e.target.value)}
                 placeholder="고객 이름 또는 전화번호 입력..."
-                className="w-full px-3 py-2 border rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 disabled={merging}
               />
             </div>
@@ -2769,34 +3133,48 @@ function CustomerMergeModal({
                   {mergeTargets.map((target) => (
                     <div
                       key={target.id}
-                      className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                      onClick={() => {
+                      className="p-4 border-2 border-green-200 bg-green-50 rounded-lg hover:bg-green-100 cursor-pointer transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
                         if (!merging) {
-                          onMerge(sourceCustomer, target);
+                          // 확인 단계 추가
+                          if (confirm(
+                            `정말 병합하시겠습니까?\n\n` +
+                            `소스: ${sourceCustomer.name} (${sourceCustomer.phone})\n` +
+                            `타겟: ${target.name} (${target.phone})\n\n` +
+                            `이 작업은 되돌릴 수 없습니다.`
+                          )) {
+                            onMerge(sourceCustomer, target);
+                          }
                         }
                       }}
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">{target.name}</p>
+                          <p className="font-semibold text-green-800">{target.name}</p>
                           <p className="text-sm text-gray-600">{target.phone}</p>
-                          {target.first_purchase_date && (
-                            <p className="text-xs text-gray-500">
-                              최초구매: {target.first_purchase_date}
-                            </p>
-                          )}
+                          <p className="text-xs text-gray-500 mt-1">
+                            VIP: {target.vip_level || 'NONE'} | 최초구매: {target.first_purchase_date ? new Date(target.first_purchase_date).toLocaleDateString('ko-KR') : '-'}
+                          </p>
                         </div>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!merging) {
-                              onMerge(sourceCustomer, target);
+                              if (confirm(
+                                `정말 병합하시겠습니까?\n\n` +
+                                `소스: ${sourceCustomer.name} (${sourceCustomer.phone})\n` +
+                                `타겟: ${target.name} (${target.phone})\n\n` +
+                                `이 작업은 되돌릴 수 없습니다.`
+                              )) {
+                                onMerge(sourceCustomer, target);
+                              }
                             }
                           }}
                           disabled={merging}
-                          className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 disabled:opacity-50"
+                          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 font-medium"
                         >
-                          {merging ? '병합 중...' : '병합'}
+                          {merging ? '병합 중...' : '병합하기'}
                         </button>
                       </div>
                     </div>
@@ -2816,7 +3194,7 @@ function CustomerMergeModal({
             <button
               onClick={onClose}
               disabled={merging}
-              className="px-4 py-2 border rounded text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
               취소
             </button>

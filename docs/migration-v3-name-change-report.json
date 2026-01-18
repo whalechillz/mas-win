@@ -1,0 +1,3272 @@
+{
+  "timestamp": "2026-01-17T07:27:38.139Z",
+  "totalFolders": 102,
+  "customers": [
+    {
+      "originalFolder": "2022.04.18.장진수",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2022/2022.04.18.장진수",
+      "customerName": "장진수",
+      "phone": null,
+      "year": "2022",
+      "convertedFolder": "jangjinsu-8189",
+      "nameEn": "jang-jinsu",
+      "customerId": 602,
+      "status": "success",
+      "reason": "",
+      "fileCount": 1,
+      "files": [
+        {
+          "original": "장진수_후기_카카오채널.PNG",
+          "converted": "jangjinsu_s7_review-capture-kakao-channel_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.05.17.황인석",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.05.17.황인석",
+      "customerName": "황인석",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "hwanginseok-8206",
+      "nameEn": "hwanginseok",
+      "customerId": 1647,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "황인석_사인.jpg",
+          "converted": "hwanginseok_s6_signature_01.webp"
+        },
+        {
+          "original": "황인석_시타상담.jpg",
+          "converted": "hwanginseok_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "황인석_시타영상.mp4",
+          "converted": "hwanginseok_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "황인석_아트월.jpg",
+          "converted": "hwanginseok_s5_art-wall_01.webp"
+        },
+        {
+          "original": "황인석_측정_282야드.jpg",
+          "converted": "hwanginseok_s4_measurement_28.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.05.19.김석구",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.05.19.김석구",
+      "customerName": "김석구",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "kimseokgu-6302",
+      "nameEn": "kimseokgu",
+      "customerId": 13542,
+      "status": "success",
+      "reason": "",
+      "fileCount": 6,
+      "files": [
+        {
+          "original": "김석구_사인.jpg",
+          "converted": "kimseokgu_s6_signature_01.webp"
+        },
+        {
+          "original": "김석구_시타영상_01.mp4",
+          "converted": "kimseokgu_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "김석구_시타영상_02.mp4",
+          "converted": "kimseokgu_s3_swing-video_02.mp4"
+        },
+        {
+          "original": "김석구_시타영상_편집_01.mp4",
+          "converted": "kimseokgu_s3_swing-video-edited_01.mp4"
+        },
+        {
+          "original": "김석구_아트월.jpg",
+          "converted": "kimseokgu_s5_art-wall_01.webp"
+        },
+        {
+          "original": "김석구_측정_253야드.jpg",
+          "converted": "kimseokgu_s4_measurement_25.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.05.23.박중진",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.05.23.박중진",
+      "customerName": "박중진",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "bakjutjin-8580",
+      "nameEn": "bakjutjin",
+      "customerId": 2156,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "박중진_사인.jpg",
+          "converted": "bakjutjin_s6_signature_01.webp"
+        },
+        {
+          "original": "박중진_시타상담.jpg",
+          "converted": "bakjutjin_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "박중진_시타영상.mp4",
+          "converted": "bakjutjin_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "박중진_아트월.jpg",
+          "converted": "bakjutjin_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.05.31.채문석",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.05.31.채문석",
+      "customerName": "채문석",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "chaemunseok-7973",
+      "nameEn": "chaemunseok",
+      "customerId": 1655,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "채문석_사인.jpg",
+          "converted": "chaemunseok_s6_signature_01.webp"
+        },
+        {
+          "original": "채문석_시타상담.jpg",
+          "converted": "chaemunseok_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "채문석_시타영상.mp4",
+          "converted": "chaemunseok_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "채문석_아트월.jpg",
+          "converted": "chaemunseok_s5_art-wall_01.webp"
+        },
+        {
+          "original": "채문석_측정_247야드.jpg",
+          "converted": "chaemunseok_s4_measurement_24.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.06.05.이수원",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.05.이수원",
+      "customerName": "이수원",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "isuwon-7146",
+      "nameEn": "isuwon",
+      "customerId": 2327,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "이수원_사인.jpg",
+          "converted": "isuwon_s6_signature_01.webp"
+        },
+        {
+          "original": "이수원_시타상담.jpg",
+          "converted": "isuwon_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "이수원_시타영상.mp4",
+          "converted": "isuwon_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "이수원_아트월.jpg",
+          "converted": "isuwon_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.06.07.김영필",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.07.김영필",
+      "customerName": "김영필",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "kimyeotpit-7272",
+      "nameEn": "kimyeotpit",
+      "customerId": 2190,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "김영필_사인.jpg",
+          "converted": "kimyeotpit_s6_signature_01.webp"
+        },
+        {
+          "original": "김영필_시타상담.jpg",
+          "converted": "kimyeotpit_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김영필_시타영상.mp4",
+          "converted": "kimyeotpit_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "김영필_아트월.jpg",
+          "converted": "kimyeotpit_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.06.09.김선옥",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.09.김선옥",
+      "customerName": "김선옥",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "kimseonok-6420",
+      "nameEn": "kimseonok",
+      "customerId": 1662,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "김선옥_사인.jpg",
+          "converted": "kimseonok_s6_signature_01.webp"
+        },
+        {
+          "original": "김선옥_시타상담_01.jpg",
+          "converted": "kimseonok_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김선옥_시타상담_02.jpg",
+          "converted": "kimseonok_s4_swing-consultation_02.webp"
+        },
+        {
+          "original": "김선옥_시타영상.mp4",
+          "converted": "kimseonok_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "김선옥_아트월.jpg",
+          "converted": "kimseonok_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.06.12.김영진-010-8832-9806",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.12.김영진-010-8832-9806",
+      "customerName": "김영진",
+      "phone": "010-8832-9806",
+      "year": "2023",
+      "convertedFolder": "kimyeotjin-4452",
+      "nameEn": "kimyeotjin",
+      "customerId": 372,
+      "status": "success",
+      "reason": "",
+      "fileCount": 6,
+      "files": [
+        {
+          "original": "김영진_사인.jpg",
+          "converted": "kimyeotjin_s6_signature_01.webp"
+        },
+        {
+          "original": "김영진_시타상담.jpg",
+          "converted": "kimyeotjin_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김영진_시타영상.mp4",
+          "converted": "kimyeotjin_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "김영진_시타장면.gif",
+          "converted": "kimyeotjin_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "김영진_아트월.jpg",
+          "converted": "kimyeotjin_s5_art-wall_01.webp"
+        },
+        {
+          "original": "김영진_측정_242야드.jpg",
+          "converted": "kimyeotjin_s4_measurement_24.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.06.14.이윤희-010-3532-4572",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.14.이윤희-010-3532-4572",
+      "customerName": "이윤희",
+      "phone": "010-3532-4572",
+      "year": "2023",
+      "convertedFolder": "iyunhui-4572",
+      "nameEn": "iyunhui",
+      "customerId": 1692,
+      "status": "success",
+      "reason": "",
+      "fileCount": 6,
+      "files": [
+        {
+          "original": "이윤희_사인.png",
+          "converted": "iyunhui_s6_signature_01.webp"
+        },
+        {
+          "original": "이윤희_스윙영상.mp4",
+          "converted": "iyunhui_s6_swing-video-outdoor_01.mp4"
+        },
+        {
+          "original": "이윤희_스윙장면_01.jpg",
+          "converted": "iyunhui_s6_swing-scene-outdoor_01.webp"
+        },
+        {
+          "original": "이윤희_스윙장면_02.gif",
+          "converted": "iyunhui_s6_swing-scene-outdoor_02.webp"
+        },
+        {
+          "original": "이윤희_후기캡처_카카오채널.png",
+          "converted": "iyunhui_s7_review-capture-kakao-channel_01.webp"
+        },
+        {
+          "original": "이윤희_히어로.jpg",
+          "converted": "iyunhui_s1_hero_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.06.20.조성대",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.20.조성대",
+      "customerName": "조성대",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "joseongdae-7010",
+      "nameEn": "joseongdae",
+      "customerId": 2112,
+      "status": "success",
+      "reason": "",
+      "fileCount": 3,
+      "files": [
+        {
+          "original": "조성대_시타상담.jpg",
+          "converted": "joseongdae_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "조성대_시타영상.mp4",
+          "converted": "joseongdae_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "조성대_아트월.jpg",
+          "converted": "joseongdae_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.06.21.김한구",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.21.김한구",
+      "customerName": "김한구",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "kimhangu-3445",
+      "nameEn": "kimhangu",
+      "customerId": 1693,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "김한구_사인.jpg",
+          "converted": "kimhangu_s6_signature_01.webp"
+        },
+        {
+          "original": "김한구_시타상담.jpg",
+          "converted": "kimhangu_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김한구_시타영상.mp4",
+          "converted": "kimhangu_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "김한구_시타장면.gif",
+          "converted": "kimhangu_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "김한구_아트월.jpg",
+          "converted": "kimhangu_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.06.27.조보현-010-8752-8857",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.27.조보현-010-8752-8857",
+      "customerName": "조보현",
+      "phone": "010-8752-8857",
+      "year": "2023",
+      "convertedFolder": "jobohyeon-8857",
+      "nameEn": "jobohyeon",
+      "customerId": 13719,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "조보현_사인.jpg",
+          "converted": "jobohyeon_s6_signature_01.webp"
+        },
+        {
+          "original": "조보현_시타상담.jpg",
+          "converted": "jobohyeon_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "조보현_시타영상.mp4",
+          "converted": "jobohyeon_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "조보현_아트월.jpg",
+          "converted": "jobohyeon_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.07.03.이강석",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.03.이강석",
+      "customerName": "이강석",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "igatseok-8200",
+      "nameEn": "igatseok",
+      "customerId": 1689,
+      "status": "success",
+      "reason": "",
+      "fileCount": 3,
+      "files": [
+        {
+          "original": "이강석_사인.jpg",
+          "converted": "igatseok_s6_signature_01.webp"
+        },
+        {
+          "original": "이강석_시타상담.jpeg",
+          "converted": "igatseok_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "이강석_아트월.jpeg",
+          "converted": "igatseok_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.07.12.민호식",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.12.민호식",
+      "customerName": "민호식",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "minhosik-5549",
+      "nameEn": "minhosik",
+      "customerId": 2041,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "민호식_사인.jpg",
+          "converted": "minhosik_s6_signature_01.webp"
+        },
+        {
+          "original": "민호식_시타상담.jpeg",
+          "converted": "minhosik_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "민호식_아트월.jpeg",
+          "converted": "minhosik_s5_art-wall_01.webp"
+        },
+        {
+          "original": "민호식_측정_232야드.jpeg",
+          "converted": "minhosik_s4_measurement_23.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.07.13.하종천",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.13.하종천",
+      "customerName": "하종천",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "hajotcheon-5458",
+      "nameEn": "hajotcheon",
+      "customerId": 1715,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "하종천_사인.png",
+          "converted": "hajotcheon_s6_signature_01.webp"
+        },
+        {
+          "original": "하종천_시타상담.jpeg",
+          "converted": "hajotcheon_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "하종천_시타영상.mp4",
+          "converted": "hajotcheon_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "하종천_아트월.jpeg",
+          "converted": "hajotcheon_s5_art-wall_01.webp"
+        },
+        {
+          "original": "하종천_후기_카카오채널.jpeg",
+          "converted": "hajotcheon_s7_review-capture-kakao-channel_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.07.17.심원섭",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.17.심원섭",
+      "customerName": "심원섭",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "silwonseom-5250",
+      "nameEn": "silwonseom",
+      "customerId": 1701,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "심원섭_사인.jpg",
+          "converted": "silwonseom_s6_signature_01.webp"
+        },
+        {
+          "original": "심원섭_시타상담.jpg",
+          "converted": "silwonseom_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "심원섭_시타영상.mp4",
+          "converted": "silwonseom_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "심원섭_아트월.jpg",
+          "converted": "silwonseom_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.07.19.김찬기",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.19.김찬기",
+      "customerName": "김찬기",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "kimchangi-3802",
+      "nameEn": "kimchangi",
+      "customerId": 1702,
+      "status": "success",
+      "reason": "",
+      "fileCount": 3,
+      "files": [
+        {
+          "original": "김찬기_사인.jpg",
+          "converted": "kimchangi_s6_signature_01.webp"
+        },
+        {
+          "original": "김찬기_시타상담.jpeg",
+          "converted": "kimchangi_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김찬기_아트월.jpeg",
+          "converted": "kimchangi_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.07.24.이준희",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.24.이준희",
+      "customerName": "이준희",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "ijunhui-2495",
+      "nameEn": "ijunhui",
+      "customerId": 1831,
+      "status": "success",
+      "reason": "",
+      "fileCount": 3,
+      "files": [
+        {
+          "original": "이준희_사인.png",
+          "converted": "ijunhui_s6_signature_01.webp"
+        },
+        {
+          "original": "이준희_시타상담.jpg",
+          "converted": "ijunhui_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "이준희_아트월.jpg",
+          "converted": "ijunhui_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.07.26.유병묵",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.26.유병묵",
+      "customerName": "유병묵",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "yubyeotmuk-7724",
+      "nameEn": "yubyeotmuk",
+      "customerId": 14128,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "유병묵_사인.png",
+          "converted": "yubyeotmuk_s6_signature_01.webp"
+        },
+        {
+          "original": "유병묵_시타상담.jpg",
+          "converted": "yubyeotmuk_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "유병묵_시타영상.mp4",
+          "converted": "yubyeotmuk_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "유병묵_아트월.jpg",
+          "converted": "yubyeotmuk_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.08.04.강병부",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.08.04.강병부",
+      "customerName": "강병부",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "gatbyeotbu-4758",
+      "nameEn": "gatbyeotbu",
+      "customerId": 1783,
+      "status": "success",
+      "reason": "",
+      "fileCount": 3,
+      "files": [
+        {
+          "original": "강병부_사인.png",
+          "converted": "gatbyeotbu_s6_signature_01.webp"
+        },
+        {
+          "original": "강병부_시타영상.MOV",
+          "converted": "gatbyeotbu_s3_swing-video_01.mov"
+        },
+        {
+          "original": "강병부_아트월.jpg",
+          "converted": "gatbyeotbu_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.08.08.안영호",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.08.08.안영호",
+      "customerName": "안영호",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "anyeotho-0506",
+      "nameEn": "anyeotho",
+      "customerId": 1772,
+      "status": "success",
+      "reason": "",
+      "fileCount": 6,
+      "files": [
+        {
+          "original": "안영호_사인.png",
+          "converted": "anyeotho_s6_signature_01.webp"
+        },
+        {
+          "original": "안영호_시타상담.jpg",
+          "converted": "anyeotho_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "안영호_시타영상.mp4",
+          "converted": "anyeotho_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "안영호_시타장면.jpg",
+          "converted": "anyeotho_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "안영호_아트월_01.jpg",
+          "converted": "anyeotho_s5_art-wall_01.webp"
+        },
+        {
+          "original": "안영호_아트월_02.jpg",
+          "converted": "anyeotho_s5_art-wall_02.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.08.16.송화용",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.08.16.송화용",
+      "customerName": "송화용",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "sothwayot-8385",
+      "nameEn": "sothwayot",
+      "customerId": 1781,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "송화용_사인.png",
+          "converted": "sothwayot_s6_signature_01.webp"
+        },
+        {
+          "original": "송화용_시타영상.mp4",
+          "converted": "sothwayot_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "송화용_시타장면_01.jpg",
+          "converted": "sothwayot_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "송화용_시타장면_02.jpg",
+          "converted": "sothwayot_s3_swing-scene_02.webp"
+        },
+        {
+          "original": "송화용_아트월.jpg",
+          "converted": "sothwayot_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.08.23.문광배",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.08.23.문광배",
+      "customerName": "문광배",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "mungwatbae-4258",
+      "nameEn": "mungwatbae",
+      "customerId": 1761,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "문광배_사인.png",
+          "converted": "mungwatbae_s6_signature_01.webp"
+        },
+        {
+          "original": "문광배_시타상담.jpg",
+          "converted": "mungwatbae_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "문광배_시타영상.mp4",
+          "converted": "mungwatbae_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "문광배_아트월.jpg",
+          "converted": "mungwatbae_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.08.29.박진욱",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.08.29.박진욱",
+      "customerName": "박진욱",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "bakjinuk-8333",
+      "nameEn": "bakjinuk",
+      "customerId": 2484,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "박진욱_사인.png",
+          "converted": "bakjinuk_s6_signature_01.webp"
+        },
+        {
+          "original": "박진욱_시타상담.jpg",
+          "converted": "bakjinuk_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "박진욱_시타영상.mp4",
+          "converted": "bakjinuk_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "박진욱_아트월.jpg",
+          "converted": "bakjinuk_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.10.26.김순복",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.10.26.김순복",
+      "customerName": "김순복",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "kimsunbok-2469",
+      "nameEn": "kimsunbok",
+      "customerId": 2145,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "김순복_시타상담.jpg",
+          "converted": "kimsunbok_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김순복_시타영상_01.mp4",
+          "converted": "kimsunbok_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "김순복_시타영상_02.MOV",
+          "converted": "kimsunbok_s3_swing-video_02.mov"
+        },
+        {
+          "original": "김순복_아트월.jpg",
+          "converted": "kimsunbok_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.11.27.김봉현-010-4880-7159",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.11.27.김봉현-010-4880-7159",
+      "customerName": "김봉현",
+      "phone": "010-4880-7159",
+      "year": "2023",
+      "convertedFolder": "kimbothyeon-4648",
+      "nameEn": "kimbothyeon",
+      "customerId": 680,
+      "status": "success",
+      "reason": "",
+      "fileCount": 9,
+      "files": [
+        {
+          "original": "김봉현_사인.jpg",
+          "converted": "kimbothyeon_s6_signature_01.webp"
+        },
+        {
+          "original": "김봉현_시타상담.jpeg",
+          "converted": "kimbothyeon_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김봉현_시타영상_01.mp4",
+          "converted": "kimbothyeon_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "김봉현_시타영상_02.mp4",
+          "converted": "kimbothyeon_s3_swing-video_02.mp4"
+        },
+        {
+          "original": "김봉현_시타장면_01.jpeg",
+          "converted": "kimbothyeon_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "김봉현_시타장면_02.jpeg",
+          "converted": "kimbothyeon_s3_swing-scene_02.webp"
+        },
+        {
+          "original": "김봉현_아트월_01.jpeg",
+          "converted": "kimbothyeon_s5_art-wall_01.webp"
+        },
+        {
+          "original": "김봉현_아트월_02.jpeg",
+          "converted": "kimbothyeon_s5_art-wall_02.webp"
+        },
+        {
+          "original": "김봉현_측정_231야드.jpeg",
+          "converted": "kimbothyeon_s4_measurement_23.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.11.27.이경민",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.11.27.이경민",
+      "customerName": "이경민",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "igyeotmin-8813",
+      "nameEn": "igyeotmin",
+      "customerId": 1986,
+      "status": "success",
+      "reason": "",
+      "fileCount": 3,
+      "files": [
+        {
+          "original": "이경민_사인.jpeg",
+          "converted": "igyeotmin_s6_signature_01.webp"
+        },
+        {
+          "original": "이경민_아트월_01.jpeg",
+          "converted": "igyeotmin_s5_art-wall_01.webp"
+        },
+        {
+          "original": "이경민_아트월_02.jpeg",
+          "converted": "igyeotmin_s5_art-wall_02.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.12.08.한귀용",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.12.08.한귀용",
+      "customerName": "한귀용",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "hangwiyot-7115",
+      "nameEn": "hangwiyot",
+      "customerId": 2149,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "한귀용_사인.jpeg",
+          "converted": "hangwiyot_s6_signature_01.webp"
+        },
+        {
+          "original": "한귀용_시타상담_01.jpeg",
+          "converted": "hangwiyot_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "한귀용_시타상담_02.jpeg",
+          "converted": "hangwiyot_s4_swing-consultation_02.webp"
+        },
+        {
+          "original": "한귀용_아트월_01.jpeg",
+          "converted": "hangwiyot_s5_art-wall_01.webp"
+        },
+        {
+          "original": "한귀용_아트월_02.jpeg",
+          "converted": "hangwiyot_s5_art-wall_02.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.12.12.김용석",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.12.12.김용석",
+      "customerName": "김용석",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "kimyotseok-4453",
+      "nameEn": "kimyotseok",
+      "customerId": 1997,
+      "status": "success",
+      "reason": "",
+      "fileCount": 9,
+      "files": [
+        {
+          "original": "김용석_사인.png",
+          "converted": "kimyotseok_s6_signature_01.webp"
+        },
+        {
+          "original": "김용석_시타상담_01.jpeg",
+          "converted": "kimyotseok_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김용석_시타상담_02.jpeg",
+          "converted": "kimyotseok_s4_swing-consultation_02.webp"
+        },
+        {
+          "original": "김용석_시타영상_01.mp4",
+          "converted": "kimyotseok_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "김용석_시타영상_02.mp4",
+          "converted": "kimyotseok_s3_swing-video_02.mp4"
+        },
+        {
+          "original": "김용석_시타장면_01.jpeg",
+          "converted": "kimyotseok_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "김용석_시타장면_02.jpeg",
+          "converted": "kimyotseok_s3_swing-scene_02.webp"
+        },
+        {
+          "original": "김용석_시타장면_03.jpeg",
+          "converted": "kimyotseok_s3_swing-scene_03.webp"
+        },
+        {
+          "original": "김용석_시타장면_04.jpeg",
+          "converted": "kimyotseok_s3_swing-scene_04.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2023.12.18.정해선",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.12.18.정해선",
+      "customerName": "정해선",
+      "phone": null,
+      "year": "2023",
+      "convertedFolder": "jeonghaeseon-0712",
+      "nameEn": "jeonghaeseon",
+      "customerId": 2003,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "정해선_사인.png",
+          "converted": "jeonghaeseon_s6_signature_01.webp"
+        },
+        {
+          "original": "정해선_시타상담.jpg",
+          "converted": "jeonghaeseon_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "정해선_시타장면.jpg",
+          "converted": "jeonghaeseon_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "정해선_아트월.jpg",
+          "converted": "jeonghaeseon_s5_art-wall_01.webp"
+        },
+        {
+          "original": "정해선_측정_224야드.jpg",
+          "converted": "jeonghaeseon_s4_measurement_22.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.01.02.조영수",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.01.02.조영수",
+      "customerName": "조영수",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "joyeotsu-7526",
+      "nameEn": "joyeotsu",
+      "customerId": 2024,
+      "status": "warning",
+      "reason": "중복 이름 (전화번호 없음)",
+      "fileCount": 6,
+      "files": [
+        {
+          "original": "조영수_사인.png",
+          "converted": "joyeotsu_s6_signature_01.webp"
+        },
+        {
+          "original": "조영수_시타상담.jpg",
+          "converted": "joyeotsu_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "조영수_시타영상_편집_01.MOV",
+          "converted": "joyeotsu_s3_swing-video-edited_01.mov"
+        },
+        {
+          "original": "조영수_아트월.jpg",
+          "converted": "joyeotsu_s5_art-wall_01.webp"
+        },
+        {
+          "original": "조영수_측정_218야드.jpg",
+          "converted": "joyeotsu_s4_measurement_21.webp"
+        },
+        {
+          "original": "조영수_후기.png",
+          "converted": "joyeotsu_s7_review-capture_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.01.10.김재희",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.01.10.김재희",
+      "customerName": "김재희",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "kimjaehui-3272",
+      "nameEn": "kimjaehui",
+      "customerId": 2034,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "김재희_사인.png",
+          "converted": "kimjaehui_s6_signature_01.webp"
+        },
+        {
+          "original": "김재희_시타상담.jpg",
+          "converted": "kimjaehui_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김재희_아트월_01.jpg",
+          "converted": "kimjaehui_s5_art-wall_01.webp"
+        },
+        {
+          "original": "김재희_아트월_02.jpg",
+          "converted": "kimjaehui_s5_art-wall_02.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.01.14.유홍근",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.01.14.유홍근",
+      "customerName": "유홍근",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "yuhotgeun-5160",
+      "nameEn": "yuhotgeun",
+      "customerId": 2057,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "유홍근_사인.png",
+          "converted": "yuhotgeun_s6_signature_01.webp"
+        },
+        {
+          "original": "유홍근_시타상담_01.jpeg",
+          "converted": "yuhotgeun_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "유홍근_시타상담_02.jpeg",
+          "converted": "yuhotgeun_s4_swing-consultation_02.webp"
+        },
+        {
+          "original": "유홍근_아트월_01.jpeg",
+          "converted": "yuhotgeun_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.03.06.이옥형",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.03.06.이옥형",
+      "customerName": "이옥형",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "iokhyeot-1493",
+      "nameEn": "iokhyeot",
+      "customerId": 2093,
+      "status": "success",
+      "reason": "",
+      "fileCount": 3,
+      "files": [
+        {
+          "original": "이옥형_사인.png",
+          "converted": "iokhyeot_s6_signature_01.webp"
+        },
+        {
+          "original": "이옥형_시타상담.jpeg",
+          "converted": "iokhyeot_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "이옥형_아트월.jpeg",
+          "converted": "iokhyeot_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.05.28.제동환",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.05.28.제동환",
+      "customerName": "제동환",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "jedothwan-8282",
+      "nameEn": "jedothwan",
+      "customerId": 2204,
+      "status": "success",
+      "reason": "",
+      "fileCount": 6,
+      "files": [
+        {
+          "original": "제동환_사인.jpg",
+          "converted": "jedothwan_s6_signature_01.webp"
+        },
+        {
+          "original": "제동환_시타상담_01.jpg",
+          "converted": "jedothwan_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "제동환_시타상담_02.jpg",
+          "converted": "jedothwan_s4_swing-consultation_02.webp"
+        },
+        {
+          "original": "제동환_시타상담_03.jpg",
+          "converted": "jedothwan_s4_swing-consultation_03.webp"
+        },
+        {
+          "original": "제동환_시타영상_01.mp4",
+          "converted": "jedothwan_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "제동환_시타영상_02.mp4",
+          "converted": "jedothwan_s3_swing-video_02.mp4"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.08.30.이수원",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.08.30.이수원",
+      "customerName": "이수원",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "isuwon-7146",
+      "nameEn": "isuwon",
+      "customerId": 2327,
+      "status": "success",
+      "reason": "",
+      "fileCount": 2,
+      "files": [
+        {
+          "original": "이수원_사인.jpg",
+          "converted": "isuwon_s6_signature_01.webp"
+        },
+        {
+          "original": "이수원_시타영상.mov",
+          "converted": "isuwon_s3_swing-video_01.mov"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.09.10.이용복",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.09.10.이용복",
+      "customerName": "이용복",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "iyotbok-8505",
+      "nameEn": "iyotbok",
+      "customerId": 2350,
+      "status": "success",
+      "reason": "",
+      "fileCount": 0,
+      "files": []
+    },
+    {
+      "originalFolder": "2024.09.10.최석호",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.09.10.최석호",
+      "customerName": "최석호",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "choeseokho-1801",
+      "nameEn": "choeseokho",
+      "customerId": 2304,
+      "status": "success",
+      "reason": "",
+      "fileCount": 0,
+      "files": []
+    },
+    {
+      "originalFolder": "2024.10.04.임태희",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.04.임태희",
+      "customerName": "임태희",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "iltaehui-0506",
+      "nameEn": "iltaehui",
+      "customerId": 2382,
+      "status": "success",
+      "reason": "",
+      "fileCount": 0,
+      "files": []
+    },
+    {
+      "originalFolder": "2024.10.11.윤효영",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.11.윤효영",
+      "customerName": "윤효영",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "yunhyoyeot-6175",
+      "nameEn": "yunhyoyeot",
+      "customerId": 2383,
+      "status": "success",
+      "reason": "",
+      "fileCount": 0,
+      "files": []
+    },
+    {
+      "originalFolder": "2024.10.15.박성우",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.15.박성우",
+      "customerName": "박성우",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "bakseotu-6003",
+      "nameEn": "bakseotu",
+      "customerId": 2398,
+      "status": "success",
+      "reason": "",
+      "fileCount": 0,
+      "files": []
+    },
+    {
+      "originalFolder": "2024.10.21.김종철",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.21.김종철",
+      "customerName": "김종철",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "kimjotcheot-6654",
+      "nameEn": "kimjotcheot",
+      "customerId": 15203,
+      "status": "success",
+      "reason": "",
+      "fileCount": 0,
+      "files": []
+    },
+    {
+      "originalFolder": "2024.10.26.신재식",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.26.신재식",
+      "customerName": "신재식",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "sinjaesik-4391",
+      "nameEn": "sinjaesik",
+      "customerId": 2407,
+      "status": "success",
+      "reason": "",
+      "fileCount": 0,
+      "files": []
+    },
+    {
+      "originalFolder": "2024.10.29.이남구",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.29.이남구",
+      "customerName": "이남구",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "inalgu-8768",
+      "nameEn": "inalgu",
+      "customerId": 13799,
+      "status": "success",
+      "reason": "",
+      "fileCount": 0,
+      "files": []
+    },
+    {
+      "originalFolder": "2024.10.31.김선애",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.31.김선애",
+      "customerName": "김선애",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "kimseonae-1211",
+      "nameEn": "kimseonae",
+      "customerId": 13600,
+      "status": "success",
+      "reason": "",
+      "fileCount": 3,
+      "files": [
+        {
+          "original": "김선애_상담.jpeg",
+          "converted": "kimseonae_s1_image_01.webp"
+        },
+        {
+          "original": "김선애_아트월_01.jpeg",
+          "converted": "kimseonae_s5_art-wall_01.webp"
+        },
+        {
+          "original": "김선애_아트월_02.jpeg",
+          "converted": "kimseonae_s5_art-wall_02.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.11.05.박성원",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.05.박성원",
+      "customerName": "박성원",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "bakseongwon-6712",
+      "nameEn": "bakseongwon",
+      "customerId": 13924,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "박성원_사인.jpeg",
+          "converted": "bakseongwon_s6_signature_01.webp"
+        },
+        {
+          "original": "박성원_시타장면_01.jpeg",
+          "converted": "bakseongwon_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "박성원_시타장면_02.mp4",
+          "converted": "bakseongwon_s3_swing-scene_02.mp4"
+        },
+        {
+          "original": "박성원_아트월_01.jpeg",
+          "converted": "bakseongwon_s5_art-wall_01.webp"
+        },
+        {
+          "original": "박성원_측정.jpeg",
+          "converted": "bakseongwon_s4_measurement_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.11.05.전진용",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.05.전진용",
+      "customerName": "전진용",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "jeonjinyot-9699",
+      "nameEn": "jeonjinyot",
+      "customerId": 266,
+      "status": "success",
+      "reason": "",
+      "fileCount": 7,
+      "files": [
+        {
+          "original": "전진용_시타상담.jpeg",
+          "converted": "jeonjinyot_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "전진용_시타영상.MOV",
+          "converted": "jeonjinyot_s3_swing-video_01.mov"
+        },
+        {
+          "original": "전진용_시타장면_01.jpeg",
+          "converted": "jeonjinyot_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "전진용_시타장면_02.jpeg",
+          "converted": "jeonjinyot_s3_swing-scene_02.webp"
+        },
+        {
+          "original": "전진용_아트월.jpeg",
+          "converted": "jeonjinyot_s5_art-wall_01.webp"
+        },
+        {
+          "original": "전진용_측정-02.jpeg",
+          "converted": "jeonjinyot_s4_measurement_02.webp"
+        },
+        {
+          "original": "전진용_측정_01.jpg",
+          "converted": "jeonjinyot_s4_measurement_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.11.06.권성수",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.06.권성수",
+      "customerName": "권성수",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "gwonseotsu-0199",
+      "nameEn": "gwonseotsu",
+      "customerId": 2027,
+      "status": "success",
+      "reason": "",
+      "fileCount": 6,
+      "files": [
+        {
+          "original": "권성수_사인.jpg",
+          "converted": "gwonseotsu_s6_signature_01.webp"
+        },
+        {
+          "original": "권성수_시타장면.mp4",
+          "converted": "gwonseotsu_s3_swing-scene_01.mp4"
+        },
+        {
+          "original": "권성수_시타장면_01.jpg",
+          "converted": "gwonseotsu_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "권성수_시타장면_02.MOV",
+          "converted": "gwonseotsu_s3_swing-scene_02.mov"
+        },
+        {
+          "original": "권성수_아트월.jpg",
+          "converted": "gwonseotsu_s5_art-wall_01.webp"
+        },
+        {
+          "original": "권성수_측정.jpg",
+          "converted": "gwonseotsu_s4_measurement_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.11.11.김수환",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.11.김수환",
+      "customerName": "김수환",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "kimsuhwan-2183",
+      "nameEn": "kimsuhwan",
+      "customerId": 15182,
+      "status": "success",
+      "reason": "",
+      "fileCount": 9,
+      "files": [
+        {
+          "original": "김수환_기타_01.jpeg",
+          "converted": "kimsuhwan_s1_image_01.webp"
+        },
+        {
+          "original": "김수환_기타_02.jpeg",
+          "converted": "kimsuhwan_s1_image_02.webp"
+        },
+        {
+          "original": "김수환_기타_03.jpeg",
+          "converted": "kimsuhwan_s1_image_03.webp"
+        },
+        {
+          "original": "김수환_시타상담.jpeg",
+          "converted": "kimsuhwan_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김수환_시타상담_02.jpeg",
+          "converted": "kimsuhwan_s4_swing-consultation_02.webp"
+        },
+        {
+          "original": "김수환_시타영상.MOV",
+          "converted": "kimsuhwan_s3_swing-video_01.mov"
+        },
+        {
+          "original": "김수환_시타장면_01.jpeg",
+          "converted": "kimsuhwan_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "김수환_시타장면_02.jpeg",
+          "converted": "kimsuhwan_s3_swing-scene_02.webp"
+        },
+        {
+          "original": "김수환_측정.jpeg",
+          "converted": "kimsuhwan_s4_measurement_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.11.12.박영관",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.12.박영관",
+      "customerName": "박영관",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "bakyeotgwan-1311",
+      "nameEn": "bakyeotgwan",
+      "customerId": 13890,
+      "status": "success",
+      "reason": "",
+      "fileCount": 6,
+      "files": [
+        {
+          "original": "박영관_사인.jpeg",
+          "converted": "bakyeotgwan_s6_signature_01.webp"
+        },
+        {
+          "original": "박영관_시타상담.jpeg",
+          "converted": "bakyeotgwan_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "박영관_시타영상.mp4",
+          "converted": "bakyeotgwan_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "박영관_아트월-01.jpeg",
+          "converted": "bakyeotgwan_s5_art-wall_01.webp"
+        },
+        {
+          "original": "박영관_아트월_02.jpeg",
+          "converted": "bakyeotgwan_s5_art-wall_02.webp"
+        },
+        {
+          "original": "박영관_측정.jpeg",
+          "converted": "bakyeotgwan_s4_measurement_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.11.13.최승남",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.13.최승남",
+      "customerName": "최승남",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "choeseutnal-2216",
+      "nameEn": "choeseutnal",
+      "customerId": 13748,
+      "status": "success",
+      "reason": "",
+      "fileCount": 0,
+      "files": []
+    },
+    {
+      "originalFolder": "2024.11.18.방광설",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.18.방광설",
+      "customerName": "방광설",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "batgwatseot-0007",
+      "nameEn": "batgwatseot",
+      "customerId": 2413,
+      "status": "success",
+      "reason": "",
+      "fileCount": 7,
+      "files": [
+        {
+          "original": "방광설_사인.jpg",
+          "converted": "batgwatseot_s6_signature_01.webp"
+        },
+        {
+          "original": "방광설_시타영상.MOV",
+          "converted": "batgwatseot_s3_swing-video_01.mov"
+        },
+        {
+          "original": "방광설_시타장면-01.mov",
+          "converted": "batgwatseot_s3_swing-scene_01.mov"
+        },
+        {
+          "original": "방광설_시타장면-02.jpg",
+          "converted": "batgwatseot_s3_swing-scene_02.webp"
+        },
+        {
+          "original": "방광설_시타장면_03.jpg",
+          "converted": "batgwatseot_s3_swing-scene_03.webp"
+        },
+        {
+          "original": "방광설_아트월.jpg",
+          "converted": "batgwatseot_s5_art-wall_01.webp"
+        },
+        {
+          "original": "방광설_측정.jpg",
+          "converted": "batgwatseot_s4_measurement_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.11.22.김사빈",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.22.김사빈",
+      "customerName": "김사빈",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "kimsabin-2528",
+      "nameEn": "kimsabin",
+      "customerId": 2424,
+      "status": "success",
+      "reason": "",
+      "fileCount": 7,
+      "files": [
+        {
+          "original": "김사빈_사인.jpeg",
+          "converted": "kimsabin_s6_signature_01.webp"
+        },
+        {
+          "original": "김사빈_시타영상_01.MOV",
+          "converted": "kimsabin_s3_swing-video_01.mov"
+        },
+        {
+          "original": "김사빈_시타영상_02.MOV",
+          "converted": "kimsabin_s3_swing-video_02.mov"
+        },
+        {
+          "original": "김사빈_시타장면-02.jpeg",
+          "converted": "kimsabin_s3_swing-scene_02.webp"
+        },
+        {
+          "original": "김사빈_시타장면_01.jpeg",
+          "converted": "kimsabin_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "김사빈_아트월.jpeg",
+          "converted": "kimsabin_s5_art-wall_01.webp"
+        },
+        {
+          "original": "김사빈_측정.jpeg",
+          "converted": "kimsabin_s4_measurement_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.11.24.유재영",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.24.유재영",
+      "customerName": "유재영",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "yujaeyeot-6257",
+      "nameEn": "yujaeyeot",
+      "customerId": 2509,
+      "status": "success",
+      "reason": "",
+      "fileCount": 6,
+      "files": [
+        {
+          "original": "유재영_사인.jpeg",
+          "converted": "yujaeyeot_s6_signature_01.webp"
+        },
+        {
+          "original": "유재영_시타상담.jpeg",
+          "converted": "yujaeyeot_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "유재영_시타영상.MOV",
+          "converted": "yujaeyeot_s3_swing-video_01.mov"
+        },
+        {
+          "original": "유재영_시타장면.jpeg",
+          "converted": "yujaeyeot_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "유재영_아트월-01.jpeg",
+          "converted": "yujaeyeot_s5_art-wall_01.webp"
+        },
+        {
+          "original": "유재영_측정.jpeg",
+          "converted": "yujaeyeot_s4_measurement_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.11.25.연재화",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.25.연재화",
+      "customerName": "연재화",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "yeonjaehwa-1456",
+      "nameEn": "yeonjaehwa",
+      "customerId": 2425,
+      "status": "success",
+      "reason": "",
+      "fileCount": 3,
+      "files": [
+        {
+          "original": "연재화_시타상담.jpeg",
+          "converted": "yeonjaehwa_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "연재화_시타상담_02.jpeg",
+          "converted": "yeonjaehwa_s4_swing-consultation_02.webp"
+        },
+        {
+          "original": "연재화_측정.jpeg",
+          "converted": "yeonjaehwa_s4_measurement_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.12.05.조양현",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.12.05.조양현",
+      "customerName": "조양현",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "joyanghyeon-1813",
+      "nameEn": "joyanghyeon",
+      "customerId": 2437,
+      "status": "success",
+      "reason": "",
+      "fileCount": 7,
+      "files": [
+        {
+          "original": "조양현_사인.jpeg",
+          "converted": "joyanghyeon_s6_signature_01.webp"
+        },
+        {
+          "original": "조양현_시타영상_1.mov",
+          "converted": "joyanghyeon_s3_swing-video_01.mov"
+        },
+        {
+          "original": "조양현_시타영상_2.mov",
+          "converted": "joyanghyeon_s3_swing-video_01.mov"
+        },
+        {
+          "original": "조양현_시타장면.jpg",
+          "converted": "joyanghyeon_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "조양현_시타장면.mp4",
+          "converted": "joyanghyeon_s3_swing-scene_01.mp4"
+        },
+        {
+          "original": "조양현_아트월.jpeg",
+          "converted": "joyanghyeon_s5_art-wall_01.webp"
+        },
+        {
+          "original": "조양현_측정.jpeg",
+          "converted": "joyanghyeon_s4_measurement_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.12.12.조보현-010-8752-8857",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.12.12.조보현-010-8752-8857",
+      "customerName": "조보현",
+      "phone": "010-8752-8857",
+      "year": "2024",
+      "convertedFolder": "jobohyeon-8857",
+      "nameEn": "jobohyeon",
+      "customerId": 13719,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "조보현_시타상담.jpg",
+          "converted": "jobohyeon_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "조보현_시타장면.MOV",
+          "converted": "jobohyeon_s3_swing-scene_01.mov"
+        },
+        {
+          "original": "조보현_아트월.jpg",
+          "converted": "jobohyeon_s5_art-wall_01.webp"
+        },
+        {
+          "original": "조보현_측정.jpg",
+          "converted": "jobohyeon_s4_measurement_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2024.12.31.장근수",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.12.31.장근수",
+      "customerName": "장근수",
+      "phone": null,
+      "year": "2024",
+      "convertedFolder": "janggeunsu-2788",
+      "nameEn": "janggeunsu",
+      "customerId": 13800,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "장근수_시타상담 -02.jpeg",
+          "converted": "janggeunsu_s4_swing-consultation_02.webp"
+        },
+        {
+          "original": "장근수_시타상담.jpeg",
+          "converted": "janggeunsu_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "장근수_시타장면.jpeg",
+          "converted": "janggeunsu_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "장근수_시타장면_02.jpeg",
+          "converted": "janggeunsu_s3_swing-scene_02.webp"
+        },
+        {
+          "original": "장근수_아트월.jpeg",
+          "converted": "janggeunsu_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.01.08.김성묵",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.01.08.김성묵",
+      "customerName": "김성묵",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "kimseotmuk-4401",
+      "nameEn": "kimseotmuk",
+      "customerId": 2483,
+      "status": "success",
+      "reason": "",
+      "fileCount": 3,
+      "files": [
+        {
+          "original": "김성묵_사인.jpg",
+          "converted": "kimseotmuk_s6_signature_01.webp"
+        },
+        {
+          "original": "김성묵_아트월-02.jpg",
+          "converted": "kimseotmuk_s5_art-wall_02.webp"
+        },
+        {
+          "original": "김성묵_측정_188.8m.jpg",
+          "converted": "kimseotmuk_s4_measurement_18.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.01.14.묵현상",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.01.14.묵현상",
+      "customerName": "묵현상",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "mukhyeonsat-6791",
+      "nameEn": "mukhyeonsat",
+      "customerId": 2235,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "묵현상_사인.png",
+          "converted": "mukhyeonsat_s6_signature_01.webp"
+        },
+        {
+          "original": "묵현상_시타상담.png",
+          "converted": "mukhyeonsat_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "묵현상_아트월-02.png",
+          "converted": "mukhyeonsat_s5_art-wall_02.webp"
+        },
+        {
+          "original": "묵현상_아트월_01.png",
+          "converted": "mukhyeonsat_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.01.24.강성동",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.01.24.강성동",
+      "customerName": "강성동",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "gatseotdot-5787",
+      "nameEn": "gatseotdot",
+      "customerId": 2480,
+      "status": "success",
+      "reason": "",
+      "fileCount": 6,
+      "files": [
+        {
+          "original": "강성동_사인.jpg",
+          "converted": "gatseotdot_s6_signature_01.webp"
+        },
+        {
+          "original": "강성동_시타상담.jpeg",
+          "converted": "gatseotdot_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "강성동_시타영상.mp4",
+          "converted": "gatseotdot_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "강성동_아트월-01.jpeg",
+          "converted": "gatseotdot_s5_art-wall_01.webp"
+        },
+        {
+          "original": "강성동_아트월-02.jpeg",
+          "converted": "gatseotdot_s5_art-wall_02.webp"
+        },
+        {
+          "original": "강성동_측정_214-3m.jpg",
+          "converted": "gatseotdot_s4_measurement_21.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.02.12.최범규",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.02.12.최범규",
+      "customerName": "최범규",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "choebeolgyu-6508",
+      "nameEn": "choebeolgyu",
+      "customerId": 13718,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "최범규_사인.jpeg",
+          "converted": "choebeolgyu_s6_signature_01.webp"
+        },
+        {
+          "original": "최범규_시타상담.jpeg",
+          "converted": "choebeolgyu_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "최범규_시타영상.mp4",
+          "converted": "choebeolgyu_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "최범규_아트월-01.jpeg",
+          "converted": "choebeolgyu_s5_art-wall_01.webp"
+        },
+        {
+          "original": "최범규_아트월-02.jpeg",
+          "converted": "choebeolgyu_s5_art-wall_02.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.02.20.박용옥",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.02.20.박용옥",
+      "customerName": "박용옥",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "bakyotok-7873",
+      "nameEn": "bakyotok",
+      "customerId": 2500,
+      "status": "success",
+      "reason": "",
+      "fileCount": 1,
+      "files": [
+        {
+          "original": "박용옥_사인.jpg",
+          "converted": "bakyotok_s6_signature_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.02.21.정형표",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.02.21.정형표",
+      "customerName": "정형표",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "jeothyeotpyo-1255",
+      "nameEn": "jeothyeotpyo",
+      "customerId": 2501,
+      "status": "success",
+      "reason": "",
+      "fileCount": 3,
+      "files": [
+        {
+          "original": "정형표_사인.jpg",
+          "converted": "jeothyeotpyo_s6_signature_01.webp"
+        },
+        {
+          "original": "정형표_아트월-01.jpg",
+          "converted": "jeothyeotpyo_s5_art-wall_01.webp"
+        },
+        {
+          "original": "정형표_아트월-02.jpg",
+          "converted": "jeothyeotpyo_s5_art-wall_02.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.02.27.이순길",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.02.27.이순길",
+      "customerName": "이순길",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "isungit-6560",
+      "nameEn": "isungit",
+      "customerId": 2505,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "이순길_사인.jpg",
+          "converted": "isungit_s6_signature_01.webp"
+        },
+        {
+          "original": "이순길_시타상담.jpg",
+          "converted": "isungit_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "이순길_시타장면.MOV",
+          "converted": "isungit_s3_swing-scene_01.mov"
+        },
+        {
+          "original": "이순길_아트월.jpg",
+          "converted": "isungit_s5_art-wall_01.webp"
+        },
+        {
+          "original": "이순길_측정-241.8m.jpg",
+          "converted": "isungit_s4_measurement_24.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.03.13.김홍창",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.03.13.김홍창",
+      "customerName": "김홍창",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "kimhotchat-9751",
+      "nameEn": "kimhotchat",
+      "customerId": 13628,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "김홍창_사인.jpeg",
+          "converted": "kimhotchat_s6_signature_01.webp"
+        },
+        {
+          "original": "김홍창_시타상담.jpeg",
+          "converted": "kimhotchat_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김홍창_시타장면.jpeg",
+          "converted": "kimhotchat_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "김홍창_아트월.jpeg",
+          "converted": "kimhotchat_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.04.10.이희익",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.04.10.이희익",
+      "customerName": "이희익",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "ihuiik-0519",
+      "nameEn": "ihuiik",
+      "customerId": 15208,
+      "status": "success",
+      "reason": "",
+      "fileCount": 2,
+      "files": [
+        {
+          "original": "이희익_시타영상.mp4",
+          "converted": "ihuiik_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "이희익_아트월-01.jpeg",
+          "converted": "ihuiik_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.04.18.박봉수",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.04.18.박봉수",
+      "customerName": "박봉수",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "bakbotsu-0002",
+      "nameEn": "bakbotsu",
+      "customerId": 1469,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "박봉수_시타상담.jpeg",
+          "converted": "bakbotsu_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "박봉수_시타영상.mp4",
+          "converted": "bakbotsu_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "박봉수_시타장면.jpeg",
+          "converted": "bakbotsu_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "박봉수_아트월-02.jpeg",
+          "converted": "bakbotsu_s5_art-wall_02.webp"
+        },
+        {
+          "original": "박봉수_아트월_01.jpeg",
+          "converted": "bakbotsu_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.04.25.채영태",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.04.25.채영태",
+      "customerName": "채영태",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "chaeyeottae-7508",
+      "nameEn": "chaeyeottae",
+      "customerId": 13633,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "채영태_사인.png",
+          "converted": "chaeyeottae_s6_signature_01.webp"
+        },
+        {
+          "original": "채영태_시타영상.mp4",
+          "converted": "chaeyeottae_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "채영태_시타장면.jpeg",
+          "converted": "chaeyeottae_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "채영태_아트월_01.jpeg",
+          "converted": "chaeyeottae_s5_art-wall_01.webp"
+        },
+        {
+          "original": "채영태_아트월_02.jpeg",
+          "converted": "chaeyeottae_s5_art-wall_02.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.04.29.최범규",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.04.29.최범규",
+      "customerName": "최범규",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "choebeolgyu-6508",
+      "nameEn": "choebeolgyu",
+      "customerId": 13718,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "최범규_시타상담.jpeg",
+          "converted": "choebeolgyu_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "최범규_시타영상.mp4",
+          "converted": "choebeolgyu_s3_swing-video_01.mp4"
+        },
+        {
+          "original": "최범규_시타장면.jpeg",
+          "converted": "choebeolgyu_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "최범규_아트월.jpeg",
+          "converted": "choebeolgyu_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.04.30.강원식",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.04.30.강원식",
+      "customerName": "강원식",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "gatwonsik-6350",
+      "nameEn": "gatwonsik",
+      "customerId": 13544,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "강원식_시타상담.jpeg",
+          "converted": "gatwonsik_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "강원식_시타장면.jpeg",
+          "converted": "gatwonsik_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "강원식_시티영상.mp4",
+          "converted": "gatwonsik_s1_image_03.mp4"
+        },
+        {
+          "original": "강원식_아트월.jpeg",
+          "converted": "gatwonsik_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.05.30.박영구",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.05.30.박영구",
+      "customerName": "박영구",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "bakyeotgu-7773",
+      "nameEn": "bakyeotgu",
+      "customerId": 13563,
+      "status": "success",
+      "reason": "",
+      "fileCount": 18,
+      "files": [
+        {
+          "original": "박영구_시타상담.jpg",
+          "converted": "bakyeotgu_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "박영구_시타영상_편집_01.mov",
+          "converted": "bakyeotgu_s3_swing-video-edited_01.mov"
+        },
+        {
+          "original": "박영구_시타영상_편집_02.MOV",
+          "converted": "bakyeotgu_s3_swing-video-edited_02.mov"
+        },
+        {
+          "original": "박영구_시타영상_편집_03.MOV",
+          "converted": "bakyeotgu_s3_swing-video-edited_03.mov"
+        },
+        {
+          "original": "박영구_시타영상_편집_04.mov",
+          "converted": "bakyeotgu_s3_swing-video-edited_04.mov"
+        },
+        {
+          "original": "박영구_시타영상_편집_05.MOV",
+          "converted": "bakyeotgu_s3_swing-video-edited_05.mov"
+        },
+        {
+          "original": "박영구_시타영상_편집_06.MOV",
+          "converted": "bakyeotgu_s3_swing-video-edited_06.mov"
+        },
+        {
+          "original": "박영구_시타영상_편집_07.MOV",
+          "converted": "bakyeotgu_s3_swing-video-edited_07.mov"
+        },
+        {
+          "original": "박영구_시타영상_편집_08.MOV",
+          "converted": "bakyeotgu_s3_swing-video-edited_08.mov"
+        },
+        {
+          "original": "박영구_시타영상_편집_09.MOV",
+          "converted": "bakyeotgu_s3_swing-video-edited_09.mov"
+        },
+        {
+          "original": "박영구_시타영상_편집_10.MOV",
+          "converted": "bakyeotgu_s3_swing-video-edited_10.mov"
+        },
+        {
+          "original": "박영구_시타영상_편집_11.MOV",
+          "converted": "bakyeotgu_s3_swing-video-edited_11.mov"
+        },
+        {
+          "original": "박영구_시타영상_편집_12.mov",
+          "converted": "bakyeotgu_s3_swing-video-edited_12.mov"
+        },
+        {
+          "original": "박영구_시타장면_01.jpg",
+          "converted": "bakyeotgu_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "박영구_시타장면_02.jpg",
+          "converted": "bakyeotgu_s3_swing-scene_02.webp"
+        },
+        {
+          "original": "박영구_시타장면_03.jpg",
+          "converted": "bakyeotgu_s3_swing-scene_03.webp"
+        },
+        {
+          "original": "박영구_시타장면_04.jpg",
+          "converted": "bakyeotgu_s3_swing-scene_04.webp"
+        },
+        {
+          "original": "박영구_측정_185.3m.jpg",
+          "converted": "bakyeotgu_s4_measurement_18.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.06.02.김상현",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.06.02.김상현",
+      "customerName": "김상현",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "kimsathyeon-6800",
+      "nameEn": "kimsathyeon",
+      "customerId": 13572,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "김상현_시타상담.jpeg",
+          "converted": "kimsathyeon_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김상현_시타장면-01.mov",
+          "converted": "kimsathyeon_s3_swing-scene_01.mov"
+        },
+        {
+          "original": "김상현_시타장면_02.jpeg",
+          "converted": "kimsathyeon_s3_swing-scene_02.webp"
+        },
+        {
+          "original": "김상현_아트월.jpeg",
+          "converted": "kimsathyeon_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.06.04.홍기봉-010-5270-8688",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.06.04.홍기봉-010-5270-8688",
+      "customerName": "홍기봉",
+      "phone": "010-5270-8688",
+      "year": "2025",
+      "convertedFolder": "hotgibot-8688",
+      "nameEn": "hotgibot",
+      "customerId": 13576,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "홍기봉_시타장면_01.jpeg",
+          "converted": "hotgibot_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "홍기봉_시타장면_02.jpeg",
+          "converted": "hotgibot_s3_swing-scene_02.webp"
+        },
+        {
+          "original": "홍기봉_아트월.jpeg",
+          "converted": "hotgibot_s5_art-wall_01.webp"
+        },
+        {
+          "original": "홍기봉_아트월_02.jpeg",
+          "converted": "hotgibot_s5_art-wall_02.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.06.05.민호식",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.06.05.민호식",
+      "customerName": "민호식",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "minhosik-5549",
+      "nameEn": "minhosik",
+      "customerId": 2041,
+      "status": "success",
+      "reason": "",
+      "fileCount": 17,
+      "files": [
+        {
+          "original": "민호식_시타상담.jpg",
+          "converted": "minhosik_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "민호식_시타영상-편집_01.mov",
+          "converted": "minhosik_s3_swing-video_01.mov"
+        },
+        {
+          "original": "민호식_시타영상_편집-04.MOV",
+          "converted": "minhosik_s3_swing-video-edited_04.mov"
+        },
+        {
+          "original": "민호식_시타영상_편집_02.mov",
+          "converted": "minhosik_s3_swing-video-edited_02.mov"
+        },
+        {
+          "original": "민호식_시타영상_편집_03.MOV",
+          "converted": "minhosik_s3_swing-video-edited_03.mov"
+        },
+        {
+          "original": "민호식_시타영상_편집_05.mov",
+          "converted": "minhosik_s3_swing-video-edited_05.mov"
+        },
+        {
+          "original": "민호식_시타장면_01.jpg",
+          "converted": "minhosik_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "민호식_시타장면_02.jpg",
+          "converted": "minhosik_s3_swing-scene_02.webp"
+        },
+        {
+          "original": "민호식_시타장면_03.jpg",
+          "converted": "minhosik_s3_swing-scene_03.webp"
+        },
+        {
+          "original": "민호식_시타장면_04.jpg",
+          "converted": "minhosik_s3_swing-scene_04.webp"
+        },
+        {
+          "original": "민호식_시타장면_05.png",
+          "converted": "minhosik_s3_swing-scene_05.webp"
+        },
+        {
+          "original": "민호식_시타장면_06.jpg",
+          "converted": "minhosik_s3_swing-scene_06.webp"
+        },
+        {
+          "original": "민호식_아트월-01.jpg",
+          "converted": "minhosik_s5_art-wall_01.webp"
+        },
+        {
+          "original": "민호식_아트월-03.png",
+          "converted": "minhosik_s5_art-wall_03.webp"
+        },
+        {
+          "original": "민호식_아트월-04.jpg",
+          "converted": "minhosik_s5_art-wall_04.webp"
+        },
+        {
+          "original": "민호식_아트월_02.jpg",
+          "converted": "minhosik_s5_art-wall_02.webp"
+        },
+        {
+          "original": "민호식_측정-248.4.jpg",
+          "converted": "minhosik_s4_measurement_24.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.09.08.김학규",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.09.08.김학규",
+      "customerName": "김학규",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "kimhakgyu-5084",
+      "nameEn": "kimhakgyu",
+      "customerId": 13747,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "김학규_시타상담.jpg",
+          "converted": "kimhakgyu_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김학규_시타영상.mov",
+          "converted": "kimhakgyu_s3_swing-video_01.mov"
+        },
+        {
+          "original": "김학규_시타장면.jpg",
+          "converted": "kimhakgyu_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "김학규_측정_216.4.jpg",
+          "converted": "kimhakgyu_s4_measurement_21.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.09.08.조병섭",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.09.08.조병섭",
+      "customerName": "조병섭",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "jobyeotseom-2002",
+      "nameEn": "jobyeotseom",
+      "customerId": 2444,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "조병섭_상담.jpg",
+          "converted": "jobyeotseom_s1_image_01.webp"
+        },
+        {
+          "original": "조병섭_시타영상.mov",
+          "converted": "jobyeotseom_s3_swing-video_01.mov"
+        },
+        {
+          "original": "조병섭_시타장면.jpg",
+          "converted": "jobyeotseom_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "조병섭_측정-216.4m.jpg",
+          "converted": "jobyeotseom_s4_measurement_21.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.09.26.윤종덕",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.09.26.윤종덕",
+      "customerName": "윤종덕",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "yunjotdeok-9809",
+      "nameEn": "yunjotdeok",
+      "customerId": 13759,
+      "status": "success",
+      "reason": "",
+      "fileCount": 2,
+      "files": [
+        {
+          "original": "윤종덕_상담.jpg",
+          "converted": "yunjotdeok_s1_image_01.webp"
+        },
+        {
+          "original": "윤종덕_시타장면.jpg",
+          "converted": "yunjotdeok_s3_swing-scene_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.10.13.안중철",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.13.안중철",
+      "customerName": "안중철",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "anjutcheot-3665",
+      "nameEn": "anjutcheot",
+      "customerId": 2018,
+      "status": "success",
+      "reason": "",
+      "fileCount": 1,
+      "files": [
+        {
+          "original": "안중철_사인.png",
+          "converted": "anjutcheot_s6_signature_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.10.14.정윤호",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.14.정윤호",
+      "customerName": "정윤호",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "jeotyunho-2942",
+      "nameEn": "jeotyunho",
+      "customerId": 2305,
+      "status": "success",
+      "reason": "",
+      "fileCount": 1,
+      "files": [
+        {
+          "original": "정윤호_사인.png",
+          "converted": "jeotyunho_s6_signature_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.10.14.채영태",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.14.채영태",
+      "customerName": "채영태",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "chaeyeottae-7508",
+      "nameEn": "chaeyeottae",
+      "customerId": 13633,
+      "status": "success",
+      "reason": "",
+      "fileCount": 0,
+      "files": []
+    },
+    {
+      "originalFolder": "2025.10.15.문은경",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.15.문은경",
+      "customerName": "문은경",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "muneungyeot-6710",
+      "nameEn": "muneungyeot",
+      "customerId": 13838,
+      "status": "success",
+      "reason": "",
+      "fileCount": 1,
+      "files": [
+        {
+          "original": "문은경_사인.png",
+          "converted": "muneungyeot_s6_signature_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.10.17.이주동",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.17.이주동",
+      "customerName": "이주동",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "ijudot-2716",
+      "nameEn": "ijudot",
+      "customerId": 13833,
+      "status": "success",
+      "reason": "",
+      "fileCount": 1,
+      "files": [
+        {
+          "original": "이주동_사인.png",
+          "converted": "ijudot_s6_signature_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.10.23.김종안",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.23.김종안",
+      "customerName": "김종안",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "kimjotan-3957",
+      "nameEn": "kimjotan",
+      "customerId": 1229,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "김종안_사인.jpg",
+          "converted": "kimjotan_s6_signature_01.webp"
+        },
+        {
+          "original": "김종안_상담.jpg",
+          "converted": "kimjotan_s1_image_02.webp"
+        },
+        {
+          "original": "김종안_시타장면_01.jpg",
+          "converted": "kimjotan_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "김종안_시타장면_02.MOV",
+          "converted": "kimjotan_s3_swing-scene_02.mov"
+        },
+        {
+          "original": "김종안_아트월.jpg",
+          "converted": "kimjotan_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.10.28.원종문",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.28.원종문",
+      "customerName": "원종문",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "wonjongmun-0002",
+      "nameEn": "wonjongmun",
+      "customerId": 13802,
+      "status": "success",
+      "reason": "",
+      "fileCount": 3,
+      "files": [
+        {
+          "original": "원종문_사인.jpg",
+          "converted": "wonjongmun_s6_signature_01.webp"
+        },
+        {
+          "original": "원종문_아트월.jpg",
+          "converted": "wonjongmun_s5_art-wall_01.webp"
+        },
+        {
+          "original": "원종문_측정-200.9m.jpg",
+          "converted": "wonjongmun_s4_measurement_20.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.11.06.강상휘",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.06.강상휘",
+      "customerName": "강상휘",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "gatsathwi-4111",
+      "nameEn": "gatsathwi",
+      "customerId": 13493,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "강상휘_사인.jpg",
+          "converted": "gatsathwi_s6_signature_01.webp"
+        },
+        {
+          "original": "강상휘_시타상담 02.jpg",
+          "converted": "gatsathwi_s4_swing-consultation_02.webp"
+        },
+        {
+          "original": "강상휘_시타상담-01.jpg",
+          "converted": "gatsathwi_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "강상휘_아트월.jpg",
+          "converted": "gatsathwi_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.11.06.장가반",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.06.장가반",
+      "customerName": "장가반",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "janggaban-3336",
+      "nameEn": "janggaban",
+      "customerId": 13716,
+      "status": "success",
+      "reason": "",
+      "fileCount": 3,
+      "files": [
+        {
+          "original": "장가반_시타상담.jpg",
+          "converted": "janggaban_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "장가반_아트월.jpg",
+          "converted": "janggaban_s5_art-wall_01.webp"
+        },
+        {
+          "original": "장가반_측정-269.6m.jpg",
+          "converted": "janggaban_s4_measurement_26.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.11.11.김홍창",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.11.김홍창",
+      "customerName": "김홍창",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "kimhotchat-9751",
+      "nameEn": "kimhotchat",
+      "customerId": 13628,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "김홍창_사인.jpg",
+          "converted": "kimhotchat_s6_signature_01.webp"
+        },
+        {
+          "original": "김홍창_시타영상_01.MOV",
+          "converted": "kimhotchat_s3_swing-video_01.mov"
+        },
+        {
+          "original": "김홍창_시타영상_02.MOV",
+          "converted": "kimhotchat_s3_swing-video_02.mov"
+        },
+        {
+          "original": "김홍창_아트월.jpg",
+          "converted": "kimhotchat_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.11.11.정태웅",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.11.정태웅",
+      "customerName": "정태웅",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "jeottaeut-8562",
+      "nameEn": "jeottaeut",
+      "customerId": 1004,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "정태웅_사인.jpg",
+          "converted": "jeottaeut_s6_signature_01.webp"
+        },
+        {
+          "original": "정태웅_시타상담.jpg",
+          "converted": "jeottaeut_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "정태웅_아트월.jpg",
+          "converted": "jeottaeut_s5_art-wall_01.webp"
+        },
+        {
+          "original": "정태웅_측정_231.7m.jpg",
+          "converted": "jeottaeut_s4_measurement_23.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.11.20.김승훈",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.20.김승훈",
+      "customerName": "김승훈",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "kimseuthun-4375",
+      "nameEn": "kimseuthun",
+      "customerId": 1543,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "김승훈_사인.jpg",
+          "converted": "kimseuthun_s6_signature_01.webp"
+        },
+        {
+          "original": "김승훈_시타상담.jpeg",
+          "converted": "kimseuthun_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김승훈_아트월.jpeg",
+          "converted": "kimseuthun_s5_art-wall_01.webp"
+        },
+        {
+          "original": "김승훈_측정_227.8m.jpeg",
+          "converted": "kimseuthun_s4_measurement_22.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.11.21.신희갑",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.21.신희갑",
+      "customerName": "신희갑",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "sinhuigap-7773",
+      "nameEn": "sinhuigap",
+      "customerId": 37,
+      "status": "success",
+      "reason": "",
+      "fileCount": 0,
+      "files": []
+    },
+    {
+      "originalFolder": "2025.11.23.신희갑",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.23.신희갑",
+      "customerName": "신희갑",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "sinhuigap-7773",
+      "nameEn": "sinhuigap",
+      "customerId": 37,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "신희갑_사인.jpg",
+          "converted": "sinhuigap_s6_signature_01.webp"
+        },
+        {
+          "original": "신희갑_샤프트.jpeg",
+          "converted": "sinhuigap_s1_image_02.webp"
+        },
+        {
+          "original": "신희갑_시타영상.MOV",
+          "converted": "sinhuigap_s3_swing-video_01.mov"
+        },
+        {
+          "original": "신희갑_시타장면_01.png",
+          "converted": "sinhuigap_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "신희갑_아트월.jpeg",
+          "converted": "sinhuigap_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.11.24.이상천",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.24.이상천",
+      "customerName": "이상천",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "isatcheon-5282",
+      "nameEn": "isatcheon",
+      "customerId": 650,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "이상천_사인.jpg",
+          "converted": "isatcheon_s6_signature_01.webp"
+        },
+        {
+          "original": "이상천_시타상담.jpg",
+          "converted": "isatcheon_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "이상천_시타영상.MOV",
+          "converted": "isatcheon_s3_swing-video_01.mov"
+        },
+        {
+          "original": "이상천_측정_203.7m.jpg",
+          "converted": "isatcheon_s4_measurement_20.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.12.02.김원풍운",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.12.02.김원풍운",
+      "customerName": "김원풍운",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "kimwonputun-4416",
+      "nameEn": "kimwonputun",
+      "customerId": 15185,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "김원풍운_시타상담.jpg",
+          "converted": "kimwonputun_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김원풍운_아트월_01.jpg",
+          "converted": "kimwonputun_s5_art-wall_01.webp"
+        },
+        {
+          "original": "김원풍운_아트월_02.jpg",
+          "converted": "kimwonputun_s5_art-wall_02.webp"
+        },
+        {
+          "original": "김원풍운_아트월_03.jpg",
+          "converted": "kimwonputun_s5_art-wall_03.webp"
+        },
+        {
+          "original": "김원풍운_아트월_04.jpg",
+          "converted": "kimwonputun_s5_art-wall_04.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.12.18.김석구",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.12.18.김석구",
+      "customerName": "김석구",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "kimseokgu-6302",
+      "nameEn": "kimseokgu",
+      "customerId": 13542,
+      "status": "success",
+      "reason": "",
+      "fileCount": 3,
+      "files": [
+        {
+          "original": "김석구_사인.jpg",
+          "converted": "kimseokgu_s6_signature_01.webp"
+        },
+        {
+          "original": "김석구_시타상담.jpg",
+          "converted": "kimseokgu_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김석구_측정_232.8m.jpg",
+          "converted": "kimseokgu_s4_measurement_23.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.12.18.김정석",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.12.18.김정석",
+      "customerName": "김정석",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "kimjeotseok-8351",
+      "nameEn": "kimjeotseok",
+      "customerId": 13941,
+      "status": "success",
+      "reason": "",
+      "fileCount": 7,
+      "files": [
+        {
+          "original": "김정석_사인.jpg",
+          "converted": "kimjeotseok_s6_signature_01.webp"
+        },
+        {
+          "original": "김정석_시타상담.jpg",
+          "converted": "kimjeotseok_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "김정석_시타장면_01.jpg",
+          "converted": "kimjeotseok_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "김정석_시타장면_02.jpg",
+          "converted": "kimjeotseok_s3_swing-scene_02.webp"
+        },
+        {
+          "original": "김정석_아트월-03.jpg",
+          "converted": "kimjeotseok_s5_art-wall_03.webp"
+        },
+        {
+          "original": "김정석_아트월_01.jpg",
+          "converted": "kimjeotseok_s5_art-wall_01.webp"
+        },
+        {
+          "original": "김정석_아트월_02.jpg",
+          "converted": "kimjeotseok_s5_art-wall_02.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.12.19. 강영길",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.12.19. 강영길",
+      "customerName": "강영길",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "gatyeotgit-5774",
+      "nameEn": "gatyeotgit",
+      "customerId": 13725,
+      "status": "success",
+      "reason": "",
+      "fileCount": 4,
+      "files": [
+        {
+          "original": "강영길_사인.jpg",
+          "converted": "gatyeotgit_s6_signature_01.webp"
+        },
+        {
+          "original": "강영길_시타상담_01.jpg",
+          "converted": "gatyeotgit_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "강영길_시타상담_02.jpg",
+          "converted": "gatyeotgit_s4_swing-consultation_02.webp"
+        },
+        {
+          "original": "강영길_아트월.jpg",
+          "converted": "gatyeotgit_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2025.12.26.박동렬",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.12.26.박동렬",
+      "customerName": "박동렬",
+      "phone": null,
+      "year": "2025",
+      "convertedFolder": "bakdotryeot-5411",
+      "nameEn": "bakdotryeot",
+      "customerId": 2442,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "박동렬_기타.jpg",
+          "converted": "bakdotryeot_s1_image_01.webp"
+        },
+        {
+          "original": "박동렬_사인.jpg",
+          "converted": "bakdotryeot_s6_signature_01.webp"
+        },
+        {
+          "original": "박동렬_시타상담.jpg",
+          "converted": "bakdotryeot_s4_swing-consultation_01.webp"
+        },
+        {
+          "original": "박동렬_시타장면_02.jpg",
+          "converted": "bakdotryeot_s3_swing-scene_02.webp"
+        },
+        {
+          "original": "박동렬_아트월_01.jpg",
+          "converted": "bakdotryeot_s5_art-wall_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2026.01.05.신희갑",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2026/2026.01.05.신희갑",
+      "customerName": "신희갑",
+      "phone": null,
+      "year": "2026",
+      "convertedFolder": "sinhuigap-7773",
+      "nameEn": "sinhuigap",
+      "customerId": 37,
+      "status": "success",
+      "reason": "",
+      "fileCount": 5,
+      "files": [
+        {
+          "original": "신희갑_기타_01.jpg",
+          "converted": "sinhuigap_s1_image_01.webp"
+        },
+        {
+          "original": "신희갑_기타_02.jpg",
+          "converted": "sinhuigap_s1_image_02.webp"
+        },
+        {
+          "original": "신희갑_기타_03.jpg",
+          "converted": "sinhuigap_s1_image_03.webp"
+        },
+        {
+          "original": "신희갑_기타_04.jpg",
+          "converted": "sinhuigap_s1_image_04.webp"
+        },
+        {
+          "original": "신희갑_기타영상.MOV",
+          "converted": "sinhuigap_s1_image_05.mov"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2026.01.07.박진욱",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2026/2026.01.07.박진욱",
+      "customerName": "박진욱",
+      "phone": null,
+      "year": "2026",
+      "convertedFolder": "bakjinuk-8333",
+      "nameEn": "bakjinuk",
+      "customerId": 2484,
+      "status": "success",
+      "reason": "",
+      "fileCount": 1,
+      "files": [
+        {
+          "original": "박진욱_사인.jpg",
+          "converted": "bakjinuk_s6_signature_01.webp"
+        }
+      ]
+    },
+    {
+      "originalFolder": "2026.01.08.김가영",
+      "fullFolderPath": "/Users/m2/MASLABS/00.blog_customers/2026/2026.01.08.김가영",
+      "customerName": "김가영",
+      "phone": null,
+      "year": "2026",
+      "convertedFolder": "kimgayeot-0599",
+      "nameEn": "kimgayeot",
+      "customerId": 1109,
+      "status": "success",
+      "reason": "",
+      "fileCount": 12,
+      "files": [
+        {
+          "original": "김가영_사인.png",
+          "converted": "kimgayeot_s6_signature_01.webp"
+        },
+        {
+          "original": "김가영_상담_01.jpg",
+          "converted": "kimgayeot_s1_image_02.webp"
+        },
+        {
+          "original": "김가영_상담_02.jpg",
+          "converted": "kimgayeot_s1_image_03.webp"
+        },
+        {
+          "original": "김가영_시타영상_01.MOV",
+          "converted": "kimgayeot_s3_swing-video_01.mov"
+        },
+        {
+          "original": "김가영_시타영상_02.MOV",
+          "converted": "kimgayeot_s3_swing-video_02.mov"
+        },
+        {
+          "original": "김가영_시타장면_01.jpg",
+          "converted": "kimgayeot_s3_swing-scene_01.webp"
+        },
+        {
+          "original": "김가영_시타장면_02.jpg",
+          "converted": "kimgayeot_s3_swing-scene_02.webp"
+        },
+        {
+          "original": "김가영_시타장면_03.jpg",
+          "converted": "kimgayeot_s3_swing-scene_03.webp"
+        },
+        {
+          "original": "김가영_시타장면_04.jpg",
+          "converted": "kimgayeot_s3_swing-scene_04.webp"
+        },
+        {
+          "original": "김가영_아트월_01.jpg",
+          "converted": "kimgayeot_s5_art-wall_01.webp"
+        },
+        {
+          "original": "김가영_아트월_02.jpg",
+          "converted": "kimgayeot_s5_art-wall_02.webp"
+        },
+        {
+          "original": "김가영_아트월_03.jpg",
+          "converted": "kimgayeot_s5_art-wall_03.webp"
+        }
+      ]
+    }
+  ],
+  "byYear": {
+    "2022": {
+      "total": 1,
+      "success": 1,
+      "failed": 0,
+      "unknown": 0
+    },
+    "2023": {
+      "total": 30,
+      "success": 30,
+      "failed": 0,
+      "unknown": 0
+    },
+    "2024": {
+      "total": 28,
+      "success": 27,
+      "failed": 0,
+      "unknown": 1
+    },
+    "2025": {
+      "total": 40,
+      "success": 40,
+      "failed": 0,
+      "unknown": 0
+    },
+    "2026": {
+      "total": 3,
+      "success": 3,
+      "failed": 0,
+      "unknown": 0
+    }
+  },
+  "duplicates": [
+    {
+      "name": "조영수",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.01.02.조영수",
+      "reason": "전화번호가 없어 중복 이름 구분 불가"
+    }
+  ]
+}
