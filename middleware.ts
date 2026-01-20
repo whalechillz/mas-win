@@ -25,6 +25,12 @@ export async function middleware(request: NextRequest) {
 
   // ✅ 관리자 API 경로 인증 체크
   if (pathname.startsWith('/api/admin') || pathname.startsWith('/api/channels')) {
+    // ✅ cron-job.org 호출 허용 (send-scheduled-sms는 자체 인증 로직 사용)
+    // 미들웨어에서 완전히 제외하여 API 내부 인증 로직이 처리하도록 함
+    if (pathname === '/api/admin/send-scheduled-sms') {
+      return NextResponse.next();
+    }
+    
     try {
       // Edge Runtime에서 getToken이 불안정할 수 있으므로 쿠키도 직접 확인
       const sessionCookieNames = [
