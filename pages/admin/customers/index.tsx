@@ -11,6 +11,7 @@ import { createClient } from '@supabase/supabase-js';
 import { uploadImageToSupabase } from '../../../lib/image-upload-utils';
 import { generateCustomerImageFileName, getCustomerInitials } from '../../../lib/customer-image-filename-generator';
 import { generateCustomerFolderName, getCustomerNameEn } from '../../../lib/customer-folder-name-generator';
+import { extractProvince, extractCity } from '../../../lib/address-utils';
 
 type Customer = {
   id: number;
@@ -88,6 +89,29 @@ export default function CustomersPage() {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [selectedCustomerForInfo, setSelectedCustomerForInfo] = useState<Customer | null>(null);
   const [showMessageSendModal, setShowMessageSendModal] = useState(false);
+  
+  // 위치 정보 관리 관련 state
+  const [activeTab, setActiveTab] = useState<'list' | 'geocoding'>('list');
+  const [geocodingCustomers, setGeocodingCustomers] = useState<any[]>([]);
+  const [geocodingTotal, setGeocodingTotal] = useState(0);
+  const [geocodingTotalAll, setGeocodingTotalAll] = useState(0);
+  const [geocodingPage, setGeocodingPage] = useState(1);
+  const [geocodingPageSize, setGeocodingPageSize] = useState(100);
+  const [loadingGeocoding, setLoadingGeocoding] = useState(false);
+  const [batchGeocoding, setBatchGeocoding] = useState(false);
+  // 단순화: 상태 필터를 하나로 통합 (거리 있는 고객 / 거리 없는 고객 / 전체)
+  const [geocodingStatus, setGeocodingStatus] = useState<'all' | 'with_distance' | 'without_distance'>('all');
+  const [geocodingProvince, setGeocodingProvince] = useState<string>('all');
+  const [geocodingDistanceRange, setGeocodingDistanceRange] = useState<string>('all');
+  const [geocodingSortBy, setGeocodingSortBy] = useState<'name' | 'address' | 'status' | 'distance'>('name');
+  const [geocodingSortOrder, setGeocodingSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [editingGeocoding, setEditingGeocoding] = useState<{
+    customer: any;
+    address: string;
+  } | null>(null);
+  const [updatingGeocoding, setUpdatingGeocoding] = useState(false);
+  const [selectedGeocodingCustomerIds, setSelectedGeocodingCustomerIds] = useState<number[]>([]);
+  const [showBatchGeocodingModal, setShowBatchGeocodingModal] = useState(false);
 
   const fetchCustomers = async (nextPage = page, searchOverride?: string) => {
     setLoading(true);
@@ -133,6 +157,195 @@ export default function CustomersPage() {
   };
 
   const normalizePhone = (phone?: string | null) => phone ? phone.replace(/[^0-9]/g, '') : '';
+
+  // 위치 정보 관리 함수들
+  const fetchGeocodingCustomers = async (pageOverride?: number) => {
+    setLoadingGeocoding(true);
+    try {
+      const currentPage = pageOverride !== undefined ? pageOverride : geocodingPage;
+      const offset = (currentPage - 1) * geocodingPageSize;
+      
+      const params = new URLSearchParams({
+        status: geocodingStatus,
+        limit: String(geocodingPageSize),
+        offset: String(offset),
+        sortBy: geocodingSortBy,
+        sortOrder: geocodingSortOrder,
+      });
+      
+      if (geocodingProvince && geocodingProvince !== 'all') {
+        params.append('province', geocodingProvince);
+      }
+      
+      if (geocodingDistanceRange && geocodingDistanceRange !== 'all') {
+        if (geocodingDistanceRange.includes('이상')) {
+          // "100-이상" 형식
+          const min = geocodingDistanceRange.replace('-이상', '').replace('km', '').trim();
+          if (min) params.append('distanceMin', min);
+        } else {
+          // "0-10", "10-50" 형식
+          const [min, max] = geocodingDistanceRange.split('-').map(v => v.replace('km', '').trim());
+          if (min) params.append('distanceMin', min);
+          if (max) params.append('distanceMax', max);
+        }
+      }
+      
+      const res = await fetch(`/api/admin/customers/geocoding?${params.toString()}`);
+      const json = await res.json();
+      
+      if (json.success) {
+        setGeocodingCustomers(json.data?.customers || []);
+        setGeocodingTotal(json.data?.total || 0);
+        setGeocodingTotalAll(json.data?.totalAll || 0);
+        if (pageOverride !== undefined) {
+          setGeocodingPage(pageOverride);
+        }
+      } else {
+        alert(json.message || '조회에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('위치 정보 조회 오류:', error);
+      alert(error.message || '조회 중 오류가 발생했습니다.');
+    } finally {
+      setLoadingGeocoding(false);
+    }
+  };
+
+  // 위치 정보 수동 업데이트
+  const handleUpdateGeocoding = async () => {
+    if (!editingGeocoding || !editingGeocoding.address.trim()) {
+      alert('주소를 입력해주세요.');
+      return;
+    }
+
+    setUpdatingGeocoding(true);
+    try {
+      const res = await fetch('/api/admin/customers/geocoding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId: editingGeocoding.customer.customer_id,
+          address: editingGeocoding.address.trim(),
+        }),
+      });
+
+      const json = await res.json();
+
+      if (json.success) {
+        alert(json.message || '주소가 저장되었습니다.');
+        setEditingGeocoding(null);
+        fetchGeocodingCustomers();
+      } else {
+        alert(json.message || '업데이트에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('위치 정보 업데이트 오류:', error);
+      alert(error.message || '업데이트 중 오류가 발생했습니다.');
+    } finally {
+      setUpdatingGeocoding(false);
+    }
+  };
+
+  // 지오코딩 일괄 실행 함수
+  const handleBatchGeocoding = async (forceReRun: boolean = false) => {
+    const selectedCustomers = geocodingCustomers.filter(
+      (c: any) => c.customer_id && selectedGeocodingCustomerIds.includes(c.customer_id)
+    );
+    
+    const targetCustomers = selectedCustomers.length > 0 
+      ? selectedCustomers 
+      : geocodingCustomers;
+    
+    if (targetCustomers.length === 0) {
+      alert('처리할 고객이 없습니다.');
+      return;
+    }
+    
+    const count = targetCustomers.length;
+    const isSelected = selectedCustomers.length > 0;
+    
+    if (
+      !confirm(
+        `${isSelected ? '선택된' : '모든'} ${count}명의 고객에 대해 카카오맵 API를 ${forceReRun ? '전체 재' : isSelected ? '재' : ''}호출하시겠습니까?\n\n${forceReRun ? '⚠️ 전체 재실행: 이미 지오코딩된 고객도 다시 실행합니다.\n' : 'ℹ️ 정보 없는 사람만: 지오코딩 정보가 없는 고객만 실행합니다.\n'}주의: API 호출 제한이 있을 수 있으므로 시간이 걸릴 수 있습니다.`
+      )
+    ) {
+      return;
+    }
+    
+    setBatchGeocoding(true);
+    try {
+      const customerIds = isSelected 
+        ? targetCustomers.map((c: any) => c.customer_id).filter(Boolean)
+        : undefined;
+      
+      const res = await fetch('/api/admin/customers/batch-geocoding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          customerIds: customerIds,
+          limit: customerIds ? undefined : 10000,
+          forceReRun: forceReRun
+        }),
+      });
+
+      const json = await res.json();
+      
+      if (json.success) {
+        const message = `${json.message}\n\n처리: ${json.data.processed}건\n성공: ${json.data.success}건\n실패: ${json.data.failed}건`;
+        
+        if (json.data.errors && json.data.errors.length > 0) {
+          const errorDetails = json.data.errors.slice(0, 10).join('\n');
+          alert(`${message}\n\n실패 상세 (최대 10개):\n${errorDetails}`);
+        } else {
+          alert(message);
+        }
+        
+        setSelectedGeocodingCustomerIds([]);
+        setShowBatchGeocodingModal(false);
+        await fetchGeocodingCustomers();
+      } else {
+        alert(json.message || '일괄 지오코딩에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('일괄 지오코딩 오류:', error);
+      alert('일괄 지오코딩 중 오류가 발생했습니다.');
+    } finally {
+      setBatchGeocoding(false);
+    }
+  };
+
+  // 위치 정보 관리 정렬 핸들러
+  const handleGeocodingSort = (column: 'name' | 'address' | 'status' | 'distance') => {
+    if (geocodingSortBy === column) {
+      setGeocodingSortOrder(geocodingSortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setGeocodingSortBy(column);
+      setGeocodingSortOrder('asc');
+    }
+  };
+
+  // 백엔드에서 정렬을 처리하므로 프론트엔드 정렬 제거
+  // API에서 이미 정렬된 순서로 데이터를 반환하므로 그대로 사용
+  const sortedGeocodingCustomers = geocodingCustomers;
+
+  // 체크박스 관련 함수들
+  const handleSelectGeocodingCustomer = (customerId: number) => {
+    setSelectedGeocodingCustomerIds((prev) =>
+      prev.includes(customerId) ? prev.filter((id) => id !== customerId) : [...prev, customerId]
+    );
+  };
+
+  const handleSelectAllGeocodingCustomers = () => {
+    const allCustomerIds = geocodingCustomers
+      .filter((c: any) => c.customer_id)
+      .map((c: any) => c.customer_id);
+    
+    if (selectedGeocodingCustomerIds.length === allCustomerIds.length) {
+      setSelectedGeocodingCustomerIds([]);
+    } else {
+      setSelectedGeocodingCustomerIds(allCustomerIds);
+    }
+  };
 
   // 초기 로드 & URL 파라미터 반영
   useEffect(() => {
@@ -364,6 +577,36 @@ export default function CustomersPage() {
     }
   }, [customers, pendingAutoEditPhone, handleEdit]);
 
+  // 위치 정보 관리 필터 변경 시 자동 조회 (debounce 적용)
+  useEffect(() => {
+    if (activeTab !== 'geocoding') return;
+    
+    const timer = setTimeout(() => {
+      setGeocodingPage(1); // 필터 변경 시 첫 페이지로 리셋
+      fetchGeocodingCustomers(1);
+    }, 300); // 300ms 지연
+    
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geocodingStatus, geocodingProvince, geocodingDistanceRange, geocodingSortBy, geocodingSortOrder, activeTab]);
+
+  // 위치 정보 관리 pageSize 변경 시 자동 조회
+  useEffect(() => {
+    if (activeTab !== 'geocoding') return;
+    
+    setGeocodingPage(1); // pageSize 변경 시 첫 페이지로 리셋
+    fetchGeocodingCustomers(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geocodingPageSize]);
+
+  // 위치 정보 관리 탭 활성화 시 자동 조회
+  useEffect(() => {
+    if (activeTab === 'geocoding' && geocodingCustomers.length === 0) {
+      fetchGeocodingCustomers(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
   // 전화번호 포맷팅 (하이픈 추가)
   const formatPhone = (phone: string) => {
     if (!phone) return '';
@@ -498,97 +741,146 @@ export default function CustomersPage() {
       <div className="min-h-screen bg-gray-50">
         <AdminNav />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">고객 관리</h1>
-              <p className="text-sm text-gray-600 mt-1">총 {count.toLocaleString()}명</p>
-            </div>
-            <div className="flex gap-2">
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="이름/번호/주소 검색 (실시간)"
-                className="px-3 py-2 border rounded-md"
-              />
-              <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input 
-                  type="checkbox" 
-                  checked={onlyOptOut} 
-                  onChange={(e) => {
-                    setOnlyOptOut(e.target.checked);
-                  }} 
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">고객 관리</h1>
+                <p className="text-sm text-gray-600 mt-1">
+                  {activeTab === 'list' 
+                    ? `총 ${count.toLocaleString()}명`
+                    : (() => {
+                        const statusLabel = geocodingStatus === 'with_distance' 
+                          ? '거리 있는 고객' 
+                          : geocodingStatus === 'without_distance' 
+                          ? '거리 없는 고객' 
+                          : '전체 고객';
+                        return geocodingStatus === 'all'
+                          ? `전체 고객 ${geocodingTotalAll.toLocaleString()}명`
+                          : `전체 고객 ${geocodingTotalAll.toLocaleString()}명 중 ${statusLabel} ${geocodingTotal.toLocaleString()}명`;
+                      })()
+                  }
+                </p>
+              </div>
+            {/* 고객 목록 탭에서만 상단 컨트롤 표시 */}
+            {activeTab === 'list' && (
+              <div className="flex gap-2">
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="이름/번호/주소 검색 (실시간)"
+                  className="px-3 py-2 border rounded-md"
                 />
-                수신거부만
-              </label>
-              <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input 
-                  type="checkbox" 
-                  checked={onlyWithImages} 
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input 
+                    type="checkbox" 
+                    checked={onlyOptOut} 
+                    onChange={(e) => {
+                      setOnlyOptOut(e.target.checked);
+                    }} 
+                  />
+                  수신거부만
+                </label>
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input 
+                    type="checkbox" 
+                    checked={onlyWithImages} 
+                    onChange={(e) => {
+                      setOnlyWithImages(e.target.checked);
+                    }} 
+                  />
+                  이미지 있는 고객만
+                </label>
+                <select
+                  value={pageSize}
                   onChange={(e) => {
-                    setOnlyWithImages(e.target.checked);
-                  }} 
-                />
-                이미지 있는 고객만
-              </label>
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setPage(1);
-                }}
-                className="px-3 py-2 border rounded-md text-sm"
-              >
-                <option value={100}>100개씩</option>
-                <option value={500}>500개씩</option>
-                <option value={1000}>1000개씩</option>
-              </select>
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={async () => {
-                    setUpdatingVipLevels(true);
-                    try {
-                      const res = await fetch('/api/admin/customers/update-vip-levels', {
-                        method: 'POST',
-                        credentials: 'include',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                      });
-                      const json = await res.json();
-                      if (json.success) {
-                        alert(`VIP 레벨 업데이트 완료!\n${json.message}\n\n분포:\n- Platinum: ${json.stats?.distribution?.platinum || 0}명\n- Gold: ${json.stats?.distribution?.gold || 0}명\n- Silver: ${json.stats?.distribution?.silver || 0}명\n- Bronze: ${json.stats?.distribution?.bronze || 0}명\n- 비구매자: ${json.stats?.distribution?.noPurchase || 0}명`);
-                        fetchCustomers(1);
-                      } else {
-                        alert('VIP 레벨 업데이트 실패: ' + json.message);
-                      }
-                    } catch (error) {
-                      console.error('VIP 레벨 업데이트 오류:', error);
-                      alert('VIP 레벨 업데이트 중 오류가 발생했습니다.');
-                    } finally {
-                      setUpdatingVipLevels(false);
-                    }
+                    setPageSize(Number(e.target.value));
+                    setPage(1);
                   }}
-                  disabled={updatingVipLevels}
-                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
+                  className="px-3 py-2 border rounded-md text-sm"
                 >
-                  {updatingVipLevels ? '업데이트 중...' : '⭐ VIP 레벨 자동 업데이트'}
+                  <option value={100}>100개씩</option>
+                  <option value={500}>500개씩</option>
+                  <option value={1000}>1000개씩</option>
+                </select>
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={async () => {
+                      setUpdatingVipLevels(true);
+                      try {
+                        const res = await fetch('/api/admin/customers/update-vip-levels', {
+                          method: 'POST',
+                          credentials: 'include',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                        });
+                        const json = await res.json();
+                        if (json.success) {
+                          alert(`VIP 레벨 업데이트 완료!\n${json.message}\n\n분포:\n- Platinum: ${json.stats?.distribution?.platinum || 0}명\n- Gold: ${json.stats?.distribution?.gold || 0}명\n- Silver: ${json.stats?.distribution?.silver || 0}명\n- Bronze: ${json.stats?.distribution?.bronze || 0}명\n- 비구매자: ${json.stats?.distribution?.noPurchase || 0}명`);
+                          fetchCustomers(1);
+                        } else {
+                          alert('VIP 레벨 업데이트 실패: ' + json.message);
+                        }
+                      } catch (error) {
+                        console.error('VIP 레벨 업데이트 오류:', error);
+                        alert('VIP 레벨 업데이트 중 오류가 발생했습니다.');
+                      } finally {
+                        setUpdatingVipLevels(false);
+                      }
+                    }}
+                    disabled={updatingVipLevels}
+                    className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
+                  >
+                    {updatingVipLevels ? '업데이트 중...' : '⭐ VIP 레벨 자동 업데이트'}
+                  </button>
+                </div>
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  ➕ 고객 추가
+                </button>
+                <button
+                  onClick={() => setShowImportModal(true)}
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  📥 고객 데이터 가져오기
                 </button>
               </div>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                ➕ 고객 추가
-              </button>
-              <button
-                onClick={() => setShowImportModal(true)}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              >
-                📥 고객 데이터 가져오기
-              </button>
-            </div>
+            )}
           </div>
 
+          {/* 탭 메뉴 */}
+          <div className="border-b border-gray-200 mb-6">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('list')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'list'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                고객 목록
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('geocoding');
+                }}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'geocoding'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                위치 정보 관리
+              </button>
+            </nav>
+          </div>
+
+          {/* 탭별 콘텐츠 */}
+          {activeTab === 'list' && (
+            <>
           {/* 누락 고객 임포트 결과 메시지 */}
           {importResult && importResult.total !== undefined && (
             <div className={`mb-4 p-3 rounded-md ${importResult.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
@@ -601,7 +893,7 @@ export default function CustomersPage() {
             </div>
           )}
 
-          <div className="bg-white border rounded-lg overflow-hidden">
+          <div className="bg-white border rounded-lg overflow-x-auto overflow-y-visible pb-32">
             <table className="min-w-full text-sm">
               <thead className="bg-gray-100">
                 <tr>
@@ -735,7 +1027,7 @@ export default function CustomersPage() {
                           
                           {showActionMenu && selectedCustomerForActions?.id === c.id && (
                             <div 
-                              className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
+                              className="absolute right-0 top-full mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <button
@@ -803,6 +1095,459 @@ export default function CustomersPage() {
               <div>{page} / {totalPages}</div>
               <button disabled={page>=totalPages} onClick={() => fetchCustomers(page+1)} className="px-3 py-1 border rounded disabled:opacity-50">다음</button>
             </div>
+          </div>
+            </>
+          )}
+
+          {/* 위치 정보 관리 탭 */}
+          {activeTab === 'geocoding' && (
+            <>
+              {/* 필터 및 버튼 (고객 목록 탭과 동일한 레이아웃) */}
+              <div className="flex items-center justify-between mb-4">
+                <div></div>
+                <div className="flex gap-2 flex-wrap items-center">
+                  {loadingGeocoding && (
+                    <div className="text-sm text-gray-600 flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      조회 중...
+                    </div>
+                  )}
+                  <select
+                    value={geocodingStatus}
+                    onChange={(e) => setGeocodingStatus(e.target.value as any)}
+                    disabled={loadingGeocoding}
+                    className="px-3 py-2 border rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="all">전체</option>
+                    <option value="with_distance">거리 있는 고객</option>
+                    <option value="without_distance">거리 없는 고객</option>
+                  </select>
+                  <select
+                    value={geocodingProvince}
+                    onChange={(e) => setGeocodingProvince(e.target.value)}
+                    disabled={loadingGeocoding}
+                    className="px-3 py-2 border rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="all">도 단위: 전체</option>
+                    <option value="서울">도 단위: 서울</option>
+                    <option value="부산">도 단위: 부산</option>
+                    <option value="대구">도 단위: 대구</option>
+                    <option value="인천">도 단위: 인천</option>
+                    <option value="광주">도 단위: 광주</option>
+                    <option value="대전">도 단위: 대전</option>
+                    <option value="울산">도 단위: 울산</option>
+                    <option value="세종">도 단위: 세종</option>
+                    <option value="경기">도 단위: 경기</option>
+                    <option value="강원">도 단위: 강원</option>
+                    <option value="충북">도 단위: 충북</option>
+                    <option value="충남">도 단위: 충남</option>
+                    <option value="전북">도 단위: 전북</option>
+                    <option value="전남">도 단위: 전남</option>
+                    <option value="경북">도 단위: 경북</option>
+                    <option value="경남">도 단위: 경남</option>
+                    <option value="제주">도 단위: 제주</option>
+                  </select>
+                  <select
+                    value={geocodingDistanceRange}
+                    onChange={(e) => setGeocodingDistanceRange(e.target.value)}
+                    disabled={loadingGeocoding}
+                    className="px-3 py-2 border rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="all">거리 범위: 전체</option>
+                    <option value="0-10">거리 범위: 0-10km</option>
+                    <option value="10-50">거리 범위: 10-50km</option>
+                    <option value="50-100">거리 범위: 50-100km</option>
+                    <option value="100-이상">거리 범위: 100km 이상</option>
+                  </select>
+                  <select
+                    value={geocodingPageSize}
+                    onChange={(e) => {
+                      setGeocodingPageSize(Number(e.target.value));
+                      setGeocodingPage(1);
+                    }}
+                    disabled={loadingGeocoding}
+                    className="px-3 py-2 border rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value={100}>100개씩</option>
+                    <option value={500}>500개씩</option>
+                    <option value={1000}>1000개씩</option>
+                  </select>
+                  <button
+                    onClick={() => {
+                      if (selectedGeocodingCustomerIds.length > 0) {
+                        handleBatchGeocoding(true);
+                      } else {
+                        setShowBatchGeocodingModal(true);
+                      }
+                    }}
+                    disabled={batchGeocoding || loadingGeocoding}
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                  >
+                    {batchGeocoding
+                      ? '지오코딩 실행 중...'
+                      : selectedGeocodingCustomerIds.length > 0
+                        ? `🗺️ 지오코딩 일괄 실행 (${selectedGeocodingCustomerIds.length}개)`
+                        : '🗺️ 지오코딩 일괄 실행 (전체)'}
+                  </button>
+                </div>
+              </div>
+
+              {/* 위치 정보 고객 목록 */}
+              {loadingGeocoding ? (
+                <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">로딩 중...</div>
+              ) : geocodingCustomers.length > 0 ? (
+                <div className="bg-white rounded-lg shadow overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                            <input
+                              type="checkbox"
+                              checked={
+                                geocodingCustomers.length > 0 &&
+                                selectedGeocodingCustomerIds.length === geocodingCustomers.filter((c: any) => c.customer_id).length &&
+                                geocodingCustomers.filter((c: any) => c.customer_id).length > 0
+                              }
+                              onChange={handleSelectAllGeocodingCustomers}
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                          </th>
+                          <th 
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleGeocodingSort('name')}
+                          >
+                            이름 {geocodingSortBy === 'name' && (geocodingSortOrder === 'asc' ? '▲' : '▼')}
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            전화번호
+                          </th>
+                          <th 
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleGeocodingSort('address')}
+                          >
+                            주소 {geocodingSortBy === 'address' && (geocodingSortOrder === 'asc' ? '▲' : '▼')}
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            도 단위
+                          </th>
+                          <th 
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleGeocodingSort('status')}
+                          >
+                            상태 {geocodingSortBy === 'status' && (geocodingSortOrder === 'asc' ? '▲' : '▼')}
+                          </th>
+                          <th 
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleGeocodingSort('distance')}
+                          >
+                            거리(km) {geocodingSortBy === 'distance' && (geocodingSortOrder === 'asc' ? '▲' : '▼')}
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            액션
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {sortedGeocodingCustomers.map((customer: any, idx: number) => {
+                          const isSelected = customer.customer_id && selectedGeocodingCustomerIds.includes(customer.customer_id);
+                          
+                          return (
+                            <tr key={idx} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                {customer.customer_id && (
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => handleSelectGeocodingCustomer(customer.customer_id)}
+                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                  />
+                                )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-gray-900">{customer.name}</span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.phone}</td>
+                              <td className="px-6 py-4 text-sm">
+                                <div className="space-y-2">
+                                  {/* 지오코딩 주소 */}
+                                  <div>
+                                    <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700 mb-1">
+                                      지오코딩(카카오맵)
+                                    </span>
+                                    <div className="text-sm mt-0.5">
+                                      {!customer.effective_address ? (
+                                        <span className="text-red-500 italic">주소 없음</span>
+                                      ) : customer.effective_address.startsWith('[') || customer.effective_address === 'N/A' ? (
+                                        <span className="text-gray-400 italic">{customer.effective_address}</span>
+                                      ) : (
+                                        <span className="text-gray-700">{customer.effective_address}</span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* 설문 주소 */}
+                                  <div>
+                                    <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 mb-1">
+                                      설문주소
+                                    </span>
+                                    <div className="text-sm mt-0.5">
+                                      {!customer.survey_address ? (
+                                        <span className="text-red-500 italic">없음</span>
+                                      ) : customer.survey_address.startsWith('[') || customer.survey_address === 'N/A' ? (
+                                        <span className="text-gray-400 italic">{customer.survey_address}</span>
+                                      ) : (
+                                        <span className="text-gray-700">{customer.survey_address}</span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* 고객관리 주소 */}
+                                  <div>
+                                    <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 mb-1">
+                                      고객관리주소
+                                    </span>
+                                    <div className="text-sm mt-0.5">
+                                      {!customer.customer_address ? (
+                                        <span className="text-red-500 italic">없음</span>
+                                      ) : customer.customer_address.startsWith('[') || customer.customer_address === 'N/A' ? (
+                                        <span className="text-gray-400 italic">{customer.customer_address}</span>
+                                      ) : (
+                                        <span className="text-gray-700">{customer.customer_address}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                {(() => {
+                                  // province가 없으면 주소에서 추출
+                                  const province = customer.province || extractProvince(
+                                    customer.effective_address || customer.survey_address || customer.customer_address
+                                  );
+                                  const city = extractCity(
+                                    customer.effective_address || customer.survey_address || customer.customer_address
+                                  );
+                                  
+                                  if (province) {
+                                    return (
+                                      <div className="flex flex-col gap-1">
+                                        <span className="inline-flex px-2 py-1 rounded text-xs font-medium bg-indigo-100 text-indigo-700">
+                                          {province}
+                                        </span>
+                                        {city && (
+                                          <span className="inline-flex px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                                            {city}
+                                          </span>
+                                        )}
+                                      </div>
+                                    );
+                                  }
+                                  return <span className="text-gray-400 text-xs">-</span>;
+                                })()}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                {customer.geocoding_status === 'success' ? (
+                                  <span className="inline-flex px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700">
+                                    성공
+                                  </span>
+                                ) : customer.geocoding_status === 'failed' ? (
+                                  <span className="inline-flex px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-700">
+                                    실패
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                                    미확인
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {customer.distance_km !== null && customer.distance_km !== undefined
+                                  ? `${customer.distance_km.toFixed(2)}km`
+                                  : '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                <button
+                                  onClick={() => setEditingGeocoding({
+                                    customer,
+                                    address: customer.effective_address || customer.customer_address || ''
+                                  })}
+                                  className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs"
+                                >
+                                  수정
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+                  위치 정보가 있는 고객이 없습니다.
+                </div>
+              )}
+
+              {/* 페이지네이션 */}
+              {geocodingCustomers.length > 0 && (
+                <div className="bg-white rounded-lg shadow p-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <div>
+                      {(() => {
+                        const statusLabel = geocodingStatus === 'with_distance' 
+                          ? '거리 있는 고객' 
+                          : geocodingStatus === 'without_distance' 
+                          ? '거리 없는 고객' 
+                          : '전체 고객';
+                        return geocodingStatus === 'all'
+                          ? `전체 고객 ${geocodingTotalAll.toLocaleString()}명 (표시 ${geocodingCustomers.length.toLocaleString()}건 / 페이지 ${geocodingPage} / 총 ${Math.ceil(geocodingTotal / geocodingPageSize)}페이지)`
+                          : `전체 고객 ${geocodingTotalAll.toLocaleString()}명 중 ${statusLabel} ${geocodingTotal.toLocaleString()}명 (표시 ${geocodingCustomers.length.toLocaleString()}건 / 페이지 ${geocodingPage} / 총 ${Math.ceil(geocodingTotal / geocodingPageSize)}페이지)`;
+                      })()}
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <button
+                        disabled={geocodingPage <= 1 || loadingGeocoding}
+                        onClick={() => fetchGeocodingCustomers(geocodingPage - 1)}
+                        className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        이전
+                      </button>
+                      <div className="px-3 py-1">
+                        {geocodingPage} / {Math.ceil(geocodingTotal / geocodingPageSize) || 1}
+                      </div>
+                      <button
+                        disabled={geocodingPage >= Math.ceil(geocodingTotal / geocodingPageSize) || loadingGeocoding}
+                        onClick={() => fetchGeocodingCustomers(geocodingPage + 1)}
+                        className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        다음
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 주소 수정 모달 */}
+              {editingGeocoding && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-bold text-gray-900">주소 수정</h3>
+                      <button
+                        onClick={() => setEditingGeocoding(null)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          고객명
+                        </label>
+                        <input
+                          type="text"
+                          value={editingGeocoding.customer.name}
+                          disabled
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          주소
+                        </label>
+                        <textarea
+                          value={editingGeocoding.address}
+                          onChange={(e) => setEditingGeocoding({
+                            ...editingGeocoding,
+                            address: e.target.value
+                          })}
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="주소를 입력하세요"
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-6 flex justify-end gap-2">
+                      <button
+                        onClick={() => setEditingGeocoding(null)}
+                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                      >
+                        취소
+                      </button>
+                      <button
+                        onClick={handleUpdateGeocoding}
+                        disabled={updatingGeocoding}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {updatingGeocoding ? '저장 중...' : '저장'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 지오코딩 일괄 실행 모달 */}
+              {showBatchGeocodingModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-bold text-gray-900">지오코딩 일괄 실행 옵션</h3>
+                      <button
+                        onClick={() => setShowBatchGeocodingModal(false)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="space-y-4">
+                      <p className="text-sm text-gray-600">
+                        지오코딩 실행 방식을 선택하세요.
+                      </p>
+                      <div className="space-y-3">
+                        <button
+                          onClick={() => handleBatchGeocoding(false)}
+                          disabled={batchGeocoding}
+                          className="w-full p-4 border-2 border-blue-500 rounded-lg hover:bg-blue-50 text-left disabled:opacity-50"
+                        >
+                          <div className="font-semibold text-blue-700 mb-1">
+                            ℹ️ 정보 없는 사람만 실행
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            지오코딩 정보가 없는 고객만 실행합니다. 이미 지오코딩된 고객은 건너뜁니다.
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => handleBatchGeocoding(true)}
+                          disabled={batchGeocoding}
+                          className="w-full p-4 border-2 border-orange-500 rounded-lg hover:bg-orange-50 text-left disabled:opacity-50"
+                        >
+                          <div className="font-semibold text-orange-700 mb-1">
+                            ⚠️ 전체 재실행
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            모든 고객에 대해 지오코딩을 다시 실행합니다. 이미 지오코딩된 고객도 다시 실행됩니다.
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex justify-end">
+                      <button
+                        onClick={() => setShowBatchGeocodingModal(false)}
+                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                      >
+                        취소
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
           </div>
         </div>
       </div>

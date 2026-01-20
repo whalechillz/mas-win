@@ -1141,6 +1141,38 @@ export default function GalleryAdmin() {
     }
   }, [router.isReady, router.query.folder, includeChildren]); // eslint-disable-line react-hooks/exhaustive-deps
   
+  // ✅ URL 파라미터에서 좋아요 필터 읽기 (개선: window.location.search 직접 확인)
+  useEffect(() => {
+    if (router.isReady && typeof window !== 'undefined') {
+      // window.location.search를 직접 확인 (더 정확함)
+      const urlParams = new URLSearchParams(window.location.search);
+      const likedParam = urlParams.get('liked');
+      
+      // router.query도 함께 확인 (fallback)
+      const routerLikedParam = router.query.liked;
+      const finalLikedParam = likedParam || routerLikedParam;
+      
+      console.log('🔍 좋아요 필터 URL 파라미터 확인:', {
+        routerIsReady: router.isReady,
+        windowLocationSearch: window.location.search,
+        urlParamsLiked: likedParam,
+        routerQueryLiked: routerLikedParam,
+        finalLikedParam,
+        currentShowLikedOnly: showLikedOnly
+      });
+      
+      if (finalLikedParam === 'true' || finalLikedParam === '1') {
+        console.log('✅ 좋아요 필터 활성화');
+        setShowLikedOnly(true);
+      } else {
+        console.log('❌ 좋아요 필터 비활성화 (likedParam:', finalLikedParam, ')');
+        setShowLikedOnly(false);
+      }
+    } else {
+      console.log('⏳ router.isReady가 false이거나 window가 없습니다');
+    }
+  }, [router.isReady, router.asPath, router.query.liked]); // router.asPath 추가
+  
   // 디바운스된 검색어가 변경될 때만 검색 실행
   useEffect(() => {
     // 초기 로드가 완료된 후에만 검색 실행 (초기 로드 시에는 실행하지 않음)
@@ -1458,6 +1490,8 @@ export default function GalleryAdmin() {
   
   // Nanobanana 변형 관련 상태
   const [isGeneratingNanobananaVariation, setIsGeneratingNanobananaVariation] = useState(false);
+  const [showNanobananaMenu, setShowNanobananaMenu] = useState(false);
+  const [nanobananaVariationType, setNanobananaVariationType] = useState<'tone' | 'background' | 'object' | null>(null);
   
   // 프롬프트 입력 모달 관련 상태
   const [showPromptModal, setShowPromptModal] = useState(false);
@@ -1540,15 +1574,25 @@ export default function GalleryAdmin() {
           setShowConvertMenu(false);
         }
       }
+      // Nanobanana 메뉴가 열려있고, 클릭이 메뉴 외부인 경우
+      if (showNanobananaMenu) {
+        const nanobananaMenu = document.querySelector('[data-nanobanana-menu]');
+        const nanobananaButton = document.querySelector('[data-nanobanana-button]');
+        if (nanobananaMenu && nanobananaButton && 
+            !nanobananaMenu.contains(target) && 
+            !nanobananaButton.contains(target)) {
+          setShowNanobananaMenu(false);
+        }
+      }
     };
 
-    if (showRotateMenu || showConvertMenu) {
+    if (showRotateMenu || showConvertMenu || showNanobananaMenu) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => {
         document.removeEventListener('mousedown', handleClickOutside);
       };
     }
-  }, [showRotateMenu, showConvertMenu]);
+  }, [showRotateMenu, showConvertMenu, showNanobananaMenu]);
 
   // 썸네일을 가운데로 스크롤하는 함수
   const scrollThumbnailToCenter = (imageName: string) => {
@@ -2106,6 +2150,57 @@ export default function GalleryAdmin() {
     setSelectedImages(newSelected);
   };
 
+  // ✅ 좋아요 필터 토글 함수 (URL 파라미터 업데이트 포함, 개선)
+  const handleToggleLikedFilter = () => {
+    const newValue = !showLikedOnly;
+    console.log('🔄 좋아요 필터 토글:', {
+      currentValue: showLikedOnly,
+      newValue,
+      currentQuery: router.query,
+      currentUrl: typeof window !== 'undefined' ? window.location.href : '',
+      routerIsReady: router.isReady
+    });
+    
+    // 상태 먼저 업데이트 (즉시 UI 반영)
+    setShowLikedOnly(newValue);
+    
+    // URL 파라미터 업데이트
+    const newQuery = { ...router.query };
+    if (newValue) {
+      newQuery.liked = 'true';
+    } else {
+      delete newQuery.liked;
+    }
+    
+    console.log('📝 URL 업데이트:', {
+      pathname: router.pathname,
+      newQuery,
+      willUpdate: true
+    });
+    
+    // router.replace 사용 (히스토리에 쌓이지 않음)
+    router.replace({
+      pathname: router.pathname,
+      query: newQuery
+    }, undefined, { shallow: true }).then(() => {
+      console.log('✅ URL 업데이트 완료, 현재 URL:', typeof window !== 'undefined' ? window.location.href : '');
+      // URL 업데이트 후 상태 재확인
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const likedAfterUpdate = urlParams.get('liked');
+        console.log('🔍 URL 업데이트 후 확인:', {
+          likedParam: likedAfterUpdate,
+          showLikedOnly: newValue,
+          matches: (likedAfterUpdate === 'true') === newValue
+        });
+      }
+    }).catch((error) => {
+      console.error('❌ URL 업데이트 실패:', error);
+      // 실패 시 상태 롤백
+      setShowLikedOnly(!newValue);
+    });
+  };
+
   // ✅ 좋아요 토글 함수
   const handleToggleLike = async (image: ImageMetadata, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -2579,8 +2674,36 @@ export default function GalleryAdmin() {
     }
   };
 
+  // 변형 타입별 프롬프트 가이드 (예시)
+  const variationPromptGuides = {
+    tone: {
+      title: '톤 변경',
+      placeholder: '예: 골드톤을 제거하고 자연스러운 색상으로 변경',
+      example: 'Keep the golfer\'s pose, expression, clothing, and any golf equipment exactly as in the original image. Keep the background exactly as is. Remove the warm golden tone filter completely. Change the sky from orange/yellow/gold tones to natural soft pastel colors. Change the ocean from golden to natural blue tones. Apply natural, balanced color temperature.',
+      description: '인물과 배경은 그대로 유지하고 색상 톤만 변경합니다.'
+    },
+    background: {
+      title: '배경 변경',
+      placeholder: '예: 골프장 배경을 바다 배경으로 변경',
+      example: 'Keep the golfer\'s pose, expression, clothing, and any golf equipment exactly as in the original image. Replace the golf course background with a beautiful ocean/beach scene at sunrise. Maintain the same lighting direction and mood.',
+      description: '인물과 오브젝트는 그대로 유지하고 배경만 변경합니다.'
+    },
+    object: {
+      title: '오브젝트 변경',
+      placeholder: '예: 인물의 포즈를 변경하거나 의상을 변경',
+      example: 'Keep the background exactly as is. Change the golfer\'s pose to a different natural golf pose. Maintain the same clothing and equipment.',
+      description: '배경은 그대로 유지하고 인물이나 오브젝트만 변경합니다.'
+    }
+  };
+
   // Nanobanana 변형 함수
-  const generateNanobananaVariation = async (imageUrl: string, imageName: string, imageFolderPath?: string, customPrompt?: string) => {
+  const generateNanobananaVariation = async (
+    imageUrl: string, 
+    imageName: string, 
+    imageFolderPath?: string, 
+    customPrompt?: string,
+    variationMode: 'preserve-style' | 'tone-only' | 'background-only' | 'object-only' = 'preserve-style'
+  ) => {
     if (!imageUrl) {
       alert('변형할 이미지를 선택해주세요.');
       return;
@@ -2593,7 +2716,12 @@ export default function GalleryAdmin() {
 
     setIsGeneratingNanobananaVariation(true);
     setImageGenerationStep('Nanobanana로 이미지 변형 중...');
-    setImageGenerationModel('Nanobanana (원본 스타일 유지)');
+    setImageGenerationModel(
+      variationMode === 'tone-only' ? 'Nanobanana (톤 변경)' :
+      variationMode === 'background-only' ? 'Nanobanana (배경 변경)' :
+      variationMode === 'object-only' ? 'Nanobanana (오브젝트 변경)' :
+      'Nanobanana (원본 스타일 유지)'
+    );
     setShowGenerationProcess(true);
 
     try {
@@ -2603,7 +2731,8 @@ export default function GalleryAdmin() {
         body: JSON.stringify({
           imageUrl: imageUrl,
           prompt: customPrompt || undefined, // 사용자 프롬프트 또는 자동 생성
-          preserveStyle: true, // 원본 스타일 유지
+          variationMode: variationMode,
+          preserveStyle: variationMode === 'preserve-style',
           numImages: 1,
           aspectRatio: '1:1',
           outputFormat: 'jpeg',
@@ -4809,9 +4938,7 @@ export default function GalleryAdmin() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">좋아요</label>
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowLikedOnly(!showLikedOnly);
-                  }}
+                  onClick={handleToggleLikedFilter}
                   className={`w-full px-3 py-2 text-sm rounded-lg font-medium transition-colors ${
                     showLikedOnly
                       ? 'bg-pink-500 text-white hover:bg-pink-600'
@@ -6516,21 +6643,76 @@ export default function GalleryAdmin() {
                   >
                     {isGeneratingNanobananaVariation ? '변형 중...' : '변형 (Nanobanana)'}
                   </button>
-                  <button
-                    onClick={() => {
-                      if (!selectedImageForZoom) return;
-                      setPromptModalType('nanobanana');
-                      setCustomPrompt('');
-                      setShowPromptModal(true);
-                    }}
-                    disabled={isGeneratingNanobananaVariation || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')}
-                    className={`px-1.5 py-1.5 bg-green-400 text-white text-xs rounded hover:bg-green-500 transition-colors ${
-                      isGeneratingNanobananaVariation || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video') ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                    title={selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' ? '동영상은 변형할 수 없습니다' : '프롬프트 입력 후 변형'}
-                  >
-                    ✏️
-                  </button>
+                  {/* 연필 버튼 + 드롭다운 */}
+                  <div className="relative">
+                    <button
+                      data-nanobanana-button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!selectedImageForZoom) return;
+                        setShowNanobananaMenu(!showNanobananaMenu);
+                      }}
+                      disabled={isGeneratingNanobananaVariation || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')}
+                      className={`px-1.5 py-1.5 bg-green-400 text-white text-xs rounded hover:bg-green-500 transition-colors ${
+                        isGeneratingNanobananaVariation || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video') ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                      title="변형 타입 선택"
+                    >
+                      ✏️ ▼
+                    </button>
+                    
+                    {/* 1단계: 변형 타입 선택 */}
+                    {showNanobananaMenu && (
+                      <div 
+                        data-nanobanana-menu
+                        className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!selectedImageForZoom) return;
+                            setNanobananaVariationType('tone');
+                            setShowNanobananaMenu(false);
+                            setCustomPrompt(variationPromptGuides.tone.example);
+                            setPromptModalType('nanobanana');
+                            setShowPromptModal(true);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 text-blue-600"
+                        >
+                          🎨 톤 변경
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!selectedImageForZoom) return;
+                            setNanobananaVariationType('background');
+                            setShowNanobananaMenu(false);
+                            setCustomPrompt(variationPromptGuides.background.example);
+                            setPromptModalType('nanobanana');
+                            setShowPromptModal(true);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 text-green-600"
+                        >
+                          🖼️ 배경 변경
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!selectedImageForZoom) return;
+                            setNanobananaVariationType('object');
+                            setShowNanobananaMenu(false);
+                            setCustomPrompt(variationPromptGuides.object.example);
+                            setPromptModalType('nanobanana');
+                            setShowPromptModal(true);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 text-purple-600"
+                        >
+                          👤 오브젝트 변경
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <button
                   onClick={async () => {
@@ -6736,10 +6918,25 @@ export default function GalleryAdmin() {
                     <span className="font-medium">📄</span> {selectedImageForZoom.name}
                   </div>
                   
-                  {/* 폴더명 (전체) */}
-                  <div className="text-xs text-gray-600">
-                    <span className="font-medium">📁</span> {selectedImageForZoom.folder_path || '경로 없음'}
-                  </div>
+                  {/* 폴더명 (전체) - 클릭 가능 */}
+                  {selectedImageForZoom.folder_path ? (
+                    <button
+                      onClick={() => {
+                        setFolderFilter(selectedImageForZoom.folder_path);
+                        setSelectedImageForZoom(null); // 모달 닫기
+                        fetchImages(1, true, selectedImageForZoom.folder_path, includeChildren, searchQuery);
+                      }}
+                      className="text-xs text-blue-600 hover:text-blue-800 hover:underline cursor-pointer flex items-center gap-1 transition-colors"
+                      title={`${selectedImageForZoom.folder_path} 폴더로 이동`}
+                    >
+                      <span className="font-medium">📁</span> 
+                      <span>{selectedImageForZoom.folder_path}</span>
+                    </button>
+                  ) : (
+                    <div className="text-xs text-gray-600">
+                      <span className="font-medium">📁</span> 경로 없음
+                    </div>
+                  )}
                   
                   {/* 크기, 포맷, 사용 횟수 (배지 형태) */}
                   <div className="flex gap-2 flex-wrap">
@@ -7249,19 +7446,37 @@ export default function GalleryAdmin() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-medium text-gray-900">
-                  프롬프트 입력
+                  {promptModalType === 'nanobanana' && nanobananaVariationType
+                    ? `${variationPromptGuides[nanobananaVariationType].title} - 프롬프트 입력`
+                    : '프롬프트 입력'}
                 </h3>
                 <button
                   onClick={() => {
                     setShowPromptModal(false);
                     setPromptModalType(null);
                     setCustomPrompt('');
+                    setNanobananaVariationType(null);
                   }}
                   className="text-gray-400 hover:text-gray-600 text-2xl"
                 >
                   ×
                 </button>
               </div>
+              
+              {/* 변형 타입별 가이드 */}
+              {promptModalType === 'nanobanana' && nanobananaVariationType && (
+                <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-800 font-medium mb-1">
+                    💡 {variationPromptGuides[nanobananaVariationType].title} 가이드
+                  </p>
+                  <p className="text-xs text-blue-700 mb-2">
+                    {variationPromptGuides[nanobananaVariationType].description}
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    <strong>예시:</strong> {variationPromptGuides[nanobananaVariationType].placeholder}
+                  </p>
+                </div>
+              )}
               
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -7270,14 +7485,28 @@ export default function GalleryAdmin() {
                 <textarea
                   value={customPrompt}
                   onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder="예: Korean golfer, professional golf course, maintain original style, same character appearance"
+                  placeholder={
+                    promptModalType === 'nanobanana' && nanobananaVariationType
+                      ? variationPromptGuides[nanobananaVariationType].placeholder
+                      : "예: Korean golfer, professional golf course, maintain original style, same character appearance"
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={4}
+                  rows={6}
                 />
                 <p className="mt-2 text-xs text-gray-500">
-                  프롬프트를 입력하지 않으면 자동으로 생성됩니다.
-                  <br />
-                  원본 스타일 유지를 원하면 "maintain original style", "preserve character appearance" 등을 포함하세요.
+                  {promptModalType === 'nanobanana' && nanobananaVariationType ? (
+                    <>
+                      {nanobananaVariationType === 'tone' && '인물과 배경은 그대로 유지하고 색상 톤만 변경하는 프롬프트를 입력하세요.'}
+                      {nanobananaVariationType === 'background' && '인물과 오브젝트는 그대로 유지하고 배경만 변경하는 프롬프트를 입력하세요.'}
+                      {nanobananaVariationType === 'object' && '배경은 그대로 유지하고 인물이나 오브젝트만 변경하는 프롬프트를 입력하세요.'}
+                    </>
+                  ) : (
+                    <>
+                      프롬프트를 입력하지 않으면 자동으로 생성됩니다.
+                      <br />
+                      원본 스타일 유지를 원하면 "maintain original style", "preserve character appearance" 등을 포함하세요.
+                    </>
+                  )}
                 </p>
               </div>
               
@@ -7287,6 +7516,7 @@ export default function GalleryAdmin() {
                     setShowPromptModal(false);
                     setPromptModalType(null);
                     setCustomPrompt('');
+                    setNanobananaVariationType(null);
                   }}
                   className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
                 >
@@ -7297,9 +7527,17 @@ export default function GalleryAdmin() {
                     if (!selectedImageForZoom) return;
                     
                     const prompt = customPrompt.trim() || undefined;
-                    setShowPromptModal(false);
                     const type = promptModalType;
+                    const variationMode = type === 'nanobanana' && nanobananaVariationType
+                      ? (nanobananaVariationType === 'tone' ? 'tone-only' 
+                        : nanobananaVariationType === 'background' ? 'background-only' 
+                        : 'object-only')
+                      : 'preserve-style';
+                    
+                    setShowPromptModal(false);
                     setPromptModalType(null);
+                    const currentVariationType = nanobananaVariationType;
+                    setNanobananaVariationType(null);
                     setCustomPrompt('');
                     
                     if (type === 'fal') {
@@ -7308,7 +7546,13 @@ export default function GalleryAdmin() {
                       // Replicate는 프롬프트를 직접 지원하지 않지만, 향후 확장 가능
                       await generateReplicateVariation(selectedImageForZoom.url, selectedImageForZoom.name, selectedImageForZoom.folder_path, prompt);
                     } else if (type === 'nanobanana') {
-                      await generateNanobananaVariation(selectedImageForZoom.url, selectedImageForZoom.name, selectedImageForZoom.folder_path, prompt);
+                      await generateNanobananaVariation(
+                        selectedImageForZoom.url, 
+                        selectedImageForZoom.name, 
+                        selectedImageForZoom.folder_path, 
+                        prompt,
+                        variationMode as 'preserve-style' | 'tone-only' | 'background-only' | 'object-only'
+                      );
                     }
                   }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -8600,10 +8844,25 @@ export default function GalleryAdmin() {
                         <span className="font-medium">📄</span> {img.filename}
                       </div>
                       
-                      {/* 폴더명 (전체) */}
-                      <div className="text-xs text-gray-600">
-                        <span className="font-medium">📁</span> {img.filePath || '경로 없음'}
-                      </div>
+                      {/* 폴더명 (전체) - 클릭 가능 */}
+                      {img.filePath ? (
+                        <button
+                          onClick={() => {
+                            setFolderFilter(img.filePath);
+                            setShowCompareModal(false); // 비교 모달 닫기
+                            fetchImages(1, true, img.filePath, includeChildren, searchQuery);
+                          }}
+                          className="text-xs text-blue-600 hover:text-blue-800 hover:underline cursor-pointer flex items-center gap-1 transition-colors"
+                          title={`${img.filePath} 폴더로 이동`}
+                        >
+                          <span className="font-medium">📁</span> 
+                          <span>{img.filePath}</span>
+                        </button>
+                      ) : (
+                        <div className="text-xs text-gray-600">
+                          <span className="font-medium">📁</span> 경로 없음
+                        </div>
+                      )}
                       
                       {/* 크기, 포맷, 사용 횟수 (배지 형태) */}
                       <div className="flex gap-2 flex-wrap">

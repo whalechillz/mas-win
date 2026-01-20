@@ -1576,7 +1576,7 @@ export default async function handler(req, res) {
       const urls = imageUrls.map(item => item.url);
       const { data: allMetadata } = await supabase
         .from('image_metadata')
-        .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status, used_in')
+        .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status, used_in, is_liked')
         .in('image_url', urls);
 
       // image_assets 테이블에서 id 및 메타데이터 조회 (비교 기능용 + 메타데이터 fallback)

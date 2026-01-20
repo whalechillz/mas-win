@@ -1,9 +1,12 @@
-export default function handler(req, res) {
-  // 관리자 인증 확인
-  const { admin_auth } = req.cookies;
-  
-  if (!admin_auth || admin_auth !== '1') {
-    return res.status(401).json({ error: 'Unauthorized' });
+import { requireAuth } from '../../../../lib/api-auth';
+
+export default async function handler(req, res) {
+  try {
+    // ✅ NextAuth 방식으로 인증 체크
+    await requireAuth(req, res, { requireEditor: true });
+  } catch (error) {
+    // requireAuth가 이미 401/403 응답을 보냈으므로 여기서는 아무것도 하지 않음
+    return;
   }
 
   // 캠페인 ID 확인
