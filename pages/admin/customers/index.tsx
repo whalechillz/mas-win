@@ -11,7 +11,7 @@ import { createClient } from '@supabase/supabase-js';
 import { uploadImageToSupabase } from '../../../lib/image-upload-utils';
 import { generateCustomerImageFileName, getCustomerInitials } from '../../../lib/customer-image-filename-generator';
 import { generateCustomerFolderName, getCustomerNameEn } from '../../../lib/customer-folder-name-generator';
-import { extractProvince, extractCity } from '../../../lib/address-utils';
+import { extractProvince, extractCity } from '@/lib/address-utils';
 
 type Customer = {
   id: number;
