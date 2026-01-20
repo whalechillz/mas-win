@@ -1753,6 +1753,22 @@ export default function GalleryAdmin() {
   useEffect(() => {
     if (!selectedImageForZoom) return;
     const onKeyDown = (e: KeyboardEvent) => {
+      // 입력창이나 textarea에 포커스가 있으면 키보드 이벤트 무시
+      const activeElement = document.activeElement;
+      if (
+        activeElement &&
+        (activeElement.tagName === 'INPUT' ||
+         activeElement.tagName === 'TEXTAREA' ||
+         activeElement.isContentEditable)
+      ) {
+        return; // 입력창에 포커스가 있으면 이벤트를 처리하지 않음
+      }
+
+      // 프롬프트 입력 모달이 열려있으면 키보드 이벤트 무시
+      if (showPromptModal) {
+        return;
+      }
+
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
         showAdjacentImage('prev');
@@ -1766,7 +1782,7 @@ export default function GalleryAdmin() {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [selectedImageForZoom, filteredImages]);
+  }, [selectedImageForZoom, filteredImages, showPromptModal]);
 
   // 모달이 열릴 때 현재 이미지의 썸네일을 가운데로 스크롤
   useEffect(() => {
