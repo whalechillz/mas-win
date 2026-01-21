@@ -197,6 +197,26 @@ export default function CustomersPage() {
       }
       
       const res = await fetch(`/api/admin/customers/geocoding?${params.toString()}`);
+      
+      // 응답 상태 확인
+      if (!res.ok) {
+        // 404 또는 다른 에러인 경우
+        if (res.status === 404) {
+          throw new Error('위치 정보 조회 API를 찾을 수 없습니다. 관리자에게 문의하세요.');
+        }
+        const errorText = await res.text();
+        console.error('API 응답 오류:', res.status, errorText.substring(0, 200));
+        throw new Error(`서버 오류 (${res.status}): 위치 정보를 조회할 수 없습니다.`);
+      }
+      
+      // Content-Type 확인
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await res.text();
+        console.error('JSON이 아닌 응답:', text.substring(0, 200));
+        throw new Error('서버가 JSON 형식이 아닌 응답을 반환했습니다.');
+      }
+      
       const json = await res.json();
       
       if (json.success) {
@@ -211,7 +231,12 @@ export default function CustomersPage() {
       }
     } catch (error: any) {
       console.error('위치 정보 조회 오류:', error);
-      alert(error.message || '조회 중 오류가 발생했습니다.');
+      // JSON 파싱 에러인 경우 더 명확한 메시지 표시
+      if (error.message?.includes('JSON') || error.message?.includes('Unexpected token')) {
+        alert('서버 응답 형식 오류가 발생했습니다. 페이지를 새로고침해주세요.');
+      } else {
+        alert(error.message || '조회 중 오류가 발생했습니다.');
+      }
     } finally {
       setLoadingGeocoding(false);
     }
@@ -2329,6 +2354,7 @@ function CustomerImageModal({ customer, onClose }: {
             shouldUseDirectUpload: isLargeFile || isVideo
           });
           
+          // 1단계: 파일명 최적화/한글→영문 변환 (업로드 전에 먼저 수행)
           if (uploadMode === 'optimize-filename') {
             // 파일명 최적화 모드: 고객 이미지 파일명 규칙 적용
             const fileNameInfo = generateCustomerImageFileName(
@@ -2340,7 +2366,7 @@ function CustomerImageModal({ customer, onClose }: {
             storyScene = fileNameInfo.scene;
             imageType = fileNameInfo.type;
           } else if (uploadMode === 'preserve-filename') {
-            // 파일명 유지 모드
+            // 파일명 유지 모드: 한글 파일명만 영문으로 변환
             if (isVideo) {
               // 동영상: 한글 파일명만 영문으로 전환
               if (/[가-힣]/.test(file.name)) {
@@ -2354,10 +2380,23 @@ function CustomerImageModal({ customer, onClose }: {
                 customFileName = file.name;
               }
             } else {
-              // 이미지: 기존 로직 유지 (한글 파일명은 API에서 처리)
-              customFileName = file.name;
+              // 이미지: 한글 파일명 영문 변환 (API에서 처리하지 않고 클라이언트에서 먼저 처리)
+              if (/[가-힣]/.test(file.name)) {
+                const { translateKoreanToEnglish } = require('../lib/korean-to-english-translator');
+                const baseName = file.name.replace(/\.[^/.]+$/, '');
+                const ext = file.name.match(/\.[^/.]+$/)?.[0] || '';
+                const translatedBase = translateKoreanToEnglish(baseName);
+                customFileName = `${translatedBase}${ext}`;
+              } else {
+                customFileName = file.name;
+              }
             }
           }
+          
+          console.log('📝 파일명 최적화 완료:', {
+            original: file.name,
+            optimized: customFileName
+          });
 
           // 대용량 파일 또는 동영상은 클라이언트에서 직접 업로드 (Vercel 4.5MB 제한 우회)
           // 동영상은 무조건 직접 업로드 (크기와 무관)
@@ -2368,12 +2407,13 @@ function CustomerImageModal({ customer, onClose }: {
             uploadResult = await uploadLargeFileDirectlyToSupabase(
               file,
               targetFolder,
-              customFileName,
+              customFileName, // 이미 최적화된 파일명 사용
               (progress) => {
                 // 전체 진행률 계산 (각 파일의 평균)
                 const totalProgress = ((i * 100) + progress) / files.length;
                 setUploadProgress(Math.round(totalProgress));
-              }
+              },
+              true // showWarning = true (경고창 표시)
             );
           } else {
             // 소용량 파일은 기존 API 경로 사용
