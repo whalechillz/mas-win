@@ -245,7 +245,127 @@ export async function uploadImageToSupabase(
   }
 }
 
-
-
-
+/**
+ * 대용량 파일을 클라이언트에서 직접 Supabase Storage로 업로드하는 함수
+ * Vercel Serverless Function의 4.5MB 제한을 우회하기 위해 사용
+ * @param file - 업로드할 파일
+ * @param targetFolder - 업로드할 폴더 경로
+ * @param customFileName - 커스텀 파일명 (선택사항)
+ * @param onProgress - 업로드 진행률 콜백 (0-100)
+ * @returns 업로드된 파일의 URL
+ */
+export async function uploadLargeFileDirectlyToSupabase(
+  file: File,
+  targetFolder: string,
+  customFileName?: string,
+  onProgress?: (progress: number) => void
+): Promise<UploadResult> {
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Supabase 환경변수가 설정되지 않았습니다');
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    
+    let fileName = customFileName || file.name;
+    let uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
+    
+    // 파일 존재 여부 확인 및 고유 파일명 생성
+    const folderPath = targetFolder || '';
+    const pathParts = uploadPath.split('/');
+    const folderOnly = pathParts.slice(0, -1).join('/');
+    const fileNameOnly = pathParts[pathParts.length - 1];
+    
+    try {
+      const { data: existingFiles } = await supabase.storage
+        .from('blog-images')
+        .list(folderOnly || '', {
+          search: fileNameOnly
+        });
+      
+      // 파일이 이미 존재하면 고유한 파일명 생성
+      if (existingFiles && existingFiles.some(f => f.name === fileNameOnly)) {
+        const timestamp = Date.now();
+        const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
+        const baseName = fileName.replace(/\.[^/.]+$/, '');
+        fileName = `${baseName}-${timestamp}${ext}`;
+        uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
+        console.log(`⚠️ 파일이 이미 존재하여 고유 파일명으로 변경: ${fileName}`);
+      }
+    } catch (checkError) {
+      // 파일 존재 여부 확인 실패는 무시하고 계속 진행
+      console.warn('⚠️ 파일 존재 여부 확인 실패, 계속 진행:', checkError);
+    }
+    
+    console.log('📤 클라이언트에서 직접 업로드 시작:', {
+      fileName,
+      fileSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+      fileType: file.type,
+      uploadPath
+    });
+    
+    // 1. 서버에서 서명된 업로드 URL 발급 (RLS 정책 우회)
+    const signRes = await fetch('/api/admin/storage-signed-upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: uploadPath })
+    });
+    
+    if (!signRes.ok) {
+      const errorData = await signRes.json().catch(() => ({}));
+      throw new Error(`서명 URL 발급 실패: ${errorData.error || signRes.statusText}`);
+    }
+    
+    const { token } = await signRes.json();
+    if (!token) {
+      throw new Error('서명 토큰을 받지 못했습니다');
+    }
+    
+    console.log('✅ 서명된 URL 발급 완료');
+    
+    // 2. 서명된 URL로 직접 업로드 (RLS 정책 우회)
+    const { error } = await supabase.storage
+      .from('blog-images')
+      .uploadToSignedUrl(uploadPath, token, file);
+    
+    if (error) {
+      console.error('❌ Supabase 서명 URL 업로드 오류:', error);
+      
+      // 중복 파일 에러 처리
+      if (error.message?.includes('already exists')) {
+        throw new Error(`파일이 이미 존재합니다: ${fileName}`);
+      }
+      
+      throw new Error(`업로드 실패: ${error.message || '알 수 없는 오류'}`);
+    }
+    
+    // 공개 URL 생성
+    const { data: { publicUrl } } = supabase.storage
+      .from('blog-images')
+      .getPublicUrl(uploadPath);
+    
+    console.log('✅ 클라이언트 직접 업로드 완료:', publicUrl);
+    
+    // 진행률 콜백 호출 (완료)
+    if (onProgress) {
+      onProgress(100);
+    }
+    
+    return {
+      url: publicUrl,
+      fileName,
+      metadata: {
+        file_size: file.size,
+        is_video: file.type.startsWith('video/')
+      }
+    };
+  } catch (error: any) {
+    console.error('❌ 대용량 파일 직접 업로드 오류:', error);
+    throw new Error(error.message || '대용량 파일 업로드에 실패했습니다.');
+  }
+}
 

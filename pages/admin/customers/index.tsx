@@ -2316,6 +2316,9 @@ function CustomerImageModal({ customer, onClose }: {
           const isVideo = file.type.startsWith('video/') || 
                           /\.(mp4|avi|mov|webm|mkv|flv|m4v|3gp|wmv)$/i.test(file.name);
           
+          // 대용량 파일인지 확인 (10MB 이상)
+          const isLargeFile = file.size > 10 * 1024 * 1024;
+          
           if (uploadMode === 'optimize-filename') {
             // 파일명 최적화 모드: 고객 이미지 파일명 규칙 적용
             const fileNameInfo = generateCustomerImageFileName(
@@ -2346,19 +2349,36 @@ function CustomerImageModal({ customer, onClose }: {
             }
           }
 
-          // 공통 업로드 함수 사용
-          const uploadResult = await uploadImageToSupabase(file, {
-            targetFolder: targetFolder,
-            enableHEICConversion: true,
-            enableEXIFBackfill: true,
-            uploadMode: uploadMode,
-            customFileName: customFileName,
-            onProgress: (progress) => {
-              // 전체 진행률 계산 (각 파일의 평균)
-              const totalProgress = ((i * 100) + progress) / files.length;
-              setUploadProgress(Math.round(totalProgress));
-            },
-          });
+          // 대용량 파일 또는 동영상은 클라이언트에서 직접 업로드 (Vercel 4.5MB 제한 우회)
+          let uploadResult: any;
+          if (isLargeFile || isVideo) {
+            console.log(`📤 대용량 파일/동영상 직접 업로드: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+            const { uploadLargeFileDirectlyToSupabase } = await import('../../../lib/image-upload-utils');
+            uploadResult = await uploadLargeFileDirectlyToSupabase(
+              file,
+              targetFolder,
+              customFileName,
+              (progress) => {
+                // 전체 진행률 계산 (각 파일의 평균)
+                const totalProgress = ((i * 100) + progress) / files.length;
+                setUploadProgress(Math.round(totalProgress));
+              }
+            );
+          } else {
+            // 소용량 파일은 기존 API 경로 사용
+            uploadResult = await uploadImageToSupabase(file, {
+              targetFolder: targetFolder,
+              enableHEICConversion: true,
+              enableEXIFBackfill: true,
+              uploadMode: uploadMode,
+              customFileName: customFileName,
+              onProgress: (progress) => {
+                // 전체 진행률 계산 (각 파일의 평균)
+                const totalProgress = ((i * 100) + progress) / files.length;
+                setUploadProgress(Math.round(totalProgress));
+              },
+            });
+          }
 
           // 업로드된 URL에서 파일 경로 추출
           const urlObj = new URL(uploadResult.url);

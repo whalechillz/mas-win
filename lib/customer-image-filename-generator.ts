@@ -224,6 +224,18 @@ export function generateCustomerImageFileName(
   // 동영상 파일인지 확인
   const isVideo = /\.(mp4|avi|mov|webm|mkv|flv|m4v|3gp|wmv)$/i.test(originalFileName);
   
+  // 동영상인데 type이 'image'이면 동영상 타입으로 변경
+  if (isVideo && type === 'image') {
+    const lowerFileName = originalFileName.toLowerCase();
+    if (lowerFileName.includes('시타영상') || lowerFileName.includes('swing-video')) {
+      type = 'swing-video';
+    } else if (lowerFileName.includes('스윙영상') || lowerFileName.includes('swing-video-outdoor')) {
+      type = 'swing-video-outdoor';
+    } else {
+      type = 'video'; // 기본 동영상 타입
+    }
+  }
+  
   // 확장자 추출 (동영상은 원본 확장자 유지, 이미지는 .webp)
   const originalExt = originalFileName.match(/\.[^/.]+$/)?.[0] || '';
   const extension = isVideo ? originalExt : '.webp';
