@@ -159,11 +159,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: '파일이 필요합니다.' });
     }
 
-    // 한글 파일명 감지 및 자동 변환
+    // 한글 파일명 감지 및 자동 변환 (커스텀 파일명이 없을 때만)
     const originalFilename = file.originalFilename || '';
     const hasKoreanInFileName = /[가-힣]/.test(originalFilename);
     
-    if (hasKoreanInFileName && (effectiveUploadMode === 'preserve-filename' || effectiveUploadMode === 'preserve-original')) {
+    if (!customFileName && hasKoreanInFileName && (effectiveUploadMode === 'preserve-filename' || effectiveUploadMode === 'preserve-original')) {
       console.warn('⚠️ 한글 파일명 감지, 자동으로 최적화 모드로 전환:', originalFilename);
       // preserve-filename 모드에서도 한글 파일명이면 자동으로 optimize-filename으로 전환
       effectiveUploadMode = 'optimize-filename';
@@ -221,7 +221,11 @@ export default async function handler(req, res) {
       processedBuffer = fileBuffer;
       
       // 파일명 처리
-      if (effectiveUploadMode === 'optimize-filename') {
+      if (customFileName) {
+        // 커스텀 파일명이 있으면 우선 사용 (고객 이미지 등)
+        finalFileName = customFileName;
+        console.log('✅ 동영상 커스텀 파일명 사용:', finalFileName);
+      } else if (effectiveUploadMode === 'optimize-filename') {
         // 파일명 최적화: 폴더 기반 + 타임스탬프 + 랜덤, 확장자 유지
         const folderPrefix = extractFolderPrefix(targetFolder);
         const timestamp = Date.now();

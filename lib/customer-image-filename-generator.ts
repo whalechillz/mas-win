@@ -221,8 +221,15 @@ export function generateCustomerImageFileName(
     }
   }
   
-  // 새 형식: {영문이름}_s{장면코드}_{타입}_{번호}.webp
-  const fileName = `${nameEn}_s${scene}_${type}_${String(num).padStart(2, '0')}.webp`;
+  // 동영상 파일인지 확인
+  const isVideo = /\.(mp4|avi|mov|webm|mkv|flv|m4v|3gp|wmv)$/i.test(originalFileName);
+  
+  // 확장자 추출 (동영상은 원본 확장자 유지, 이미지는 .webp)
+  const originalExt = originalFileName.match(/\.[^/.]+$/)?.[0] || '';
+  const extension = isVideo ? originalExt : '.webp';
+  
+  // 새 형식: {영문이름}_s{장면코드}_{타입}_{번호}.{확장자}
+  const fileName = `${nameEn}_s${scene}_${type}_${String(num).padStart(2, '0')}${extension}`;
   
   return {
     fileName,

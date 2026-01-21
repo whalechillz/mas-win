@@ -99,6 +99,7 @@ export default function CustomersPage() {
   const [geocodingPageSize, setGeocodingPageSize] = useState(100);
   const [loadingGeocoding, setLoadingGeocoding] = useState(false);
   const [batchGeocoding, setBatchGeocoding] = useState(false);
+  const [geocodingSearch, setGeocodingSearch] = useState(''); // 위치 정보 관리 검색어
   // 단순화: 상태 필터를 하나로 통합 (거리 있는 고객 / 거리 없는 고객 / 전체)
   const [geocodingStatus, setGeocodingStatus] = useState<'all' | 'with_distance' | 'without_distance'>('all');
   const [geocodingProvince, setGeocodingProvince] = useState<string>('all');
@@ -190,6 +191,11 @@ export default function CustomersPage() {
         }
       }
       
+      // 검색어 추가
+      if (geocodingSearch && geocodingSearch.trim()) {
+        params.append('q', geocodingSearch.trim());
+      }
+      
       const res = await fetch(`/api/admin/customers/geocoding?${params.toString()}`);
       const json = await res.json();
       
@@ -232,7 +238,11 @@ export default function CustomersPage() {
       const json = await res.json();
 
       if (json.success) {
-        alert(json.message || '주소가 저장되었습니다.');
+        if (json.data?.distance_km !== null && json.data?.distance_km !== undefined) {
+          alert(`위치 정보가 업데이트되었습니다.\n거리: ${json.data.distance_km.toFixed(2)}km`);
+        } else {
+          alert(json.message || '주소가 저장되었습니다.');
+        }
         setEditingGeocoding(null);
         fetchGeocodingCustomers();
       } else {
@@ -588,7 +598,7 @@ export default function CustomersPage() {
     
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [geocodingStatus, geocodingProvince, geocodingDistanceRange, geocodingSortBy, geocodingSortOrder, activeTab]);
+  }, [geocodingStatus, geocodingProvince, geocodingDistanceRange, geocodingSortBy, geocodingSortOrder, geocodingSearch, activeTab]);
 
   // 위치 정보 관리 pageSize 변경 시 자동 조회
   useEffect(() => {
@@ -1104,7 +1114,14 @@ export default function CustomersPage() {
             <>
               {/* 필터 및 버튼 (고객 목록 탭과 동일한 레이아웃) */}
               <div className="flex items-center justify-between mb-4">
-                <div></div>
+                <div className="flex gap-2">
+                  <input
+                    value={geocodingSearch}
+                    onChange={(e) => setGeocodingSearch(e.target.value)}
+                    placeholder="이름/번호/주소 검색 (실시간)"
+                    className="px-3 py-2 border rounded-md text-sm"
+                  />
+                </div>
                 <div className="flex gap-2 flex-wrap items-center">
                   {loadingGeocoding && (
                     <div className="text-sm text-gray-600 flex items-center gap-2">
@@ -2295,6 +2312,10 @@ function CustomerImageModal({ customer, onClose }: {
           let storyScene: number | undefined;
           let imageType: string | undefined;
           
+          // 동영상 파일인지 확인
+          const isVideo = file.type.startsWith('video/') || 
+                          /\.(mp4|avi|mov|webm|mkv|flv|m4v|3gp|wmv)$/i.test(file.name);
+          
           if (uploadMode === 'optimize-filename') {
             // 파일명 최적화 모드: 고객 이미지 파일명 규칙 적용
             const fileNameInfo = generateCustomerImageFileName(
@@ -2305,6 +2326,24 @@ function CustomerImageModal({ customer, onClose }: {
             customFileName = fileNameInfo.fileName;
             storyScene = fileNameInfo.scene;
             imageType = fileNameInfo.type;
+          } else if (uploadMode === 'preserve-filename') {
+            // 파일명 유지 모드
+            if (isVideo) {
+              // 동영상: 한글 파일명만 영문으로 전환
+              if (/[가-힣]/.test(file.name)) {
+                const { translateKoreanToEnglish } = require('../lib/korean-to-english-translator');
+                const baseName = file.name.replace(/\.[^/.]+$/, '');
+                const ext = file.name.match(/\.[^/.]+$/)?.[0] || '';
+                const translatedBase = translateKoreanToEnglish(baseName);
+                customFileName = `${translatedBase}${ext}`;
+              } else {
+                // 영문 파일명은 그대로 유지
+                customFileName = file.name;
+              }
+            } else {
+              // 이미지: 기존 로직 유지 (한글 파일명은 API에서 처리)
+              customFileName = file.name;
+            }
           }
 
           // 공통 업로드 함수 사용
