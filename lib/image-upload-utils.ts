@@ -246,19 +246,144 @@ export async function uploadImageToSupabase(
 }
 
 /**
+ * 중복 파일명 체크 및 고유 파일명 생성
+ * @param supabase - Supabase 클라이언트
+ * @param folderPath - 폴더 경로
+ * @param fileName - 원본 파일명
+ * @param showWarning - 경고창 표시 여부
+ * @returns 고유한 파일명
+ */
+async function generateUniqueFileName(
+  supabase: any,
+  folderPath: string,
+  fileName: string,
+  showWarning: boolean = true
+): Promise<string> {
+  const folderOnly = folderPath || '';
+  const fullPath = folderOnly ? `${folderOnly}/${fileName}` : fileName;
+  const pathParts = fileName.split('/');
+  const fileNameOnly = pathParts[pathParts.length - 1];
+  
+  try {
+    // 방법 1: 전체 경로로 파일 존재 확인 (HEAD 요청 - 더 정확함)
+    try {
+      const { data: urlData } = supabase.storage
+        .from('blog-images')
+        .getPublicUrl(fullPath);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      
+      try {
+        const headResponse = await fetch(urlData.publicUrl, { 
+          method: 'HEAD',
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        if (headResponse.ok) {
+          // 파일이 존재함
+          console.log(`⚠️ 파일이 이미 존재함: ${fullPath}`);
+          
+          // 경고창 표시
+          if (showWarning) {
+            const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
+            const baseName = fileName.replace(/\.[^/.]+$/, '');
+            const suggestedName = `${baseName}(1)${ext}`;
+            
+            const userChoice = confirm(
+              `⚠️ 중복된 파일명이 있습니다.\n\n` +
+              `파일명: ${fileNameOnly}\n\n` +
+              `파일명 뒤에 번호를 추가하여 업로드하시겠습니까?\n` +
+              `(예: ${suggestedName})\n\n` +
+              `[확인] = 번호 추가 (1), (2), (3)...\n` +
+              `[취소] = 타임스탬프 추가`
+            );
+            
+            if (userChoice) {
+              // (1), (2), (3) 형식으로 번호 추가
+              let counter = 1;
+              
+              while (counter < 100) {
+                const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
+                const baseName = fileName.replace(/\.[^/.]+$/, '');
+                const newFileName = `${baseName}(${counter})${ext}`;
+                const newFullPath = folderOnly ? `${folderOnly}/${newFileName}` : newFileName;
+                
+                // 새 파일명으로 존재 확인
+                const { data: newUrlData } = supabase.storage
+                  .from('blog-images')
+                  .getPublicUrl(newFullPath);
+                
+                const newController = new AbortController();
+                const newTimeoutId = setTimeout(() => newController.abort(), 2000);
+                
+                try {
+                  const newHeadResponse = await fetch(newUrlData.publicUrl, { 
+                    method: 'HEAD',
+                    signal: newController.signal
+                  });
+                  clearTimeout(newTimeoutId);
+                  
+                  if (!newHeadResponse.ok) {
+                    // 파일이 없음 - 사용 가능
+                    console.log(`✅ 고유 파일명 생성: ${newFileName} (번호 추가)`);
+                    return newFileName;
+                  }
+                } catch {
+                  clearTimeout(newTimeoutId);
+                  // 에러 발생 시 파일이 없는 것으로 간주
+                  console.log(`✅ 고유 파일명 생성: ${newFileName} (번호 추가)`);
+                  return newFileName;
+                }
+                
+                counter++;
+              }
+            }
+          }
+          
+          // 타임스탬프 추가 (사용자가 취소했거나 자동 처리)
+          const timestamp = Date.now();
+          const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
+          const baseName = fileName.replace(/\.[^/.]+$/, '');
+          const newFileName = `${baseName}-${timestamp}${ext}`;
+          console.log(`✅ 고유 파일명 생성: ${newFileName} (타임스탬프 추가)`);
+          return newFileName;
+        }
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        // HEAD 요청 실패 시 파일이 없는 것으로 간주
+        if (fetchError.name !== 'AbortError') {
+          console.warn('⚠️ 파일 존재 확인 실패, 원본 파일명 사용:', fetchError);
+        }
+      }
+    } catch (urlError) {
+      console.warn('⚠️ Public URL 생성 실패, 원본 파일명 사용:', urlError);
+    }
+    
+    return fileName;
+  } catch (error) {
+    console.warn('⚠️ 파일 존재 여부 확인 실패, 원본 파일명 사용:', error);
+    return fileName;
+  }
+}
+
+/**
  * 대용량 파일을 클라이언트에서 직접 Supabase Storage로 업로드하는 함수
  * Vercel Serverless Function의 4.5MB 제한을 우회하기 위해 사용
  * @param file - 업로드할 파일
  * @param targetFolder - 업로드할 폴더 경로
  * @param customFileName - 커스텀 파일명 (선택사항)
  * @param onProgress - 업로드 진행률 콜백 (0-100)
+ * @param showWarning - 중복 파일명 경고창 표시 여부
  * @returns 업로드된 파일의 URL
  */
 export async function uploadLargeFileDirectlyToSupabase(
   file: File,
   targetFolder: string,
   customFileName?: string,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
+  showWarning: boolean = true
 ): Promise<UploadResult> {
   try {
     const { createClient } = await import('@supabase/supabase-js');
@@ -273,74 +398,105 @@ export async function uploadLargeFileDirectlyToSupabase(
     
     let fileName = customFileName || file.name;
     let uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
+    let retryCount = 0;
+    const maxRetries = 3;
     
-    // 파일 존재 여부 확인 및 고유 파일명 생성
-    const folderPath = targetFolder || '';
-    const pathParts = uploadPath.split('/');
-    const folderOnly = pathParts.slice(0, -1).join('/');
-    const fileNameOnly = pathParts[pathParts.length - 1];
-    
-    try {
-      const { data: existingFiles } = await supabase.storage
-        .from('blog-images')
-        .list(folderOnly || '', {
-          search: fileNameOnly
+    while (retryCount < maxRetries) {
+      // 중복 파일명 체크 및 고유 파일명 생성 (경고창 포함)
+      fileName = await generateUniqueFileName(
+        supabase,
+        targetFolder || '',
+        fileName,
+        showWarning && retryCount === 0 // 첫 시도에만 경고창 표시
+      );
+      
+      uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
+      
+      console.log(`📤 클라이언트에서 직접 업로드 시작 (시도 ${retryCount + 1}/${maxRetries}):`, {
+        fileName,
+        fileSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+        fileType: file.type,
+        uploadPath
+      });
+      
+      try {
+        // 1. 서버에서 서명된 업로드 URL 발급 (RLS 정책 우회)
+        const signRes = await fetch('/api/admin/storage-signed-upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: uploadPath })
         });
-      
-      // 파일이 이미 존재하면 고유한 파일명 생성
-      if (existingFiles && existingFiles.some(f => f.name === fileNameOnly)) {
-        const timestamp = Date.now();
-        const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
-        const baseName = fileName.replace(/\.[^/.]+$/, '');
-        fileName = `${baseName}-${timestamp}${ext}`;
-        uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
-        console.log(`⚠️ 파일이 이미 존재하여 고유 파일명으로 변경: ${fileName}`);
+        
+        if (!signRes.ok) {
+          const errorData = await signRes.json().catch(() => ({}));
+          const errorMessage = errorData.error || signRes.statusText;
+          
+          // "already exists" 에러인 경우 고유 파일명 생성 후 재시도
+          if (errorMessage.includes('already exists') || errorMessage.includes('resource already')) {
+            console.warn(`⚠️ 파일이 이미 존재함, 고유 파일명 생성 후 재시도: ${uploadPath}`);
+            const timestamp = Date.now();
+            const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
+            const baseName = fileName.replace(/\.[^/.]+$/, '');
+            fileName = `${baseName}-${timestamp}${ext}`;
+            uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
+            retryCount++;
+            continue; // 재시도
+          }
+          
+          throw new Error(`서명 URL 발급 실패: ${errorMessage}`);
+        }
+        
+        const { token } = await signRes.json();
+        if (!token) {
+          throw new Error('서명 토큰을 받지 못했습니다');
+        }
+        
+        console.log('✅ 서명된 URL 발급 완료');
+        
+        // 2. 서명된 URL로 직접 업로드 (RLS 정책 우회)
+        const { error } = await supabase.storage
+          .from('blog-images')
+          .uploadToSignedUrl(uploadPath, token, file);
+        
+        if (error) {
+          console.error('❌ Supabase 서명 URL 업로드 오류:', error);
+          
+          // 중복 파일 에러 처리 - 재시도
+          if (error.message?.includes('already exists') && retryCount < maxRetries - 1) {
+            console.warn(`⚠️ 업로드 중 파일 중복 감지, 고유 파일명 생성 후 재시도: ${uploadPath}`);
+            const timestamp = Date.now();
+            const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
+            const baseName = fileName.replace(/\.[^/.]+$/, '');
+            fileName = `${baseName}-${timestamp}${ext}`;
+            uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
+            retryCount++;
+            continue; // 재시도
+          }
+          
+          throw new Error(`업로드 실패: ${error.message || '알 수 없는 오류'}`);
+        }
+        
+        // 업로드 성공 - 루프 종료
+        break;
+        
+      } catch (signError: any) {
+        // "already exists" 에러인 경우 재시도
+        if (signError.message?.includes('already exists') && retryCount < maxRetries - 1) {
+          console.warn(`⚠️ 에러 발생, 고유 파일명 생성 후 재시도: ${signError.message}`);
+          const timestamp = Date.now();
+          const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
+          const baseName = fileName.replace(/\.[^/.]+$/, '');
+          fileName = `${baseName}-${timestamp}${ext}`;
+          uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
+          retryCount++;
+          continue; // 재시도
+        }
+        throw signError;
       }
-    } catch (checkError) {
-      // 파일 존재 여부 확인 실패는 무시하고 계속 진행
-      console.warn('⚠️ 파일 존재 여부 확인 실패, 계속 진행:', checkError);
     }
     
-    console.log('📤 클라이언트에서 직접 업로드 시작:', {
-      fileName,
-      fileSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-      fileType: file.type,
-      uploadPath
-    });
-    
-    // 1. 서버에서 서명된 업로드 URL 발급 (RLS 정책 우회)
-    const signRes = await fetch('/api/admin/storage-signed-upload', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path: uploadPath })
-    });
-    
-    if (!signRes.ok) {
-      const errorData = await signRes.json().catch(() => ({}));
-      throw new Error(`서명 URL 발급 실패: ${errorData.error || signRes.statusText}`);
-    }
-    
-    const { token } = await signRes.json();
-    if (!token) {
-      throw new Error('서명 토큰을 받지 못했습니다');
-    }
-    
-    console.log('✅ 서명된 URL 발급 완료');
-    
-    // 2. 서명된 URL로 직접 업로드 (RLS 정책 우회)
-    const { error } = await supabase.storage
-      .from('blog-images')
-      .uploadToSignedUrl(uploadPath, token, file);
-    
-    if (error) {
-      console.error('❌ Supabase 서명 URL 업로드 오류:', error);
-      
-      // 중복 파일 에러 처리
-      if (error.message?.includes('already exists')) {
-        throw new Error(`파일이 이미 존재합니다: ${fileName}`);
-      }
-      
-      throw new Error(`업로드 실패: ${error.message || '알 수 없는 오류'}`);
+    if (retryCount >= maxRetries) {
+      throw new Error(`최대 재시도 횟수(${maxRetries})를 초과했습니다. 파일명: ${fileName}`);
     }
     
     // 공개 URL 생성
