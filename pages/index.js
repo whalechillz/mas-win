@@ -381,10 +381,10 @@ export default function Home({ hostname, initialProducts = [] }) {
                     </svg>
                   </button>
                   {driverMenuOpen && (
-                    <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                    <div className="absolute top-full left-0 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
                       <Link 
                         href="/products/weapon-beryl"
-                        className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                        className="block px-4 pt-5 pb-3 hover:bg-gray-50 transition-colors"
                         onClick={() => setDriverMenuOpen(false)}
                       >
                         <div className="flex items-center justify-between">
