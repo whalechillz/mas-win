@@ -2312,12 +2312,22 @@ function CustomerImageModal({ customer, onClose }: {
           let storyScene: number | undefined;
           let imageType: string | undefined;
           
-          // 동영상 파일인지 확인
-          const isVideo = file.type.startsWith('video/') || 
+          // 동영상 파일인지 확인 (더 안전한 방법)
+          const isVideo = (file.type?.startsWith('video/') || false) || 
                           /\.(mp4|avi|mov|webm|mkv|flv|m4v|3gp|wmv)$/i.test(file.name);
           
           // 대용량 파일인지 확인 (10MB 이상)
           const isLargeFile = file.size > 10 * 1024 * 1024;
+          
+          // 디버깅 로그 추가
+          console.log('🔍 파일 정보:', {
+            name: file.name,
+            type: file.type || 'unknown',
+            size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+            isVideo,
+            isLargeFile,
+            shouldUseDirectUpload: isLargeFile || isVideo
+          });
           
           if (uploadMode === 'optimize-filename') {
             // 파일명 최적화 모드: 고객 이미지 파일명 규칙 적용
@@ -2350,8 +2360,9 @@ function CustomerImageModal({ customer, onClose }: {
           }
 
           // 대용량 파일 또는 동영상은 클라이언트에서 직접 업로드 (Vercel 4.5MB 제한 우회)
+          // 동영상은 무조건 직접 업로드 (크기와 무관)
           let uploadResult: any;
-          if (isLargeFile || isVideo) {
+          if (isVideo || isLargeFile) {
             console.log(`📤 대용량 파일/동영상 직접 업로드: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
             const { uploadLargeFileDirectlyToSupabase } = await import('../../../lib/image-upload-utils');
             uploadResult = await uploadLargeFileDirectlyToSupabase(
@@ -2366,6 +2377,7 @@ function CustomerImageModal({ customer, onClose }: {
             );
           } else {
             // 소용량 파일은 기존 API 경로 사용
+            console.log(`📤 소용량 파일 API 업로드: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
             uploadResult = await uploadImageToSupabase(file, {
               targetFolder: targetFolder,
               enableHEICConversion: true,
