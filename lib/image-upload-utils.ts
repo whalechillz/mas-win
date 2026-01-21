@@ -400,15 +400,19 @@ export async function uploadLargeFileDirectlyToSupabase(
     let uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
     let retryCount = 0;
     const maxRetries = 3;
+    let useNumberSuffix = false; // 번호 추가 모드 여부
     
     while (retryCount < maxRetries) {
       // 중복 파일명 체크 및 고유 파일명 생성 (경고창 포함)
-      fileName = await generateUniqueFileName(
-        supabase,
-        targetFolder || '',
-        fileName,
-        showWarning && retryCount === 0 // 첫 시도에만 경고창 표시
-      );
+      // 번호 추가 모드가 아닐 때만 generateUniqueFileName 호출
+      if (!useNumberSuffix) {
+        fileName = await generateUniqueFileName(
+          supabase,
+          targetFolder || '',
+          fileName,
+          showWarning && retryCount === 0 // 첫 시도에만 경고창 표시
+        );
+      }
       
       uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
       
@@ -431,12 +435,55 @@ export async function uploadLargeFileDirectlyToSupabase(
           const errorData = await signRes.json().catch(() => ({}));
           const errorMessage = errorData.error || signRes.statusText;
           
-          // "already exists" 에러인 경우 고유 파일명 생성 후 재시도
-          if (errorMessage.includes('already exists') || errorMessage.includes('resource already')) {
-            console.warn(`⚠️ 파일이 이미 존재함, 고유 파일명 생성 후 재시도: ${uploadPath}`);
+          // 409 Conflict 또는 "already exists" 에러인 경우 고유 파일명 생성 후 재시도
+          if (signRes.status === 409 || errorMessage.includes('already exists') || errorMessage.includes('resource already')) {
+            console.warn(`⚠️ 파일이 이미 존재함 (${signRes.status}), 고유 파일명 생성 후 재시도: ${uploadPath}`);
+            
+            // 첫 시도이고 경고창 표시 옵션이 활성화되어 있으면 경고창 표시
+            if (showWarning && retryCount === 0) {
+              const pathParts = uploadPath.split('/');
+              const fileNameOnly = pathParts[pathParts.length - 1];
+              const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
+              const baseName = fileName.replace(/\.[^/.]+$/, '');
+              const suggestedName = `${baseName}(1)${ext}`;
+              
+              const userChoice = confirm(
+                `⚠️ 중복된 파일명이 있습니다.\n\n` +
+                `파일명: ${fileNameOnly}\n\n` +
+                `파일명 뒤에 번호를 추가하여 업로드하시겠습니까?\n` +
+                `(예: ${suggestedName})\n\n` +
+                `[확인] = 번호 추가 (1), (2), (3)...\n` +
+                `[취소] = 타임스탬프 추가`
+              );
+              
+              if (userChoice) {
+                // (1), (2), (3) 형식으로 번호 추가 모드 활성화
+                useNumberSuffix = true;
+                const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
+                const baseName = fileName.replace(/\.[^/.]+$/, '').replace(/\(\d+\)$/, ''); // 기존 번호 제거
+                const counter = retryCount + 1;
+                fileName = `${baseName}(${counter})${ext}`;
+                uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
+                retryCount++;
+                continue; // 재시도 (번호 자동 증가)
+              }
+            }
+            
+            // 번호 추가 모드인 경우 번호 증가
+            if (useNumberSuffix) {
+              const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
+              const baseName = fileName.replace(/\.[^/.]+$/, '').replace(/\(\d+\)$/, ''); // 기존 번호 제거
+              const counter = retryCount + 1;
+              fileName = `${baseName}(${counter})${ext}`;
+              uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
+              retryCount++;
+              continue; // 재시도
+            }
+            
+            // 타임스탬프 추가 (사용자가 취소했거나 자동 처리)
             const timestamp = Date.now();
             const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
-            const baseName = fileName.replace(/\.[^/.]+$/, '');
+            const baseName = fileName.replace(/\.[^/.]+$/, '').replace(/\(\d+\)$/, ''); // 기존 번호 제거
             fileName = `${baseName}-${timestamp}${ext}`;
             uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
             retryCount++;
