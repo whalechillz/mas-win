@@ -56,10 +56,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
+      // recipient_count가 0이지만 recipient_uuids가 있는 경우 실제 수 계산 및 업데이트
+      const groupsWithCorrectCount = await Promise.all(
+        (groups || []).map(async (group: any) => {
+          if (group.recipient_count === 0 && group.recipient_uuids) {
+            try {
+              const uuids = typeof group.recipient_uuids === 'string' 
+                ? JSON.parse(group.recipient_uuids) 
+                : group.recipient_uuids;
+              
+              if (Array.isArray(uuids) && uuids.length > 0) {
+                const actualCount = uuids.length;
+                
+                // DB 업데이트 (비동기, 에러가 나도 계속 진행)
+                supabase
+                  .from('kakao_recipient_groups')
+                  .update({ recipient_count: actualCount })
+                  .eq('id', group.id)
+                  .then(() => {
+                    console.log(`✅ 그룹 ${group.id}의 친구 수를 ${actualCount}명으로 업데이트했습니다.`);
+                  })
+                  .catch((err) => {
+                    console.error(`❌ 그룹 ${group.id}의 친구 수 업데이트 실패:`, err);
+                  });
+                
+                return { ...group, recipient_count: actualCount };
+              }
+            } catch (e) {
+              console.error(`❌ 그룹 ${group.id}의 recipient_uuids 파싱 오류:`, e);
+            }
+          }
+          return group;
+        })
+      );
+
       return res.status(200).json({
         success: true,
-        data: groups || [],
-        count: groups?.length || 0
+        data: groupsWithCorrectCount || [],
+        count: groupsWithCorrectCount?.length || 0
       });
 
     } catch (error: any) {

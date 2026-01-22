@@ -90,8 +90,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // 수신자 처리
     let receiverUuids: string[] = [];
+    const friendGroupId = req.body.friendGroupId as number | undefined;
     
-    if (selectedRecipients && Array.isArray(selectedRecipients) && selectedRecipients.length > 0) {
+    // 친구 그룹 타게팅
+    if (friendGroupId) {
+      const { data: group, error: groupError } = await supabase
+        .from('kakao_recipient_groups')
+        .select('recipient_uuids, recipient_count')
+        .eq('id', friendGroupId)
+        .eq('is_active', true)
+        .single();
+
+      if (groupError || !group) {
+        return res.status(400).json({
+          success: false,
+          message: '선택한 친구 그룹을 찾을 수 없습니다.'
+        });
+      }
+
+      if (group.recipient_uuids) {
+        try {
+          const parsed = typeof group.recipient_uuids === 'string'
+            ? JSON.parse(group.recipient_uuids)
+            : group.recipient_uuids;
+          receiverUuids = Array.isArray(parsed) ? parsed : [];
+        } catch {
+          receiverUuids = [];
+        }
+      }
+
+      if (receiverUuids.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: '선택한 친구 그룹에 등록된 친구가 없습니다.'
+        });
+      }
+
+      console.log(`✅ 친구 그룹 타게팅: ${receiverUuids.length}명`);
+    } else if (selectedRecipients && Array.isArray(selectedRecipients) && selectedRecipients.length > 0) {
       // 전화번호인지 UUID인지 확인
       const firstRecipient = selectedRecipients[0];
       if (typeof firstRecipient === 'string' && firstRecipient.match(/^[0-9-]+$/)) {

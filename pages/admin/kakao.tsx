@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import AdminNav from '@/components/admin/AdminNav';
+import { KakaoFriendSyncStatus } from '@/components/admin/KakaoFriendSyncStatus';
 
 const BaseChannelEditor = dynamic(() => import('@/components/shared/BaseChannelEditor'), { ssr: false });
 
@@ -15,7 +16,6 @@ export default function KakaoChannelEditor() {
     templateType: 'BASIC_TEXT', // 기본 텍스트형
     characterCount: 0,
     emoji: '',
-    tags: [],
     buttonText: '', // 빈 값으로 시작, 사용자가 입력
     buttonLink: '' // 빈 값으로 시작, 사용자가 입력
   });
@@ -47,7 +47,6 @@ export default function KakaoChannelEditor() {
           templateType: message.template_type || 'BASIC_TEXT',
           characterCount: (message.content || '').length,
           emoji: message.emoji || '',
-          tags: message.tags || [],
           buttonText: message.button_text || '',
           buttonLink: message.button_link || ''
         });
@@ -60,9 +59,108 @@ export default function KakaoChannelEditor() {
     }
   };
 
+  const [selectedFriendGroupId, setSelectedFriendGroupId] = useState<number | null>(null);
+  const [friendGroups, setFriendGroups] = useState<any[]>([]);
+  const [loadingGroups, setLoadingGroups] = useState(false);
+
+  // 친구 그룹 목록 조회
+  useEffect(() => {
+    const fetchFriendGroups = async () => {
+      setLoadingGroups(true);
+      try {
+        const response = await fetch('/api/kakao/recipient-groups');
+        const data = await response.json();
+        if (data.success) {
+          setFriendGroups(data.data || []);
+        }
+      } catch (error) {
+        console.error('친구 그룹 조회 오류:', error);
+      } finally {
+        setLoadingGroups(false);
+      }
+    };
+    fetchFriendGroups();
+  }, []);
+
   // 카카오 채널 특화 컴포넌트
   const KakaoSpecificComponents = () => (
     <div className="space-y-6">
+      {/* 카카오 친구 목록 동기화 상태 */}
+      <div className="space-y-2">
+        <KakaoFriendSyncStatus />
+        <div className="flex justify-end">
+          <button
+            onClick={() => router.push('/admin/kakao-friend-groups')}
+            className="px-4 py-2 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+          >
+            👥 친구 그룹 관리 →
+          </button>
+        </div>
+      </div>
+
+      {/* 메시지 타겟 설정 */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          메시지 타겟 설정
+        </label>
+        <div className="space-y-3">
+          <label className="flex items-center">
+            <input
+              type="radio"
+              name="targetType"
+              value="all"
+              checked={selectedFriendGroupId === null}
+              onChange={() => setSelectedFriendGroupId(null)}
+              className="mr-2"
+            />
+            <span className="text-sm">타겟 설정 안함 (전체 친구 대상 발송)</span>
+          </label>
+          <label className="flex items-center">
+            <input
+              type="radio"
+              name="targetType"
+              value="group"
+              checked={selectedFriendGroupId !== null}
+              onChange={() => {
+                if (friendGroups.length > 0 && selectedFriendGroupId === null) {
+                  setSelectedFriendGroupId(friendGroups[0].id);
+                }
+              }}
+              className="mr-2"
+            />
+            <span className="text-sm">친구그룹 타게팅</span>
+          </label>
+          
+          {selectedFriendGroupId !== null && (
+            <div className="ml-6 mt-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                지정할 친구그룹
+              </label>
+              <select
+                value={selectedFriendGroupId || ''}
+                onChange={(e) => setSelectedFriendGroupId(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={loadingGroups}
+              >
+                <option value="">그룹 선택</option>
+                {friendGroups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name} ({group.recipient_count}명)
+                  </option>
+                ))}
+              </select>
+              {selectedFriendGroupId && (
+                <p className="mt-2 text-sm text-gray-600">
+                  총 예상 발송 대상: {
+                    friendGroups.find(g => g.id === selectedFriendGroupId)?.recipient_count || 0
+                  }명
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* 메시지 템플릿 타입 선택 */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -136,23 +234,6 @@ export default function KakaoChannelEditor() {
         </div>
       </div>
 
-      {/* 태그 입력 */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          태그
-        </label>
-        <input
-          type="text"
-          value={formData.tags.join(', ')}
-          onChange={(e) => {
-            const tags = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag);
-            setFormData(prev => ({ ...prev, tags }));
-          }}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="태그를 쉼표로 구분하여 입력하세요"
-        />
-      </div>
-
       {/* 카카오톡 버튼 설정 */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -208,11 +289,6 @@ export default function KakaoChannelEditor() {
               {(baseEditorFormData?.content || formData.messageText) && (
                 <div className={`text-gray-700 ${formData.templateType === 'BASIC_TEXT' ? 'mt-0' : 'mt-1'}`}>
                   {baseEditorFormData?.content || formData.messageText}
-                </div>
-              )}
-              {formData.tags.length > 0 && (
-                <div className="mt-2 text-blue-600">
-                  #{formData.tags.join(' #')}
                 </div>
               )}
               {formData.buttonText && formData.buttonLink && (
@@ -275,9 +351,9 @@ export default function KakaoChannelEditor() {
             messageType: formData.messageType,
             templateType: formData.templateType,
             emoji: formData.emoji,
-            tags: formData.tags,
             buttonLink: formData.buttonLink,
-            buttonText: formData.buttonText
+            buttonText: formData.buttonText,
+            friendGroupId: selectedFriendGroupId || undefined // 친구 그룹 ID 전달
           }}
           key={`${formData.title}-${formData.messageText}-${formData.buttonText}-${formData.buttonLink}`}
           onFormDataChange={(newFormData) => {

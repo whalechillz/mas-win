@@ -7,6 +7,9 @@ import { AIImagePicker } from '../../components/shared/AIImagePicker';
 import { MessageOptimizer } from '../../components/shared/MessageOptimizer';
 import { CustomerSelector } from '../../components/admin/CustomerSelector';
 import { KakaoSendOption } from '../../components/admin/KakaoSendOption';
+import { CustomerSegmentManager } from '../../components/admin/CustomerSegmentManager';
+import { KakaoFriendSyncStatus } from '../../components/admin/KakaoFriendSyncStatus';
+import { KakaoRecipientPreview } from '../../components/admin/KakaoRecipientPreview';
 import { useChannelEditor } from '../../lib/hooks/useChannelEditor';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
@@ -1870,6 +1873,11 @@ export default function SMSAdmin() {
               </div>
 
               {/* 카카오톡 대행 발송 옵션 */}
+              {/* 카카오 친구 목록 동기화 상태 */}
+              {kakaoSendEnabled && (
+                <KakaoFriendSyncStatus />
+              )}
+
               <KakaoSendOption
                 enabled={kakaoSendEnabled}
                 onEnabledChange={setKakaoSendEnabled}
@@ -2101,6 +2109,15 @@ export default function SMSAdmin() {
                 </div>
               </div>
 
+              {/* 세그먼트 관리 */}
+              <CustomerSegmentManager
+                currentFilter={segmentFilter}
+                onLoadSegment={(filter) => {
+                  setSegmentFilter(filter);
+                  alert('세그먼트가 불러와졌습니다. "세그먼트 적용하여 수신자 자동 선택" 버튼을 클릭하세요.');
+                }}
+              />
+
               {/* 세그먼트 선택 */}
               <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
                 <h3 className="font-semibold text-gray-800 mb-3">🎯 고객 세그먼트 선택</h3>
@@ -2268,6 +2285,10 @@ export default function SMSAdmin() {
                     <p className="text-sm text-gray-600 mt-1">
                       현재 <span className="font-bold text-blue-600">{formData.recipientNumbers?.length || 0}명</span> 선택됨
                     </p>
+                    {/* 카카오톡 대행 발송 시 친구/비친구 비율 미리보기 */}
+                    {kakaoSendEnabled && formData.recipientNumbers && formData.recipientNumbers.length > 0 && (
+                      <KakaoRecipientPreview recipientNumbers={formData.recipientNumbers} />
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <button

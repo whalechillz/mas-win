@@ -4,6 +4,7 @@ import { TitleScorer } from './TitleScorer';
 import { SEOOptimizer } from './SEOOptimizer';
 import { ShortLinkGenerator } from './ShortLinkGenerator';
 import { AIImagePicker } from './AIImagePicker';
+import { KakaoRecipientModal } from '@/components/admin/KakaoRecipientModal';
 
 interface BaseChannelEditorProps {
   channelType: 'sms' | 'kakao' | 'naver';
@@ -36,6 +37,8 @@ export default function BaseChannelEditor({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [shortLink, setShortLink] = useState<string>('');
   const [titleScore, setTitleScore] = useState<number>(0);
+  const [showRecipientModal, setShowRecipientModal] = useState(false);
+  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
 
   const {
     formData,
@@ -125,8 +128,14 @@ export default function BaseChannelEditor({
   };
 
   // 발송
-  const handleSend = async () => {
+  const handleSend = async (recipients?: string[]) => {
     try {
+      // 카카오 채널인 경우 수신자가 없으면 모달 표시
+      if (channelType === 'kakao' && !recipients && selectedRecipients.length === 0) {
+        setShowRecipientModal(true);
+        return;
+      }
+
       // initialData에서 buttonText와 buttonLink 가져오기
       const buttonText = (initialData as any)?.buttonText;
       const buttonLink = (initialData as any)?.buttonLink;
@@ -134,12 +143,17 @@ export default function BaseChannelEditor({
       // templateType 우선순위: prop > formData > initialData > 기본값
       const currentTemplateType = templateType || (formData as any).templateType || (initialData as any)?.templateType || 'BASIC_TEXT';
       
+      // 카카오 채널인 경우 selectedRecipients를 formData에 추가
+      const finalRecipients = recipients || selectedRecipients;
+      
       updateFormData({
         imageUrl: selectedImage || '',
         shortLink,
         templateType: currentTemplateType,
         ...(buttonText && { buttonText }),
-        ...(buttonLink && { buttonLink })
+        ...(buttonLink && { buttonLink }),
+        ...(channelType === 'kakao' && finalRecipients.length > 0 && { selectedRecipients: finalRecipients }),
+        ...(channelType === 'kakao' && (initialData as any)?.friendGroupId && { friendGroupId: (initialData as any).friendGroupId })
       } as any);
       
       // formData 업데이트 후 약간의 지연을 두고 발송
@@ -168,7 +182,16 @@ export default function BaseChannelEditor({
       }
     } catch (error) {
       console.error('Send failed:', error);
+      alert('발송 중 오류가 발생했습니다: ' + (error as Error).message);
     }
+  };
+
+  // 수신자 모달에서 확인 버튼 클릭
+  const handleRecipientConfirm = (recipients: string[]) => {
+    setSelectedRecipients(recipients);
+    setShowRecipientModal(false);
+    // 수신자 선택 후 자동으로 발송 진행
+    handleSend(recipients);
   };
 
   return (
@@ -378,6 +401,17 @@ export default function BaseChannelEditor({
           }}
           channelType={channelType}
           autoFilterFolder={channelType === 'kakao' ? `originals/daily-branding/kakao-ch/${new Date().toISOString().split('T')[0]}` : undefined}
+        />
+      )}
+
+      {/* 카카오 채널 수신자 선택 모달 */}
+      {channelType === 'kakao' && (
+        <KakaoRecipientModal
+          isOpen={showRecipientModal}
+          onClose={() => setShowRecipientModal(false)}
+          onConfirm={handleRecipientConfirm}
+          initialRecipients={selectedRecipients}
+          messageType={(formData as any).messageType || (initialData as any)?.messageType || 'FRIENDTALK'}
         />
       )}
     </div>

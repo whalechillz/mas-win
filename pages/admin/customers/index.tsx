@@ -2370,7 +2370,7 @@ function CustomerImageModal({ customer, onClose }: {
             if (isVideo) {
               // 동영상: 한글 파일명만 영문으로 전환
               if (/[가-힣]/.test(file.name)) {
-                const { translateKoreanToEnglish } = require('../lib/korean-to-english-translator');
+                const { translateKoreanToEnglish } = require('../../../lib/korean-to-english-translator');
                 const baseName = file.name.replace(/\.[^/.]+$/, '');
                 const ext = file.name.match(/\.[^/.]+$/)?.[0] || '';
                 const translatedBase = translateKoreanToEnglish(baseName);
@@ -2382,7 +2382,7 @@ function CustomerImageModal({ customer, onClose }: {
             } else {
               // 이미지: 한글 파일명 영문 변환 (API에서 처리하지 않고 클라이언트에서 먼저 처리)
               if (/[가-힣]/.test(file.name)) {
-                const { translateKoreanToEnglish } = require('../lib/korean-to-english-translator');
+                const { translateKoreanToEnglish } = require('../../../lib/korean-to-english-translator');
                 const baseName = file.name.replace(/\.[^/.]+$/, '');
                 const ext = file.name.match(/\.[^/.]+$/)?.[0] || '';
                 const translatedBase = translateKoreanToEnglish(baseName);

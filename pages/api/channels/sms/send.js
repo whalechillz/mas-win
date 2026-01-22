@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { createSolapiSignature } from '../../../../utils/solapiSignature.js';
+import { extractProvince } from '../../../../lib/address-utils';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -257,6 +258,224 @@ export default async function handler(req, res) {
       return name.trim(); // VIP 형식이어도 그대로 반환
     };
 
+    // ⭐ 지역 정보 조회 (province 변수가 있는 경우)
+    const hasProvinceVariable = finalMessage.includes('{province}');
+    const provinceMap = new Map();
+    
+    if (hasProvinceVariable) {
+      console.log('[send.js] province 변수 감지, 지역 정보 조회 시작...');
+      
+      try {
+        // 수신자 전화번호로 고객 ID 조회
+        const phoneVariations = uniqueToSend.map(num => {
+          const normalized = normalizePhone(num);
+          const formatted = formatPhone(normalized);
+          return { normalized, formatted, original: num };
+        });
+        
+        const allPhonesForProvince = [
+          ...phoneVariations.map(p => p.normalized),
+          ...phoneVariations.map(p => p.formatted),
+          ...phoneVariations.map(p => p.original)
+        ].filter(Boolean);
+        
+        // customers 테이블에서 전화번호로 고객 ID 조회
+        const { data: customers, error: customerError } = await supabase
+          .from('customers')
+          .select('id, phone, address')
+          .in('phone', allPhonesForProvince);
+        
+        if (!customerError && customers) {
+          const customerIdMap = new Map();
+          const customerAddressMap = new Map();
+          customers.forEach(c => {
+            // 정규화된 전화번호로 매핑
+            const normalizedPhone = normalizePhone(c.phone);
+            if (normalizedPhone) {
+              customerIdMap.set(normalizedPhone, c.id);
+              if (c.address) {
+                customerAddressMap.set(normalizedPhone, c.address);
+              }
+            }
+            // 포맷된 번호로도 매핑
+            const formatted = formatPhone(normalizedPhone);
+            if (formatted) {
+              customerIdMap.set(formatted, c.id);
+              if (c.address) {
+                customerAddressMap.set(formatted, c.address);
+              }
+            }
+            // 원본 번호로도 매핑
+            if (c.phone) {
+              customerIdMap.set(c.phone, c.id);
+              if (c.address) {
+                customerAddressMap.set(c.phone, c.address);
+              }
+            }
+          });
+          
+          // customer_address_cache에서 province 정보 조회
+          const customerIds = Array.from(customerIdMap.values());
+          if (customerIds.length > 0) {
+            const { data: cacheData, error: cacheError } = await supabase
+              .from('customer_address_cache')
+              .select('customer_id, province, address, geocoding_status')
+              .in('customer_id', customerIds)
+              .order('updated_at', { ascending: false });
+            
+            if (!cacheError && cacheData) {
+              // 각 고객 ID별로 최신 province 정보 매핑
+              const customerProvinceMap = new Map();
+              cacheData.forEach(cache => {
+                if (cache.customer_id) {
+                  // 같은 고객 ID가 여러 개 있으면 최신 것만 사용 (이미 정렬됨)
+                  if (!customerProvinceMap.has(cache.customer_id)) {
+                    // province가 있으면 사용, 없으면 주소에서 추출
+                    let province = cache.province;
+                    if (!province && cache.address) {
+                      province = extractProvince(cache.address);
+                    }
+                    if (province) {
+                      customerProvinceMap.set(cache.customer_id, province);
+                    }
+                  }
+                }
+              });
+              
+              // 전화번호 → province 매핑 생성 (여러 형식으로 저장)
+              customerIdMap.forEach((customerId, phone) => {
+                let province = customerProvinceMap.get(customerId);
+                
+                // 캐시에 province가 없으면 고객 주소에서 추출
+                if (!province) {
+                  const address = customerAddressMap.get(phone);
+                  if (address) {
+                    province = extractProvince(address);
+                  }
+                }
+                
+                if (province) {
+                  // 여러 형식으로 저장하여 매칭 성공률 향상
+                  provinceMap.set(phone, province);
+                  // 정규화된 형식으로도 저장
+                  const normalized = normalizePhone(phone);
+                  if (normalized && normalized !== phone) {
+                    provinceMap.set(normalized, province);
+                  }
+                  // 포맷된 형식으로도 저장
+                  const formatted = formatPhone(normalized || phone);
+                  if (formatted && formatted !== phone && formatted !== normalized) {
+                    provinceMap.set(formatted, province);
+                  }
+                }
+              });
+              
+              console.log(`[send.js] 지역 정보 조회 완료: ${provinceMap.size}명의 지역 정보 수집`);
+            }
+          }
+        }
+      } catch (provinceError) {
+        console.error('[send.js] 지역 정보 조회 오류 (무시하고 계속 진행):', provinceError);
+      }
+    }
+
+    // ⭐ 거리 정보 조회 (distance_km 변수가 있는 경우)
+    const hasDistanceVariable = finalMessage.includes('{distance_km}');
+    const distanceMap = new Map();
+    
+    if (hasDistanceVariable) {
+      console.log('[send.js] distance_km 변수 감지, 거리 정보 조회 시작...');
+      
+      try {
+        // 수신자 전화번호로 고객 ID 조회 (이름 조회와 동일한 방식으로 여러 형식 지원)
+        const phoneVariations = uniqueToSend.map(num => {
+          const normalized = normalizePhone(num);
+          const formatted = formatPhone(normalized);
+          return { normalized, formatted, original: num };
+        });
+        
+        const allPhonesForDistance = [
+          ...phoneVariations.map(p => p.normalized),
+          ...phoneVariations.map(p => p.formatted),
+          ...phoneVariations.map(p => p.original)
+        ].filter(Boolean);
+        
+        // customers 테이블에서 전화번호로 고객 ID 조회
+        const { data: customers, error: customerError } = await supabase
+          .from('customers')
+          .select('id, phone')
+          .in('phone', allPhonesForDistance);
+        
+        if (!customerError && customers) {
+          const customerIdMap = new Map();
+          customers.forEach(c => {
+            // 정규화된 전화번호로 매핑
+            const normalizedPhone = normalizePhone(c.phone);
+            if (normalizedPhone) {
+              customerIdMap.set(normalizedPhone, c.id);
+            }
+            // 포맷된 번호로도 매핑
+            const formatted = formatPhone(normalizedPhone);
+            if (formatted) {
+              customerIdMap.set(formatted, c.id);
+            }
+            // 원본 번호로도 매핑
+            if (c.phone) {
+              customerIdMap.set(c.phone, c.id);
+            }
+          });
+          
+          // customer_address_cache에서 거리 정보 조회
+          const customerIds = Array.from(customerIdMap.values());
+          if (customerIds.length > 0) {
+            const { data: cacheData, error: cacheError } = await supabase
+              .from('customer_address_cache')
+              .select('customer_id, distance_km, geocoding_status')
+              .in('customer_id', customerIds)
+              .eq('geocoding_status', 'success')
+              .not('distance_km', 'is', null)
+              .order('updated_at', { ascending: false });
+            
+            if (!cacheError && cacheData) {
+              // 각 고객 ID별로 최신 거리 정보 매핑
+              const customerDistanceMap = new Map();
+              cacheData.forEach(cache => {
+                if (cache.customer_id && cache.distance_km !== null) {
+                  // 같은 고객 ID가 여러 개 있으면 최신 것만 사용 (이미 정렬됨)
+                  if (!customerDistanceMap.has(cache.customer_id)) {
+                    customerDistanceMap.set(cache.customer_id, cache.distance_km);
+                  }
+                }
+              });
+              
+              // 전화번호 → 거리 매핑 생성 (여러 형식으로 저장)
+              customerIdMap.forEach((customerId, phone) => {
+                const distance = customerDistanceMap.get(customerId);
+                if (distance !== undefined) {
+                  // 여러 형식으로 저장하여 매칭 성공률 향상
+                  distanceMap.set(phone, distance);
+                  // 정규화된 형식으로도 저장
+                  const normalized = normalizePhone(phone);
+                  if (normalized && normalized !== phone) {
+                    distanceMap.set(normalized, distance);
+                  }
+                  // 포맷된 형식으로도 저장
+                  const formatted = formatPhone(normalized || phone);
+                  if (formatted && formatted !== phone && formatted !== normalized) {
+                    distanceMap.set(formatted, distance);
+                  }
+                }
+              });
+              
+              console.log(`[send.js] 거리 정보 조회 완료: ${distanceMap.size}명의 거리 정보 수집`);
+            }
+          }
+        }
+      } catch (distanceError) {
+        console.error('[send.js] 거리 정보 조회 오류 (무시하고 계속 진행):', distanceError);
+      }
+    }
+
     // 전체 수신자 messages 구성 (개인화 적용)
     const allMessages = uniqueToSend.map(num => {
       let personalizedMessage = finalMessage;
@@ -282,6 +501,50 @@ export default async function handler(req, res) {
           .replace(/\{name\}/g, nameWithHonorific)
           .replace(/\{고객명\}/g, nameWithHonorific)
           .replace(/\{\{name\}\}/g, nameWithHonorific);
+      }
+      
+      // ⭐ 지역 변수 치환
+      if (hasProvinceVariable) {
+        const normalized = normalizePhone(num);
+        const formatted = formatPhone(normalized);
+        // 여러 형식으로 지역 정보 찾기
+        const province = provinceMap.get(normalized) || 
+                        provinceMap.get(formatted) || 
+                        provinceMap.get(num) ||
+                        provinceMap.get(normalized.replace(/[^0-9]/g, ''));
+        
+        if (province) {
+          personalizedMessage = personalizedMessage.replace(/\{province\}/g, province);
+        } else {
+          // 지역 정보가 없으면 빈 문자열로 치환
+          console.warn(`[send.js] 지역 정보 없음: ${num} (정규화: ${normalized})`);
+          personalizedMessage = personalizedMessage.replace(/\{province\}/g, '');
+        }
+      }
+      
+      // ⭐ 거리 변수 치환
+      if (hasDistanceVariable) {
+        const normalized = normalizePhone(num);
+        const formatted = formatPhone(normalized);
+        // 여러 형식으로 거리 정보 찾기
+        const distance = distanceMap.get(normalized) || 
+                        distanceMap.get(formatted) || 
+                        distanceMap.get(num) ||
+                        distanceMap.get(normalized.replace(/[^0-9]/g, ''));
+        
+        if (distance !== undefined && distance !== null && distance > 0) {
+          // 소수점 첫째자리까지 반올림
+          const distanceKm = Math.round(distance * 10) / 10;
+          personalizedMessage = personalizedMessage.replace(/\{distance_km\}/g, distanceKm.toString());
+        } else {
+          // 거리 정보가 없으면 기본값으로 치환
+          if (distance === undefined || distance === null) {
+            console.warn(`[send.js] 거리 정보 없음: ${num} (정규화: ${normalized})`);
+          } else if (distance === 0) {
+            console.warn(`[send.js] 거리 정보가 0km: ${num} (정규화: ${normalized})`);
+          }
+          personalizedMessage = personalizedMessage.replace(/\{distance_km\}/g, '0');
+        }
       }
       
       return {

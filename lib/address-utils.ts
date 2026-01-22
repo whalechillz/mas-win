@@ -93,7 +93,7 @@ export function extractProvince(address: string | null | undefined): string | nu
     return '전남';
   }
 
-  // 3. "도" 또는 "시"가 포함된 경우 (예: "충청도아산시", "경상도창원시")
+  // 3. "도" 또는 "시"가 포함된 경우 (예: "충청도아산시", "경상도창원시", "서울시")
   const provinceMatch = trimmed.match(/^([가-힣]+(?:도|시))/);
   if (provinceMatch) {
     const matched = provinceMatch[1];
@@ -104,6 +104,18 @@ export function extractProvince(address: string | null | undefined): string | nu
     // 이미 약칭이면 그대로 반환
     if (Object.values(PROVINCE_SHORT_NAMES).includes(matched)) {
       return matched;
+    }
+    // "시"로 끝나는 경우 특수 처리 (예: "서울시" → "서울")
+    if (matched.endsWith('시')) {
+      const baseName = matched.replace('시', '');
+      // "서울시" → "서울", "부산시" → "부산" 등
+      if (PROVINCE_SHORT_NAMES[baseName + '특별시'] || PROVINCE_SHORT_NAMES[baseName + '광역시']) {
+        return PROVINCE_SHORT_NAMES[baseName + '특별시'] || PROVINCE_SHORT_NAMES[baseName + '광역시'];
+      }
+      // 이미 약칭이면 그대로 반환
+      if (Object.values(PROVINCE_SHORT_NAMES).includes(baseName)) {
+        return baseName;
+      }
     }
     // "도"로 끝나면 약칭 추출 시도
     if (matched.endsWith('도')) {

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { extractProvince } from '../../../../lib/address-utils';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
@@ -401,12 +402,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // 주소를 좌표로 변환
       const coords = await getCoordinatesFromAddress(normalizedAddress);
       if (!coords) {
+        // 도 단위 추출 (실패해도 저장)
+        const province = extractProvince(normalizedAddress);
+        
         // 실패한 경우 캐시에 실패 상태 저장
         await supabase.from('customer_address_cache').upsert(
           {
             customer_id: customerId || null,
             survey_id: surveyId || null,
             address: normalizedAddress,
+            province: province,
             geocoding_status: 'failed',
             geocoding_error: '주소 변환 실패',
             updated_at: new Date().toISOString(),

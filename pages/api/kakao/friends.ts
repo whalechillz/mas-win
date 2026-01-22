@@ -36,12 +36,69 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
           });
 
+          // 상세한 에러 처리
           if (!kakaoResponse.ok) {
-            const errorData = await kakaoResponse.json();
-            throw new Error(errorData.msg || '카카오 친구 목록 조회 실패');
+            let errorData: any = {};
+            const errorText = await kakaoResponse.text();
+            
+            try {
+              errorData = JSON.parse(errorText);
+            } catch {
+              errorData = { msg: errorText || '알 수 없는 오류' };
+            }
+
+            // 상태 코드별 상세 처리
+            let errorMessage = '카카오 친구 목록 조회 실패';
+            let errorCode = 'API_ERROR';
+
+            if (kakaoResponse.status === 401) {
+              errorMessage = '카카오 API 인증에 실패했습니다. 친구 목록 조회 API는 OAuth 2.0 Access Token이 필요합니다. Admin Key는 사용할 수 없습니다.';
+              errorCode = 'AUTH_FAILED';
+            } else if (kakaoResponse.status === 403) {
+              errorMessage = '카카오 비즈니스 채널 연동이 필요하거나 권한이 없습니다.';
+              errorCode = 'PERMISSION_DENIED';
+            } else if (kakaoResponse.status === 400) {
+              errorMessage = `잘못된 요청입니다: ${errorData.msg || errorText}`;
+              errorCode = 'BAD_REQUEST';
+            } else if (kakaoResponse.status >= 500) {
+              errorMessage = `카카오 API 서버 오류 (${kakaoResponse.status}): ${errorData.msg || '서버 오류'}`;
+              errorCode = 'SERVER_ERROR';
+            } else {
+              errorMessage = errorData.msg || errorText || '카카오 친구 목록 조회 실패';
+            }
+
+            console.error('❌ 카카오 API 오류 상세:', {
+              status: kakaoResponse.status,
+              statusText: kakaoResponse.statusText,
+              errorCode,
+              errorData,
+              errorText
+            });
+
+            return res.status(500).json({
+              success: false,
+              message: errorMessage,
+              errorCode,
+              error: errorData,
+              status: kakaoResponse.status
+            });
           }
 
-          const kakaoData = await kakaoResponse.json();
+          // 응답 파싱
+          let kakaoData: any = {};
+          try {
+            const responseText = await kakaoResponse.text();
+            kakaoData = JSON.parse(responseText);
+          } catch (parseError: any) {
+            console.error('❌ 카카오 API 응답 파싱 오류:', parseError);
+            return res.status(500).json({
+              success: false,
+              message: '카카오 API 응답을 파싱할 수 없습니다.',
+              errorCode: 'PARSE_ERROR',
+              error: parseError.message
+            });
+          }
+
           const friends = kakaoData.elements || [];
 
           // 데이터베이스에 저장/업데이트

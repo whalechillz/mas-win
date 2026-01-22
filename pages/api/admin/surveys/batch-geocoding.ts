@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { extractProvince } from '../../../../lib/address-utils';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
@@ -225,7 +226,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           // 거리 계산
           const distance = calculateDistance(STORE_LAT, STORE_LNG, coords.lat, coords.lng);
           
-          console.log(`[지오코딩] API 성공: ${survey.name} - 좌표: (${coords.lat}, ${coords.lng}), 거리: ${distance.toFixed(2)}km`);
+          // 도 단위 추출
+          const province = extractProvince(normalizedAddress);
+          
+          console.log(`[지오코딩] API 성공: ${survey.name} - 좌표: (${coords.lat}, ${coords.lng}), 거리: ${distance.toFixed(2)}km, 도: ${province || '없음'}`);
           
           // 캐시에 저장
           const cacheData: any = {
@@ -233,6 +237,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             latitude: coords.lat,
             longitude: coords.lng,
             distance_km: distance,
+            province: province,
             geocoding_status: 'success',
             last_verified_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -301,8 +306,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             console.error(`[지오코딩] API 키 없음: ${survey.name} (${surveyId})`);
           }
           
+          // 도 단위 추출 (실패해도 저장)
+          const province = extractProvince(normalizedAddress);
+          
           const cacheData: any = {
             address: normalizedAddress,
+            province: province,
             geocoding_status: 'failed',
             geocoding_error: '주소 변환 실패',
             updated_at: new Date().toISOString(),

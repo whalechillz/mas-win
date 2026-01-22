@@ -133,7 +133,6 @@ export const useChannelEditor = (
           buttonLink: formData.buttonLink || formData.shortLink || null, // 기본값 제거
           buttonText: formData.buttonText || null, // 기본값 제거
           emoji: (formData as any).emoji || '',
-          tags: (formData as any).tags || [],
           status: formData.status || 'draft',
           calendarId,
           blogPostId,
@@ -311,7 +310,8 @@ export const useChannelEditor = (
           buttonText: formData.buttonText,
           buttonLink: formData.buttonLink,
           imageUrl: formData.imageUrl,
-          selectedRecipients: (formData as any).selectedRecipients || []
+          selectedRecipients: (formData as any).selectedRecipients || [],
+          friendGroupId: (formData as any).friendGroupId || undefined
         })
       });
 

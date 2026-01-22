@@ -46,6 +46,8 @@ export default function SurveysPage() {
   const [winnerFilter, setWinnerFilter] = useState<'all' | 'winner' | 'non_winner'>('all');
   const [purchasedFilter, setPurchasedFilter] = useState<'all' | 'purchased' | 'non_purchased'>('all');
   const [recommendationNameFilter, setRecommendationNameFilter] = useState<string>('all');
+  const [campaignSourceFilter, setCampaignSourceFilter] = useState<string>('muziik-survey-2025');
+  const [availableCampaignSources, setAvailableCampaignSources] = useState<string[]>(['muziik-survey-2025']);
   const [sortBy, setSortBy] = useState('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);

@@ -90,6 +90,7 @@ export default async function handler(req, res) {
     const { 
       imageUrl,
       prompt,
+      variationMode = 'preserve-style', // 'preserve-style' | 'tone-only' | 'background-only' | 'object-only'
       preserveStyle = true,
       numImages = 1,
       aspectRatio = '1:1',
@@ -100,6 +101,12 @@ export default async function handler(req, res) {
       contentType = 'gallery',
       brandStrategy = 'professional'
     } = req.body;
+    
+    // variationMode에 따라 preserveStyle 자동 설정
+    let finalPreserveStyle = preserveStyle;
+    if (variationMode === 'tone-only' || variationMode === 'background-only' || variationMode === 'object-only') {
+      finalPreserveStyle = false; // 톤/배경/오브젝트 변경 시 스타일 유지 비활성화
+    }
 
     console.log('🎨 Nanobanana 이미지 변형 시작...');
     console.log('원본 이미지:', imageUrl);

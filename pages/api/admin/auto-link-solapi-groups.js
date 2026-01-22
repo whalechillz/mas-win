@@ -76,6 +76,7 @@ export default async function handler(req, res) {
         groupMap.set(groupId, {
           groupId,
           dateCreated: msg.dateCreated || msg.date_created || msg.createdAt || msg.created_at,
+          dateSent: msg.dateSent || msg.date_sent || msg.sentAt || msg.sent_at,
           messageCount: 0,
           firstMessage: msg
         });
@@ -94,7 +95,7 @@ export default async function handler(req, res) {
     const results = [];
 
     for (const group of groups) {
-      const { groupId, dateCreated } = group;
+      const { groupId, dateCreated, dateSent, messageCount } = group;
       
       try {
         // 3-1. 이미 연결된 그룹인지 확인
@@ -115,33 +116,65 @@ export default async function handler(req, res) {
         }
 
         // 3-2. 시간 기반으로 메시지 찾기
-        if (!dateCreated) {
+        // 재발송 케이스: dateSent가 있으면 dateSent를 우선 사용 (재발송 시간 반영)
+        const timeToUse = dateSent || dateCreated;
+        if (!timeToUse) {
           results.push({
             groupId,
             status: 'no_time_info',
-            error: '그룹 생성 시간 정보가 없습니다.'
+            error: '그룹 생성/발송 시간 정보가 없습니다.'
           });
           continue;
         }
 
-        const groupTime = new Date(dateCreated);
-        const startTime = new Date(groupTime.getTime() - 10 * 60 * 1000); // 10분 전
-        const endTime = new Date(groupTime.getTime() + 10 * 60 * 1000); // 10분 후
+        const groupTime = new Date(timeToUse);
+        // 재발송 케이스를 고려하여 시간 범위를 더 넓게 설정 (30분)
+        const startTime = new Date(groupTime.getTime() - 30 * 60 * 1000); // 30분 전
+        const endTime = new Date(groupTime.getTime() + 30 * 60 * 1000); // 30분 후
 
         // 특정 메시지 ID가 지정된 경우 해당 메시지만 조회
         let query = supabase
           .from('channel_sms')
-          .select('id, status, success_count, fail_count, sent_count, recipient_numbers, solapi_group_id, sent_at')
+          .select('id, status, success_count, fail_count, sent_count, recipient_numbers, solapi_group_id, sent_at, created_at')
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        // sent_at이 있으면 sent_at 기준으로 검색, 없으면 created_at 기준
+        // 재발송의 경우 sent_at이 원래 발송 시간일 수 있으므로 created_at도 함께 검색
+        const queryWithSentAt = supabase
+          .from('channel_sms')
+          .select('id, status, success_count, fail_count, sent_count, recipient_numbers, solapi_group_id, sent_at, created_at')
           .gte('sent_at', startTime.toISOString())
           .lte('sent_at', endTime.toISOString())
           .order('sent_at', { ascending: false })
+          .limit(10);
+
+        const queryWithCreatedAt = supabase
+          .from('channel_sms')
+          .select('id, status, success_count, fail_count, sent_count, recipient_numbers, solapi_group_id, sent_at, created_at')
+          .gte('created_at', startTime.toISOString())
+          .lte('created_at', endTime.toISOString())
+          .order('created_at', { ascending: false })
           .limit(10);
 
         if (messageId) {
           query = query.eq('id', messageId);
         }
 
-        const { data: timeBasedMessages, error: timeFindError } = await query;
+        // sent_at과 created_at 모두로 검색 (재발송 케이스 대응)
+        const [sentAtResult, createdAtResult] = await Promise.all([
+          queryWithSentAt,
+          queryWithCreatedAt
+        ]);
+
+        const timeBasedMessages = [
+          ...(sentAtResult.data || []),
+          ...(createdAtResult.data || [])
+        ].filter((msg, idx, self) => 
+          idx === self.findIndex(m => m.id === msg.id)
+        ); // 중복 제거
+
+        const timeFindError = sentAtResult.error || createdAtResult.error;
 
         if (timeFindError) {
           console.error(`시간 기반 메시지 검색 오류 (${groupId}):`, timeFindError);
@@ -162,8 +195,23 @@ export default async function handler(req, res) {
           continue;
         }
 
-        // 3-3. 가장 가까운 메시지에 그룹 ID 추가
-        const targetMessage = timeBasedMessages[0];
+        // 3-3. 수신자 수로도 매칭 시도 (더 정확한 매칭)
+        // 그룹의 메시지 수와 메시지의 수신자 수가 일치하는 메시지 우선 선택
+        let targetMessage = timeBasedMessages[0];
+        
+        if (messageCount > 0) {
+          // 수신자 수가 일치하는 메시지 찾기
+          const matchingByCount = timeBasedMessages.find(msg => {
+            const recipientCount = msg.recipient_numbers?.length || 0;
+            // 정확히 일치하거나 ±5명 차이 허용 (수신거부 등으로 인한 차이)
+            return Math.abs(recipientCount - messageCount) <= 5;
+          });
+          
+          if (matchingByCount) {
+            targetMessage = matchingByCount;
+            console.log(`✅ 수신자 수 매칭: 그룹 ${messageCount}건 ↔ 메시지 ${matchingByCount.recipient_numbers?.length || 0}명`);
+          }
+        }
         const existingGroupIds = targetMessage.solapi_group_id 
           ? targetMessage.solapi_group_id.split(',').map(g => g.trim()).filter(Boolean)
           : [];
@@ -187,6 +235,7 @@ export default async function handler(req, res) {
         let successCount = 0;
         let failCount = 0;
         let totalCount = 0;
+        let actualDateSent = dateSent;
         
         try {
           const groupInfoResponse = await fetch(
@@ -202,6 +251,9 @@ export default async function handler(req, res) {
             totalCount = count.total || count.totalCount || groupInfo.totalCount || 0;
             successCount = count.successful || count.success || count.successCount || groupInfo.successCount || 0;
             failCount = count.failed || count.fail || count.failCount || groupInfo.failCount || 0;
+            
+            // 그룹 정보에서 발송일 업데이트
+            actualDateSent = groupInfo.dateSent || groupInfo.date_sent || groupInfo.dateCreated || groupInfo.date_created || dateSent;
           }
         } catch (e) {
           console.warn(`그룹 정보 조회 실패 (${groupId}):`, e.message);
@@ -212,6 +264,11 @@ export default async function handler(req, res) {
           solapi_group_id: newGroupIdsString,
           updated_at: new Date().toISOString()
         };
+
+        // 발송일 업데이트 (재발송 시간 반영)
+        if (actualDateSent) {
+          updateData.sent_at = actualDateSent;
+        }
 
         // 솔라피에서 조회한 통계가 있으면 업데이트
         if (totalCount > 0) {

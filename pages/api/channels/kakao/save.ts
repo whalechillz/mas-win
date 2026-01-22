@@ -27,7 +27,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       buttonText,
       button_text,
       emoji,
-      tags,
       status = 'draft',
       calendarId,
       hub_content_id,
@@ -90,17 +89,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       dataToSave.emoji = emoji || null;
     }
     
-    // tags 처리 개선: 빈 배열도 처리
-    if (tags !== undefined && tags !== null) {
-      if (Array.isArray(tags) && tags.length > 0) {
-        dataToSave.tags = JSON.stringify(tags);
-      } else if (typeof tags === 'string' && tags.trim()) {
-        dataToSave.tags = tags;
-      } else {
-        // 빈 배열이나 빈 문자열인 경우 null로 설정 (기존 값 제거)
-        dataToSave.tags = null;
-      }
-    }
+    // tags는 카카오 파트너센터에 없는 기능이므로 제거됨
+    // 기존 데이터와의 호환성을 위해 tags 필드는 무시
 
     // 생성 시에만 추가되는 필드
     if (!isUpdate) {

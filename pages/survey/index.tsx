@@ -40,6 +40,8 @@ export default function SurveyLanding() {
   const [golfCapImages, setGolfCapImages] = useState<Array<{ src: string; originalUrl?: string; alt: string }>>([]);
   const [imagesLoading, setImagesLoading] = useState(true);
   const [pro3MuziikImage, setPro3MuziikImage] = useState<string>(getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp')); // Fallback
+  const [surveyEnded, setSurveyEnded] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(true);
 
   // 파일 타입 감지 함수 (이미지/동영상)
   const getFileType = (url: string): 'image' | 'video' => {
@@ -65,6 +67,28 @@ export default function SurveyLanding() {
     
     return 'image';
   };
+
+  // 설문 종료 여부 확인
+  useEffect(() => {
+    const checkSurveyStatus = async () => {
+      try {
+        const res = await fetch('/api/survey/status');
+        const data = await res.json();
+        
+        if (data.success) {
+          setSurveyEnded(!data.isActive);
+        }
+      } catch (error) {
+        console.error('설문 상태 확인 오류:', error);
+        // 오류 발생 시 활성 상태로 간주
+        setSurveyEnded(false);
+      } finally {
+        setCheckingStatus(false);
+      }
+    };
+
+    checkSurveyStatus();
+  }, []);
 
   // 설문 이미지 로드 (데이터베이스에서)
   useEffect(() => {
@@ -189,6 +213,11 @@ export default function SurveyLanding() {
   }, [isHovering]);
 
   const handleStartSurvey = () => {
+    if (surveyEnded) {
+      alert('설문이 종료되었습니다.\n다음 설문에 또 뵙겠습니다.\n\n당첨자 명단은 아래 링크에서 확인하실 수 있습니다.');
+      router.push('/survey/winners');
+      return;
+    }
     router.push('/survey/form');
   };
 
@@ -518,17 +547,39 @@ export default function SurveyLanding() {
               {/* 메인 CTA - 골드/레드 그라데이션 */}
               <button
                 onClick={handleStartSurvey}
-                className="group relative w-full sm:w-auto px-8 md:px-12 py-4 md:py-5 bg-gradient-to-r from-yellow-500 via-yellow-400 to-red-500 hover:from-yellow-400 hover:via-yellow-300 hover:to-red-400 text-gray-900 font-bold text-base md:text-lg rounded-xl transition-all duration-300 shadow-2xl hover:shadow-yellow-500/50 hover:scale-105 overflow-hidden"
+                disabled={checkingStatus || surveyEnded}
+                className={`group relative w-full sm:w-auto px-8 md:px-12 py-4 md:py-5 font-bold text-base md:text-lg rounded-xl transition-all duration-300 shadow-2xl overflow-hidden ${
+                  surveyEnded
+                    ? 'bg-gradient-to-r from-gray-500 via-gray-400 to-gray-500 text-gray-100 cursor-not-allowed opacity-70'
+                    : 'bg-gradient-to-r from-yellow-500 via-yellow-400 to-red-500 hover:from-yellow-400 hover:via-yellow-300 hover:to-red-400 text-gray-900 hover:shadow-yellow-500/50 hover:scale-105'
+                }`}
               >
                 {/* 배경 애니메이션 */}
-                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-yellow-300 to-red-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                {!surveyEnded && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-yellow-300 to-red-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                )}
                 <span className="relative z-10 flex items-center justify-center gap-2">
-                  설문 조사 시작하기
-                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
+                  {checkingStatus ? '확인 중...' : surveyEnded ? '설문이 종료되었습니다' : '설문 조사 시작하기'}
+                  {!surveyEnded && !checkingStatus && (
+                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  )}
                 </span>
               </button>
+              
+              {/* 설문 종료 시 당첨자 명단 링크 */}
+              {surveyEnded && (
+                <Link
+                  href="/survey/winners"
+                  className="group w-full sm:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-gray-900 font-semibold rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 text-center flex items-center justify-center gap-2"
+                >
+                  당첨자 명단 보기
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              )}
               
               {/* 보조 CTA */}
               <div className="flex flex-col sm:flex-row gap-3 md:gap-4 w-full sm:w-auto">
