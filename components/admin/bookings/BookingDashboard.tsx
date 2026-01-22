@@ -92,28 +92,29 @@ export default function BookingDashboard({ bookings, customers, supabase, onUpda
     };
   }, [bookings, customers]);
 
-  // 최근 예약 (오늘 + 향후 7일)
+  // 최근 예약 (오늘 + 향후 14일)
   const recentBookings = useMemo(() => {
     const now = new Date();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const nextWeek = new Date();
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    nextWeek.setHours(23, 59, 59, 999);
+    const twoWeeksLater = new Date();
+    twoWeeksLater.setDate(twoWeeksLater.getDate() + 14); // 7일 → 14일로 확장
+    twoWeeksLater.setHours(23, 59, 59, 999);
     
     return bookings
       .filter(b => {
-        // ⭐ 수정: 날짜와 시간을 모두 고려하여 필터링
+        // 날짜와 시간을 모두 고려하여 필터링
         const bookingDateTime = new Date(`${b.date}T${b.time || '00:00:00'}`);
-        return bookingDateTime >= now && bookingDateTime <= nextWeek;
+        return bookingDateTime >= now && bookingDateTime <= twoWeeksLater;
       })
-      .filter(b => b.status === 'pending' || b.status === 'confirmed') // ⭐ 추가: 상태 필터
-      .slice(0, 10)
+      .filter(b => b.status === 'pending' || b.status === 'confirmed') // 상태 필터
       .sort((a, b) => {
+        // 정렬을 먼저 수행
         const dateA = new Date(`${a.date} ${a.time}`);
         const dateB = new Date(`${b.date} ${b.time}`);
         return dateA.getTime() - dateB.getTime();
-      });
+      })
+      .slice(0, 10); // 정렬 후에 slice (표시는 최대 5개만)
   }, [bookings]);
 
   // 최다 방문 고객 TOP 10
