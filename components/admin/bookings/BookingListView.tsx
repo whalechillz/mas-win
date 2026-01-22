@@ -39,10 +39,11 @@ interface BookingListViewProps {
   supabase: any;
   onUpdate: () => void;
   initialFilter?: { type: 'date' | 'status'; value: string };
+  initialSearchTerm?: string;
 }
 
-export default function BookingListView({ bookings, customers, supabase, onUpdate, initialFilter }: BookingListViewProps) {
-  const [searchTerm, setSearchTerm] = useState('');
+export default function BookingListView({ bookings, customers, supabase, onUpdate, initialFilter, initialSearchTerm }: BookingListViewProps) {
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm || '');
   const [dateFilter, setDateFilter] = useState(initialFilter?.type === 'date' ? initialFilter.value : 'all');
   const [combinedStatusFilter, setCombinedStatusFilter] = useState(initialFilter?.type === 'status' ? initialFilter.value : 'all'); // 통합 필터
   const [serviceFilter, setServiceFilter] = useState('all');

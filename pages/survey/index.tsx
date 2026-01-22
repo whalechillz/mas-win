@@ -42,6 +42,8 @@ export default function SurveyLanding() {
   const [pro3MuziikImage, setPro3MuziikImage] = useState<string>(getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp')); // Fallback
   const [surveyEnded, setSurveyEnded] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
+  const [winnersPageEnabled, setWinnersPageEnabled] = useState(true);
+  const [surveyActive, setSurveyActive] = useState<boolean | null>(null);
 
   // 파일 타입 감지 함수 (이미지/동영상)
   const getFileType = (url: string): 'image' | 'video' => {
@@ -68,7 +70,7 @@ export default function SurveyLanding() {
     return 'image';
   };
 
-  // 설문 종료 여부 확인
+  // 설문 종료 여부 및 활성화 상태 확인
   useEffect(() => {
     const checkSurveyStatus = async () => {
       try {
@@ -76,19 +78,25 @@ export default function SurveyLanding() {
         const data = await res.json();
         
         if (data.success) {
-          setSurveyEnded(!data.isActive);
+          const isActive = data.isActive !== false;
+          setSurveyActive(isActive);
+          setSurveyEnded(!isActive); // 설문 종료 여부
+          setWinnersPageEnabled(data.winners_page_enabled !== false);
+          // 설문이 비활성화되어 있어도 페이지는 표시 (설문 종료 상태로 처리)
         }
       } catch (error) {
         console.error('설문 상태 확인 오류:', error);
         // 오류 발생 시 활성 상태로 간주
+        setSurveyActive(true);
         setSurveyEnded(false);
+        setWinnersPageEnabled(true);
       } finally {
         setCheckingStatus(false);
       }
     };
 
     checkSurveyStatus();
-  }, []);
+  }, [router]);
 
   // 설문 이미지 로드 (데이터베이스에서)
   useEffect(() => {
@@ -213,12 +221,17 @@ export default function SurveyLanding() {
   }, [isHovering]);
 
   const handleStartSurvey = () => {
-    if (surveyEnded) {
+    if (!surveyEnded && winnersPageEnabled) {
+      // 설문이 활성화되어 있고 당첨자 페이지도 활성화되어 있으면 정상 진행
+      router.push('/survey/form');
+    } else if (surveyEnded && winnersPageEnabled) {
+      // 설문이 종료되었지만 당첨자 페이지는 활성화되어 있으면 당첨자 페이지로
       alert('설문이 종료되었습니다.\n다음 설문에 또 뵙겠습니다.\n\n당첨자 명단은 아래 링크에서 확인하실 수 있습니다.');
       router.push('/survey/winners');
-      return;
+    } else {
+      // 설문이 비활성화되었거나 종료되었고 당첨자 페이지도 비활성화된 경우
+      alert('현재 설문이 진행되지 않고 있습니다.\n다음 설문에 또 뵙겠습니다.');
     }
-    router.push('/survey/form');
   };
 
   return (
@@ -229,6 +242,16 @@ export default function SurveyLanding() {
       </Head>
 
       <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
+        {/* 로딩 중 */}
+        {checkingStatus ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+              <p className="mt-4 text-gray-400">설문 상태 확인 중...</p>
+            </div>
+          </div>
+        ) : (
+          <>
         {/* 히어로 섹션 */}
         <section className="relative py-12 md:py-20 px-4 overflow-hidden">
           {/* 배경 장식 요소 */}
@@ -568,8 +591,8 @@ export default function SurveyLanding() {
                 </span>
               </button>
               
-              {/* 설문 종료 시 당첨자 명단 링크 */}
-              {surveyEnded && (
+              {/* 설문 종료 시 당첨자 명단 링크 (당첨자 페이지가 활성화된 경우만) */}
+              {surveyEnded && winnersPageEnabled && (
                 <Link
                   href="/survey/winners"
                   className="group w-full sm:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-gray-900 font-semibold rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 text-center flex items-center justify-center gap-2"
@@ -638,6 +661,8 @@ export default function SurveyLanding() {
             </div>
           </div>
         </section>
+          </>
+        )}
       </div>
     </>
   );

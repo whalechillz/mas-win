@@ -48,6 +48,10 @@ export default function SurveysPage() {
   const [recommendationNameFilter, setRecommendationNameFilter] = useState<string>('all');
   const [campaignSourceFilter, setCampaignSourceFilter] = useState<string>('muziik-survey-2025');
   const [availableCampaignSources, setAvailableCampaignSources] = useState<string[]>(['muziik-survey-2025']);
+  const [winnersPageEnabled, setWinnersPageEnabled] = useState<boolean>(true);
+  const [updatingWinnersPage, setUpdatingWinnersPage] = useState<boolean>(false);
+  const [surveyActive, setSurveyActive] = useState<boolean>(true);
+  const [updatingSurvey, setUpdatingSurvey] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -202,6 +206,7 @@ export default function SurveysPage() {
         ...(winnerFilter !== 'all' && { winner: winnerFilter }),
         ...(purchasedFilter !== 'all' && { purchased: purchasedFilter }),
         ...(recommendationNameFilter !== 'all' && { recommendation_name: recommendationNameFilter }),
+        ...(campaignSourceFilter && { campaign_source: campaignSourceFilter }),
         sortBy: sortBy,
         sortOrder: sortOrder,
       });
@@ -262,6 +267,97 @@ export default function SurveysPage() {
     }
   };
 
+  // 사용 가능한 campaign_source 목록 조회
+  const fetchCampaignSources = async () => {
+    try {
+      const res = await fetch('/api/admin/surveys/campaign-sources');
+      const json = await res.json();
+      
+      if (json.success && json.data && json.data.length > 0) {
+        setAvailableCampaignSources(json.data);
+        // 기본값이 목록에 없으면 첫 번째 항목으로 설정
+        if (!json.data.includes(campaignSourceFilter)) {
+          setCampaignSourceFilter(json.data[0]);
+        }
+      }
+    } catch (err) {
+      console.error('캠페인 소스 목록 조회 오류:', err);
+    }
+  };
+
+  // 설문 설정 조회 (설문 활성화 여부, 당첨자 페이지 활성화 여부)
+  const fetchSurveySettings = async () => {
+    try {
+      const res = await fetch(`/api/admin/surveys/settings?campaign_source=${campaignSourceFilter}`);
+      const json = await res.json();
+      
+      if (json.success && json.data) {
+        setSurveyActive(json.data.is_active !== false);
+        setWinnersPageEnabled(json.data.winners_page_enabled !== false);
+      }
+    } catch (err) {
+      console.error('설문 설정 조회 오류:', err);
+    }
+  };
+
+  // 설문 페이지 활성화/비활성화 토글
+  const handleToggleSurvey = async () => {
+    setUpdatingSurvey(true);
+    try {
+      const res = await fetch('/api/admin/surveys/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campaign_source: campaignSourceFilter,
+          is_active: !surveyActive,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (json.success) {
+        setSurveyActive(!surveyActive);
+        alert(`설문 페이지가 ${!surveyActive ? '활성화' : '비활성화'}되었습니다.`);
+      } else {
+        alert(json.message || '설정 업데이트에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('설문 페이지 설정 업데이트 오류:', error);
+      alert('설정 업데이트 중 오류가 발생했습니다.');
+    } finally {
+      setUpdatingSurvey(false);
+    }
+  };
+
+  // 당첨자 페이지 활성화/비활성화 토글
+  const handleToggleWinnersPage = async () => {
+    setUpdatingWinnersPage(true);
+    try {
+      const res = await fetch('/api/admin/surveys/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campaign_source: campaignSourceFilter,
+          winners_page_enabled: !winnersPageEnabled,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (json.success) {
+        setWinnersPageEnabled(!winnersPageEnabled);
+        alert(`당첨자 페이지가 ${!winnersPageEnabled ? '활성화' : '비활성화'}되었습니다.`);
+      } else {
+        alert(json.message || '설정 업데이트에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('당첨자 페이지 설정 업데이트 오류:', error);
+      alert('설정 업데이트 중 오류가 발생했습니다.');
+    } finally {
+      setUpdatingWinnersPage(false);
+    }
+  };
+
   // 사은품(굿즈) 상품 목록 조회
   const fetchGiftProducts = async () => {
     try {
@@ -278,13 +374,24 @@ export default function SurveysPage() {
   };
 
   useEffect(() => {
+    fetchCampaignSources();
+  }, []);
+
+  // 캠페인 소스 변경 시 설정 조회
+  useEffect(() => {
+    if (campaignSourceFilter) {
+      fetchSurveySettings();
+    }
+  }, [campaignSourceFilter]);
+
+  useEffect(() => {
     fetchSurveys();
     fetchStats();
     fetchGiftProducts();
     fetchDuplicatePhones(); // 전체 설문 기준 중복 정보 가져오기
       // 필터 변경 시 선택 초기화
       setSelectedIds([]);
-    }, [searchQuery, selectedModelFilter, ageGroupFilter, winnerFilter, purchasedFilter, recommendationNameFilter, sortBy, sortOrder, page]);
+    }, [searchQuery, selectedModelFilter, ageGroupFilter, winnerFilter, purchasedFilter, recommendationNameFilter, campaignSourceFilter, sortBy, sortOrder, page]);
 
   // 정렬 핸들러
   const handleSort = (column: string) => {
@@ -319,33 +426,76 @@ export default function SurveysPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('정말로 이 설문을 삭제하시겠습니까?')) return;
 
+    console.log('[handleDelete] 개별 삭제 시작:', {
+      surveyId: id,
+      timestamp: new Date().toISOString(),
+    });
+
     setIsDeleting(true);
     try {
+      console.log('[handleDelete] API 호출 시작:', {
+        url: '/api/survey/bulk-delete',
+        method: 'POST',
+        body: { ids: [id] },
+      });
+
       const response = await fetch('/api/survey/bulk-delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: [id] }),
       });
 
+      console.log('[handleDelete] API 응답 수신:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+      });
+
       let result: any = null;
       try {
-        result = await response.json();
-      } catch {
-        // 응답이 비어있거나 JSON이 아니어도 안전하게 처리
+        const responseText = await response.text();
+        console.log('[handleDelete] 응답 텍스트:', responseText);
+        result = JSON.parse(responseText);
+        console.log('[handleDelete] 응답 JSON 파싱 완료:', result);
+      } catch (jsonError: any) {
+        console.error('[handleDelete] ❌ JSON 파싱 오류:', {
+          error: jsonError,
+          responseStatus: response.status,
+        });
+        throw new Error('응답을 파싱할 수 없습니다.');
       }
 
       if (response.ok && result?.success) {
+        console.log('[handleDelete] ✅ 삭제 성공:', result);
         alert(result.message || '삭제되었습니다.');
         fetchSurveys();
         fetchStats();
+        fetchDuplicatePhones(); // 총 참여자 수 업데이트
       } else {
-        alert(result?.message || '삭제에 실패했습니다.');
+        console.error('[handleDelete] ❌ 삭제 실패:', {
+          result,
+          responseOk: response.ok,
+          error: result?.error,
+          errorCode: result?.errorCode,
+          errorDetails: result?.errorDetails,
+          errorHint: result?.errorHint,
+        });
+        const errorMessage = result?.message || '삭제에 실패했습니다.';
+        const errorDetails = result?.errorDetails ? `\n\n상세: ${result.errorDetails}` : '';
+        const errorHint = result?.errorHint ? `\n\n힌트: ${result.errorHint}` : '';
+        alert(`${errorMessage}${errorDetails}${errorHint}`);
       }
-    } catch (error) {
-      console.error('삭제 오류:', error);
-      alert('삭제 중 오류가 발생했습니다.');
+    } catch (error: any) {
+      console.error('[handleDelete] ❌ 예외 발생:', {
+        error,
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name,
+      });
+      alert(`삭제 중 오류가 발생했습니다: ${error?.message || '알 수 없는 오류'}`);
     } finally {
       setIsDeleting(false);
+      console.log('[handleDelete] 삭제 프로세스 종료');
     }
   };
 
@@ -2256,29 +2406,77 @@ export default function SurveysPage() {
     const confirmMessage = `선택한 ${selectedIds.length}개의 설문을 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다.`;
     if (!confirm(confirmMessage)) return;
 
+    console.log('[handleBulkDelete] 일괄 삭제 시작:', {
+      selectedIdsCount: selectedIds.length,
+      selectedIds: selectedIds,
+      timestamp: new Date().toISOString(),
+    });
+
     setIsDeleting(true);
     try {
+      console.log('[handleBulkDelete] API 호출 시작:', {
+        url: '/api/survey/bulk-delete',
+        method: 'POST',
+        body: { ids: selectedIds },
+      });
+
       const response = await fetch('/api/survey/bulk-delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: selectedIds }),
       });
 
-      const result = await response.json();
+      console.log('[handleBulkDelete] API 응답 수신:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries()),
+      });
+
+      let result: any = null;
+      try {
+        result = await response.json();
+        console.log('[handleBulkDelete] 응답 JSON 파싱 완료:', result);
+      } catch (jsonError: any) {
+        console.error('[handleBulkDelete] ❌ JSON 파싱 오류:', {
+          error: jsonError,
+          responseStatus: response.status,
+          responseText: await response.text().catch(() => '텍스트 읽기 실패'),
+        });
+        throw new Error('응답을 파싱할 수 없습니다.');
+      }
 
       if (result.success) {
+        console.log('[handleBulkDelete] ✅ 삭제 성공:', result);
         alert(result.message || '삭제되었습니다.');
         setSelectedIds([]);
         fetchSurveys();
         fetchStats();
+        fetchDuplicatePhones(); // 총 참여자 수 업데이트
       } else {
-        alert(result.message || '일괄 삭제에 실패했습니다.');
+        console.error('[handleBulkDelete] ❌ 삭제 실패:', {
+          result,
+          error: result.error,
+          errorCode: result.errorCode,
+          errorDetails: result.errorDetails,
+          errorHint: result.errorHint,
+        });
+        const errorMessage = result.message || '일괄 삭제에 실패했습니다.';
+        const errorDetails = result.errorDetails ? `\n\n상세: ${result.errorDetails}` : '';
+        const errorHint = result.errorHint ? `\n\n힌트: ${result.errorHint}` : '';
+        alert(`${errorMessage}${errorDetails}${errorHint}`);
       }
-    } catch (error) {
-      console.error('일괄 삭제 오류:', error);
-      alert('일괄 삭제 중 오류가 발생했습니다.');
+    } catch (error: any) {
+      console.error('[handleBulkDelete] ❌ 예외 발생:', {
+        error,
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name,
+      });
+      alert(`일괄 삭제 중 오류가 발생했습니다: ${error?.message || '알 수 없는 오류'}`);
     } finally {
       setIsDeleting(false);
+      console.log('[handleBulkDelete] 삭제 프로세스 종료');
     }
   };
 
@@ -2443,104 +2641,199 @@ export default function SurveysPage() {
               </div>
             </div>
             
-            {/* 두 번째 행: 추천명 필터 */}
+            {/* 두 번째 행: 추천명 필터 및 설문 캠페인 필터 */}
             <div className="border-t border-gray-200 pt-4 mt-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">추천명 필터</label>
-                <select
-                  value={recommendationNameFilter}
-                  onChange={(e) => setRecommendationNameFilter(e.target.value)}
-                  className="w-full md:w-1/3 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="all">전체</option>
-                  {prizeHistoryList
-                    .filter((stat: any) => stat.recommendation_name && stat.recommendation_name.trim() !== '')
-                    .map((stat: any, index: number) => {
-                      // 중복 제거: 같은 추천명이 여러 번 나타날 수 있으므로 첫 번째 것만 사용
-                      const isFirst = prizeHistoryList.findIndex(
-                        (s: any) => s.recommendation_name === stat.recommendation_name
-                      ) === index;
-                      if (!isFirst) return null;
-                      
-                      return (
-                        <option
-                          key={`${stat.date}_${stat.recommendation_datetime || 'no-time'}_${index}`}
-                          value={`${stat.date}_${stat.recommendation_datetime || ''}`}
-                        >
-                          {stat.recommendation_name}
-                        </option>
-                      );
-                    })
-                    .filter(Boolean)}
-                </select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">추천명 필터</label>
+                  <select
+                    value={recommendationNameFilter}
+                    onChange={(e) => setRecommendationNameFilter(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="all">전체</option>
+                    {prizeHistoryList
+                      .filter((stat: any) => stat.recommendation_name && stat.recommendation_name.trim() !== '')
+                      .map((stat: any, index: number) => {
+                        // 중복 제거: 같은 추천명이 여러 번 나타날 수 있으므로 첫 번째 것만 사용
+                        const isFirst = prizeHistoryList.findIndex(
+                          (s: any) => s.recommendation_name === stat.recommendation_name
+                        ) === index;
+                        if (!isFirst) return null;
+                        
+                        return (
+                          <option
+                            key={`${stat.date}_${stat.recommendation_datetime || 'no-time'}_${index}`}
+                            value={`${stat.date}_${stat.recommendation_datetime || ''}`}
+                          >
+                            {stat.recommendation_name}
+                          </option>
+                        );
+                      })
+                      .filter(Boolean)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">설문 캠페인</label>
+                  <select
+                    value={campaignSourceFilter}
+                    onChange={(e) => setCampaignSourceFilter(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {availableCampaignSources.map((source) => (
+                      <option key={source} value={source}>
+                        {source === 'muziik-survey-2025' ? 'MASSGOO X MUZIIK 2025' : source}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              {/* 설문 설정 토글 섹션 */}
+              <div className="border-t border-gray-200 pt-4 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* 설문 종료 토글 - 간소화 */}
+                  <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        설문 종료
+                      </label>
+                      <span 
+                        className="text-gray-400 cursor-help" 
+                        title="설문 종료 시 '당첨자 명단 보기' 버튼이 표시됩니다"
+                      >
+                        ⓘ
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleToggleSurvey}
+                      disabled={updatingSurvey}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                        surveyActive ? 'bg-blue-600' : 'bg-gray-300'
+                      } ${updatingSurvey ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          surveyActive ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* 당첨자 페이지 토글 - 간소화 */}
+                  <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        당첨자 페이지
+                      </label>
+                      <span 
+                        className="text-gray-400 cursor-help" 
+                        title="당첨자 페이지 표시 여부를 제어합니다"
+                      >
+                        ⓘ
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleToggleWinnersPage}
+                      disabled={updatingWinnersPage}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                        winnersPageEnabled ? 'bg-blue-600' : 'bg-gray-300'
+                      } ${updatingWinnersPage ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          winnersPageEnabled ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                {/* 페이지 미리보기 - 작은 아이콘 버튼으로 변경 */}
+                <div className="flex items-center justify-end gap-2 mt-3">
+                  <a
+                    href="/survey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="설문 페이지 보기"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                  <a
+                    href="/survey/winners"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+                    title="당첨자 페이지 보기"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                    </svg>
+                  </a>
+                </div>
               </div>
             </div>
             
             {/* 일괄 작업 버튼 */}
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
               <div className="flex gap-2">
                 <button
                   onClick={handleCreateSurvey}
-                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
+                  className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
+                  title="새 설문 추가 (테스트용)"
                 >
-                  ➕ 새 설문 추가 (테스트)
+                  ➕ 설문 추가
                 </button>
               </div>
               {selectedIds.length > 0 ? (
-                <>
-                <span className="text-sm text-gray-700">
-                  {selectedIds.length}개 항목 선택됨
-                </span>
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-700">{selectedIds.length}개 선택</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleBulkAnalyze}
+                      disabled={analysisModal.loading}
+                      className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    >
+                      {analysisModal.loading ? '처리 중...' : '분석'}
+                    </button>
+                    <button
+                      onClick={handleBulkDelete}
+                      disabled={isDeleting}
+                      className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    >
+                      {isDeleting ? '처리 중...' : '삭제'}
+                    </button>
+                    <button
+                      onClick={() => handleBulkSendMessages('thank_you', selectedIds.length === surveys.length)}
+                      disabled={sendingMessages}
+                      className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    >
+                      {sendingMessages ? '발송 중...' : '감사 메시지'}
+                    </button>
+                    <button
+                      onClick={() => handleBulkSendMessages('winner', selectedIds.length === surveys.length)}
+                      disabled={sendingMessages}
+                      className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    >
+                      {sendingMessages ? '발송 중...' : '당첨 메시지'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2">
                   <button
-                    onClick={handleBulkAnalyze}
-                    disabled={analysisModal.loading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    onClick={handleBulkUpdateEventCandidates}
+                    disabled={updatingEventCandidates}
+                    className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    title="선물 지급 완료된 설문을 자동으로 연결하고 업데이트합니다"
                   >
-                    {analysisModal.loading ? '분석 중...' : `선택한 ${selectedIds.length}개 분석`}
-                  </button>
-                  <button
-                    onClick={handleBulkDelete}
-                    disabled={isDeleting}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                  >
-                    {isDeleting ? '삭제 중...' : `선택한 ${selectedIds.length}개 삭제`}
-                </button>
-                  {/* 메시지 발송 버튼 (선택 상태에 따라 동적) */}
-                  <button
-                    onClick={() => handleBulkSendMessages('thank_you', selectedIds.length === surveys.length)}
-                    disabled={sendingMessages}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                  >
-                    {sendingMessages ? '발송 중...' : getMessageButtonText('thank_you', selectedIds.length, surveys.length)}
-                  </button>
-                  <button
-                    onClick={() => handleBulkSendMessages('winner', selectedIds.length === surveys.length)}
-                    disabled={sendingMessages}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                  >
-                    {sendingMessages ? '발송 중...' : getMessageButtonText('winner', selectedIds.length, surveys.length)}
+                    {updatingEventCandidates ? '처리 중...' : '🎁 선물 연결'}
                   </button>
                 </div>
-                </>
-              ) : (
-                <>
-                  <span className="text-sm text-gray-700">
-                    일괄 작업
-                  </span>
-                  <div className="flex gap-2 flex-wrap">
-                    {/* 경품 추천 버튼 제거 - 경품 추천 이력 탭으로 이동 */}
-                    <button
-                      onClick={handleBulkUpdateEventCandidates}
-                      disabled={updatingEventCandidates}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                    >
-                      {updatingEventCandidates ? '업데이트 중...' : '🎁 선물 지급 설문 자동 연결 및 업데이트'}
-                    </button>
-                    {/* 메시지 발송 버튼 제거 - 선택 항목이 있을 때만 표시 (위쪽 조건부 렌더링에서 처리) */}
-              </div>
-                </>
-            )}
+              )}
             </div>
           </div>
 

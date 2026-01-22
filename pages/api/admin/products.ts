@@ -266,6 +266,53 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
         .replace(/^-|-$/g, ''); // 앞뒤 하이픈 제거
     }
 
+    // ✅ slug 중복 체크 및 자동 고유 slug 생성
+    if (productSlug) {
+      let baseSlug = productSlug;
+      let uniqueSlug = baseSlug;
+      let counter = 1;
+      let isUnique = false;
+
+      while (!isUnique && counter < 100) {
+        // 중복 체크
+        const { data: existingProduct, error: checkError } = await supabase
+          .from('products')
+          .select('id, name, slug')
+          .eq('slug', uniqueSlug)
+          .maybeSingle();
+
+        if (checkError) {
+          console.error('[admin/products][POST] slug 중복 체크 오류:', checkError);
+          return res.status(500).json({
+            success: false,
+            message: 'slug 중복 체크 중 오류가 발생했습니다.',
+          });
+        }
+
+        if (!existingProduct) {
+          // 고유한 slug 발견
+          isUnique = true;
+          productSlug = uniqueSlug;
+        } else {
+          // 중복 발견, 다음 번호 시도
+          counter++;
+          uniqueSlug = `${baseSlug}-${counter}`;
+        }
+      }
+
+      if (!isUnique) {
+        return res.status(400).json({
+          success: false,
+          message: `slug "${baseSlug}"와 유사한 slug가 너무 많이 존재합니다. 다른 제품명이나 SKU를 사용해주세요.`,
+        });
+      }
+
+      // slug가 변경된 경우 로그 출력
+      if (productSlug !== baseSlug) {
+        console.log(`[admin/products][POST] slug 중복으로 자동 변경: ${baseSlug} -> ${productSlug}`);
+      }
+    }
+
     const payload: any = {
       name,
       sku: sku || null,
@@ -304,6 +351,15 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 
     if (error) {
       console.error('[admin/products][POST] ERROR', error);
+      
+      // slug 중복 오류를 더 명확하게 전달
+      if (error.message && error.message.includes('duplicate key value violates unique constraint') && error.message.includes('idx_products_slug_unique')) {
+        return res.status(400).json({
+          success: false,
+          message: `제품 slug가 중복됩니다. 제품명이나 SKU를 변경해주세요. (slug: ${productSlug || '자동 생성됨'})`,
+        });
+      }
+      
       return res.status(500).json({
         success: false,
         message: error.message || '상품 생성에 실패했습니다.',

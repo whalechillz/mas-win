@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import Head from 'next/head';
+import Link from 'next/link';
 import AdminNav from '../../../components/admin/AdminNav';
 import CustomerMessageHistoryModal from '../../../components/admin/CustomerMessageHistoryModal';
 import CustomerStoryModal from '../../../components/admin/CustomerStoryModal';
@@ -32,6 +33,7 @@ type Customer = {
   survey_count?: number | null;
   // 최신 시타 예약 정보
   latest_booking_date?: string | null;
+  next_booking_date?: string | null; // 미래 예약 날짜 (오늘 포함)
   latest_club_brand?: string | null;
   latest_club_loft?: number | null;
   latest_club_shaft?: string | null;
@@ -997,17 +999,36 @@ export default function CustomersPage() {
                     <td className="p-2">{formatContactDate(c.last_contact_date)}</td>
                     <td className="p-2">
                       {c.latest_selected_model ? (
-                        <span className="text-xs" title={`${c.survey_count || 0}회, ${c.latest_survey_date ? new Date(c.latest_survey_date).toLocaleDateString('ko-KR') : ''}`}>
+                        <span className="text-xs" title={`${c.survey_count || 0}회${c.latest_survey_date ? `, ${new Date(c.latest_survey_date).toLocaleDateString('ko-KR')}` : ''}`}>
                           📝 {c.latest_selected_model}
+                          {c.latest_survey_date && (
+                            <span className="text-gray-500 ml-1">
+                              ({new Date(c.latest_survey_date).toLocaleDateString('ko-KR')})
+                            </span>
+                          )}
+                        </span>
+                      ) : c.latest_survey_date ? (
+                        <span className="text-xs text-gray-600" title={`${c.survey_count || 0}회`}>
+                          📝 {new Date(c.latest_survey_date).toLocaleDateString('ko-KR')}
                         </span>
                       ) : (
                         <span className="text-gray-400 text-xs">-</span>
                       )}
                     </td>
                     <td className="p-2">
-                      {c.latest_booking_date ? (
-                        <span className="text-xs" title={`${c.booking_count || 0}회, ${c.latest_club_brand || ''} ${c.latest_club_loft ? c.latest_club_loft + '°' : ''} ${c.latest_club_shaft || ''}`}>
-                          🏌️ {new Date(c.latest_booking_date).toLocaleDateString('ko-KR')}
+                      {c.next_booking_date ? (
+                        // 미래 예약이 있는 경우: 활성화 상태로 표시 + 링크
+                        <Link 
+                          href={`/admin/booking?phone=${encodeURIComponent(c.phone?.replace(/[^0-9]/g, '') || '')}&view=list`}
+                          className="text-xs text-green-600 font-semibold hover:underline inline-block"
+                          title={`${c.booking_count || 0}회, ${c.latest_club_brand || ''} ${c.latest_club_loft ? c.latest_club_loft + '°' : ''} ${c.latest_club_shaft || ''} - 클릭하여 예약 관리 페이지로 이동`}
+                        >
+                          🏌️ {new Date(c.next_booking_date).toLocaleDateString('ko-KR')}
+                        </Link>
+                      ) : c.latest_booking_date ? (
+                        // 과거 예약만 있는 경우: 날짜만 표시 (링크 없음)
+                        <span className="text-xs text-gray-500" title={`${c.booking_count || 0}회, ${c.latest_club_brand || ''} ${c.latest_club_loft ? c.latest_club_loft + '°' : ''} ${c.latest_club_shaft || ''}`}>
+                          {new Date(c.latest_booking_date).toLocaleDateString('ko-KR')}
                         </span>
                       ) : (
                         <span className="text-gray-400 text-xs">-</span>

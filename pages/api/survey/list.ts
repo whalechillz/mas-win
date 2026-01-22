@@ -20,6 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       winner = '', // 당첨자 필터: 'winner' | 'non_winner' | ''
       purchased = '', // 구매자 필터: 'purchased' | 'non_purchased' | ''
       recommendation_name = '', // 추천명 필터: 'date_datetime' 형식
+      campaign_source = '', // 설문 캠페인 필터
       sortBy = 'created_at',
       sortOrder = 'desc',
     } = req.query as Record<string, string>;
@@ -60,6 +61,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 연령대 필터
     if (age_group) {
       query = query.eq('age_group', age_group);
+    }
+
+    // 캠페인 소스 필터
+    if (campaign_source) {
+      query = query.eq('campaign_source', campaign_source);
     }
 
     const { data: surveys, error, count } = await query;

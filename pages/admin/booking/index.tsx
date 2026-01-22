@@ -23,6 +23,21 @@ export default function BookingAdmin() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [listViewFilter, setListViewFilter] = useState<{ type: 'date' | 'status'; value: string } | null>(null);
+  
+  // 쿼리 파라미터에서 전화번호 읽기 및 뷰 모드 설정
+  useEffect(() => {
+    if (router.isReady && router.query.phone) {
+      const phone = router.query.phone as string;
+      // 'list' 뷰로 전환
+      setViewMode('list');
+    }
+    if (router.isReady && router.query.view) {
+      const view = router.query.view as string;
+      if (['dashboard', 'calendar', 'list', 'customers', 'settings'].includes(view)) {
+        setViewMode(view as 'dashboard' | 'calendar' | 'list' | 'customers' | 'settings');
+      }
+    }
+  }, [router.isReady, router.query.phone, router.query.view]);
 
   // 예약 및 고객 데이터 로드
   const loadData = useCallback(async () => {
@@ -254,6 +269,7 @@ export default function BookingAdmin() {
               supabase={supabase}
               onUpdate={loadData}
               initialFilter={listViewFilter || undefined}
+              initialSearchTerm={router.query.phone as string || undefined}
             />
           )}
           {viewMode === 'customers' && (

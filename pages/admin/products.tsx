@@ -438,6 +438,18 @@ export default function ProductsAdminPage() {
     return slug.toUpperCase().replace(/-/g, '_');
   };
 
+  // 제품명에서 SKU를 자동 생성하는 함수
+  const generateSkuFromName = (name: string): string => {
+    if (!name) return '';
+    // 영문과 숫자만 유지하고, 공백과 특수문자를 언더스코어로 변환
+    return name
+      .replace(/[^a-zA-Z0-9\s]/g, '_') // 특수문자를 언더스코어로
+      .replace(/\s+/g, '_') // 공백을 언더스코어로
+      .replace(/_+/g, '_') // 연속된 언더스코어를 하나로
+      .replace(/^_|_$/g, '') // 앞뒤 언더스코어 제거
+      .toUpperCase(); // 대문자로 변환
+  };
+
   // 이미지 경로에서 slug 추출
   const extractSlugFromImagePath = (imagePath: string): string | null => {
     if (!imagePath) return null;
@@ -1458,7 +1470,15 @@ export default function ProductsAdminPage() {
                 <input
                   type="text"
                   value={formState.name || ''}
-                  onChange={(e) => setFormState({ ...formState, name: e.target.value })}
+                  onChange={(e) => {
+                    const newName = e.target.value;
+                    const newState = { ...formState, name: newName };
+                    // SKU가 비어있을 때만 자동 생성
+                    if (!formState.sku || formState.sku.trim() === '') {
+                      newState.sku = generateSkuFromName(newName);
+                    }
+                    setFormState(newState);
+                  }}
                   className="w-full px-3 py-2 border rounded-md text-sm"
                   required
                 />

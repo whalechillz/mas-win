@@ -396,9 +396,149 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           thumbnailUrl: thumbnailMap.get(customer.id) || null
         }));
         
+        // 예약 및 설문 정보 조회 (실시간 계산 - 최적화: 한 번에 조회 후 메모리에서 처리)
+        // customerIds는 이미 위에서 선언되었으므로 재사용 (필터링만 추가)
+        const customerPhones = customersWithThumbnails.map(c => c.phone?.replace(/[^0-9]/g, '')).filter(Boolean);
+        const customerIdsFiltered = customerIds.filter(Boolean);
+        
+        // 전화번호 → 고객 ID 매핑
+        const phoneToCustomerMap = new Map<string, number>();
+        customersWithThumbnails.forEach(c => {
+          const phone = c.phone?.replace(/[^0-9]/g, '');
+          if (phone) phoneToCustomerMap.set(phone, c.id);
+        });
+        
+        // 오늘 날짜 (한국 시간 기준)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayStr = today.toISOString().split('T')[0];
+        
+        // 예약 정보 조회: customer_profile_id와 phone 모두로 한 번에 조회
+        const bookingMap = new Map<number, { nextBookingDate: string | null; latestBookingDate: string | null }>();
+        
+        if (customerIdsFiltered.length > 0 || customerPhones.length > 0) {
+          // customer_profile_id로 조회 (배치 처리)
+          const allBookings: any[] = [];
+          
+          if (customerIdsFiltered.length > 0) {
+            for (let i = 0; i < customerIdsFiltered.length; i += 1000) {
+              const batch = customerIdsFiltered.slice(i, i + 1000);
+              const { data: bookings } = await supabase
+                .from('bookings')
+                .select('date, customer_profile_id, phone')
+                .in('customer_profile_id', batch);
+              
+              if (bookings) allBookings.push(...bookings);
+            }
+          }
+          
+          // 전화번호로도 조회 (customer_profile_id가 없는 예약 포함)
+          if (customerPhones.length > 0) {
+            for (let i = 0; i < customerPhones.length; i += 1000) {
+              const batch = customerPhones.slice(i, i + 1000);
+              const { data: bookingsByPhone } = await supabase
+                .from('bookings')
+                .select('date, phone, customer_profile_id')
+                .in('phone', batch);
+              
+              if (bookingsByPhone) {
+                // 중복 제거: customer_profile_id가 있는 것은 이미 조회했으므로 제외
+                const newBookings = bookingsByPhone.filter(b => !b.customer_profile_id || !customerIds.includes(b.customer_profile_id));
+                allBookings.push(...newBookings);
+              }
+            }
+          }
+          
+          // 메모리에서 고객별로 그룹화 및 계산
+          const bookingsByCustomer = new Map<number, string[]>();
+          allBookings.forEach(b => {
+            let customerId: number | null = null;
+            
+            // customer_profile_id 우선
+            if (b.customer_profile_id && customerIdsFiltered.includes(b.customer_profile_id)) {
+              customerId = b.customer_profile_id;
+            } else {
+              // 전화번호로 매칭
+              const phone = b.phone?.replace(/[^0-9]/g, '') || '';
+              if (phone) {
+                customerId = phoneToCustomerMap.get(phone) || null;
+              }
+            }
+            
+            if (customerId) {
+              if (!bookingsByCustomer.has(customerId)) {
+                bookingsByCustomer.set(customerId, []);
+              }
+              bookingsByCustomer.get(customerId)!.push(b.date);
+            }
+          });
+          
+          // 각 고객의 미래 예약과 최신 예약 계산
+          bookingsByCustomer.forEach((dates, customerId) => {
+            // 중복 제거 및 정렬
+            const uniqueDates = Array.from(new Set(dates));
+            const sortedDates = uniqueDates.sort((a, b) => b.localeCompare(a)); // 내림차순
+            const futureDates = sortedDates.filter(d => d >= todayStr);
+            const nextBookingDate = futureDates.length > 0 
+              ? futureDates.sort((a, b) => a.localeCompare(b))[0] // 오름차순으로 정렬하여 가장 가까운 날짜
+              : null;
+            const latestBookingDate = sortedDates[0] || null;
+            
+            bookingMap.set(customerId, { nextBookingDate, latestBookingDate });
+          });
+        }
+        
+        // 설문 정보 조회: 배치로 조회 (1000개씩)
+        const surveyMap = new Map<string, string | null>();
+        
+        if (customerPhones.length > 0) {
+          for (let i = 0; i < customerPhones.length; i += 1000) {
+            const batch = customerPhones.slice(i, i + 1000);
+            const { data: surveys } = await supabase
+              .from('surveys')
+              .select('created_at, phone')
+              .in('phone', batch);
+            
+            if (surveys) {
+              // 전화번호별로 최신 설문 날짜 찾기
+              surveys.forEach(s => {
+                const phone = s.phone?.replace(/[^0-9]/g, '') || '';
+                if (phone && s.created_at) {
+                  const surveyDate = s.created_at.split('T')[0];
+                  const existing = surveyMap.get(phone);
+                  if (!existing || surveyDate > existing) {
+                    surveyMap.set(phone, surveyDate);
+                  }
+                }
+              });
+            }
+          }
+        }
+        
+        // 고객 데이터에 예약 및 설문 정보 추가
+        const customersWithBookingAndSurvey = customersWithThumbnails.map(customer => {
+          const bookingInfo = bookingMap.get(customer.id);
+          const phone = customer.phone?.replace(/[^0-9]/g, '') || '';
+          const latestSurveyDate = surveyMap.get(phone) || null;
+          
+          // 기존 latest_booking_date와 비교하여 더 최신인 것 사용
+          const existingLatestBookingDate = customer.latest_booking_date;
+          const computedLatestBookingDate = bookingInfo?.latestBookingDate || null;
+          const finalLatestBookingDate = (existingLatestBookingDate && computedLatestBookingDate)
+            ? (existingLatestBookingDate > computedLatestBookingDate ? existingLatestBookingDate : computedLatestBookingDate)
+            : (computedLatestBookingDate || existingLatestBookingDate);
+          
+          return {
+            ...customer,
+            next_booking_date: bookingInfo?.nextBookingDate || null,
+            latest_booking_date: finalLatestBookingDate,
+            latest_survey_date: latestSurveyDate || customer.latest_survey_date || null
+          };
+        });
+        
         return res.status(200).json({ 
           success: true, 
-          data: customersWithThumbnails, 
+          data: customersWithBookingAndSurvey, 
           count, 
           page: pageNum, 
           pageSize: sizeNum 

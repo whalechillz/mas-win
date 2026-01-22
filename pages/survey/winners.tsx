@@ -21,6 +21,8 @@ export default function WinnersPage() {
   const [filter, setFilter] = useState<'all' | 'winner' | 'gift'>('all');
   const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [winnersPageEnabled, setWinnersPageEnabled] = useState<boolean | null>(null);
+  const [checkingAccess, setCheckingAccess] = useState(true);
 
   // 모바일 감지
   useEffect(() => {
@@ -32,8 +34,46 @@ export default function WinnersPage() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // 당첨자 페이지 접근 권한 확인
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const res = await fetch('/api/survey/status');
+        const data = await res.json();
+        
+        if (data.success) {
+          const enabled = data.winners_page_enabled !== false;
+          setWinnersPageEnabled(enabled);
+          
+          // 비활성화되어 있으면 설문 페이지로 리다이렉트
+          if (!enabled) {
+            setTimeout(() => {
+              router.push('/survey');
+            }, 2000);
+          }
+        } else {
+          // API 오류 시 접근 허용 (기본값)
+          setWinnersPageEnabled(true);
+        }
+      } catch (error) {
+        console.error('당첨자 페이지 접근 확인 오류:', error);
+        // 오류 발생 시 접근 허용 (기본값)
+        setWinnersPageEnabled(true);
+      } finally {
+        setCheckingAccess(false);
+      }
+    };
+
+    checkAccess();
+  }, [router]);
+
   // 당첨자 목록 조회
   useEffect(() => {
+    // 페이지가 활성화되어 있을 때만 조회
+    if (winnersPageEnabled === false) {
+      return;
+    }
+
     const fetchWinners = async () => {
       try {
         setLoading(true);
@@ -51,8 +91,10 @@ export default function WinnersPage() {
       }
     };
 
-    fetchWinners();
-  }, [filter]);
+    if (winnersPageEnabled === true) {
+      fetchWinners();
+    }
+  }, [filter, winnersPageEnabled]);
 
   // 모바일: 3~5명씩 그룹으로 나누기
   const groupSize = 5;
@@ -75,11 +117,35 @@ export default function WinnersPage() {
     return () => clearInterval(interval);
   }, [isMobile, groups.length]);
 
-  // 전화번호 포맷팅
+  // 이름 마스킹 함수 (개인정보 보호)
+  const maskName = (name: string): string => {
+    if (!name) return name;
+    
+    // 공백 제거 후 실제 글자 수 계산
+    const trimmedName = name.trim();
+    const nameLength = trimmedName.length;
+    
+    if (nameLength <= 1) return trimmedName;
+    
+    if (nameLength === 2) {
+      // 2글자 이름: 첫 글자만 표시
+      return `${trimmedName[0]}O`;
+    } else if (nameLength === 3) {
+      // 3글자 이름: 첫 글자 + 마스킹 + 마지막 글자
+      return `${trimmedName[0]}O${trimmedName[2]}`;
+    } else {
+      // 4글자 이상: 첫 글자 + 마스킹 + 마지막 글자
+      const masked = 'O'.repeat(nameLength - 2);
+      return `${trimmedName[0]}${masked}${trimmedName[nameLength - 1]}`;
+    }
+  };
+
+  // 전화번호 포맷팅 및 마스킹 (개인정보 보호)
   const formatPhone = (phone: string) => {
     const cleaned = phone.replace(/[^0-9]/g, '');
     if (cleaned.length === 11) {
-      return cleaned.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+      // 010-1234-5678 → 010-****-5678 (중간 4자리 마스킹)
+      return cleaned.replace(/(\d{3})(\d{4})(\d{4})/, '$1-****-$3');
     }
     return phone;
   };
@@ -126,7 +192,7 @@ export default function WinnersPage() {
                 : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
             }`}
           >
-            전체 ({winners.length})
+            전체
           </button>
           <button
             onClick={() => setFilter('winner')}
@@ -152,7 +218,33 @@ export default function WinnersPage() {
 
         {/* 명단 표시 영역 */}
         <div className="max-w-6xl mx-auto px-4 pb-16">
-          {loading ? (
+          {checkingAccess ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+              <p className="mt-4 text-gray-400">접근 권한 확인 중...</p>
+            </div>
+          ) : winnersPageEnabled === false ? (
+            <div className="text-center py-12">
+              <div className="bg-gray-800/50 rounded-xl p-8 max-w-md mx-auto border border-gray-700">
+                <div className="text-6xl mb-4">🔒</div>
+                <h2 className="text-2xl font-bold text-gray-200 mb-4">접근이 제한되었습니다</h2>
+                <p className="text-gray-400 mb-6">
+                  당첨자 페이지가 현재 비활성화되어 있습니다.
+                  <br />
+                  관리자에게 문의하시거나 설문 페이지로 돌아가세요.
+                </p>
+                <button
+                  onClick={() => router.push('/survey')}
+                  className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-300 text-gray-900 font-semibold rounded-xl hover:from-yellow-300 hover:to-yellow-200 transition-all duration-300"
+                >
+                  설문 페이지로 돌아가기
+                </button>
+                <p className="text-sm text-gray-500 mt-4">
+                  잠시 후 자동으로 이동합니다...
+                </p>
+              </div>
+            </div>
+          ) : loading ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
               <p className="mt-4 text-gray-400">명단을 불러오는 중...</p>
@@ -181,7 +273,7 @@ export default function WinnersPage() {
                         className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 border border-yellow-400/30 shadow-xl"
                       >
                         <div className="flex items-center justify-between mb-3">
-                          <h3 className="text-xl font-bold text-yellow-400">{winner.name}</h3>
+                          <h3 className="text-xl font-bold text-yellow-400">{maskName(winner.name)}</h3>
                           {winner.is_winner && (
                             <span className="px-3 py-1 bg-yellow-400/20 text-yellow-300 rounded-full text-xs font-semibold">
                               🎁 당첨
@@ -189,7 +281,7 @@ export default function WinnersPage() {
                           )}
                         </div>
                         <div className="space-y-2 text-sm text-gray-300">
-                          <p>전화번호: {formatPhone(winner.phone)}</p>
+                          <p>전화번호: <span className="text-gray-400">{formatPhone(winner.phone)}</span></p>
                           <p>선택 모델: {winner.selected_model}</p>
                           {winner.important_factors.length > 0 && (
                             <p>중요 요소: {winner.important_factors.join(', ')}</p>
@@ -238,8 +330,8 @@ export default function WinnersPage() {
                   <tbody className="divide-y divide-gray-700">
                     {winners.map((winner) => (
                       <tr key={winner.id} className="hover:bg-gray-700/50 transition-colors">
-                        <td className="px-6 py-4 text-sm font-medium text-white">{winner.name}</td>
-                        <td className="px-6 py-4 text-sm text-gray-300">{formatPhone(winner.phone)}</td>
+                        <td className="px-6 py-4 text-sm font-medium text-white">{maskName(winner.name)}</td>
+                        <td className="px-6 py-4 text-sm text-gray-400">{formatPhone(winner.phone)}</td>
                         <td className="px-6 py-4 text-sm text-gray-300">{winner.selected_model}</td>
                         <td className="px-6 py-4 text-sm text-gray-300">
                           {winner.important_factors.length > 0 ? winner.important_factors.join(', ') : '-'}
