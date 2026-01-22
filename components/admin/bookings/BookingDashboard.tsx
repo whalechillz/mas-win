@@ -92,20 +92,20 @@ export default function BookingDashboard({ bookings, customers, supabase, onUpda
     };
   }, [bookings, customers]);
 
-  // 최근 예약 (오늘 + 향후 14일)
+  // 최근 예약 (오늘 + 향후 30일)
   const recentBookings = useMemo(() => {
     const now = new Date();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const twoWeeksLater = new Date();
-    twoWeeksLater.setDate(twoWeeksLater.getDate() + 14); // 7일 → 14일로 확장
-    twoWeeksLater.setHours(23, 59, 59, 999);
+    const thirtyDaysLater = new Date();
+    thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30); // 30일로 확장
+    thirtyDaysLater.setHours(23, 59, 59, 999);
     
     return bookings
       .filter(b => {
         // 날짜와 시간을 모두 고려하여 필터링
         const bookingDateTime = new Date(`${b.date}T${b.time || '00:00:00'}`);
-        return bookingDateTime >= now && bookingDateTime <= twoWeeksLater;
+        return bookingDateTime >= now && bookingDateTime <= thirtyDaysLater;
       })
       .filter(b => b.status === 'pending' || b.status === 'confirmed') // 상태 필터
       .sort((a, b) => {
