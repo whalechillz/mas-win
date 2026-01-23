@@ -264,13 +264,14 @@ export function generateCompositionPrompt(
     const isMuziikProduct = product.name?.toLowerCase().includes('muziik') || 
                            product.slug?.includes('muziik');
 
-    let prompt = `You are an expert 3D image editor. Analyze the original image and replace the golf driver head with the ${product.name} driver head.
+    let prompt = `You are an expert 3D image editor. Analyze the image (whether original or previously composed) and replace the existing golf driver head with the ${product.name} driver head.
+
+CRITICAL: The image contains a DRIVER club (whether it's an original driver or a previously composed driver). You must replace ONLY the driver head with the specified ${product.name} driver model. Do NOT convert from iron or any other club type. The club in the image is already a driver. If the image already contains a composed driver, replace it with the new ${product.name} driver model while maintaining the exact same position, size, angle, and connection to the shaft.
 
 ANALYSIS & TRANSFORMATION:
-1. Identify club type: If IRON, convert to DRIVER (extend shaft 25% longer, scale head 1.5-2x realistically, round edges)
-2. Identify visible part: FACE → use FACE ref, CROWN → use CROWN ref, SOLE → use SOLE ref
-3. Measure 3D orientation: viewing angle, tilt, rotation, distance (affects apparent size)
-4. Geometric transformation:
+1. Identify visible part: FACE → use FACE ref, CROWN → use CROWN ref, SOLE → use SOLE ref
+2. Measure 3D orientation: viewing angle, tilt, rotation, distance (affects apparent size)
+3. Geometric transformation:
    - Scale: Match original head's apparent size exactly (perspective-aware)
    - Rotate: Head MUST rotate around hosel to align with shaft (geometrically perfect)
    - Perspective warp: Match camera angle and distortion exactly

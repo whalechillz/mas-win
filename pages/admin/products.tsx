@@ -1520,15 +1520,20 @@ export default function ProductsAdminPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     카테고리
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formState.category || ''}
                     onChange={(e) =>
                       setFormState({ ...formState, category: e.target.value })
                     }
-                    placeholder="cap, driver, component 등"
                     className="w-full px-3 py-2 border rounded-md text-sm"
-                  />
+                  >
+                    <option value="">카테고리 선택</option>
+                    {availableCategories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1703,7 +1708,64 @@ export default function ProductsAdminPage() {
                   </div>
                 </>
               )}
+              {/* 제품 유형 선택 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  제품 유형
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="radio"
+                      name="product_type"
+                      value="goods"
+                      checked={formState.product_type === 'goods'}
+                      onChange={(e) =>
+                        setFormState({ ...formState, product_type: e.target.value })
+                      }
+                      className="rounded"
+                    />
+                    굿즈
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="radio"
+                      name="product_type"
+                      value="driver"
+                      checked={formState.product_type === 'driver'}
+                      onChange={(e) =>
+                        setFormState({ ...formState, product_type: e.target.value })
+                      }
+                      className="rounded"
+                    />
+                    드라이버
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="radio"
+                      name="product_type"
+                      value="component"
+                      checked={formState.product_type === 'component'}
+                      onChange={(e) =>
+                        setFormState({ ...formState, product_type: e.target.value })
+                      }
+                      className="rounded"
+                    />
+                    부품
+                  </label>
+                </div>
+              </div>
               <div className="flex flex-wrap gap-4">
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={!!formState.is_component}
+                    onChange={(e) =>
+                      setFormState({ ...formState, is_component: e.target.checked })
+                    }
+                  />
+                  완제품 부품
+                </label>
                 <label className="flex items-center gap-2 text-sm text-gray-700">
                   <input
                     type="checkbox"

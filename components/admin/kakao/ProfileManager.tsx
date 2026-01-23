@@ -157,6 +157,122 @@ export default function ProfileManager({
 
     try {
       setIsGeneratingBackground(true);
+      
+      // ✅ "이미지 재생성" 버튼: 기존 이미지가 있고 제품 합성이 활성화된 경우 → 제품 합성만 수행 (1장)
+      // 제품 합성이 활성화되어 있고 제품이 선택되어 있으면 제품 합성만 수행
+      if (enableProductComposition.background && selectedProductId.background) {
+        // 제품 합성이 활성화되어 있지만 이미지가 없는 경우 안내
+        if (!profileData.background.imageUrl) {
+          alert('⚠️ 제품 합성을 하려면 먼저 이미지가 필요합니다.\n\n갤러리에서 이미지를 선택해주세요.');
+          setIsGeneratingBackground(false);
+          return;
+        }
+        setIsComposingProduct(prev => ({ ...prev, background: true }));
+        try {
+          const selectedProduct = products.find(p => p.id === selectedProductId.background);
+          if (!selectedProduct) {
+            console.error('❌ 선택한 제품을 찾을 수 없습니다:', selectedProductId.background);
+            alert('선택한 제품을 찾을 수 없습니다. 제품을 다시 선택해주세요.');
+            return;
+          }
+
+          const compositionTarget = getCompositionTarget(selectedProductId.background, 'background');
+          
+          console.log('🎨 기존 배경 이미지 제품 합성 시작:', {
+            productId: selectedProductId.background,
+            productName: selectedProduct.name,
+            productCategory: selectedProduct.category,
+            compositionTarget,
+            modelImageUrl: profileData.background.imageUrl
+          });
+          
+          // ✅ baseImageUrl 명확히 생성 (카카오 콘텐츠 폴더 경로)
+          const dateStr = selectedDate || new Date().toISOString().split('T')[0];
+          const accountFolder = accountKey === 'account1' ? 'account1' : 'account2';
+          // 기존 이미지 URL에서 경로 추출 시도, 실패 시 명시적 경로 생성
+          let baseImageUrl = profileData.background.imageUrl;
+          
+          // profileData.background.imageUrl이 이미 Supabase public URL인 경우, 경로 추출
+          // 만약 경로 추출이 불가능하면 명시적 경로를 생성하여 전달
+          // ✅ 두 곳 저장을 보장하기 위해 명시적 경로 생성
+          if (!profileData.background.imageUrl.includes('blog-images') || !profileData.background.imageUrl.includes('daily-branding/kakao')) {
+            // 명시적 경로 생성 (저장 위치 결정용)
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+            baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/originals/daily-branding/kakao/${dateStr}/${accountFolder}/background/kakao-${accountFolder}-background-${Date.now()}.jpg`;
+          } else {
+            // profileData.background.imageUrl에 경로가 있지만, 명시적으로 카카오 콘텐츠 경로를 포함하도록 보장
+            // URL에서 경로 부분만 추출하여 명시적 경로 생성
+            const pathMatch = profileData.background.imageUrl.match(/blog-images\/(originals\/daily-branding\/kakao\/[^?]+)/);
+            if (pathMatch) {
+              const extractedPath = pathMatch[1];
+              const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+              baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/${extractedPath}`;
+            } else {
+              // 경로 추출 실패 시 명시적 경로 생성
+              const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yyytjudftvpmcnppaymw.supabase.co';
+              baseImageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/originals/daily-branding/kakao/${dateStr}/${accountFolder}/background/kakao-${accountFolder}-background-${Date.now()}.jpg`;
+            }
+          }
+          
+          const composeResponse = await fetch('/api/compose-product-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              modelImageUrl: profileData.background.imageUrl,
+              productId: selectedProductId.background,
+              compositionTarget: compositionTarget,
+              compositionMethod: 'nano-banana-pro',
+              compositionBackground: 'natural',
+              baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
+              prompt: profileData.background.prompt // ✅ 기존 프롬프트 전달
+            })
+          });
+          
+          if (!composeResponse.ok) {
+            const errorData = await composeResponse.json().catch(() => ({ 
+              error: `서버 오류 (${composeResponse.status})` 
+            }));
+            console.error('❌ 제품 합성 API 실패:', {
+              status: composeResponse.status,
+              statusText: composeResponse.statusText,
+              error: errorData
+            });
+            alert(`제품 합성 실패: ${errorData.error || errorData.message || '서버 오류가 발생했습니다.'}`);
+            return;
+          }
+          
+          const composeResult = await composeResponse.json();
+          
+          if (composeResult.success && composeResult.images && composeResult.images.length > 0) {
+            const finalImageUrl = composeResult.images[0].imageUrl;
+            console.log('✅ 기존 배경 이미지 제품 합성 완료:', {
+              productName: composeResult.product?.name,
+              composedImageUrl: finalImageUrl
+            });
+            
+            onUpdate({
+              ...profileData,
+              background: {
+                ...profileData.background,
+                imageUrl: finalImageUrl
+              }
+            });
+            alert('✅ 기존 배경 이미지에 제품이 합성되었습니다.');
+          } else {
+            console.warn('⚠️ 제품 합성 응답에 이미지가 없습니다:', composeResult);
+            alert('제품 합성은 완료되었지만 결과 이미지를 가져올 수 없습니다.');
+          }
+        } catch (composeError: any) {
+          console.error('❌ 제품 합성 예외 발생:', composeError);
+          alert(`제품 합성 중 오류가 발생했습니다: ${composeError.message || '알 수 없는 오류'}`);
+        } finally {
+          setIsComposingProduct(prev => ({ ...prev, background: false }));
+          setIsGeneratingBackground(false);
+        }
+        return; // 제품 합성만 수행한 경우 여기서 종료
+      }
+      
+      // ✅ 기존 로직: 새 이미지 생성 → 제품 합성 (필요한 경우)
       const result = await onGenerateImage('background', profileData.background.prompt);
       if (result.imageUrls.length > 0) {
         let finalImageUrl = result.imageUrls[0];
@@ -322,9 +438,16 @@ export default function ProfileManager({
         }
       }
       
-      // ✅ 기존 이미지가 있고 제품 합성이 활성화된 경우: 제품 합성만 수행
-      // "프롬프트 이미지 재생성" 버튼 클릭 시에는 새 이미지 생성 후 제품 합성하도록 분기
-      if (profileData.profile.imageUrl && enableProductComposition.profile && selectedProductId.profile && !regeneratePrompt) {
+      // ✅ "이미지 재생성" 버튼: 기존 이미지가 있고 제품 합성이 활성화된 경우 → 제품 합성만 수행 (1장)
+      // ✅ "프롬프트 이미지 재생성" 버튼: regeneratePrompt=true → 새 이미지 생성 후 제품 합성 (2장)
+      // 제품 합성이 활성화되어 있고 제품이 선택되어 있으면, 프롬프트 재생성이 아닌 경우 제품 합성만 수행
+      if (!regeneratePrompt && enableProductComposition.profile && selectedProductId.profile) {
+        // 제품 합성이 활성화되어 있지만 이미지가 없는 경우 안내
+        if (!profileData.profile.imageUrl) {
+          alert('⚠️ 제품 합성을 하려면 먼저 이미지가 필요합니다.\n\n"프롬프트 이미지 재생성" 버튼을 사용하거나 갤러리에서 이미지를 선택해주세요.');
+          setIsGeneratingProfile(false);
+          return;
+        }
         setIsComposingProduct(prev => ({ ...prev, profile: true }));
         try {
           const selectedProduct = products.find(p => p.id === selectedProductId.profile);
@@ -1475,7 +1598,26 @@ export default function ProfileManager({
             }, 300);
           }
         }}
-        onClose={() => setShowBackgroundGallery(false)}
+        onClose={() => {
+          setShowBackgroundGallery(false);
+          // ✅ 갤러리 닫기 후 이미지 개수 재조회
+          if (selectedDate && accountKey) {
+            fetch(`/api/kakao-content/fetch-gallery-images-by-date?date=${selectedDate}&account=${accountKey}&type=background`)
+              .then(res => res.json())
+              .then(data => {
+                if (data.success && data.count !== undefined) {
+                  onUpdate({
+                    ...profileData,
+                    background: {
+                      ...profileData.background,
+                      imageCount: data.count
+                    }
+                  });
+                }
+              })
+              .catch(err => console.error('이미지 개수 조회 실패:', err));
+          }
+        }}
         autoFilterFolder={
           selectedDate && accountKey
             ? `originals/daily-branding/kakao/${selectedDate}/${accountKey}/background`
@@ -1516,7 +1658,26 @@ export default function ProfileManager({
             }, 300);
           }
         }}
-        onClose={() => setShowProfileGallery(false)}
+        onClose={() => {
+          setShowProfileGallery(false);
+          // ✅ 갤러리 닫기 후 이미지 개수 재조회
+          if (selectedDate && accountKey) {
+            fetch(`/api/kakao-content/fetch-gallery-images-by-date?date=${selectedDate}&account=${accountKey}&type=profile`)
+              .then(res => res.json())
+              .then(data => {
+                if (data.success && data.count !== undefined) {
+                  onUpdate({
+                    ...profileData,
+                    profile: {
+                      ...profileData.profile,
+                      imageCount: data.count
+                    }
+                  });
+                }
+              })
+              .catch(err => console.error('이미지 개수 조회 실패:', err));
+          }
+        }}
         autoFilterFolder={
           selectedDate && accountKey
             ? `originals/daily-branding/kakao/${selectedDate}/${accountKey}/profile`
