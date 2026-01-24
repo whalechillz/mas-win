@@ -459,51 +459,51 @@ export default function KakaoAccountEditor({
 
   return (
     <div className={`border-2 rounded-lg p-6 ${toneColor}`}>
-      {/* 계정 헤더 - 컴팩트 버전 */}
-      <div className="mb-3">
-        <div className="flex items-center gap-3 mb-3">
-          <h3 className="text-lg font-semibold text-gray-900">
-            {account.name} ({account.number})
+      {/* 계정 헤더 - 4행 구조 */}
+      <div className="mb-4">
+        {/* 1행: 계정명 + 전화번호 */}
+        <div className="mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 break-words">
+            {account.name} <span className="text-sm font-normal text-gray-600">({account.number})</span>
           </h3>
-          {/* 페르소나/톤 정보 - 인라인 배지 형태 */}
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-200">
-              {account.persona}
-            </span>
-            <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${
-              account.tone === 'gold' 
-                ? 'bg-amber-50 text-amber-700 border-amber-200' 
-                : 'bg-gray-50 text-gray-700 border-gray-200'
-            }`}>
-              {account.tone === 'gold' ? '골드톤' : '블랙톤'}
-            </span>
-          </div>
+        </div>
+        
+        {/* 2행: 페르소나/톤 배지 */}
+        <div className="flex items-center gap-2 flex-wrap mb-3">
+          <span className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-200">
+            {account.persona}
+          </span>
+          <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${
+            account.tone === 'gold' 
+              ? 'bg-amber-50 text-amber-700 border-amber-200' 
+              : 'bg-gray-50 text-gray-700 border-gray-200'
+          }`}>
+            {account.tone === 'gold' ? '골드톤' : '블랙톤'}
+          </span>
         </div>
       </div>
 
-      {/* 액션 패널 - 컴팩트 버전 */}
+      {/* 액션 패널 - 4행 구조 */}
       <div className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-lg p-3 mb-4 shadow-sm">
-        {/* 통합 상태 바 - 생성 상태와 배포 상태를 한 줄에 */}
-        <div className="flex items-center justify-between gap-4 mb-3 pb-3 border-b border-gray-200">
-          {/* 왼쪽: 콘텐츠 생성 상태 */}
-          <div className="flex items-center gap-3 flex-1">
-            {/* 생성 상태 & 액션 버튼 */}
-            {profileData.background.imageUrl && profileData.profile.imageUrl && feedData.imageUrl && profileData.message && feedData.caption ? (
-              <>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg shadow-sm">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs font-semibold text-green-700">생성 완료</span>
-                </div>
-                <div className="relative" ref={partialRegenerateMenuRef}>
-                  <button
-                    onClick={() => setShowPartialRegenerateMenu(!showPartialRegenerateMenu)}
-                    disabled={isGenerating || isCreating}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border-2 border-orange-200 hover:border-orange-300 text-orange-700 rounded-lg text-xs font-medium transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed group"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-300" />
-                    <span>재생성</span>
-                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showPartialRegenerateMenu ? 'rotate-180' : ''}`} />
-                  </button>
+        {/* 3행: 생성 상태, 재생성, 배포 상태 (한 줄 배치, 작은 크기) */}
+        <div className="flex items-center gap-1 flex-nowrap mb-3 pb-3 border-b border-gray-200">
+          {/* 생성 상태 & 액션 버튼 */}
+          {profileData.background.imageUrl && profileData.profile.imageUrl && feedData.imageUrl && profileData.message && feedData.caption ? (
+            <>
+              <div className="flex items-center gap-1 px-2 py-1.5 min-h-[28px] bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded text-[10px] font-semibold text-green-700 shadow-sm whitespace-nowrap">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                <span>생성완료</span>
+              </div>
+              <div className="relative" ref={partialRegenerateMenuRef}>
+                <button
+                  onClick={() => setShowPartialRegenerateMenu(!showPartialRegenerateMenu)}
+                  disabled={isGenerating || isCreating}
+                  className="flex items-center gap-1 px-2 py-1.5 min-h-[28px] bg-white border border-orange-200 hover:border-orange-300 text-orange-700 rounded text-[10px] font-medium transition-all hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed group whitespace-nowrap"
+                >
+                  <RotateCcw className="w-3 h-3 group-hover:rotate-180 transition-transform duration-300" />
+                  <span>재생성</span>
+                  <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showPartialRegenerateMenu ? 'rotate-180' : ''}`} />
+                </button>
                   {showPartialRegenerateMenu && !isGenerating && (
                     <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 min-w-[200px] overflow-hidden">
                       <button
@@ -557,17 +557,17 @@ export default function KakaoAccountEditor({
                 <button
                   onClick={handleAutoCreate}
                   disabled={isGenerating || isCreating}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg text-xs font-medium shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                  className="flex items-center gap-1 px-2 py-1.5 min-h-[28px] bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded text-[10px] font-medium shadow-sm hover:shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed group whitespace-nowrap"
                   title="계정 자동 생성"
                 >
                   {isGenerating ? (
                     <>
-                      <Loader className="w-3.5 h-3.5 animate-spin" />
+                      <Loader className="w-3 h-3 animate-spin" />
                       <span>생성 중...</span>
                     </>
                   ) : (
                     <>
-                      <Rocket className="w-3.5 h-3.5 group-hover:translate-y-[-2px] transition-transform" />
+                      <Rocket className="w-3 h-3 group-hover:translate-y-[-2px] transition-transform" />
                       <span>전체 생성</span>
                     </>
                   )}
@@ -576,11 +576,11 @@ export default function KakaoAccountEditor({
                   <button
                     onClick={() => setShowPartialGenerateMenu(!showPartialGenerateMenu)}
                     disabled={isGenerating || isCreating}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border-2 border-blue-200 hover:border-blue-300 text-blue-700 rounded-lg text-xs font-medium transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed group"
+                    className="flex items-center gap-1 px-2 py-1.5 min-h-[28px] bg-white border border-blue-200 hover:border-blue-300 text-blue-700 rounded text-[10px] font-medium transition-all hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed group whitespace-nowrap"
                   >
-                    <Sparkles className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
+                    <Sparkles className="w-3 h-3 group-hover:rotate-12 transition-transform" />
                     <span>선택 생성</span>
-                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showPartialGenerateMenu ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showPartialGenerateMenu ? 'rotate-180' : ''}`} />
                   </button>
                   {showPartialGenerateMenu && !isGenerating && (
                     <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 min-w-[200px] overflow-hidden">
@@ -639,38 +639,96 @@ export default function KakaoAccountEditor({
                 </div>
               </>
             )}
-          </div>
-
-          {/* 오른쪽: 배포 상태 */}
+          
+          {/* 배포 상태 */}
           {onPublishStatusChange && (
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                onClick={() => {
-                  const newStatus = publishStatus === 'published' ? 'created' : 'published';
-                  onPublishStatusChange(newStatus);
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap shadow-sm hover:shadow-md ${
-                  publishStatus === 'published'
-                    ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 hover:from-green-200 hover:to-emerald-200 border-2 border-green-300'
-                    : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-300'
-                }`}
-                title={publishStatus === 'published' ? '배포 완료 - 클릭하여 배포 대기로 변경' : '배포 대기 - 클릭하여 배포 완료로 변경'}
-              >
-                {publishStatus === 'published' ? (
-                  <>
-                    <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span>배포 완료</span>
-                  </>
-                ) : (
-                  <>
-                    <Circle className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span>배포 대기</span>
-                  </>
-                )}
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                const newStatus = publishStatus === 'published' ? 'created' : 'published';
+                onPublishStatusChange(newStatus);
+              }}
+              className={`flex items-center gap-1 px-2 py-1.5 min-h-[28px] rounded text-[10px] font-semibold transition-all whitespace-nowrap shadow-sm hover:shadow ${
+                publishStatus === 'published'
+                  ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 hover:from-green-200 hover:to-emerald-200 border border-green-300'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
+              }`}
+              title={publishStatus === 'published' ? '배포 완료 - 클릭하여 배포 대기로 변경' : '배포 대기 - 클릭하여 배포 완료로 변경'}
+            >
+              {publishStatus === 'published' ? (
+                <>
+                  <CheckCircle2 className="w-3 h-3 flex-shrink-0" />
+                  <span>배포완료</span>
+                </>
+              ) : (
+                <>
+                  <Circle className="w-3 h-3 flex-shrink-0" />
+                  <span>배포대기</span>
+                </>
+              )}
+            </button>
           )}
         </div>
+        
+        {/* 4행: 카카오톡, 슬랙 버튼 */}
+        {(profileData.background.imageUrl && profileData.profile.imageUrl) && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={handleUploadToKakao}
+              disabled={isUploading || !profileData.background.imageUrl || !profileData.profile.imageUrl || !profileData.message}
+              className="flex items-center justify-center gap-2 px-4 py-2 min-h-[36px] flex-1 min-w-[120px] bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-lg text-xs font-medium shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+              title={!profileData.background.imageUrl || !profileData.profile.imageUrl || !profileData.message 
+                ? '이미지와 메시지를 먼저 생성해주세요' 
+                : '카카오톡 프로필 업데이트'}
+            >
+              {isUploading ? (
+                <>
+                  <Loader className="w-4 h-4 animate-spin" />
+                  <span>업로드 중...</span>
+                </>
+              ) : (
+                <>
+                  <Smartphone className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  <span>카카오톡</span>
+                </>
+              )}
+            </button>
+            <button
+              onClick={handleSendToSlack}
+              disabled={isSendingSlack || !feedData.imageUrl || !feedData.caption}
+              className="flex items-center justify-center gap-2 px-4 py-2 min-h-[36px] flex-1 min-w-[120px] bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg text-xs font-medium shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+              title={!feedData.imageUrl || !feedData.caption 
+                ? '피드 이미지와 캡션을 먼저 생성해주세요' 
+                : '슬랙으로 전송'}
+            >
+              {isSendingSlack ? (
+                <>
+                  <Loader className="w-4 h-4 animate-spin" />
+                  <span>전송 중...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  <span>슬랙</span>
+                </>
+              )}
+            </button>
+            
+            {/* 배포 진행 상태 표시 */}
+            {(isUploading || isSendingSlack) && (
+              <div className="w-full mt-2 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Loader className="w-4 h-4 animate-spin text-purple-600" />
+                  <span className="text-sm font-semibold text-purple-900">
+                    {isUploading ? '카카오톡 업로드 중...' : '슬랙 전송 중...'}
+                  </span>
+                </div>
+                <div className="w-full bg-purple-200 rounded-full h-2 overflow-hidden">
+                  <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full animate-pulse" style={{ width: '100%' }} />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
           
         {/* 누락 항목 알림 (세련된 디자인) */}
         {missingItems.length > 0 && (
@@ -712,68 +770,6 @@ export default function KakaoAccountEditor({
           </div>
         )}
 
-        {/* 섹션 2: 배포 및 전송 */}
-        {(profileData.background.imageUrl && profileData.profile.imageUrl) && (
-          <div className="mb-3 pb-3 border-b border-gray-200">
-            <div className="grid grid-cols-2 gap-3 mb-4">
-                <button
-                  onClick={handleUploadToKakao}
-                  disabled={isUploading || !profileData.background.imageUrl || !profileData.profile.imageUrl || !profileData.message}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
-                  title={!profileData.background.imageUrl || !profileData.profile.imageUrl || !profileData.message 
-                    ? '이미지와 메시지를 먼저 생성해주세요' 
-                    : '카카오톡 프로필 업데이트'}
-                >
-                  {isUploading ? (
-                    <>
-                      <Loader className="w-4 h-4 animate-spin" />
-                      <span>업로드 중...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Smartphone className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                      <span>카카오톡</span>
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={handleSendToSlack}
-                  disabled={isSendingSlack || !feedData.imageUrl || !feedData.caption}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
-                  title={!feedData.imageUrl || !feedData.caption 
-                    ? '피드 이미지와 캡션을 먼저 생성해주세요' 
-                    : '슬랙으로 전송'}
-                >
-                  {isSendingSlack ? (
-                    <>
-                      <Loader className="w-4 h-4 animate-spin" />
-                      <span>전송 중...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                      <span>슬랙</span>
-                    </>
-                  )}
-                </button>
-            </div>
-            
-            {/* 배포 진행 상태 표시 */}
-            {(isUploading || isSendingSlack) && (
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-3 mb-3">
-                <div className="flex items-center gap-2 mb-3">
-                  <Loader className="w-4 h-4 animate-spin text-purple-600" />
-                  <span className="text-sm font-semibold text-purple-900">
-                    {isUploading ? '카카오톡 업로드 중...' : '슬랙 전송 중...'}
-                  </span>
-                </div>
-                <div className="w-full bg-purple-200 rounded-full h-2 overflow-hidden">
-                  <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full animate-pulse" style={{ width: '100%' }} />
-                </div>
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* 프로필 관리 */}

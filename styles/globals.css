@@ -8,8 +8,13 @@ html, body {
   padding: 0;
   font-family: 'Noto Sans KR', sans-serif;
   overflow-x: hidden; /* 가로 스크롤 방지 */
+  overflow-y: auto !important; /* 세로 스크롤 허용 (인라인 스타일보다 우선) */
   width: 100%;
   max-width: 100vw; /* 뷰포트 너비 초과 방지 */
+  height: auto; /* 높이 자동 (100% 고정 방지) */
+  min-height: 100vh; /* 최소 높이 보장 */
+  -webkit-overflow-scrolling: touch !important; /* iOS 터치 스크롤 최적화 */
+  touch-action: pan-y !important; /* 세로 스크롤만 허용 */
 }
 
 * {

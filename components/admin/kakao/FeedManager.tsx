@@ -792,7 +792,7 @@ export default function FeedManager({
             )}
           </div>
 
-          <div className="flex gap-2 flex-wrap items-center">
+          <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => {
                 // ✅ 배포 완료 상태면 차단
@@ -803,61 +803,79 @@ export default function FeedManager({
                 setShowGallery(true);
               }}
               disabled={publishStatus === 'published'}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-1.5 px-2 py-2 bg-gray-100 hover:bg-gray-200 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed"
               title={publishStatus === 'published' ? '배포 완료 상태에서는 이미지를 변경할 수 없습니다. 배포 대기로 변경해주세요.' : '갤러리에서 선택'}
             >
-              <Image className="w-4 h-4" />
-              갤러리에서 선택
+              <Image className="w-3.5 h-3.5" />
+              <span className="text-[11px]">갤러리에서 선택</span>
             </button>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => handleGenerateImage(false)}
-                disabled={isGeneratingImage || isGenerating || publishStatus === 'published' || isComposingProduct}
-                className="flex items-center gap-2 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm disabled:opacity-50"
-                title={publishStatus === 'published' 
-                  ? '배포 완료 상태에서는 이미지를 재생성할 수 없습니다.' 
-                  : feedData.imageUrl 
-                    ? (enableProductComposition && selectedProductId 
-                        ? '기존 이미지에 제품 합성' 
-                        : '이미지 재생성')
-                    : '⚡ 피드 이미지 생성'}
-              >
-                {isGeneratingImage || isComposingProduct ? (
-                  <>
-                    <Sparkles className="w-4 h-4 animate-spin" />
-                    {isComposingProduct ? '제품 합성 중...' : '생성 중...'}
-                  </>
-                ) : (
-                  <>
-                    <RotateCcw className="w-4 h-4" />
+            <button
+              onClick={() => handleGenerateImage(false)}
+              disabled={isGeneratingImage || isGenerating || publishStatus === 'published' || isComposingProduct}
+              className="flex items-center justify-center gap-1.5 px-2 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-xs disabled:opacity-50"
+              title={publishStatus === 'published' 
+                ? '배포 완료 상태에서는 이미지를 재생성할 수 없습니다.' 
+                : feedData.imageUrl 
+                  ? (enableProductComposition && selectedProductId 
+                      ? '기존 이미지에 제품 합성' 
+                      : '이미지 재생성')
+                  : '⚡ 피드 이미지 생성'}
+            >
+              {isGeneratingImage || isComposingProduct ? (
+                <>
+                  <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                  <span className="text-[11px]">{isComposingProduct ? '제품 합성 중...' : '생성 중...'}</span>
+                </>
+              ) : (
+                <>
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span className="text-[11px]">
                     {feedData.imageUrl 
                       ? (enableProductComposition && selectedProductId ? '제품 합성' : '이미지 재생성')
                       : '⚡ 피드 이미지 생성'}
+                  </span>
+                </>
+              )}
+            </button>
+            {feedData.imageUrl && feedData.imagePrompt ? (
+              <button
+                onClick={() => handleGenerateImage(true)}
+                disabled={isRegeneratingPrompt || isGeneratingImage || isGenerating || publishStatus === 'published'}
+                className="flex items-center justify-center gap-1.5 px-2 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                title="프롬프트 재생성 + 이미지 재생성 (제품 합성 포함)"
+              >
+                {isRegeneratingPrompt ? (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                    <span className="text-[11px]">재생성 중...</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span className="text-[11px]">프롬프트 이미지 재생성</span>
                   </>
                 )}
               </button>
-              {/* 프롬프트 재생성 옵션 (이미지가 있을 때만 표시) */}
-              {feedData.imageUrl && feedData.imagePrompt && (
-                <button
-                  onClick={() => handleGenerateImage(true)}
-                  disabled={isRegeneratingPrompt || isGeneratingImage || isGenerating || publishStatus === 'published'}
-                  className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="프롬프트 재생성 + 이미지 재생성 (제품 합성 포함)"
-                >
-                  {isRegeneratingPrompt ? (
-                    <>
-                      <Sparkles className="w-4 h-4 animate-spin" />
-                      재생성 중...
-                    </>
-                  ) : (
-                    <>
-                      <RotateCcw className="w-4 h-4" />
-                      프롬프트 이미지 재생성
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
+            ) : (
+              <button
+                onClick={() => handleGenerateImage(true)}
+                disabled={isRegeneratingPrompt || isGeneratingImage || isGenerating || publishStatus === 'published' || !feedData.imagePrompt}
+                className="flex items-center justify-center gap-1.5 px-2 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                title={!feedData.imagePrompt ? '프롬프트가 없습니다. 먼저 프롬프트를 생성해주세요.' : '프롬프트 재생성 + 이미지 재생성'}
+              >
+                {isRegeneratingPrompt ? (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                    <span className="text-[11px]">재생성 중...</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span className="text-[11px]">프롬프트 이미지 재생성</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>

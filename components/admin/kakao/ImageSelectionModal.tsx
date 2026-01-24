@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Check, Loader } from 'lucide-react';
 
 interface ImageSelectionModalProps {
@@ -22,6 +22,19 @@ export default function ImageSelectionModal({
 }: ImageSelectionModalProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isAutoSelecting, setIsAutoSelecting] = useState(false);
+
+  // 모달이 열릴 때 body 스크롤 막기
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow || '';
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        // 빈 문자열이면 'auto'로 복구
+        document.body.style.overflow = originalOverflow || 'auto';
+      };
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

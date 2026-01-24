@@ -1247,7 +1247,7 @@ export default function ProfileManager({
             )}
           </div>
 
-          <div className="flex gap-2 flex-wrap items-center">
+          <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => {
                 // ✅ 배포 완료 상태면 차단
@@ -1258,36 +1258,76 @@ export default function ProfileManager({
                 setShowBackgroundGallery(true);
               }}
               disabled={publishStatus === 'published'}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-1.5 px-2 py-2 bg-gray-100 hover:bg-gray-200 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed"
               title={publishStatus === 'published' ? '배포 완료 상태에서는 이미지를 변경할 수 없습니다. 배포 대기로 변경해주세요.' : '갤러리에서 선택'}
             >
-              <Image className="w-4 h-4" />
-              갤러리에서 선택
+              <Image className="w-3.5 h-3.5" />
+              <span className="text-[11px]">갤러리에서 선택</span>
             </button>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={handleGenerateBackground}
-                disabled={isGeneratingBackground || isGenerating || publishStatus === 'published' || isComposingProduct.background}
-                className="flex items-center gap-2 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm disabled:opacity-50"
-                title={publishStatus === 'published' ? '배포 완료 상태에서는 이미지를 재생성할 수 없습니다.' : (profileData.background.imageUrl ? '이미지 재생성' : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성'))}
-              >
-                {isGeneratingBackground || isComposingProduct.background ? (
-                  <>
-                    <Sparkles className="w-4 h-4 animate-spin" />
-                    {isComposingProduct.background ? '제품 합성 중...' : '생성 중...'}
-                  </>
-                ) : (
-                  <>
-                    <RotateCcw className="w-4 h-4" />
+            <button
+              onClick={handleGenerateBackground}
+              disabled={isGeneratingBackground || isGenerating || publishStatus === 'published' || isComposingProduct.background}
+              className="flex items-center justify-center gap-1.5 px-2 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-xs disabled:opacity-50"
+              title={publishStatus === 'published' ? '배포 완료 상태에서는 이미지를 재생성할 수 없습니다.' : (profileData.background.imageUrl ? '이미지 재생성' : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성'))}
+            >
+              {isGeneratingBackground || isComposingProduct.background ? (
+                <>
+                  <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                  <span className="text-[11px]">{isComposingProduct.background ? '제품 합성 중...' : '생성 중...'}</span>
+                </>
+              ) : (
+                <>
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span className="text-[11px]">
                     {profileData.background.imageUrl 
                       ? (enableProductComposition.background && selectedProductId.background && selectedProductId.background.trim() !== '' 
                           ? '제품 합성' 
                           : '이미지 재생성')
                       : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성')}
+                  </span>
+                </>
+              )}
+            </button>
+            {profileData.background.imageUrl && profileData.background.prompt && (
+              <button
+                onClick={() => handleRegeneratePrompt('background')}
+                disabled={isRegeneratingPrompt === 'background' || isGeneratingBackground || isGenerating || publishStatus === 'published'}
+                className="flex items-center justify-center gap-1.5 px-2 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                title="프롬프트 재생성 + 이미지 재생성 (제품 합성 포함)"
+              >
+                {isRegeneratingPrompt === 'background' ? (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                    <span className="text-[11px]">재생성 중...</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span className="text-[11px]">프롬프트 이미지 재생성</span>
                   </>
                 )}
               </button>
-            </div>
+            )}
+            {(!profileData.background.imageUrl || !profileData.background.prompt) && (
+              <button
+                onClick={() => handleRegeneratePrompt('background')}
+                disabled={isRegeneratingPrompt === 'background' || isGenerating || publishStatus === 'published'}
+                className="flex items-center justify-center gap-1.5 px-2 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                title="프롬프트 재생성 + 이미지 재생성"
+              >
+                {isRegeneratingPrompt === 'background' ? (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                    <span className="text-[11px]">재생성 중...</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span className="text-[11px]">프롬프트 이미지 재생성</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -1480,7 +1520,7 @@ export default function ProfileManager({
             )}
           </div>
 
-          <div className="flex gap-2 flex-wrap items-center">
+          <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => {
                 // ✅ 배포 완료 상태면 차단
@@ -1491,63 +1531,81 @@ export default function ProfileManager({
                 setShowProfileGallery(true);
               }}
               disabled={publishStatus === 'published'}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-1.5 px-2 py-2 bg-gray-100 hover:bg-gray-200 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed"
               title={publishStatus === 'published' ? '배포 완료 상태에서는 이미지를 변경할 수 없습니다. 배포 대기로 변경해주세요.' : '갤러리에서 선택'}
             >
-              <Image className="w-4 h-4" />
-              갤러리에서 선택
+              <Image className="w-3.5 h-3.5" />
+              <span className="text-[11px]">갤러리에서 선택</span>
             </button>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => handleGenerateProfile(false)}
-                disabled={isGeneratingProfile || isGenerating || publishStatus === 'published' || isComposingProduct.profile}
-                className="flex items-center gap-2 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm disabled:opacity-50"
-                title={publishStatus === 'published' 
-                  ? '배포 완료 상태에서는 이미지를 재생성할 수 없습니다.' 
-                  : profileData.profile.imageUrl 
-                    ? (enableProductComposition.profile && selectedProductId.profile
-                        ? '기존 이미지에 제품 합성'
-                        : '이미지 재생성')
-                    : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성')}
-              >
-                {isGeneratingProfile || isComposingProduct.profile ? (
-                  <>
-                    <Sparkles className="w-4 h-4 animate-spin" />
-                    {isComposingProduct.profile ? '제품 합성 중...' : '생성 중...'}
-                  </>
-                ) : (
-                  <>
-                    <RotateCcw className="w-4 h-4" />
+            <button
+              onClick={() => handleGenerateProfile(false)}
+              disabled={isGeneratingProfile || isGenerating || publishStatus === 'published' || isComposingProduct.profile}
+              className="flex items-center justify-center gap-1.5 px-2 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-xs disabled:opacity-50"
+              title={publishStatus === 'published' 
+                ? '배포 완료 상태에서는 이미지를 재생성할 수 없습니다.' 
+                : profileData.profile.imageUrl 
+                  ? (enableProductComposition.profile && selectedProductId.profile
+                      ? '기존 이미지에 제품 합성'
+                      : '이미지 재생성')
+                  : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성')}
+            >
+              {isGeneratingProfile || isComposingProduct.profile ? (
+                <>
+                  <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                  <span className="text-[11px]">{isComposingProduct.profile ? '제품 합성 중...' : '생성 중...'}</span>
+                </>
+              ) : (
+                <>
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span className="text-[11px]">
                     {profileData.profile.imageUrl 
                       ? (enableProductComposition.profile && selectedProductId.profile && selectedProductId.profile.trim() !== '' 
                           ? '제품 합성' 
                           : '이미지 재생성')
                       : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성')}
+                  </span>
+                </>
+              )}
+            </button>
+            {profileData.profile.imageUrl && profileData.profile.prompt ? (
+              <button
+                onClick={() => handleGenerateProfile(true)}
+                disabled={isRegeneratingPrompt === 'profile' || isGeneratingProfile || isGenerating || publishStatus === 'published'}
+                className="flex items-center justify-center gap-1.5 px-2 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                title="프롬프트 재생성 + 이미지 재생성 (제품 합성 포함)"
+              >
+                {isRegeneratingPrompt === 'profile' ? (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                    <span className="text-[11px]">재생성 중...</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span className="text-[11px]">프롬프트 이미지 재생성</span>
                   </>
                 )}
               </button>
-              {/* ✅ 프롬프트 재생성 옵션 (이미지가 있을 때만 표시) - 피드와 동일 */}
-              {profileData.profile.imageUrl && profileData.profile.prompt && (
-                <button
-                  onClick={() => handleGenerateProfile(true)}
-                  disabled={isRegeneratingPrompt === 'profile' || isGeneratingProfile || isGenerating || publishStatus === 'published'}
-                  className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="프롬프트 재생성 + 이미지 재생성 (제품 합성 포함)"
-                >
-                  {isRegeneratingPrompt === 'profile' ? (
-                    <>
-                      <Sparkles className="w-4 h-4 animate-spin" />
-                      재생성 중...
-                    </>
-                  ) : (
-                    <>
-                      <RotateCcw className="w-4 h-4" />
-                      프롬프트 이미지 재생성
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
+            ) : (
+              <button
+                onClick={() => handleRegeneratePrompt('profile')}
+                disabled={isRegeneratingPrompt === 'profile' || isGenerating || publishStatus === 'published'}
+                className="flex items-center justify-center gap-1.5 px-2 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                title="프롬프트 재생성 + 이미지 재생성"
+              >
+                {isRegeneratingPrompt === 'profile' ? (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                    <span className="text-[11px]">재생성 중...</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span className="text-[11px]">프롬프트 이미지 재생성</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>

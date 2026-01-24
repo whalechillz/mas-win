@@ -93,11 +93,12 @@ const GalleryPicker: React.FC<Props> = ({
   // 모달이 열릴 때 body 스크롤 막기
   useEffect(() => {
     if (isOpen) {
-      const originalOverflow = document.body.style.overflow;
+      const originalOverflow = document.body.style.overflow || '';
       document.body.style.overflow = 'hidden';
       
       return () => {
-        document.body.style.overflow = originalOverflow;
+        // 빈 문자열이면 'auto'로 복구
+        document.body.style.overflow = originalOverflow || 'auto';
       };
     }
   }, [isOpen]);
@@ -316,7 +317,7 @@ const GalleryPicker: React.FC<Props> = ({
         apiUrl: apiUrl,
         fullUrl: typeof window !== 'undefined' ? window.location.origin + apiUrl : 'N/A',
         forceRefresh: params.get('forceRefresh'),
-        timestamp: params.get('_t'),
+        requestTimestamp: params.get('_t'),
         prefix: params.get('prefix'),
         includeChildren: params.get('includeChildren'),
         responseTime: requestDuration,
