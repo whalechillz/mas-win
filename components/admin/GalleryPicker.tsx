@@ -1530,31 +1530,44 @@ const GalleryPicker: React.FC<Props> = ({
               >
                 <div className="text-4xl mb-4">📭</div>
                 <div className="text-lg font-medium mb-2">이미지가 없습니다</div>
+                <div className="text-sm mb-4">
+                  {folderFilter ? (
+                    <>
+                      <div className="mb-2">"{folderFilter}" 폴더에 이미지가 없습니다.</div>
+                      {folderFilter.includes('originals/daily-branding/kakao') && (
+                        <div className="text-xs text-gray-400 mt-2">
+                          💡 팁: 날짜 필터를 변경하거나 상위 폴더에서 이미지를 찾아보세요.
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    '검색 결과가 없습니다.'
+                  )}
+                </div>
                 {folderFilter && (
-                  <button
-                    onClick={() => {
-                      // 상위 폴더로 이동
-                      const parts = folderFilter.split('/');
-                      if (parts.length > 1) {
-                        const parentFolder = parts.slice(0, -1).join('/');
-                        setFolderFilter(parentFolder);
-                        console.log('📁 상위 폴더로 이동:', parentFolder);
-                      } else {
-                        setFolderFilter('');
-                        console.log('📁 전체 폴더로 이동');
-                      }
-                    }}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm mt-4"
-                  >
-                    {folderFilter.split('/').length > 1 ? '상위 폴더 보기' : '전체 폴더 보기'}
-                  </button>
-                )}
-                {/* 모바일에서는 드래그 앤 드롭 안내 제거 */}
-                {folderFilter && !isMobile && (
-                  <div className="text-xs text-gray-400 mt-2">
-                    💡 이미지를 여기에 드래그하여 복사/링크할 수 있습니다<br />
-                    Shift + 드롭 = 링크 | Ctrl/Cmd + 드롭 = 복사
-                  </div>
+                  <>
+                    <button
+                      onClick={() => {
+                        // 상위 폴더로 이동
+                        const parts = folderFilter.split('/');
+                        if (parts.length > 1) {
+                          const parentFolder = parts.slice(0, -1).join('/');
+                          setFolderFilter(parentFolder);
+                          console.log('📁 상위 폴더로 이동:', parentFolder);
+                        } else {
+                          setFolderFilter('');
+                          console.log('📁 전체 폴더로 이동');
+                        }
+                      }}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm mb-2"
+                    >
+                      {folderFilter.split('/').length > 1 ? '상위 폴더 보기' : '전체 폴더 보기'}
+                    </button>
+                    <div className="text-xs text-gray-400 mt-2">
+                      💡 이미지를 여기에 드래그하여 복사/링크할 수 있습니다<br />
+                      Shift + 드롭 = 링크 | Ctrl/Cmd + 드롭 = 복사
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -1589,19 +1602,15 @@ const GalleryPicker: React.FC<Props> = ({
                 </div>
               </div>
               {/* 동적 그리드 레이아웃 */}
-              <div className={(() => {
-                if (isMobile) {
-                  return mobileGridColumns === 1 
-                    ? 'grid grid-cols-1 gap-2 sm:gap-4'
-                    : 'grid grid-cols-2 gap-2 sm:gap-4';
-                } else {
-                  if (desktopGridColumns === 1) return 'grid grid-cols-1 gap-2 sm:gap-4';
-                  if (desktopGridColumns === 2) return 'grid grid-cols-2 gap-2 sm:gap-4';
-                  if (desktopGridColumns === 3) return 'grid grid-cols-3 gap-2 sm:gap-4';
-                  if (desktopGridColumns === 4) return 'grid grid-cols-4 gap-2 sm:gap-4';
-                  return 'grid grid-cols-5 gap-2 sm:gap-4';
-                }
-              })()}>
+              <div className={`grid gap-2 sm:gap-4 ${
+                isMobile
+                  ? mobileGridColumns === 1 ? 'grid-cols-1' : 'grid-cols-2'
+                  : desktopGridColumns === 1 ? 'grid-cols-1'
+                  : desktopGridColumns === 2 ? 'grid-cols-2'
+                  : desktopGridColumns === 3 ? 'grid-cols-3'
+                  : desktopGridColumns === 4 ? 'grid-cols-4'
+                  : 'grid-cols-5'
+              }`}>
               {filtered.map((img, idx) => {
                 const isCompareSelected = selectedForCompare.has(img.name);
                 const shouldHighlightCompare = showCompareMode && filtered.length >= 2 && filtered.length <= 3;
