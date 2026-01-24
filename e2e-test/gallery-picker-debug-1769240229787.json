@@ -1,0 +1,496 @@
+{
+  "timestamp": "2026-01-24T07:37:09.787Z",
+  "url": "https://www.masgolf.co.kr",
+  "testDate": "2026-01-24",
+  "apiCalls": [
+    {
+      "type": "request",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=driver&active=true",
+      "method": "GET",
+      "headers": {
+        "cookie": "N/A",
+        "authorization": "N/A",
+        "referer": "https://www.masgolf.co.kr/admin/kakao-content?date=2026-01-24",
+        "user-agent": "N/A"
+      },
+      "timestamp": "2026-01-24T07:37:05.754Z"
+    },
+    {
+      "type": "request",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=hat&active=true",
+      "method": "GET",
+      "headers": {
+        "cookie": "N/A",
+        "authorization": "N/A",
+        "referer": "https://www.masgolf.co.kr/admin/kakao-content?date=2026-01-24",
+        "user-agent": "N/A"
+      },
+      "timestamp": "2026-01-24T07:37:05.755Z"
+    },
+    {
+      "type": "request",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=accessory&active=true",
+      "method": "GET",
+      "headers": {
+        "cookie": "N/A",
+        "authorization": "N/A",
+        "referer": "https://www.masgolf.co.kr/admin/kakao-content?date=2026-01-24",
+        "user-agent": "N/A"
+      },
+      "timestamp": "2026-01-24T07:37:05.755Z"
+    },
+    {
+      "type": "request",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=driver&active=true",
+      "method": "GET",
+      "headers": {
+        "cookie": "N/A",
+        "authorization": "N/A",
+        "referer": "https://www.masgolf.co.kr/admin/kakao-content?date=2026-01-24",
+        "user-agent": "N/A"
+      },
+      "timestamp": "2026-01-24T07:37:05.755Z"
+    },
+    {
+      "type": "request",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=hat&active=true",
+      "method": "GET",
+      "headers": {
+        "cookie": "N/A",
+        "authorization": "N/A",
+        "referer": "https://www.masgolf.co.kr/admin/kakao-content?date=2026-01-24",
+        "user-agent": "N/A"
+      },
+      "timestamp": "2026-01-24T07:37:05.755Z"
+    },
+    {
+      "type": "request",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=accessory&active=true",
+      "method": "GET",
+      "headers": {
+        "cookie": "N/A",
+        "authorization": "N/A",
+        "referer": "https://www.masgolf.co.kr/admin/kakao-content?date=2026-01-24",
+        "user-agent": "N/A"
+      },
+      "timestamp": "2026-01-24T07:37:05.755Z"
+    },
+    {
+      "type": "request",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=driver&active=true",
+      "method": "GET",
+      "headers": {
+        "cookie": "N/A",
+        "authorization": "N/A",
+        "referer": "https://www.masgolf.co.kr/admin/kakao-content?date=2026-01-24",
+        "user-agent": "N/A"
+      },
+      "timestamp": "2026-01-24T07:37:05.756Z"
+    },
+    {
+      "type": "request",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=hat&active=true",
+      "method": "GET",
+      "headers": {
+        "cookie": "N/A",
+        "authorization": "N/A",
+        "referer": "https://www.masgolf.co.kr/admin/kakao-content?date=2026-01-24",
+        "user-agent": "N/A"
+      },
+      "timestamp": "2026-01-24T07:37:05.756Z"
+    },
+    {
+      "type": "request",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=accessory&active=true",
+      "method": "GET",
+      "headers": {
+        "cookie": "N/A",
+        "authorization": "N/A",
+        "referer": "https://www.masgolf.co.kr/admin/kakao-content?date=2026-01-24",
+        "user-agent": "N/A"
+      },
+      "timestamp": "2026-01-24T07:37:05.756Z"
+    },
+    {
+      "type": "request",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=driver&active=true",
+      "method": "GET",
+      "headers": {
+        "cookie": "N/A",
+        "authorization": "N/A",
+        "referer": "https://www.masgolf.co.kr/admin/kakao-content?date=2026-01-24",
+        "user-agent": "N/A"
+      },
+      "timestamp": "2026-01-24T07:37:05.756Z"
+    },
+    {
+      "type": "request",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=hat&active=true",
+      "method": "GET",
+      "headers": {
+        "cookie": "N/A",
+        "authorization": "N/A",
+        "referer": "https://www.masgolf.co.kr/admin/kakao-content?date=2026-01-24",
+        "user-agent": "N/A"
+      },
+      "timestamp": "2026-01-24T07:37:05.756Z"
+    },
+    {
+      "type": "request",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=accessory&active=true",
+      "method": "GET",
+      "headers": {
+        "cookie": "N/A",
+        "authorization": "N/A",
+        "referer": "https://www.masgolf.co.kr/admin/kakao-content?date=2026-01-24",
+        "user-agent": "N/A"
+      },
+      "timestamp": "2026-01-24T07:37:05.756Z"
+    },
+    {
+      "type": "response",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=accessory&active=true",
+      "status": 401,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "date": "Sat, 24 Jan 2026 07:37:05 GMT",
+        "content-type": "application/json",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::kjf9k-1769240225762-e40873c84073"
+      },
+      "timestamp": "2026-01-24T07:37:05.783Z"
+    },
+    {
+      "type": "response",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=hat&active=true",
+      "status": 401,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "date": "Sat, 24 Jan 2026 07:37:05 GMT",
+        "content-type": "application/json",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::t2b4f-1769240225761-e2ae050feab4"
+      },
+      "timestamp": "2026-01-24T07:37:05.786Z"
+    },
+    {
+      "type": "response",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=driver&active=true",
+      "status": 401,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "date": "Sat, 24 Jan 2026 07:37:05 GMT",
+        "content-type": "application/json",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::lc67n-1769240225761-aa5cc32788bf"
+      },
+      "timestamp": "2026-01-24T07:37:05.789Z"
+    },
+    {
+      "type": "response",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=accessory&active=true",
+      "status": 401,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "date": "Sat, 24 Jan 2026 07:37:05 GMT",
+        "content-type": "application/json",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::lc67n-1769240225792-0dcb0ced212d"
+      },
+      "timestamp": "2026-01-24T07:37:05.813Z"
+    },
+    {
+      "type": "response",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=driver&active=true",
+      "status": 401,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "date": "Sat, 24 Jan 2026 07:37:05 GMT",
+        "content-type": "application/json",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::kjf9k-1769240225797-1c6522b5c39c"
+      },
+      "timestamp": "2026-01-24T07:37:05.817Z"
+    },
+    {
+      "type": "response",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=hat&active=true",
+      "status": 401,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "date": "Sat, 24 Jan 2026 07:37:05 GMT",
+        "content-type": "application/json",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::t2b4f-1769240225795-4f9f2ecf3974"
+      },
+      "timestamp": "2026-01-24T07:37:05.822Z"
+    },
+    {
+      "type": "response",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=accessory&active=true",
+      "status": 401,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "date": "Sat, 24 Jan 2026 07:37:05 GMT",
+        "content-type": "application/json",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::kjf9k-1769240225821-7e27713de1b0"
+      },
+      "timestamp": "2026-01-24T07:37:05.844Z"
+    },
+    {
+      "type": "response",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=driver&active=true",
+      "status": 401,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "date": "Sat, 24 Jan 2026 07:37:05 GMT",
+        "content-type": "application/json",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::t2b4f-1769240225826-343a46cae021"
+      },
+      "timestamp": "2026-01-24T07:37:05.848Z"
+    },
+    {
+      "type": "response",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=hat&active=true",
+      "status": 401,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "date": "Sat, 24 Jan 2026 07:37:05 GMT",
+        "content-type": "application/json",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::lc67n-1769240225830-4ef518f1fe7b"
+      },
+      "timestamp": "2026-01-24T07:37:05.850Z"
+    },
+    {
+      "type": "response",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=driver&active=true",
+      "status": 401,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "date": "Sat, 24 Jan 2026 07:37:05 GMT",
+        "content-type": "application/json",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::t2b4f-1769240225857-e5b87c57ffbd"
+      },
+      "timestamp": "2026-01-24T07:37:05.876Z"
+    },
+    {
+      "type": "response",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=accessory&active=true",
+      "status": 401,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "date": "Sat, 24 Jan 2026 07:37:05 GMT",
+        "content-type": "application/json",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::lc67n-1769240225854-002296dbb698"
+      },
+      "timestamp": "2026-01-24T07:37:05.878Z"
+    },
+    {
+      "type": "response",
+      "url": "https://www.masgolf.co.kr/api/admin/product-composition?category=hat&active=true",
+      "status": 401,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "date": "Sat, 24 Jan 2026 07:37:05 GMT",
+        "content-type": "application/json",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::kjf9k-1769240225858-06cdf4f9932b"
+      },
+      "timestamp": "2026-01-24T07:37:05.885Z"
+    },
+    {
+      "type": "request",
+      "url": "https://www.masgolf.co.kr/api/admin/all-images?limit=24&offset=0&prefix=originals%2Fdaily-branding%2Fkakao%2F2026-01-24%2Faccount1%2Fbackground&includeChildren=true&forceRefresh=true&_t=1769240225961",
+      "method": "GET",
+      "headers": {
+        "cookie": "N/A",
+        "authorization": "N/A",
+        "referer": "https://www.masgolf.co.kr/admin/kakao-content?date=2026-01-24",
+        "user-agent": "N/A"
+      },
+      "timestamp": "2026-01-24T07:37:05.967Z"
+    },
+    {
+      "type": "response",
+      "url": "https://www.masgolf.co.kr/api/admin/all-images?limit=24&offset=0&prefix=originals%2Fdaily-branding%2Fkakao%2F2026-01-24%2Faccount1%2Fbackground&includeChildren=true&forceRefresh=true&_t=1769240225961",
+      "status": 401,
+      "statusText": "",
+      "headers": {
+        "strict-transport-security": "max-age=63072000",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "date": "Sat, 24 Jan 2026 07:37:05 GMT",
+        "content-type": "application/json",
+        "server": "Vercel",
+        "x-vercel-id": "icn1::h2jz8-1769240225972-5581e7059d4a"
+      },
+      "timestamp": "2026-01-24T07:37:05.993Z"
+    }
+  ],
+  "consoleMessages": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 ()",
+      "timestamp": "2026-01-24T07:37:05.783Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 ()",
+      "timestamp": "2026-01-24T07:37:05.786Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 ()",
+      "timestamp": "2026-01-24T07:37:05.789Z"
+    },
+    {
+      "type": "warning",
+      "text": "⚠️ 모자 제품 로드 실패: {error: Unauthorized, message: No valid session}",
+      "timestamp": "2026-01-24T07:37:05.790Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 ()",
+      "timestamp": "2026-01-24T07:37:05.813Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 ()",
+      "timestamp": "2026-01-24T07:37:05.817Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 ()",
+      "timestamp": "2026-01-24T07:37:05.822Z"
+    },
+    {
+      "type": "warning",
+      "text": "⚠️ 모자 제품 로드 실패: {error: Unauthorized, message: No valid session}",
+      "timestamp": "2026-01-24T07:37:05.822Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 ()",
+      "timestamp": "2026-01-24T07:37:05.844Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 ()",
+      "timestamp": "2026-01-24T07:37:05.848Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 ()",
+      "timestamp": "2026-01-24T07:37:05.850Z"
+    },
+    {
+      "type": "warning",
+      "text": "⚠️ 모자 제품 로드 실패: {error: Unauthorized, message: No valid session}",
+      "timestamp": "2026-01-24T07:37:05.851Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 ()",
+      "timestamp": "2026-01-24T07:37:05.877Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 ()",
+      "timestamp": "2026-01-24T07:37:05.878Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 ()",
+      "timestamp": "2026-01-24T07:37:05.885Z"
+    },
+    {
+      "type": "warning",
+      "text": "⚠️ 모자 제품 로드 실패: {error: Unauthorized, message: No valid session}",
+      "timestamp": "2026-01-24T07:37:05.886Z"
+    },
+    {
+      "type": "log",
+      "text": "🔍 [DEPLOY DEBUG] GalleryPicker 모달 열림: {isOpen: true, autoFilterFolder: originals/daily-branding/kakao/2026-01-24/account1/background, folderFilter: originals/daily-branding/kakao/2026-01-24/account1/background, imageSource: supabase, timestamp: 2026-01-24T07:37:05.960Z}",
+      "timestamp": "2026-01-24T07:37:05.961Z"
+    },
+    {
+      "type": "log",
+      "text": "🔍 [DEPLOY DEBUG] autoFilterFolder 설정: {autoFilterFolder: originals/daily-branding/kakao/2026-01-24/account1/background, timestamp: 2026-01-24T07:37:05.961Z}",
+      "timestamp": "2026-01-24T07:37:05.961Z"
+    },
+    {
+      "type": "log",
+      "text": "🔍 [DEPLOY DEBUG] GalleryPicker 이미지 로드 요청 시작: {apiUrl: /api/admin/all-images?limit=24&offset=0&prefix=ori…eChildren=true&forceRefresh=true&_t=1769240225961, fullUrl: https://www.masgolf.co.kr/api/admin/all-images?lim…eChildren=true&forceRefresh=true&_t=1769240225961, folderFilter: originals/daily-branding/kakao/2026-01-24/account1/background, imageSource: supabase, retryCount: 0}",
+      "timestamp": "2026-01-24T07:37:05.962Z"
+    },
+    {
+      "type": "log",
+      "text": "🔍 [DEPLOY DEBUG] Fetch 옵션: {method: GET, credentials: include, headers: Object, hasCredentials: true}",
+      "timestamp": "2026-01-24T07:37:05.962Z"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 ()",
+      "timestamp": "2026-01-24T07:37:05.993Z"
+    },
+    {
+      "type": "log",
+      "text": "⏱️ [DEPLOY DEBUG] API 응답 시간: 32ms",
+      "timestamp": "2026-01-24T07:37:05.994Z"
+    },
+    {
+      "type": "log",
+      "text": "🔍 [DEPLOY DEBUG] API 응답 상태: {status: 401, statusText: , ok: false, headers: Object, url: https://www.masgolf.co.kr/api/admin/all-images?lim…eChildren=true&forceRefresh=true&_t=1769240225961}",
+      "timestamp": "2026-01-24T07:37:05.994Z"
+    },
+    {
+      "type": "error",
+      "text": "❌ [DEPLOY DEBUG] 401 Unauthorized 에러 상세: {status: 401, statusText: , errorText: {\"error\":\"Unauthorized\",\"message\":\"No valid session\"}, apiUrl: /api/admin/all-images?limit=24&offset=0&prefix=ori…eChildren=true&forceRefresh=true&_t=1769240225961, fullUrl: https://www.masgolf.co.kr/api/admin/all-images?lim…eChildren=true&forceRefresh=true&_t=1769240225961}",
+      "timestamp": "2026-01-24T07:37:05.994Z"
+    },
+    {
+      "type": "error",
+      "text": "❌ [DEPLOY DEBUG] 이미지 로드 실패: {status: 401, statusText: , apiUrl: /api/admin/all-images?limit=24&offset=0&prefix=ori…eChildren=true&forceRefresh=true&_t=1769240225961, retryCount: 0}",
+      "timestamp": "2026-01-24T07:37:05.994Z"
+    },
+    {
+      "type": "error",
+      "text": "❌ [DEPLOY DEBUG] 에러 상세: Unknown error",
+      "timestamp": "2026-01-24T07:37:05.994Z"
+    }
+  ],
+  "summary": {
+    "totalApiCalls": 13,
+    "successApiCalls": 0,
+    "errorApiCalls": 13,
+    "unauthorizedErrors": 13
+  }
+}

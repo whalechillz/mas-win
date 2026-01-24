@@ -397,6 +397,12 @@ export default function ProfileManager({
             } finally {
               setIsComposingProduct(prev => ({ ...prev, background: false }));
             }
+          } catch (composeError: any) {
+            console.error('❌ 제품 합성 예외 발생:', composeError);
+            alert(`제품 합성 중 오류가 발생했습니다: ${composeError.message || '알 수 없는 오류'}`);
+          } finally {
+            setIsComposingProduct(prev => ({ ...prev, background: false }));
+          }
         }
         
         onUpdate({
@@ -614,8 +620,6 @@ export default function ProfileManager({
           
           const composeResult = await composeResponse.json();
           
-          const composeResult = await composeResponse.json();
-          
           if (composeResult.success && composeResult.images && composeResult.images.length > 0) {
             const finalImageUrl = composeResult.images[0].imageUrl;
             console.log('✅ 기존 프로필 이미지 제품 합성 완료:', {
@@ -773,6 +777,12 @@ export default function ProfileManager({
             } finally {
               setIsComposingProduct(prev => ({ ...prev, profile: false }));
             }
+          } catch (composeError: any) {
+            console.error('❌ 제품 합성 예외 발생:', composeError);
+            alert(`제품 합성 중 오류가 발생했습니다: ${composeError.message || '알 수 없는 오류'}`);
+          } finally {
+            setIsComposingProduct(prev => ({ ...prev, profile: false }));
+          }
         }
         
         onUpdate({
