@@ -166,10 +166,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         if (receiverUuids.length === 0) {
+          const notFoundPhones = normalizedPhones.filter((phone: string) => !phoneToUuidMap.has(phone));
           return res.status(400).json({
             success: false,
-            message: '전화번호에 해당하는 카카오 친구를 찾을 수 없습니다. 친구 목록을 동기화해주세요.',
-            notFoundPhones: normalizedPhones.filter((phone: string) => !phoneToUuidMap.has(phone))
+            message: `전화번호에 해당하는 카카오 친구를 찾을 수 없습니다. (${notFoundPhones.length}개 전화번호)`,
+            errorCode: 'FRIENDS_NOT_FOUND',
+            notFoundPhones: notFoundPhones.slice(0, 10), // 최대 10개만 반환
+            hint: '친구 목록을 동기화하거나, 친구 그룹을 사용하거나, 수동으로 친구를 등록해주세요.',
+            solutions: [
+              '1. 친구 그룹 사용: 수신자 그룹 선택에서 친구 그룹 선택',
+              '2. 친구 수동 등록: 친구 그룹 관리 페이지에서 친구 추가',
+              '3. 알림톡 사용: 친구가 아닌 번호도 발송 가능 (템플릿 ID 필요)'
+            ]
           });
         }
 
@@ -192,7 +200,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (receiverUuids.length === 0) {
       return res.status(400).json({
         success: false,
-        message: '수신자가 없습니다. 수신자를 선택해주세요.'
+        message: '수신자가 없습니다. 수신자를 선택해주세요.',
+        errorCode: 'NO_RECIPIENTS',
+        hint: '친구톡 발송을 위해서는 다음 중 하나가 필요합니다:',
+        solutions: [
+          '1. 친구 그룹 선택: 수신자 그룹 선택에서 친구 그룹 선택',
+          '2. 개별 번호 입력: 전화번호 입력 후 친구 매핑이 있어야 함',
+          '3. 알림톡 사용: 친구가 아닌 번호도 발송 가능 (템플릿 ID 필요)'
+        ]
       });
     }
 

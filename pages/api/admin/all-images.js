@@ -337,6 +337,25 @@ const getMetadataQualityIssues = (metadata) => {
 export default async function handler(req, res) {
   console.log('🔍 전체 이미지 조회 API 요청:', req.method, req.url);
   
+  // ✅ 배포 환경 디버깅: 쿠키 확인
+  const cookies = req.headers.cookie || '';
+  const hasSessionToken = cookies.includes('next-auth.session-token');
+  console.log('🔍 [DEPLOY DEBUG] API 쿠키 상태:', {
+    hasCookies: !!cookies,
+    cookieLength: cookies.length,
+    hasSessionToken: hasSessionToken,
+    cookiePreview: cookies.substring(0, 200),
+    headers: {
+      cookie: cookies ? 'present' : 'missing',
+      referer: req.headers.referer || 'N/A',
+      origin: req.headers.origin || 'N/A',
+      host: req.headers.host || 'N/A'
+    },
+    url: req.url,
+    method: req.method,
+    timestamp: new Date().toISOString()
+  });
+  
   // ✅ 인증 체크 추가 (에디터 이상)
   try {
     const { requireAuth } = await import('../../../lib/api-auth');

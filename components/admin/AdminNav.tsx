@@ -153,6 +153,9 @@ const AdminNav = () => {
                 <Link href="/admin/kakao-friend-groups" className={`px-2 py-1 rounded ${isActive('/admin/kakao-friend-groups') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
                   👥 친구 그룹
                 </Link>
+                <Link href="/admin/kakao-friends" className={`px-2 py-1 rounded ${isActive('/admin/kakao-friends') ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}>
+                  👤 친구 관리
+                </Link>
               </>
             )}
             <Link href="/admin/dashboard" className={`px-2 py-1 rounded text-gray-400 hover:text-gray-600`}>

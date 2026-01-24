@@ -77,6 +77,24 @@
   - `components/admin/GalleryPicker.tsx`: 모바일 UI 최적화, 접기/펼치기 기능 추가
 
 #### 배포 환경 갤러리 선택 모달 이미지 로드 디버깅 코드 추가 ✅
+- **테스트 결과 분석**:
+  - ✅ 로그인 성공: `next-auth.session-token` 쿠키가 브라우저에 저장됨
+  - ❌ API 요청 시 쿠키 전달 실패: Playwright request 이벤트에서 쿠키가 감지되지 않음
+  - ❌ 401 Unauthorized 에러 발생: "No valid session" 메시지
+  - ✅ 디버그 코드 작동 확인: `[DEPLOY DEBUG]` 메시지가 콘솔에 출력됨
+- **원인 추정**:
+  1. NextAuth 쿠키 도메인 설정: `.masgolf.co.kr`로 설정되어 있으나 실제 사이트는 `www.masgolf.co.kr`
+  2. SameSite 쿠키 설정: `sameSite: 'lax'`로 설정되어 있으나 cross-site 요청에서 문제 발생 가능
+  3. 브라우저가 쿠키를 전달하지 않음: fetch 요청에 `credentials: 'include'` 설정되어 있으나 실제 전달되지 않음
+- **다음 단계**:
+  - ✅ NextAuth 쿠키 도메인 설정 수정: `.masgolf.co.kr` → `www.masgolf.co.kr`
+  - ✅ API 서버에 쿠키 디버그 로그 추가: `pages/api/admin/all-images.js`, `lib/api-auth.ts`
+  - ✅ Playwright 테스트에 배포 대기 시간 추가 (2분 30초)
+- **수정 파일**:
+  - `pages/api/auth/[...nextauth].ts`: 쿠키 도메인을 `www.masgolf.co.kr`로 변경
+  - `pages/api/admin/all-images.js`: 쿠키 상태 디버그 로그 추가
+  - `lib/api-auth.ts`: 세션 확인 전후 쿠키/세션 상태 디버그 로그 추가
+  - `e2e-test/playwright-gallery-picker-debug.js`: 배포 대기 시간 추가
 - **문제**: 배포 환경에서 "갤러리에서 선택" 클릭 시 이미지가 안 나오고 401 (Unauthorized) 에러 발생
 - **원인 추정**: 
   - 세션 쿠키가 만료되었거나 전달되지 않음

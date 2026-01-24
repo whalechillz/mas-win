@@ -187,27 +187,49 @@ export const KakaoSendOption: React.FC<KakaoSendOptionProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               발송 방식
             </label>
-            <div className="flex gap-4">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  value="FRIENDTALK"
-                  checked={messageType === 'FRIENDTALK'}
-                  onChange={(e) => onMessageTypeChange(e.target.value as 'FRIENDTALK')}
-                  className="mr-2"
-                />
-                <span className="text-sm">친구톡 (카카오 API)</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  value="ALIMTALK"
-                  checked={messageType === 'ALIMTALK'}
-                  onChange={(e) => onMessageTypeChange(e.target.value as 'ALIMTALK')}
-                  className="mr-2"
-                />
-                <span className="text-sm">알림톡 (Solapi)</span>
-              </label>
+            <div className="space-y-2">
+              <div className="flex gap-4">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="FRIENDTALK"
+                    checked={messageType === 'FRIENDTALK'}
+                    onChange={(e) => onMessageTypeChange(e.target.value as 'FRIENDTALK')}
+                    className="mr-2"
+                  />
+                  <span className="text-sm">친구톡 (카카오 API)</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="ALIMTALK"
+                    checked={messageType === 'ALIMTALK'}
+                    onChange={(e) => onMessageTypeChange(e.target.value as 'ALIMTALK')}
+                    className="mr-2"
+                  />
+                  <span className="text-sm">알림톡 (Solapi)</span>
+                </label>
+              </div>
+              <div className="text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded p-2">
+                <p className="font-medium mb-1">💡 발송 방식 안내:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li><strong>친구톡 (카카오 API):</strong> 카카오 비즈니스 채널 API 사용. 카카오 개발자 콘솔의 "친구 목록/메시지" 권한과는 별개입니다.</li>
+                  <li><strong>알림톡 (Solapi):</strong> Solapi를 통한 알림톡 발송. 템플릿 ID가 필요합니다.</li>
+                </ul>
+              </div>
+              
+              {/* 친구톡 선택 시 안내 */}
+              {messageType === 'FRIENDTALK' && (
+                <div className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded p-2">
+                  <p className="font-medium mb-1">⚠️ 친구톡 발송 전 확인사항:</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>친구톡은 <strong>카카오 친구로 등록된 번호</strong>에게만 발송 가능합니다.</li>
+                    <li>친구 수가 0명이면 <strong>친구 그룹</strong>을 사용하거나 <strong>친구를 수동으로 등록</strong>해주세요.</li>
+                    <li>친구가 아닌 번호는 "친구 추가 안 된 번호 처리" 옵션에 따라 SMS로 대체 발송되거나 건너뜁니다.</li>
+                    <li>친구 등록 방법: <a href="/admin/kakao-friend-groups" target="_blank" className="text-blue-600 underline">친구 그룹 관리</a>에서 친구 추가</li>
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
 

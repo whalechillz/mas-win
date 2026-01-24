@@ -29,6 +29,12 @@ async function testGalleryPickerImageLoad() {
   log(`📅 테스트 날짜: ${TEST_DATE}`, 'info');
   log(`🌐 배포 URL: ${PRODUCTION_URL}`, 'info');
   
+  // ✅ 배포 완료 대기 (2분 30초)
+  log('\n⏳ 배포 완료 대기 중... (2분 30초)', 'info');
+  const waitTime = 2 * 60 * 1000 + 30 * 1000; // 2분 30초
+  await new Promise(resolve => setTimeout(resolve, waitTime));
+  log('✅ 대기 완료. 테스트 시작...', 'success');
+  
   const browser = await chromium.launch({ 
     headless: false,
     slowMo: 500
@@ -42,24 +48,37 @@ async function testGalleryPickerImageLoad() {
   const page = await context.newPage();
   
   // 네트워크 요청/응답 상세 로깅
-  page.on('request', request => {
+  page.on('request', async request => {
     const url = request.url();
     if (url.includes('/api/admin/all-images') || url.includes('/api/admin/')) {
       const headers = request.headers();
+      const allHeaders = request.allHeaders(); // 모든 헤더 가져오기
+      
       apiCalls.push({
         type: 'request',
         url,
         method: request.method(),
         headers: {
-          cookie: headers.cookie || 'N/A',
-          authorization: headers.authorization || 'N/A',
-          referer: headers.referer || 'N/A'
+          cookie: allHeaders.cookie || headers.cookie || 'N/A',
+          authorization: allHeaders.authorization || headers.authorization || 'N/A',
+          referer: allHeaders.referer || headers.referer || 'N/A',
+          'user-agent': allHeaders['user-agent'] || 'N/A'
         },
         timestamp: new Date().toISOString()
       });
       log(`📤 API 요청: ${request.method()} ${url}`, 'request');
-      if (headers.cookie) {
-        log(`   쿠키: ${headers.cookie.substring(0, 100)}...`, 'debug');
+      
+      const cookieValue = allHeaders.cookie || headers.cookie;
+      if (cookieValue && cookieValue !== 'N/A') {
+        log(`   ✅ 쿠키 포함: ${cookieValue.substring(0, 150)}...`, 'debug');
+        // 세션 토큰 확인
+        if (cookieValue.includes('next-auth.session-token')) {
+          log(`   ✅ next-auth.session-token 쿠키 발견`, 'success');
+        } else {
+          log(`   ⚠️ next-auth.session-token 쿠키 없음`, 'warning');
+        }
+      } else {
+        log(`   ❌ 쿠키 없음!`, 'error');
       }
     }
   });
@@ -68,15 +87,17 @@ async function testGalleryPickerImageLoad() {
     const url = response.url();
     if (url.includes('/api/admin/all-images') || url.includes('/api/admin/')) {
       const status = response.status();
-      const headers = Object.fromEntries(response.headers());
+      const headers = response.headers(); // Playwright는 이미 객체를 반환
       const timestamp = new Date().toISOString();
       
+      // Playwright의 response.headers()는 이미 객체를 반환
+      const responseHeaders = response.headers();
       apiCalls.push({
         type: 'response',
         url,
         status,
         statusText: response.statusText(),
-        headers,
+        headers: responseHeaders,
         timestamp
       });
       
@@ -218,8 +239,91 @@ async function testGalleryPickerImageLoad() {
         log('   ✅ 모달 컨텐츠 확인', 'success');
       }
       
-      // 5. 이미지 로드 대기 및 확인
-      log('\n5️⃣ 이미지 로드 대기 및 확인...', 'info');
+      // 5. 브라우저에서 실제 쿠키 상태 확인
+      log('\n5️⃣ 브라우저 쿠키 상태 확인...', 'info');
+      
+      // 페이지에서 직접 쿠키 정보 가져오기
+      const cookieInfo = await page.evaluate(() => {
+        const cookies = document.cookie;
+        const cookieList = cookies.split(';').map(c => c.trim());
+        const sessionToken = cookieList.find(c => c.startsWith('next-auth.session-token'));
+        
+        return {
+          allCookies: cookies,
+          cookieCount: cookieList.length,
+          cookieList: cookieList,
+          hasSessionToken: !!sessionToken,
+          sessionTokenValue: sessionToken ? sessionToken.substring(0, 100) + '...' : null,
+          domain: window.location.hostname,
+          protocol: window.location.protocol,
+          origin: window.location.origin
+        };
+      });
+      
+      log(`   도메인: ${cookieInfo.domain}`, 'info');
+      log(`   프로토콜: ${cookieInfo.protocol}`, 'info');
+      log(`   Origin: ${cookieInfo.origin}`, 'info');
+      log(`   쿠키 개수: ${cookieInfo.cookieCount}`, cookieInfo.cookieCount > 0 ? 'success' : 'error');
+      log(`   세션 토큰 포함: ${cookieInfo.hasSessionToken ? '✅' : '❌'}`, cookieInfo.hasSessionToken ? 'success' : 'error');
+      
+      if (cookieInfo.allCookies) {
+        log(`   전체 쿠키: ${cookieInfo.allCookies.substring(0, 300)}...`, 'debug');
+        cookieInfo.cookieList.forEach((cookie, idx) => {
+          if (cookie.includes('next-auth') || cookie.includes('session')) {
+            log(`   쿠키 ${idx + 1}: ${cookie.substring(0, 150)}...`, 'debug');
+          }
+        });
+      } else {
+        log(`   ❌ 쿠키가 없습니다!`, 'error');
+      }
+      
+      // 실제 fetch 요청 시 쿠키 전달 여부 확인
+      log('\n   실제 fetch 요청 테스트...', 'info');
+      const fetchTest = await page.evaluate(async (apiUrl) => {
+        try {
+          // fetch 요청 전 쿠키 확인
+          const beforeCookies = document.cookie;
+          
+          // fetch 요청 실행
+          const response = await fetch(apiUrl, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          // 응답 확인
+          const status = response.status;
+          const errorText = status !== 200 ? await response.text().catch(() => '') : '';
+          
+          return {
+            beforeCookies: beforeCookies,
+            hasCookies: !!beforeCookies,
+            status: status,
+            errorText: errorText,
+            headers: {
+              // fetch API는 요청 헤더를 직접 읽을 수 없지만, 
+              // credentials: 'include'가 설정되어 있으면 쿠키가 자동으로 전달되어야 함
+            }
+          };
+        } catch (error) {
+          return {
+            error: error.message,
+            beforeCookies: document.cookie
+          };
+        }
+      }, '/api/admin/all-images?limit=1&offset=0');
+      
+      log(`   Fetch 테스트 결과:`, 'info');
+      log(`     상태 코드: ${fetchTest.status}`, fetchTest.status === 200 ? 'success' : 'error');
+      log(`     요청 전 쿠키: ${fetchTest.hasCookies ? '✅ 있음' : '❌ 없음'}`, fetchTest.hasCookies ? 'success' : 'error');
+      if (fetchTest.errorText) {
+        log(`     에러 메시지: ${fetchTest.errorText}`, 'error');
+      }
+      
+      // 이미지 로드 대기 및 확인
+      log('\n6️⃣ 이미지 로드 대기 및 확인...', 'info');
       await page.waitForTimeout(5000); // 이미지 로드 대기
       
       // 이미지 요소 확인
@@ -248,8 +352,8 @@ async function testGalleryPickerImageLoad() {
         log('   ✅ 이미지가 표시되고 있습니다.', 'success');
       }
       
-      // 6. 콘솔 로그에서 디버그 메시지 확인
-      log('\n6️⃣ 콘솔 디버그 메시지 확인...', 'info');
+      // 7. 콘솔 로그에서 디버그 메시지 확인
+      log('\n7️⃣ 콘솔 디버그 메시지 확인...', 'info');
       const deployDebugMessages = consoleMessages.filter(msg => 
         msg.text.includes('[DEPLOY DEBUG]')
       );
@@ -275,7 +379,7 @@ async function testGalleryPickerImageLoad() {
         });
       }
       
-      // 7. 스크린샷 저장
+      // 8. 스크린샷 저장
       await page.screenshot({ path: 'debug-gallery-modal.png', fullPage: true });
       log('   📸 디버그 스크린샷 저장: debug-gallery-modal.png', 'info');
       
@@ -291,8 +395,8 @@ async function testGalleryPickerImageLoad() {
       log('   📸 디버그 스크린샷 저장: debug-modal-not-opened.png', 'info');
     }
     
-    // 8. API 호출 로그 요약
-    log('\n8️⃣ API 호출 로그 요약...', 'info');
+    // 9. API 호출 로그 요약
+    log('\n9️⃣ API 호출 로그 요약...', 'info');
     const allImagesApiCalls = apiCalls.filter(call => 
       call.url.includes('/api/admin/all-images')
     );
@@ -313,7 +417,7 @@ async function testGalleryPickerImageLoad() {
       });
     }
     
-    // 9. 디버그 로그 파일 저장
+    // 10. 디버그 로그 파일 저장
     const logFilePath = path.join(__dirname, `gallery-picker-debug-${Date.now()}.json`);
     const debugData = {
       timestamp: new Date().toISOString(),

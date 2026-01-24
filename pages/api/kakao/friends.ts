@@ -12,6 +12,7 @@ const KAKAO_ADMIN_KEY = process.env.KAKAO_ADMIN_KEY;
  * 
  * GET /api/kakao/friends?phone=01012345678
  * GET /api/kakao/friends (전체 친구 목록)
+ * POST /api/kakao/friends - 친구 정보 등록 또는 전화번호 → UUID 변환
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -188,56 +189,140 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  // 전화번호 배열을 UUID 배열로 변환
+  // POST 요청 처리
   if (req.method === 'POST') {
     try {
-      const { phones } = req.body;
+      const { phones, friends } = req.body;
 
-      if (!phones || !Array.isArray(phones)) {
-        return res.status(400).json({
-          success: false,
-          message: '전화번호 배열이 필요합니다.'
+      // 친구 정보 직접 등록 (수동 등록)
+      if (friends && Array.isArray(friends)) {
+        const mappings = friends.map((friend: any) => ({
+          uuid: friend.uuid,
+          phone: friend.phone ? friend.phone.replace(/[^0-9]/g, '') : null,
+          nickname: friend.nickname || null,
+          thumbnail_image: friend.thumbnail_image || null,
+          synced_at: new Date().toISOString()
+        }));
+
+        // 필수 필드 검증
+        const invalidMappings = mappings.filter((m: any) => !m.uuid);
+        if (invalidMappings.length > 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'UUID는 필수입니다. 모든 친구 정보에 UUID를 입력해주세요.'
+          });
+        }
+
+        // upsert로 저장
+        const { data: inserted, error: insertError } = await supabase
+          .from('kakao_friend_mappings')
+          .upsert(mappings, { onConflict: 'uuid' })
+          .select();
+
+        if (insertError) {
+          console.error('❌ 친구 등록 오류:', insertError);
+          return res.status(500).json({
+            success: false,
+            message: '친구 등록에 실패했습니다.',
+            error: insertError.message
+          });
+        }
+
+        return res.status(200).json({
+          success: true,
+          message: `${mappings.length}명의 친구가 등록되었습니다.`,
+          data: inserted,
+          count: mappings.length
         });
       }
 
-      const normalizedPhones = phones.map((phone: string) => phone.replace(/[^0-9]/g, ''));
+      // 전화번호 배열을 UUID 배열로 변환
+      if (phones && Array.isArray(phones)) {
+        const normalizedPhones = phones.map((phone: string) => phone.replace(/[^0-9]/g, ''));
 
-      const { data: mappings, error } = await supabase
-        .from('kakao_friend_mappings')
-        .select('uuid, phone')
-        .in('phone', normalizedPhones);
+        const { data: mappings, error } = await supabase
+          .from('kakao_friend_mappings')
+          .select('uuid, phone')
+          .in('phone', normalizedPhones);
 
-      if (error) {
-        console.error('❌ UUID 변환 오류:', error);
-        return res.status(500).json({
-          success: false,
-          message: 'UUID 변환에 실패했습니다.',
-          error: error.message
+        if (error) {
+          console.error('❌ UUID 변환 오류:', error);
+          return res.status(500).json({
+            success: false,
+            message: 'UUID 변환에 실패했습니다.',
+            error: error.message
+          });
+        }
+
+        const phoneToUuidMap = new Map(
+          (mappings || []).map((m: any) => [m.phone, m.uuid])
+        );
+
+        const result = normalizedPhones.map((phone: string) => ({
+          phone,
+          uuid: phoneToUuidMap.get(phone) || null,
+          found: phoneToUuidMap.has(phone)
+        }));
+
+        return res.status(200).json({
+          success: true,
+          data: result,
+          foundCount: result.filter((r: any) => r.found).length,
+          totalCount: result.length
         });
       }
 
-      const phoneToUuidMap = new Map(
-        (mappings || []).map((m: any) => [m.phone, m.uuid])
-      );
-
-      const result = normalizedPhones.map((phone: string) => ({
-        phone,
-        uuid: phoneToUuidMap.get(phone) || null,
-        found: phoneToUuidMap.has(phone)
-      }));
-
-      return res.status(200).json({
-        success: true,
-        data: result,
-        foundCount: result.filter((r: any) => r.found).length,
-        totalCount: result.length
+      return res.status(400).json({
+        success: false,
+        message: 'phones 배열 또는 friends 배열이 필요합니다.'
       });
 
     } catch (error: any) {
-      console.error('❌ 전화번호 → UUID 변환 오류:', error);
+      console.error('❌ POST 요청 처리 오류:', error);
       return res.status(500).json({
         success: false,
-        message: '전화번호 → UUID 변환 중 오류가 발생했습니다.',
+        message: '요청 처리 중 오류가 발생했습니다.',
+        error: error.message
+      });
+    }
+  }
+
+  // DELETE 요청 처리 (친구 삭제)
+  if (req.method === 'DELETE') {
+    try {
+      const { uuid } = req.query;
+
+      if (!uuid || typeof uuid !== 'string') {
+        return res.status(400).json({
+          success: false,
+          message: 'UUID가 필요합니다.'
+        });
+      }
+
+      const { error: deleteError } = await supabase
+        .from('kakao_friend_mappings')
+        .delete()
+        .eq('uuid', uuid);
+
+      if (deleteError) {
+        console.error('❌ 친구 삭제 오류:', deleteError);
+        return res.status(500).json({
+          success: false,
+          message: '친구 삭제에 실패했습니다.',
+          error: deleteError.message
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: '친구가 삭제되었습니다.'
+      });
+
+    } catch (error: any) {
+      console.error('❌ 친구 삭제 오류:', error);
+      return res.status(500).json({
+        success: false,
+        message: '친구 삭제 중 오류가 발생했습니다.',
         error: error.message
       });
     }
@@ -248,10 +333,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     message: 'Method Not Allowed'
   });
 }
-
-
-
-
-
-
-

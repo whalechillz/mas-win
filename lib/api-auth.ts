@@ -29,50 +29,39 @@ export async function requireAuth(
     requireEditor?: boolean;
   }
 ): Promise<AuthResult> {
-  // ✅ 디버깅: 쿠키 확인 로그 추가 (프로덕션에서만)
-  const cookies = req.cookies;
-  const cookieHeader = req.headers.cookie || '';
-  
-  if (process.env.NODE_ENV === 'production') {
-    console.log('🔍 인증 체크 - 쿠키 확인:', {
-      hasSessionToken: !!cookies['next-auth.session-token'],
-      hasSecureToken: !!cookies['__Secure-next-auth.session-token'],
-      hasHostToken: !!cookies['__Host-next-auth.session-token'],
-      cookieNames: Object.keys(cookies).filter(name => name.includes('auth')),
-      allCookieNames: Object.keys(cookies),
-      cookieHeaderLength: cookieHeader.length,
-      cookieHeaderPreview: cookieHeader.substring(0, 200),
-      host: req.headers.host,
-      url: req.url,
-      referer: req.headers.referer,
-      origin: req.headers.origin,
-    });
-  }
+  // ✅ 배포 환경 디버깅: 세션 확인 전 쿠키 상태 로그
+  const cookies = req.headers.cookie || '';
+  const hasSessionToken = cookies.includes('next-auth.session-token');
+  console.log('🔍 [DEPLOY DEBUG] requireAuth 쿠키 확인:', {
+    hasCookies: !!cookies,
+    hasSessionToken: hasSessionToken,
+    cookiePreview: cookies.substring(0, 150),
+    url: req.url,
+    method: req.method
+  });
   
   const session = await getServerSession(req, res, authOptions);
   
+  // ✅ 배포 환경 디버깅: 세션 확인 결과 로그
+  console.log('🔍 [DEPLOY DEBUG] requireAuth 세션 확인:', {
+    hasSession: !!session,
+    hasUser: !!session?.user,
+    userId: session?.user?.id || 'N/A',
+    userRole: session?.user?.role || 'N/A',
+    url: req.url
+  });
+  
   if (!session?.user) {
-    // ✅ 개선: 더 명확한 에러 메시지 및 디버깅 정보
-    console.error('❌ 인증 실패:', {
-      hasSession: !!session,
-      sessionType: session ? typeof session : 'null',
-      hasCookies: Object.keys(cookies).length > 0,
-      totalCookies: Object.keys(cookies).length,
-      cookieNames: Object.keys(cookies).filter(name => name.includes('auth')),
-      allCookieNames: Object.keys(cookies),
-      cookieHeader: cookieHeader ? cookieHeader.substring(0, 300) : '없음',
-      host: req.headers.host,
+    console.error('❌ [DEPLOY DEBUG] 세션 없음 - 401 반환:', {
+      hasCookies: !!cookies,
+      hasSessionToken: hasSessionToken,
+      cookiePreview: cookies.substring(0, 150),
       url: req.url,
-      nodeEnv: process.env.NODE_ENV,
-      nextAuthUrl: process.env.NEXTAUTH_URL,
-      nextAuthCookieDomain: process.env.NEXTAUTH_COOKIE_DOMAIN,
+      method: req.method
     });
-    
     res.status(401).json({
       success: false,
-      error: 'Unauthorized',
-      message: 'No valid session',
-      details: '세션이 만료되었거나 쿠키가 전달되지 않았습니다. 페이지를 새로고침하거나 다시 로그인해주세요.'
+      message: '인증이 필요합니다. 로그인해주세요.'
     });
     throw new Error('Unauthorized');
   }
