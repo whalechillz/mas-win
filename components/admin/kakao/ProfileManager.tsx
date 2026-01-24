@@ -1114,7 +1114,7 @@ export default function ProfileManager({
                   </div>
                 </div>
               )}
-              {profileData.background.imageCount !== undefined && profileData.background.imageCount > 1 && (
+              {profileData.background.imageCount !== undefined && profileData.background.imageCount > 1 && profileData.background.imageCount !== 0 && (
                 <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
                   이미지 {profileData.background.imageCount}개 중 1번째
                 </div>
@@ -1365,7 +1365,7 @@ export default function ProfileManager({
                   </div>
                 </div>
               )}
-              {profileData.profile.imageCount !== undefined && profileData.profile.imageCount > 1 && (
+              {profileData.profile.imageCount !== undefined && profileData.profile.imageCount > 1 && profileData.profile.imageCount !== 0 && (
                 <div className="absolute top-0 left-0 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded">
                   {profileData.profile.imageCount}개
                 </div>
@@ -1474,7 +1474,13 @@ export default function ProfileManager({
                 onClick={handleGenerateProfile}
                 disabled={isGeneratingProfile || isGenerating || publishStatus === 'published' || isComposingProduct.profile}
                 className="flex items-center gap-2 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm disabled:opacity-50"
-                title={publishStatus === 'published' ? '배포 완료 상태에서는 이미지를 재생성할 수 없습니다.' : (profileData.profile.imageUrl ? '이미지 재생성' : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성'))}
+                title={publishStatus === 'published' 
+                  ? '배포 완료 상태에서는 이미지를 재생성할 수 없습니다.' 
+                  : profileData.profile.imageUrl 
+                    ? (enableProductComposition.profile && selectedProductId.profile
+                        ? '기존 이미지에 제품 합성'
+                        : '이미지 재생성')
+                    : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성')}
               >
                 {isGeneratingProfile || isComposingProduct.profile ? (
                   <>
@@ -1484,7 +1490,9 @@ export default function ProfileManager({
                 ) : (
                   <>
                     <RotateCcw className="w-4 h-4" />
-                    {profileData.profile.imageUrl ? '이미지 재생성' : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성')}
+                    {profileData.profile.imageUrl 
+                      ? (enableProductComposition.profile && selectedProductId.profile ? '제품 합성' : '이미지 재생성')
+                      : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성')}
                   </>
                 )}
               </button>
@@ -1606,6 +1614,7 @@ export default function ProfileManager({
               .then(res => res.json())
               .then(data => {
                 if (data.success && data.count !== undefined) {
+                  // ✅ 이미지가 0개일 때도 명시적으로 0으로 업데이트
                   onUpdate({
                     ...profileData,
                     background: {
@@ -1615,7 +1624,17 @@ export default function ProfileManager({
                   });
                 }
               })
-              .catch(err => console.error('이미지 개수 조회 실패:', err));
+              .catch(err => {
+                console.error('이미지 개수 조회 실패:', err);
+                // 오류 발생 시에도 imageCount를 0으로 설정하여 잘못된 표시 방지
+                onUpdate({
+                  ...profileData,
+                  background: {
+                    ...profileData.background,
+                    imageCount: 0
+                  }
+                });
+              });
           }
         }}
         autoFilterFolder={
@@ -1666,6 +1685,7 @@ export default function ProfileManager({
               .then(res => res.json())
               .then(data => {
                 if (data.success && data.count !== undefined) {
+                  // ✅ 이미지가 0개일 때도 명시적으로 0으로 업데이트
                   onUpdate({
                     ...profileData,
                     profile: {
@@ -1675,7 +1695,17 @@ export default function ProfileManager({
                   });
                 }
               })
-              .catch(err => console.error('이미지 개수 조회 실패:', err));
+              .catch(err => {
+                console.error('이미지 개수 조회 실패:', err);
+                // 오류 발생 시에도 imageCount를 0으로 설정하여 잘못된 표시 방지
+                onUpdate({
+                  ...profileData,
+                  profile: {
+                    ...profileData.profile,
+                    imageCount: 0
+                  }
+                });
+              });
           }
         }}
         autoFilterFolder={

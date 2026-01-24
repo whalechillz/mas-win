@@ -870,96 +870,145 @@ export default function KakaoContentPage() {
     }
   };
 
-        // 블랙톤 이미지 생성 (프롬프트도 반환)
+        // 블랙톤 이미지 생성 (프롬프트도 반환, 재시도 로직 포함)
         const handleGenerateBlackToneImage = async (type: 'background' | 'profile', prompt: string): Promise<{ imageUrls: string[], generatedPrompt?: string, paragraphImages?: any[] }> => {
-    try {
-      // 브랜드 전략 또는 저장된 프롬프트 설정 사용
-      let brandStrategyConfig = {
-        customerpersona: 'tech_enthusiast',
-        customerChannel: 'local_customers',
-        brandWeight: '중간',
-        audienceTemperature: 'warm'
-      };
-
-      // 저장된 프롬프트 설정이 있으면 사용
-      if (selectedPromptConfig && savedConfigs[selectedPromptConfig]) {
-        const config = savedConfigs[selectedPromptConfig].brandStrategy;
-        brandStrategyConfig = {
-          customerpersona: config.customerpersona || 'tech_enthusiast',
-          customerChannel: config.customerChannel || 'local_customers',
-          brandWeight: config.brandWeight || '중간',
-          audienceTemperature: config.audienceTemperature || 'warm'
+    const maxRetries = 2; // 최대 2회 재시도
+    let lastError: any = null;
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        // 브랜드 전략 또는 저장된 프롬프트 설정 사용
+        let brandStrategyConfig = {
+          customerpersona: 'tech_enthusiast',
+          customerChannel: 'local_customers',
+          brandWeight: '중간',
+          audienceTemperature: 'warm'
         };
-      } else if (brandStrategy) {
-        // 브랜드 전략이 설정되어 있으면 사용
-        brandStrategyConfig = {
-          customerpersona: brandStrategy.persona || 'tech_enthusiast',
-          customerChannel: brandStrategy.channel || 'local_customers',
-          brandWeight: brandStrategy.brandStrength || '중간',
-          audienceTemperature: brandStrategy.audienceTemperature || 'warm'
-        };
-      }
 
-      // 카카오 전용 프롬프트 생성 (블로그 API와 분리)
-      // 캘린더 JSON에 상세 프롬프트가 있으면 우선 사용, 없으면 기본 프롬프트 사용
-      const calendarPrompt = type === 'background' 
-        ? selectedDateData?.account2Profile?.background?.prompt 
-        : selectedDateData?.account2Profile?.profile?.prompt;
-      const finalPrompt = calendarPrompt && calendarPrompt.length > 100 
-        ? calendarPrompt  // 상세 프롬프트가 있으면 사용
-        : prompt;  // 없으면 기본 프롬프트 사용
-      
-      const weeklyTheme = calendarData?.profileContent?.account2?.weeklyThemes?.week1 || '비거리의 감성 – 스윙과 마음의 연결';
-      const prompts = await generateKakaoImagePrompts({
-        prompt: finalPrompt,
-        accountType: 'account2',
-        type: type,
-        brandStrategy: brandStrategyConfig,
-        weeklyTheme: weeklyTheme,
-        date: selectedDate || todayStr
-      });
+        // 저장된 프롬프트 설정이 있으면 사용
+        if (selectedPromptConfig && savedConfigs[selectedPromptConfig]) {
+          const config = savedConfigs[selectedPromptConfig].brandStrategy;
+          brandStrategyConfig = {
+            customerpersona: config.customerpersona || 'tech_enthusiast',
+            customerChannel: config.customerChannel || 'local_customers',
+            brandWeight: config.brandWeight || '중간',
+            audienceTemperature: config.audienceTemperature || 'warm'
+          };
+        } else if (brandStrategy) {
+          // 브랜드 전략이 설정되어 있으면 사용
+          brandStrategyConfig = {
+            customerpersona: brandStrategy.persona || 'tech_enthusiast',
+            customerChannel: brandStrategy.channel || 'local_customers',
+            brandWeight: brandStrategy.brandStrength || '중간',
+            audienceTemperature: brandStrategy.audienceTemperature || 'warm'
+          };
+        }
 
-      // 메타데이터와 함께 이미지 생성
-      const response = await fetch('/api/kakao-content/generate-images', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompts: prompts,
-          imageCount: generationOptions.imageCount, // 생성 개수 전달
-          metadata: {
-            account: 'account2',
-            type: type,
-            date: selectedDate || todayStr,
-            message: selectedDateData?.account2Profile?.message || ''
+        // 카카오 전용 프롬프트 생성 (블로그 API와 분리)
+        // 캘린더 JSON에 상세 프롬프트가 있으면 우선 사용, 없으면 기본 프롬프트 사용
+        const calendarPrompt = type === 'background' 
+          ? selectedDateData?.account2Profile?.background?.prompt 
+          : selectedDateData?.account2Profile?.profile?.prompt;
+        const finalPrompt = calendarPrompt && calendarPrompt.length > 100 
+          ? calendarPrompt  // 상세 프롬프트가 있으면 사용
+          : prompt;  // 없으면 기본 프롬프트 사용
+        
+        const weeklyTheme = calendarData?.profileContent?.account2?.weeklyThemes?.week1 || '비거리의 감성 – 스윙과 마음의 연결';
+        const prompts = await generateKakaoImagePrompts({
+          prompt: finalPrompt,
+          accountType: 'account2',
+          type: type,
+          brandStrategy: brandStrategyConfig,
+          weeklyTheme: weeklyTheme,
+          date: selectedDate || todayStr
+        });
+
+        // 메타데이터와 함께 이미지 생성
+        const response = await fetch('/api/kakao-content/generate-images', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompts: prompts,
+            imageCount: generationOptions.imageCount, // 생성 개수 전달
+            metadata: {
+              account: 'account2',
+              type: type,
+              date: selectedDate || todayStr,
+              message: selectedDateData?.account2Profile?.message || ''
+            }
+          })
+        });
+        
+        // 응답이 JSON인지 확인
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          console.error('❌ 서버 응답이 JSON이 아닙니다:', text.substring(0, 200));
+          throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
+        }
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류', details: '' }));
+          // 크레딧 부족 에러인 경우 재시도하지 않음
+          if (errorData.type === 'insufficient_credit' || response.status === 402) {
+            throw new Error('OpenAI 계정에 크레딧이 부족합니다. 크레딧을 충전해주세요.');
           }
-        })
-      });
-      
-      // 응답이 JSON인지 확인
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text();
-        console.error('❌ 서버 응답이 JSON이 아닙니다:', text.substring(0, 200));
-        throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
-      }
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류', details: '' }));
-        // 크레딧 부족 에러인 경우 명확한 메시지 표시
-        const errorMessage = errorData.error || errorData.message || `HTTP ${response.status}`;
-        const errorDetails = errorData.details || '';
-        throw new Error(errorDetails ? `${errorMessage}\n${errorDetails}` : errorMessage);
-      }
-      
-      const data = await response.json();
-      const imageUrls = data.imageUrls || [];
-      const generatedPrompt = data.generatedPrompts?.[0] || prompts[0]?.prompt;
-      const paragraphImages = data.paragraphImages || [];
+          
+          // 504 타임아웃 오류인 경우 재시도
+          if (response.status === 504 && attempt < maxRetries) {
+            console.warn(`⚠️ 타임아웃 오류 발생, 재시도 중... (${attempt + 1}/${maxRetries})`);
+            await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1))); // 지수 백오프
+            continue;
+          }
+          
+          const errorMessage = errorData.error || errorData.message || `HTTP ${response.status}`;
+          const errorDetails = errorData.details || '';
+          throw new Error(errorDetails ? `${errorMessage}\n${errorDetails}` : errorMessage);
+        }
+        
+        const data = await response.json();
+        const imageUrls = data.imageUrls || [];
+        const generatedPrompt = data.generatedPrompts?.[0] || prompts[0]?.prompt;
+        const paragraphImages = data.paragraphImages || [];
 
-      return { imageUrls, generatedPrompt, paragraphImages };
-    } catch (error: any) {
-      throw new Error(`블랙톤 이미지 생성 실패: ${error.message}`);
+        return { imageUrls, generatedPrompt, paragraphImages };
+      } catch (error: any) {
+        lastError = error;
+        
+        // 크레딧 부족 오류는 재시도하지 않음
+        if (error.message.includes('크레딧') || error.message.includes('credit') || error.message.includes('insufficient_credit')) {
+          throw new Error(`블랙톤 이미지 생성 실패: ${error.message}`);
+        }
+        
+        // 타임아웃 또는 네트워크 오류인 경우 재시도
+        const isRetryableError = 
+          error.message.includes('504') || 
+          error.message.includes('Gateway Timeout') ||
+          error.message.includes('network') || 
+          error.message.includes('fetch') ||
+          error.message.includes('timeout');
+        
+        if (isRetryableError && attempt < maxRetries) {
+          console.warn(`⚠️ 재시도 가능한 오류 발생, 재시도 중... (${attempt + 1}/${maxRetries}):`, error.message);
+          await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1))); // 지수 백오프
+          continue;
+        }
+        
+        // 재시도 불가능한 오류이거나 최대 재시도 횟수 초과
+        let errorMessage = error.message;
+        
+        if (error.message.includes('504') || error.message.includes('Gateway Timeout')) {
+          errorMessage = '서버 응답 시간 초과: 잠시 후 다시 시도해주세요.';
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = '네트워크 오류: 인터넷 연결을 확인해주세요.';
+        }
+        
+        throw new Error(`블랙톤 이미지 생성 실패: ${errorMessage}`);
+      }
     }
+    
+    // 모든 재시도 실패
+    throw lastError || new Error('블랙톤 이미지 생성 실패: 알 수 없는 오류');
   };
 
         // 피드 이미지 생성 (프롬프트도 반환, A/B 테스트 결과 포함)
