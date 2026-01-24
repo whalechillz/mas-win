@@ -224,12 +224,10 @@ export const authOptions = {
       sameSite: 'lax', // Chrome Beta 호환성을 위해 'lax' 유지
       path: '/',
       secure: process.env.NODE_ENV === 'production',
-      // ✅ 개선: 쿠키 도메인 설정 (www와 non-www 모두 지원)
-      // .masgolf.co.kr (점으로 시작)은 서브도메인 간 쿠키 공유를 위해 필요
-      // NEXTAUTH_COOKIE_DOMAIN 환경 변수가 설정되어 있으면 사용, 없으면 .masgolf.co.kr 기본값
-      domain: process.env.NODE_ENV === 'production' 
-        ? (process.env.NEXTAUTH_COOKIE_DOMAIN || '.masgolf.co.kr')
-        : undefined, // localhost에서는 도메인 없이 설정 (Playwright 호환)
+      // ✅ 개선: 쿠키 도메인을 undefined로 설정하여 호스트 기반으로 작동
+      // www.masgolf.co.kr에서 접속하면 www.masgolf.co.kr 쿠키로 설정됨
+      // 브라우저 호환성 문제를 최소화하고 NextAuth 기본 동작과 일치
+      domain: undefined, // 모든 환경에서 undefined로 설정
       maxAge: 30 * 24 * 60 * 60, // 30일
       },
     },
@@ -242,11 +240,8 @@ export const authOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        // ✅ 개선: 쿠키 도메인 설정 (www와 non-www 모두 지원)
-        // .masgolf.co.kr (점으로 시작)은 서브도메인 간 쿠키 공유를 위해 필요
-        domain: process.env.NODE_ENV === 'production' 
-          ? (process.env.NEXTAUTH_COOKIE_DOMAIN || '.masgolf.co.kr')
-          : undefined, // localhost에서는 도메인 없이 설정 (Playwright 호환)
+        // ✅ 개선: 쿠키 도메인을 undefined로 설정하여 호스트 기반으로 작동
+        domain: undefined, // 모든 환경에서 undefined로 설정
         maxAge: 30 * 24 * 60 * 60, // 30일
       },
     },

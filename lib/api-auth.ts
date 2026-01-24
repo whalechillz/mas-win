@@ -30,16 +30,22 @@ export async function requireAuth(
   }
 ): Promise<AuthResult> {
   // ✅ 디버깅: 쿠키 확인 로그 추가 (프로덕션에서만)
+  const cookies = req.cookies;
+  const cookieHeader = req.headers.cookie || '';
+  
   if (process.env.NODE_ENV === 'production') {
-    const cookies = req.cookies;
     console.log('🔍 인증 체크 - 쿠키 확인:', {
       hasSessionToken: !!cookies['next-auth.session-token'],
       hasSecureToken: !!cookies['__Secure-next-auth.session-token'],
       hasHostToken: !!cookies['__Host-next-auth.session-token'],
       cookieNames: Object.keys(cookies).filter(name => name.includes('auth')),
+      allCookieNames: Object.keys(cookies),
+      cookieHeaderLength: cookieHeader.length,
+      cookieHeaderPreview: cookieHeader.substring(0, 200),
       host: req.headers.host,
       url: req.url,
       referer: req.headers.referer,
+      origin: req.headers.origin,
     });
   }
   
@@ -47,15 +53,19 @@ export async function requireAuth(
   
   if (!session?.user) {
     // ✅ 개선: 더 명확한 에러 메시지 및 디버깅 정보
-    const cookies = req.cookies;
     console.error('❌ 인증 실패:', {
       hasSession: !!session,
+      sessionType: session ? typeof session : 'null',
       hasCookies: Object.keys(cookies).length > 0,
+      totalCookies: Object.keys(cookies).length,
       cookieNames: Object.keys(cookies).filter(name => name.includes('auth')),
+      allCookieNames: Object.keys(cookies),
+      cookieHeader: cookieHeader ? cookieHeader.substring(0, 300) : '없음',
       host: req.headers.host,
       url: req.url,
       nodeEnv: process.env.NODE_ENV,
       nextAuthUrl: process.env.NEXTAUTH_URL,
+      nextAuthCookieDomain: process.env.NEXTAUTH_COOKIE_DOMAIN,
     });
     
     res.status(401).json({
