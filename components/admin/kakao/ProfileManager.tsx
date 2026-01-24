@@ -229,7 +229,8 @@ export default function ProfileManager({
                 compositionMethod: 'nano-banana-pro',
                 compositionBackground: 'natural',
                 baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
-                prompt: profileData.background.prompt // ✅ 기존 프롬프트 전달
+                prompt: profileData.background.prompt, // ✅ 기존 프롬프트 전달
+                imageType: 'background' // ✅ 배경 이미지 타입 추가
               }),
               signal: controller.signal
             });
@@ -348,20 +349,21 @@ export default function ProfileManager({
             const timeoutId = setTimeout(() => controller.abort(), 330000); // 5분 30초
             
             try {
-              const composeResponse = await fetch('/api/compose-product-image', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  modelImageUrl: finalImageUrl,
-                  productId: selectedProductId.background,
-                  compositionTarget: compositionTarget, // 선택한 제품의 compositionTarget 사용
-                  compositionMethod: 'nano-banana-pro',
-                  compositionBackground: 'natural', // 배경 유지 명시
-                  baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
-                  prompt: profileData.background.prompt // ✅ 기존 프롬프트 전달
-                }),
-                signal: controller.signal
-              });
+              const                 composeResponse = await fetch('/api/compose-product-image', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    modelImageUrl: finalImageUrl,
+                    productId: selectedProductId.background,
+                    compositionTarget: compositionTarget, // 선택한 제품의 compositionTarget 사용
+                    compositionMethod: 'nano-banana-pro',
+                    compositionBackground: 'natural', // 배경 유지 명시
+                    baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
+                    prompt: profileData.background.prompt, // ✅ 기존 프롬프트 전달
+                    imageType: 'background' // ✅ 배경 이미지 타입 추가
+                  }),
+                  signal: controller.signal
+                });
               
               clearTimeout(timeoutId);
               
@@ -1277,7 +1279,11 @@ export default function ProfileManager({
                 ) : (
                   <>
                     <RotateCcw className="w-4 h-4" />
-                    {profileData.background.imageUrl ? '이미지 재생성' : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성')}
+                    {profileData.background.imageUrl 
+                      ? (enableProductComposition.background && selectedProductId.background && selectedProductId.background.trim() !== '' 
+                          ? '제품 합성' 
+                          : '이미지 재생성')
+                      : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성')}
                   </>
                 )}
               </button>
@@ -1493,7 +1499,7 @@ export default function ProfileManager({
             </button>
             <div className="flex items-center gap-1">
               <button
-                onClick={handleGenerateProfile}
+                onClick={() => handleGenerateProfile(false)}
                 disabled={isGeneratingProfile || isGenerating || publishStatus === 'published' || isComposingProduct.profile}
                 className="flex items-center gap-2 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm disabled:opacity-50"
                 title={publishStatus === 'published' 
@@ -1513,7 +1519,9 @@ export default function ProfileManager({
                   <>
                     <RotateCcw className="w-4 h-4" />
                     {profileData.profile.imageUrl 
-                      ? (enableProductComposition.profile && selectedProductId.profile ? '제품 합성' : '이미지 재생성')
+                      ? (enableProductComposition.profile && selectedProductId.profile && selectedProductId.profile.trim() !== '' 
+                          ? '제품 합성' 
+                          : '이미지 재생성')
                       : (account.tone === 'gold' ? '골드톤 이미지 생성' : '블랙톤 이미지 생성')}
                   </>
                 )}

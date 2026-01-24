@@ -264,6 +264,79 @@ export function generateCompositionPrompt(
     const isMuziikProduct = product.name?.toLowerCase().includes('muziik') || 
                            product.slug?.includes('muziik');
 
+    // ✅ 배경 이미지 타입일 때 전문적인 CF 스타일 프롬프트
+    if (imageType === 'background') {
+      let prompt = `You are a professional golf product photographer specializing in premium lifestyle advertising. Integrate the ${product.name} driver into this golf course scene with the sophistication and technical precision of leading 2024-2025 golf driver commercial campaigns.
+
+COMMERCIAL PHOTOGRAPHY COMPOSITION STRATEGY:
+Based on contemporary golf driver advertising trends emphasizing performance-centered messaging, dynamic presentation, and technical innovation, choose the most appropriate composition:
+
+1. **HERO PRODUCT PLACEMENT** (Primary Focus):
+   - Position the driver as the central hero element with premium product photography techniques
+   - Utilize natural depth of field: product in sharp focus (f/2.8-f/4), background with gentle bokeh
+   - Apply professional lighting principles: soft, directional natural light with subtle fill to minimize harsh shadows
+   - Camera angles: Select from eye-level front view, 45-degree three-quarter view, or profile angle based on scene context
+   - Product should appear as high-performance, precision-engineered equipment
+
+2. **LIFESTYLE INTEGRATION** (Natural Context):
+   - Integrate seamlessly into the golf course environment (fairway, tee box, or practice area)
+   - Maintain environmental authenticity: preserve natural lighting conditions, weather elements, and course topography
+   - Product placement should feel organic and aspirational, not artificially inserted
+   - Consider contextual elements: golf bag integration, cart placement, or natural resting position on turf
+   - Shadows and reflections must match the scene's natural light source and surface materials
+
+3. **TECHNICAL EXCELLENCE** (Product Detail):
+   - Emphasize the driver's engineering precision: visible head details (face, crown, sole) with accurate proportions
+   - Showcase premium finish quality: ${isGoldProduct ? 'GOLD metallic finish on SOLE and FACE' : 'BLACK matte or graphite finish on SOLE and FACE'}
+   - Maintain professional product photography standards: sharp focus on product, natural depth falloff
+   - Highlight technical features: hosel connection, shaft integration, and head geometry
+
+4. **DYNAMIC PRESENTATION** (Energy & Performance):
+   - Convey performance messaging through composition: product should suggest power, distance, and precision
+   - Maintain scene's natural energy and movement (if present)
+   - Balance product prominence with environmental harmony
+
+PRODUCT ACCURACY REQUIREMENTS:
+- Match the ${product.name} driver head EXACTLY from reference images
+- Head color: ${isGoldProduct ? 'GOLD (premium gold metallic finish) on SOLE and FACE, CROWN follows reference (typically black/navy)' : 'BLACK (matte black or dark graphite black) on SOLE and FACE, CROWN follows reference (typically black/navy)'}
+- Shaft: ${isMuziikProduct ? 'Colored shaft (blue, green, or colored) matching reference images' : 'BLACK (matte black) professional golf club standard'}
+- Head shape, size, proportions, logos, badges, and text must match reference images with absolute precision
+- Hosel-to-shaft connection: seamless, geometrically perfect, no gaps or misalignment
+
+SCENE PRESERVATION & LIGHTING:
+- Preserve the original golf course background, lighting conditions, shadows, and environmental context completely
+- Do NOT modify, regenerate, or alter any background elements
+- Natural lighting integration: product shadows and reflections must match the scene's light source
+- Maintain the scene's natural depth of field characteristics
+- Environmental elements (grass texture, sky, course features) must remain unchanged
+
+PHOTOGRAPHY TECHNIQUES:
+- Apply professional product photography lighting: soft, even illumination with natural shadow falloff
+- Use appropriate camera angles: front (eye-level), 45-degree (three-quarter), or profile based on composition
+- Maintain natural perspective and camera distortion matching the original scene
+- Product should appear as if photographed on-location with professional equipment
+
+RESULT:
+- Premium commercial advertising quality composition
+- Natural, aspirational lifestyle integration
+- Technical precision and product accuracy
+- Seamless, photorealistic placement that enhances the scene's premium golf aesthetic`;
+
+      // 참조 이미지 지시
+      if (useReferenceImages && product.referenceImages && product.referenceImages.length > 0) {
+        prompt += ` 
+
+REFERENCE IMAGES (${product.referenceImages.length} provided}):
+- Use reference images to match the exact driver head appearance, color, finish, and technical details
+- Select appropriate reference angle (FACE/CROWN/SOLE) based on chosen composition and camera angle
+- Match product specifications, proportions, and visual characteristics exactly from reference images
+- Ensure all logos, badges, text, and design elements match reference images precisely`;
+      }
+
+      return prompt;
+    }
+
+    // ✅ 기존 드라이버 합성 프롬프트 (사람 손에 들고 있는 모습) - imageType이 'background'가 아닐 때
     let prompt = `You are an expert 3D image editor. Analyze the image and replace the golf club head with the ${product.name} driver head.
 
 CRITICAL CLUB TYPE ANALYSIS:
