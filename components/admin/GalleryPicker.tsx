@@ -73,7 +73,6 @@ const GalleryPicker: React.FC<Props> = ({
   const [isMobileUploadOpen, setIsMobileUploadOpen] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showAltModal, setShowAltModal] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
   
   // 그리드 컬럼 수 상태
   const [mobileGridColumns, setMobileGridColumns] = useState<1 | 2>(1);
@@ -240,17 +239,6 @@ const GalleryPicker: React.FC<Props> = ({
           return fetchImages(resetPage, retryCount + 1);
         }
         
-        // 에러 메시지 설정
-        let errorMessage = '이미지를 불러올 수 없습니다.';
-        if (res.status === 504) {
-          errorMessage = isMobile 
-            ? '서버 응답이 지연되고 있습니다. 잠시 후 다시 시도해주세요.'
-            : '서버 응답 시간이 초과되었습니다. 네트워크 상태를 확인해주세요.';
-        } else if (res.status >= 500) {
-          errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-        }
-        
-        setLoadError(errorMessage);
         console.error('❌ 이미지 로드 실패:', res.status, res.statusText);
         const errorText = await res.text().catch(() => 'Unknown error');
         console.error('에러 상세:', errorText);
@@ -259,18 +247,7 @@ const GalleryPicker: React.FC<Props> = ({
         return;
       }
       
-      // JSON 파싱 에러 처리
-      let data;
-      try {
-        data = await res.json();
-        setLoadError(null); // 성공 시 에러 초기화
-      } catch (jsonError) {
-        console.error('❌ JSON 파싱 오류:', jsonError);
-        setLoadError('서버 응답 형식 오류가 발생했습니다. 페이지를 새로고침해주세요.');
-        setAllImages([]);
-        setTotal(0);
-        return;
-      }
+      const data = await res.json();
       
       // ✅ 디버깅: 상세 로그 추가
       console.log('🔍 [DEBUG] API 응답 상세:', {
@@ -1553,75 +1530,36 @@ const GalleryPicker: React.FC<Props> = ({
               >
                 <div className="text-4xl mb-4">📭</div>
                 <div className="text-lg font-medium mb-2">이미지가 없습니다</div>
-                <div className="text-sm mb-4">
-                  {folderFilter ? (
-                    <>
-                      <div className="mb-2">"{folderFilter}" 폴더에 이미지가 없습니다.</div>
-                      {folderFilter.includes('originals/daily-branding/kakao') && (
-                        <div className="text-xs text-gray-400 mt-2">
-                          💡 팁: 날짜 필터를 변경하거나 상위 폴더에서 이미지를 찾아보세요.
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    '검색 결과가 없습니다.'
-                  )}
-                </div>
                 {folderFilter && (
-                  <>
-                    <button
-                      onClick={() => {
-                        // 상위 폴더로 이동
-                        const parts = folderFilter.split('/');
-                        if (parts.length > 1) {
-                          const parentFolder = parts.slice(0, -1).join('/');
-                          setFolderFilter(parentFolder);
-                          console.log('📁 상위 폴더로 이동:', parentFolder);
-                        } else {
-                          setFolderFilter('');
-                          console.log('📁 전체 폴더로 이동');
-                        }
-                      }}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm mb-2"
-                    >
-                      {folderFilter.split('/').length > 1 ? '상위 폴더 보기' : '전체 폴더 보기'}
-                    </button>
-                    <div className="text-xs text-gray-400 mt-2">
-                      {isMobile ? (
-                        '💡 이미지를 업로드하려면 위의 업로드 버튼을 사용하세요.'
-                      ) : (
-                        <>
-                          💡 이미지를 여기에 드래그하여 복사/링크할 수 있습니다<br />
-                          Shift + 드롭 = 링크 | Ctrl/Cmd + 드롭 = 복사
-                        </>
-                      )}
-                    </div>
-                  </>
+                  <button
+                    onClick={() => {
+                      // 상위 폴더로 이동
+                      const parts = folderFilter.split('/');
+                      if (parts.length > 1) {
+                        const parentFolder = parts.slice(0, -1).join('/');
+                        setFolderFilter(parentFolder);
+                        console.log('📁 상위 폴더로 이동:', parentFolder);
+                      } else {
+                        setFolderFilter('');
+                        console.log('📁 전체 폴더로 이동');
+                      }
+                    }}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm mt-4"
+                  >
+                    {folderFilter.split('/').length > 1 ? '상위 폴더 보기' : '전체 폴더 보기'}
+                  </button>
+                )}
+                {/* 모바일에서는 드래그 앤 드롭 안내 제거 */}
+                {folderFilter && !isMobile && (
+                  <div className="text-xs text-gray-400 mt-2">
+                    💡 이미지를 여기에 드래그하여 복사/링크할 수 있습니다<br />
+                    Shift + 드롭 = 링크 | Ctrl/Cmd + 드롭 = 복사
+                  </div>
                 )}
               </div>
             </div>
           ) : (
             <>
-              {/* 에러 메시지 UI */}
-              {loadError && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 mb-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="text-red-800 text-sm font-medium mb-1">⚠️ 오류 발생</div>
-                      <div className="text-red-700 text-xs">{loadError}</div>
-                    </div>
-                    <button 
-                      onClick={() => {
-                        setLoadError(null);
-                        fetchImages(true);
-                      }}
-                      className="ml-3 px-3 py-1.5 bg-red-600 text-white rounded text-xs font-medium hover:bg-red-700 transition-colors"
-                    >
-                      다시 시도
-                    </button>
-                  </div>
-                </div>
-              )}
               {/* 전체 선택 체크박스 */}
               <div className="mb-4 p-3 sm:p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
                 <div className="flex items-center justify-between">
@@ -1651,15 +1589,19 @@ const GalleryPicker: React.FC<Props> = ({
                 </div>
               </div>
               {/* 동적 그리드 레이아웃 */}
-              <div className={`grid gap-2 sm:gap-4 ${
-                isMobile
-                  ? mobileGridColumns === 1 ? 'grid-cols-1' : 'grid-cols-2'
-                  : desktopGridColumns === 1 ? 'grid-cols-1'
-                  : desktopGridColumns === 2 ? 'grid-cols-2'
-                  : desktopGridColumns === 3 ? 'grid-cols-3'
-                  : desktopGridColumns === 4 ? 'grid-cols-4'
-                  : 'grid-cols-5'
-              }`}>
+              <div className={(() => {
+                if (isMobile) {
+                  return mobileGridColumns === 1 
+                    ? 'grid grid-cols-1 gap-2 sm:gap-4'
+                    : 'grid grid-cols-2 gap-2 sm:gap-4';
+                } else {
+                  if (desktopGridColumns === 1) return 'grid grid-cols-1 gap-2 sm:gap-4';
+                  if (desktopGridColumns === 2) return 'grid grid-cols-2 gap-2 sm:gap-4';
+                  if (desktopGridColumns === 3) return 'grid grid-cols-3 gap-2 sm:gap-4';
+                  if (desktopGridColumns === 4) return 'grid grid-cols-4 gap-2 sm:gap-4';
+                  return 'grid grid-cols-5 gap-2 sm:gap-4';
+                }
+              })()}>
               {filtered.map((img, idx) => {
                 const isCompareSelected = selectedForCompare.has(img.name);
                 const shouldHighlightCompare = showCompareMode && filtered.length >= 2 && filtered.length <= 3;
@@ -1833,18 +1775,11 @@ const GalleryPicker: React.FC<Props> = ({
                                       if (cleanupWindow) {
                                         cleanupWindow.focus();
                                         alert(
-                                          isMobile
-                                            ? '✅ 이미지가 다운로드되었습니다.\n\n' +
-                                              '📋 다음 단계:\n' +
-                                              '1. cleanup.pictures에서 "Upload Image" 버튼을 클릭하세요\n' +
-                                              '2. 다운로드된 이미지를 선택하세요\n' +
-                                              '3. 편집 후 "Continue with SD" 버튼을 클릭하세요\n' +
-                                              '4. 편집된 이미지를 다운로드하세요'
-                                            : '✅ 이미지가 다운로드되었습니다.\n\n' +
-                                              '📋 다음 단계:\n' +
-                                              '1. cleanup.pictures에 다운로드된 이미지를 드래그 앤 드롭하세요\n' +
-                                              '2. 편집 후 "Continue with SD" 버튼을 클릭하세요\n' +
-                                              '3. 편집된 이미지를 다운로드하세요'
+                                          '✅ 이미지가 다운로드되었습니다.\n\n' +
+                                          '📋 다음 단계:\n' +
+                                          '1. cleanup.pictures에 다운로드된 이미지를 드래그 앤 드롭하세요\n' +
+                                          '2. 편집 후 "Continue with SD" 버튼을 클릭하세요\n' +
+                                          '3. 편집된 이미지를 다운로드하세요'
                                         );
                                       }
                                       window.URL.revokeObjectURL(url);
@@ -1874,26 +1809,6 @@ const GalleryPicker: React.FC<Props> = ({
                                     a.click();
                                     document.body.removeChild(a);
                                     window.URL.revokeObjectURL(url);
-                                    
-                                    // ✅ 모바일에서 다운로드 완료 시 업로드 안내
-                                    if (isMobile) {
-                                      setTimeout(() => {
-                                        const shouldUpload = confirm(
-                                          '✅ 이미지가 다운로드되었습니다.\n\n' +
-                                          '편집하신 이미지를 업로드하시겠습니까?\n\n' +
-                                          '(취소: 갤러리에서 직접 업로드 가능)'
-                                        );
-                                        if (shouldUpload) {
-                                          // 파일 input 클릭하여 업로드 모달 열기
-                                          fileInputRef.current?.click();
-                                        }
-                                      }, 500);
-                                    } else {
-                                      // PC에서는 간단한 알림만
-                                      setTimeout(() => {
-                                        alert('✅ 이미지가 다운로드되었습니다.');
-                                      }, 100);
-                                    }
                                   } catch (error) {
                                     console.error('다운로드 오류:', error);
                                     alert('이미지 다운로드에 실패했습니다.');
@@ -1964,18 +1879,11 @@ const GalleryPicker: React.FC<Props> = ({
                                       if (cleanupWindow) {
                                         cleanupWindow.focus();
                                         alert(
-                                          isMobile
-                                            ? '✅ 이미지가 다운로드되었습니다.\n\n' +
-                                              '📋 다음 단계:\n' +
-                                              '1. cleanup.pictures에서 "Upload Image" 버튼을 클릭하세요\n' +
-                                              '2. 다운로드된 이미지를 선택하세요\n' +
-                                              '3. 편집 후 "Continue with SD" 버튼을 클릭하세요\n' +
-                                              '4. 편집된 이미지를 다운로드하세요'
-                                            : '✅ 이미지가 다운로드되었습니다.\n\n' +
-                                              '📋 다음 단계:\n' +
-                                              '1. cleanup.pictures에 다운로드된 이미지를 드래그 앤 드롭하세요\n' +
-                                              '2. 편집 후 "Continue with SD" 버튼을 클릭하세요\n' +
-                                              '3. 편집된 이미지를 다운로드하세요'
+                                          '✅ 이미지가 다운로드되었습니다.\n\n' +
+                                          '📋 다음 단계:\n' +
+                                          '1. cleanup.pictures에 다운로드된 이미지를 드래그 앤 드롭하세요\n' +
+                                          '2. 편집 후 "Continue with SD" 버튼을 클릭하세요\n' +
+                                          '3. 편집된 이미지를 다운로드하세요'
                                         );
                                       }
                                       window.URL.revokeObjectURL(url);
@@ -2005,26 +1913,6 @@ const GalleryPicker: React.FC<Props> = ({
                                     a.click();
                                     document.body.removeChild(a);
                                     window.URL.revokeObjectURL(url);
-                                    
-                                    // ✅ 모바일에서 다운로드 완료 시 업로드 안내
-                                    if (isMobile) {
-                                      setTimeout(() => {
-                                        const shouldUpload = confirm(
-                                          '✅ 이미지가 다운로드되었습니다.\n\n' +
-                                          '편집하신 이미지를 업로드하시겠습니까?\n\n' +
-                                          '(취소: 갤러리에서 직접 업로드 가능)'
-                                        );
-                                        if (shouldUpload) {
-                                          // 파일 input 클릭하여 업로드 모달 열기
-                                          fileInputRef.current?.click();
-                                        }
-                                      }, 500);
-                                    } else {
-                                      // PC에서는 간단한 알림만
-                                      setTimeout(() => {
-                                        alert('✅ 이미지가 다운로드되었습니다.');
-                                      }, 100);
-                                    }
                                   } catch (error) {
                                     console.error('다운로드 오류:', error);
                                     alert('이미지 다운로드에 실패했습니다.');
