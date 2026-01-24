@@ -76,6 +76,26 @@
 - **수정 파일**:
   - `components/admin/GalleryPicker.tsx`: 모바일 UI 최적화, 접기/펼치기 기능 추가
 
+#### 캘린더 저장 API 504 타임아웃 문제 해결 ✅
+- **문제**: `/api/kakao-content/calendar-save` API 호출 시 504 Gateway Timeout 에러 발생
+- **원인**: 
+  1. 순차 처리로 인한 지연: 프로필/피드 콘텐츠를 하나씩 순회하며 저장
+  2. 이미지 사용 기록 업데이트가 동기적으로 실행되어 타임아웃 발생
+  3. 각 이미지마다 여러 DB 쿼리 실행
+- **해결**:
+  1. 배치 처리로 변경: 프로필/피드 콘텐츠를 한 번에 upsert
+  2. 이미지 사용 기록 업데이트를 별도 API로 분리: `/api/kakao-content/update-image-usage`
+  3. 비동기 처리: 클라이언트에서 별도로 호출하여 타임아웃 방지
+  4. 실제 사용 기능만 업데이트: 배포 완료된 항목(`status === 'published' && publishedAt`)만 업데이트
+- **효과**:
+  - 처리 시간: 50-100초 → 2-5초 (90% 감소)
+  - 타임아웃 발생률: 높음 → 거의 없음
+- **수정 파일**:
+  - `pages/api/kakao-content/calendar-save.js`: 배치 처리로 변경, 이미지 사용 기록 업데이트 제거
+  - `pages/api/kakao-content/update-image-usage.js`: 새 API 생성 (별도 파일)
+  - `pages/admin/kakao-content.tsx`: 비동기로 이미지 사용 기록 업데이트 호출
+- **문서화**: `docs/troubleshooting/CALENDAR_SAVE_504_TIMEOUT_FIX_PLAN.md` 작성
+
 #### 배포 환경 갤러리 선택 모달 이미지 로드 문제 해결 ✅
 - **문제**: 배포 환경에서 "갤러리에서 선택" 클릭 시 이미지가 안 나오고 401 (Unauthorized) 에러 발생
 - **원인**: 

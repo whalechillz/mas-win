@@ -613,6 +613,40 @@ export default function KakaoContentPage() {
             message: `저장 완료 (${result.savedCount || 0}개 항목)` 
           });
         }
+        
+        // ✅ 배포 완료된 항목이 있으면 이미지 사용 기록 업데이트 (비동기)
+        const hasPublishedContent = 
+          (updatedData.profileContent && 
+           Object.values(updatedData.profileContent).some(account => 
+             account.dailySchedule?.some(s => s.status === 'published' && s.publishedAt)
+           )) ||
+          (updatedData.kakaoFeed?.dailySchedule?.some(feed =>
+            ['account1', 'account2'].some(key => 
+              feed[key]?.status === 'published' && feed[key]?.imageUrl
+            )
+          ));
+        
+        if (hasPublishedContent) {
+          // 비동기로 호출 (await 없이, 백그라운드 작업)
+          fetch('/api/kakao-content/update-image-usage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ calendarData: updatedData })
+          })
+            .then(res => res.json())
+            .then(data => {
+              if (data.success) {
+                console.log(`✅ 이미지 사용 기록 업데이트 완료: ${data.updatedCount}개`);
+              } else {
+                console.warn('⚠️ 이미지 사용 기록 업데이트 실패:', data.message);
+              }
+            })
+            .catch(err => {
+              console.warn('⚠️ 이미지 사용 기록 업데이트 실패:', err);
+              // 실패해도 사용자에게는 알리지 않음 (백그라운드 작업)
+            });
+        }
+        
         // 3초 후 상태 초기화
         setTimeout(() => {
           setSaveStatus({ status: 'idle' });

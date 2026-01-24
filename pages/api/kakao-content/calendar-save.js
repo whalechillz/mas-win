@@ -309,127 +309,119 @@ export default async function handler(req, res) {
     let savedCount = 0;
     let errors = [];
 
-    // 프로필 콘텐츠 저장
+    // ✅ 배치 처리로 변경: 프로필 콘텐츠 저장
     if (calendarData.profileContent) {
+      const profileRecords = [];
+      
       for (const accountKey of ['account1', 'account2']) {
         const accountData = calendarData.profileContent[accountKey];
         if (!accountData || !accountData.dailySchedule) continue;
 
         for (const schedule of accountData.dailySchedule) {
-          try {
-            const profileData = {
-              date: schedule.date,
-              account: accountKey,
-              background_image_url: schedule.background?.imageUrl || null,
-              background_prompt: schedule.background?.prompt || null,
-              background_base_prompt: schedule.background?.basePrompt || null,
-              background_image: schedule.background?.image || null,
-              profile_image_url: schedule.profile?.imageUrl || null,
-              profile_prompt: schedule.profile?.prompt || null,
-              profile_base_prompt: schedule.profile?.basePrompt || null,
-              profile_image: schedule.profile?.image || null,
-              message: schedule.message || null,
-              status: schedule.status || 'planned',
-              created: schedule.created || false,
-              published_at: schedule.publishedAt || null
-            };
+          profileRecords.push({
+            date: schedule.date,
+            account: accountKey,
+            background_image_url: schedule.background?.imageUrl || null,
+            background_prompt: schedule.background?.prompt || null,
+            background_base_prompt: schedule.background?.basePrompt || null,
+            background_image: schedule.background?.image || null,
+            profile_image_url: schedule.profile?.imageUrl || null,
+            profile_prompt: schedule.profile?.prompt || null,
+            profile_base_prompt: schedule.profile?.basePrompt || null,
+            profile_image: schedule.profile?.image || null,
+            message: schedule.message || null,
+            status: schedule.status || 'planned',
+            created: schedule.created || false,
+            published_at: schedule.publishedAt || null
+          });
+        }
+      }
 
-            const { error, data } = await supabase
-              .from('kakao_profile_content')
-              .upsert(profileData, {
-                onConflict: 'date,account',
-                ignoreDuplicates: false
-              });
+      // 배치로 한 번에 저장
+      if (profileRecords.length > 0) {
+        try {
+          const { error, data } = await supabase
+            .from('kakao_profile_content')
+            .upsert(profileRecords, {
+              onConflict: 'date,account',
+              ignoreDuplicates: false
+            });
 
-            if (error) {
-              console.error(`프로필 저장 오류 (${schedule.date} ${accountKey}):`, error);
-              console.error('저장 시도한 데이터:', JSON.stringify(profileData, null, 2));
-              errors.push({ 
-                type: 'profile', 
-                date: schedule.date, 
-                account: accountKey, 
-                error: error.message,
-                details: error
-              });
-            } else {
-              savedCount++;
-            }
-          } catch (error) {
-            console.error(`프로필 저장 처리 오류 (${schedule.date} ${accountKey}):`, error);
-            errors.push({ type: 'profile', date: schedule.date, account: accountKey, error: error.message });
+          if (error) {
+            console.error('프로필 배치 저장 오류:', error);
+            // 개별 항목별로 에러 처리 (어떤 항목이 실패했는지 알 수 없으므로 전체 실패로 처리)
+            errors.push({ 
+              type: 'profile', 
+              error: error.message,
+              details: error,
+              count: profileRecords.length
+            });
+          } else {
+            savedCount += profileRecords.length;
+            console.log(`✅ 프로필 콘텐츠 배치 저장 완료: ${profileRecords.length}개`);
           }
+        } catch (error) {
+          console.error('프로필 배치 저장 처리 오류:', error);
+          errors.push({ type: 'profile', error: error.message, count: profileRecords.length });
         }
       }
     }
 
-    // 피드 콘텐츠 저장
+    // ✅ 배치 처리로 변경: 피드 콘텐츠 저장
     if (calendarData.kakaoFeed && calendarData.kakaoFeed.dailySchedule) {
+      const feedRecords = [];
+      
       for (const feed of calendarData.kakaoFeed.dailySchedule) {
         for (const accountKey of ['account1', 'account2']) {
           const feedData = feed[accountKey];
           if (!feedData) continue;
 
-          try {
-            const feedRecord = {
-              date: feed.date,
-              account: accountKey,
-              image_category: feedData.imageCategory || null,
-              image_prompt: feedData.imagePrompt || null,
-              base_prompt: feedData.basePrompt || null,
-              caption: feedData.caption || null,
-              image_url: feedData.imageUrl || null,
-              url: feedData.url || null,
-              status: feedData.status || 'planned',
-              created: feedData.created || false
-            };
+          feedRecords.push({
+            date: feed.date,
+            account: accountKey,
+            image_category: feedData.imageCategory || null,
+            image_prompt: feedData.imagePrompt || null,
+            base_prompt: feedData.basePrompt || null,
+            caption: feedData.caption || null,
+            image_url: feedData.imageUrl || null,
+            url: feedData.url || null,
+            status: feedData.status || 'planned',
+            created: feedData.created || false
+          });
+        }
+      }
 
-            const { error, data } = await supabase
-              .from('kakao_feed_content')
-              .upsert(feedRecord, {
-                onConflict: 'date,account',
-                ignoreDuplicates: false
-              });
+      // 배치로 한 번에 저장
+      if (feedRecords.length > 0) {
+        try {
+          const { error, data } = await supabase
+            .from('kakao_feed_content')
+            .upsert(feedRecords, {
+              onConflict: 'date,account',
+              ignoreDuplicates: false
+            });
 
-            if (error) {
-              console.error(`피드 저장 오류 (${feed.date} ${accountKey}):`, error);
-              console.error('저장 시도한 데이터:', JSON.stringify(feedRecord, null, 2));
-              errors.push({ 
-                type: 'feed', 
-                date: feed.date, 
-                account: accountKey, 
-                error: error.message,
-                details: error
-              });
-            } else {
-              savedCount++;
-            }
-          } catch (error) {
-            console.error(`피드 저장 처리 오류 (${feed.date} ${accountKey}):`, error);
-            errors.push({ type: 'feed', date: feed.date, account: accountKey, error: error.message });
+          if (error) {
+            console.error('피드 배치 저장 오류:', error);
+            errors.push({ 
+              type: 'feed', 
+              error: error.message,
+              details: error,
+              count: feedRecords.length
+            });
+          } else {
+            savedCount += feedRecords.length;
+            console.log(`✅ 피드 콘텐츠 배치 저장 완료: ${feedRecords.length}개`);
           }
+        } catch (error) {
+          console.error('피드 배치 저장 처리 오류:', error);
+          errors.push({ type: 'feed', error: error.message, count: feedRecords.length });
         }
       }
     }
 
-    // 배포 완료된 항목이 있으면 이미지 사용 기록 업데이트
-    const hasPublishedContent = 
-      (calendarData.profileContent && 
-       Object.values(calendarData.profileContent).some(account => 
-         account.dailySchedule?.some(s => s.status === 'published')
-       )) ||
-      (calendarData.kakaoFeed?.dailySchedule?.some(feed =>
-        ['account1', 'account2'].some(key => feed[key]?.status === 'published')
-      ));
-    
-    if (hasPublishedContent) {
-      try {
-        const updatedCount = await updateImageUsageOnPublish(calendarData);
-        console.log(`✅ 배포 완료 이미지 사용 기록 업데이트: ${updatedCount}개`);
-      } catch (error) {
-        console.warn('⚠️ 이미지 사용 기록 업데이트 실패:', error.message);
-        // 사용 기록 업데이트 실패해도 저장은 성공으로 처리
-      }
-    }
+    // ✅ 이미지 사용 기록 업데이트는 별도 API로 분리 (비동기 처리)
+    // 클라이언트에서 별도로 호출하도록 변경
 
     // 부분 성공도 허용 (일부 실패가 있어도 성공한 항목은 저장됨)
     if (errors.length > 0) {
