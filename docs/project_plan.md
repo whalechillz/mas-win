@@ -4,23 +4,27 @@
 
 ### 완료된 작업
 
-#### 배포 환경 인증 실패 문제 해결 ✅
+#### 배포 환경 인증 실패 문제 해결 (쿠키 도메인 재수정) ✅
 - **문제**: 배포 환경에서 갤러리 관리, 블로그 관리, 허브 시스템 등 모든 관리 페이지에서 데이터가 안 보이고 401 Unauthorized 에러 발생 (로컬호스트에서는 정상 작동)
 - **원인**: 
-  - NextAuth 쿠키 도메인 설정이 `.masgolf.co.kr` (점으로 시작)로 되어 있어 `www.masgolf.co.kr`에서 쿠키가 제대로 읽히지 않음
-  - Chrome 최신 버전의 쿠키 정책이 더 엄격해져서 `.masgolf.co.kr` 쿠키가 `www.masgolf.co.kr`에서 작동하지 않음
+  - NextAuth 쿠키 도메인 설정이 `masgolf.co.kr` (점 없음)로 되어 있어 `www.masgolf.co.kr`에서 쿠키가 제대로 읽히지 않음
+  - 서브도메인 간 쿠키 공유를 위해서는 `.masgolf.co.kr` (점으로 시작)이 필요함
+  - `NEXTAUTH_URL=https://www.masgolf.co.kr`과 쿠키 도메인 설정이 불일치
   - `getServerSession`이 쿠키를 읽지 못해 `null`을 반환하고, 이로 인해 모든 API가 401 에러 반환
-  - `folders-list.js` 등 일부 API에 인증 체크가 누락됨
 - **해결**:
-  - NextAuth 쿠키 도메인을 `.masgolf.co.kr` → `masgolf.co.kr`로 변경 (점 제거)
+  - NextAuth 쿠키 도메인을 `masgolf.co.kr` → `.masgolf.co.kr`로 변경 (점 추가)
+  - Vercel 환경 변수 `NEXTAUTH_COOKIE_DOMAIN=.masgolf.co.kr` 설정
   - `www.masgolf.co.kr`과 `masgolf.co.kr` 모두에서 작동하도록 개선
   - `lib/api-auth.ts`에 디버깅 로그 추가 (프로덕션에서 쿠키 확인)
   - 에러 메시지 개선: "No valid session" 메시지 및 디버깅 정보 추가
   - `pages/api/admin/folders-list.js`에 인증 체크 추가
 - **수정 파일**:
-  - `pages/api/auth/[...nextauth].ts`: 쿠키 도메인 설정 수정 (230-231, 245-246번 라인)
+  - `pages/api/auth/[...nextauth].ts`: 쿠키 도메인 설정 수정 (230-231, 246-247번 라인) - `.masgolf.co.kr`로 변경
   - `lib/api-auth.ts`: 디버깅 로그 및 에러 메시지 개선 (32-60번 라인)
   - `pages/api/admin/folders-list.js`: 인증 체크 추가 (80번 라인 근처)
+- **Vercel 환경 변수**:
+  - `NEXTAUTH_URL=https://www.masgolf.co.kr` (Production)
+  - `NEXTAUTH_COOKIE_DOMAIN=.masgolf.co.kr` (All Environments) - 새로 추가
 
 ## ✅ 이전 작업: 모바일 모달 이미지 표시 문제 해결 (2026-01-24)
 
