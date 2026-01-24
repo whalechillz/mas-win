@@ -2,6 +2,11 @@ import { logFALAIUsage } from '../../../lib/ai-usage-logger';
 import { createClient } from '@supabase/supabase-js';
 // Sharp는 동적 import로 로드 (Vercel 환경 호환성)
 
+// API 타임아웃 설정 (5분) - 이미지 생성 + 제품 합성 시간 고려
+export const config = {
+  maxDuration: 300, // 5분 (초 단위) - Vercel Pro 플랜에서 최대 300초 지원
+};
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);

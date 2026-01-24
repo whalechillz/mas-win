@@ -214,30 +214,63 @@ export default function ProfileManager({
             }
           }
           
-          const composeResponse = await fetch('/api/compose-product-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              modelImageUrl: profileData.background.imageUrl,
-              productId: selectedProductId.background,
-              compositionTarget: compositionTarget,
-              compositionMethod: 'nano-banana-pro',
-              compositionBackground: 'natural',
-              baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
-              prompt: profileData.background.prompt // ✅ 기존 프롬프트 전달
-            })
-          });
+          // ✅ 타임아웃 처리를 위한 AbortController 추가 (5분 30초)
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 330000); // 5분 30초
           
-          if (!composeResponse.ok) {
-            const errorData = await composeResponse.json().catch(() => ({ 
-              error: `서버 오류 (${composeResponse.status})` 
-            }));
-            console.error('❌ 제품 합성 API 실패:', {
-              status: composeResponse.status,
-              statusText: composeResponse.statusText,
-              error: errorData
+          let composeResponse;
+          try {
+            composeResponse = await fetch('/api/compose-product-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                modelImageUrl: profileData.background.imageUrl,
+                productId: selectedProductId.background,
+                compositionTarget: compositionTarget,
+                compositionMethod: 'nano-banana-pro',
+                compositionBackground: 'natural',
+                baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
+                prompt: profileData.background.prompt // ✅ 기존 프롬프트 전달
+              }),
+              signal: controller.signal
             });
-            alert(`제품 합성 실패: ${errorData.error || errorData.message || '서버 오류가 발생했습니다.'}`);
+            
+            clearTimeout(timeoutId);
+            
+            if (!composeResponse.ok) {
+              const errorData = await composeResponse.json().catch(() => ({ 
+                error: `서버 오류 (${composeResponse.status})` 
+              }));
+              
+              // ✅ 타임아웃 오류 구체적인 메시지 표시
+              let errorMessage = errorData.error || errorData.message || '서버 오류가 발생했습니다.';
+              if (composeResponse.status === 504) {
+                errorMessage = '제품 합성 처리 시간이 초과되었습니다. FAL AI 큐 대기 시간이 길어서 발생할 수 있습니다. 잠시 후 다시 시도해주세요.';
+              } else if (composeResponse.status === 408) {
+                errorMessage = '제품 합성 요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.';
+              }
+              
+              console.error('❌ 제품 합성 API 실패:', {
+                status: composeResponse.status,
+                statusText: composeResponse.statusText,
+                error: errorData
+              });
+              alert(`제품 합성 실패: ${errorMessage}`);
+              return;
+            }
+          } catch (fetchError: any) {
+            clearTimeout(timeoutId);
+            
+            // ✅ AbortError (타임아웃) 처리
+            if (fetchError.name === 'AbortError') {
+              console.error('❌ 제품 합성 타임아웃:', '5분 30초 초과');
+              alert('제품 합성 처리 시간이 초과되었습니다.\n\nFAL AI 큐 대기 시간이 길어서 발생할 수 있습니다.\n잠시 후 다시 시도해주세요.');
+              return;
+            }
+            
+            // ✅ 네트워크 오류 처리
+            console.error('❌ 제품 합성 네트워크 오류:', fetchError);
+            alert(`제품 합성 중 네트워크 오류가 발생했습니다: ${fetchError.message || '알 수 없는 오류'}`);
             return;
           }
           
@@ -311,36 +344,59 @@ export default function ProfileManager({
               }
             }
             
-            const composeResponse = await fetch('/api/compose-product-image', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                modelImageUrl: finalImageUrl,
-                productId: selectedProductId.background,
-                compositionTarget: compositionTarget, // 선택한 제품의 compositionTarget 사용
-                compositionMethod: 'nano-banana-pro',
-                compositionBackground: 'natural', // 배경 유지 명시
-                baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
-                prompt: profileData.background.prompt // ✅ 기존 프롬프트 전달
-              })
-            });
+            // ✅ 타임아웃 처리를 위한 AbortController 추가 (5분 30초)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 330000); // 5분 30초
             
-            if (composeResponse.ok) {
-              const composeResult = await composeResponse.json();
-              // ✅ AI 이미지 생성기와 동일한 방식으로 수정
-              if (composeResult.success && composeResult.images && composeResult.images.length > 0) {
-                finalImageUrl = composeResult.images[0].imageUrl;
-                console.log('✅ 배경 이미지 제품 합성 완료:', composeResult.product?.name);
+            try {
+              const composeResponse = await fetch('/api/compose-product-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  modelImageUrl: finalImageUrl,
+                  productId: selectedProductId.background,
+                  compositionTarget: compositionTarget, // 선택한 제품의 compositionTarget 사용
+                  compositionMethod: 'nano-banana-pro',
+                  compositionBackground: 'natural', // 배경 유지 명시
+                  baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
+                  prompt: profileData.background.prompt // ✅ 기존 프롬프트 전달
+                }),
+                signal: controller.signal
+              });
+              
+              clearTimeout(timeoutId);
+              
+              if (composeResponse.ok) {
+                const composeResult = await composeResponse.json();
+                // ✅ AI 이미지 생성기와 동일한 방식으로 수정
+                if (composeResult.success && composeResult.images && composeResult.images.length > 0) {
+                  finalImageUrl = composeResult.images[0].imageUrl;
+                  console.log('✅ 배경 이미지 제품 합성 완료:', composeResult.product?.name);
+                } else {
+                  console.warn('⚠️ 배경 이미지 제품 합성 응답에 이미지가 없습니다:', composeResult);
+                }
               } else {
-                console.warn('⚠️ 배경 이미지 제품 합성 응답에 이미지가 없습니다:', composeResult);
+                // ✅ 타임아웃 오류 구체적인 메시지 표시
+                if (composeResponse.status === 504 || composeResponse.status === 408) {
+                  console.warn('⚠️ 제품 합성 타임아웃, 원본 이미지 사용');
+                } else {
+                  const errorData = await composeResponse.json().catch(() => ({}));
+                  console.warn('⚠️ 제품 합성 실패, 원본 이미지 사용:', errorData);
+                }
               }
+            } catch (composeError: any) {
+              clearTimeout(timeoutId);
+              
+              // ✅ AbortError (타임아웃) 처리
+              if (composeError.name === 'AbortError') {
+                console.warn('⚠️ 제품 합성 타임아웃 (5분 30초 초과), 원본 이미지 사용');
+              } else {
+                console.error('제품 합성 실패, 원본 이미지 사용:', composeError);
+              }
+              // 합성 실패해도 원본 이미지는 사용
+            } finally {
+              setIsComposingProduct(prev => ({ ...prev, background: false }));
             }
-          } catch (composeError: any) {
-            console.error('제품 합성 실패, 원본 이미지 사용:', composeError);
-            // 합성 실패해도 원본 이미지는 사용
-          } finally {
-            setIsComposingProduct(prev => ({ ...prev, background: false }));
-          }
         }
         
         onUpdate({
@@ -495,33 +551,68 @@ export default function ProfileManager({
             }
           }
           
-          const composeResponse = await fetch('/api/compose-product-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              modelImageUrl: profileData.profile.imageUrl,
-              productId: selectedProductId.profile,
-              compositionTarget: compositionTarget,
-              compositionMethod: 'nano-banana-pro',
-              compositionBackground: 'natural',
-              baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
-              prompt: profileData.profile.prompt, // ✅ 기존 프롬프트 전달 (피드와 동일)
-              imageType: 'profile' // ✅ 프로필 이미지 타입 명시 (클로즈업 지시사항 적용)
-            })
-          });
+          // ✅ 타임아웃 처리를 위한 AbortController 추가 (5분 30초)
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 330000); // 5분 30초
           
-          if (!composeResponse.ok) {
-            const errorData = await composeResponse.json().catch(() => ({ 
-              error: `서버 오류 (${composeResponse.status})` 
-            }));
-            console.error('❌ 제품 합성 API 실패:', {
-              status: composeResponse.status,
-              statusText: composeResponse.statusText,
-              error: errorData
+          let composeResponse;
+          try {
+            composeResponse = await fetch('/api/compose-product-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                modelImageUrl: profileData.profile.imageUrl,
+                productId: selectedProductId.profile,
+                compositionTarget: compositionTarget,
+                compositionMethod: 'nano-banana-pro',
+                compositionBackground: 'natural',
+                baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
+                prompt: profileData.profile.prompt, // ✅ 기존 프롬프트 전달 (피드와 동일)
+                imageType: 'profile' // ✅ 프로필 이미지 타입 명시 (클로즈업 지시사항 적용)
+              }),
+              signal: controller.signal
             });
-            alert(`제품 합성 실패: ${errorData.error || errorData.message || '서버 오류가 발생했습니다.'}`);
+            
+            clearTimeout(timeoutId);
+            
+            if (!composeResponse.ok) {
+              const errorData = await composeResponse.json().catch(() => ({ 
+                error: `서버 오류 (${composeResponse.status})` 
+              }));
+              
+              // ✅ 타임아웃 오류 구체적인 메시지 표시
+              let errorMessage = errorData.error || errorData.message || '서버 오류가 발생했습니다.';
+              if (composeResponse.status === 504) {
+                errorMessage = '제품 합성 처리 시간이 초과되었습니다. FAL AI 큐 대기 시간이 길어서 발생할 수 있습니다. 잠시 후 다시 시도해주세요.';
+              } else if (composeResponse.status === 408) {
+                errorMessage = '제품 합성 요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.';
+              }
+              
+              console.error('❌ 제품 합성 API 실패:', {
+                status: composeResponse.status,
+                statusText: composeResponse.statusText,
+                error: errorData
+              });
+              alert(`제품 합성 실패: ${errorMessage}`);
+              return;
+            }
+          } catch (fetchError: any) {
+            clearTimeout(timeoutId);
+            
+            // ✅ AbortError (타임아웃) 처리
+            if (fetchError.name === 'AbortError') {
+              console.error('❌ 제품 합성 타임아웃:', '5분 30초 초과');
+              alert('제품 합성 처리 시간이 초과되었습니다.\n\nFAL AI 큐 대기 시간이 길어서 발생할 수 있습니다.\n잠시 후 다시 시도해주세요.');
+              return;
+            }
+            
+            // ✅ 네트워크 오류 처리
+            console.error('❌ 제품 합성 네트워크 오류:', fetchError);
+            alert(`제품 합성 중 네트워크 오류가 발생했습니다: ${fetchError.message || '알 수 없는 오류'}`);
             return;
           }
+          
+          const composeResult = await composeResponse.json();
           
           const composeResult = await composeResponse.json();
           
@@ -608,56 +699,80 @@ export default function ProfileManager({
               }
             }
             
-            const composeResponse = await fetch('/api/compose-product-image', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                modelImageUrl: finalImageUrl,
-                productId: selectedProductId.profile,
-                compositionTarget: compositionTarget,
-                compositionMethod: 'nano-banana-pro',
-                compositionBackground: 'natural', // 배경 유지 명시
-                baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
-                prompt: promptToUse, // ✅ 프롬프트 전달 (피드와 동일)
-                imageType: 'profile' // ✅ 프로필 이미지 타입 명시 (클로즈업 지시사항 적용)
-              })
-            });
+            // ✅ 타임아웃 처리를 위한 AbortController 추가 (5분 30초)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 330000); // 5분 30초
             
-            if (!composeResponse.ok) {
-              // ✅ API 실패 시 상세 에러 메시지
-              const errorData = await composeResponse.json().catch(() => ({ 
-                error: `서버 오류 (${composeResponse.status})` 
-              }));
-              console.error('❌ 제품 합성 API 실패:', {
-                status: composeResponse.status,
-                statusText: composeResponse.statusText,
-                error: errorData
+            try {
+              const composeResponse = await fetch('/api/compose-product-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  modelImageUrl: finalImageUrl,
+                  productId: selectedProductId.profile,
+                  compositionTarget: compositionTarget,
+                  compositionMethod: 'nano-banana-pro',
+                  compositionBackground: 'natural', // 배경 유지 명시
+                  baseImageUrl: baseImageUrl, // ✅ 명확한 경로 전달
+                  prompt: promptToUse, // ✅ 프롬프트 전달 (피드와 동일)
+                  imageType: 'profile' // ✅ 프로필 이미지 타입 명시 (클로즈업 지시사항 적용)
+                }),
+                signal: controller.signal
               });
-              alert(`제품 합성 실패: ${errorData.error || errorData.message || '서버 오류가 발생했습니다.'}\n\n원본 이미지를 사용합니다.`);
-              // 원본 이미지 사용 (finalImageUrl은 이미 설정됨)
-            } else {
-              const composeResult = await composeResponse.json();
               
-              // ✅ AI 이미지 생성기와 동일한 방식으로 수정
-              if (composeResult.success && composeResult.images && composeResult.images.length > 0) {
-                finalImageUrl = composeResult.images[0].imageUrl;
-                console.log('✅ 프로필 이미지 제품 합성 완료:', {
-                  productName: composeResult.product?.name,
-                  composedImageUrl: finalImageUrl
+              clearTimeout(timeoutId);
+              
+              if (!composeResponse.ok) {
+                // ✅ 타임아웃 오류 구체적인 메시지 표시
+                const errorData = await composeResponse.json().catch(() => ({ 
+                  error: `서버 오류 (${composeResponse.status})` 
+                }));
+                
+                let errorMessage = errorData.error || errorData.message || '서버 오류가 발생했습니다.';
+                if (composeResponse.status === 504) {
+                  errorMessage = '제품 합성 처리 시간이 초과되었습니다. FAL AI 큐 대기 시간이 길어서 발생할 수 있습니다.';
+                } else if (composeResponse.status === 408) {
+                  errorMessage = '제품 합성 요청 시간이 초과되었습니다.';
+                }
+                
+                console.error('❌ 제품 합성 API 실패:', {
+                  status: composeResponse.status,
+                  statusText: composeResponse.statusText,
+                  error: errorData
                 });
+                alert(`제품 합성 실패: ${errorMessage}\n\n원본 이미지를 사용합니다.`);
+                // 원본 이미지 사용 (finalImageUrl은 이미 설정됨)
               } else {
-                // ✅ 합성은 성공했지만 이미지가 없는 경우
-                console.warn('⚠️ 제품 합성 응답에 이미지가 없습니다:', composeResult);
-                alert('제품 합성은 완료되었지만 결과 이미지를 가져올 수 없습니다.\n원본 이미지를 사용합니다.');
+                const composeResult = await composeResponse.json();
+                
+                // ✅ AI 이미지 생성기와 동일한 방식으로 수정
+                if (composeResult.success && composeResult.images && composeResult.images.length > 0) {
+                  finalImageUrl = composeResult.images[0].imageUrl;
+                  console.log('✅ 프로필 이미지 제품 합성 완료:', {
+                    productName: composeResult.product?.name,
+                    composedImageUrl: finalImageUrl
+                  });
+                } else {
+                  // ✅ 합성은 성공했지만 이미지가 없는 경우
+                  console.warn('⚠️ 제품 합성 응답에 이미지가 없습니다:', composeResult);
+                  alert('제품 합성은 완료되었지만 결과 이미지를 가져올 수 없습니다.\n원본 이미지를 사용합니다.');
+                }
               }
+            } catch (composeError: any) {
+              clearTimeout(timeoutId);
+              
+              // ✅ AbortError (타임아웃) 처리
+              if (composeError.name === 'AbortError') {
+                console.warn('⚠️ 제품 합성 타임아웃 (5분 30초 초과), 원본 이미지 사용');
+                alert('제품 합성 처리 시간이 초과되었습니다.\n\nFAL AI 큐 대기 시간이 길어서 발생할 수 있습니다.\n원본 이미지를 사용합니다.');
+              } else {
+                console.error('제품 합성 실패, 원본 이미지 사용:', composeError);
+                alert(`제품 합성 중 오류가 발생했습니다: ${composeError.message || '알 수 없는 오류'}\n원본 이미지를 사용합니다.`);
+              }
+              // 합성 실패해도 원본 이미지는 사용
+            } finally {
+              setIsComposingProduct(prev => ({ ...prev, profile: false }));
             }
-          } catch (composeError: any) {
-            console.error('❌ 제품 합성 예외 발생:', composeError);
-            alert(`제품 합성 중 오류가 발생했습니다: ${composeError.message || '알 수 없는 오류'}\n\n원본 이미지를 사용합니다.`);
-            // 합성 실패해도 원본 이미지는 사용
-          } finally {
-            setIsComposingProduct(prev => ({ ...prev, profile: false }));
-          }
         }
         
         onUpdate({
