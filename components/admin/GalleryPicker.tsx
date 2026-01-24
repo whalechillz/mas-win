@@ -997,6 +997,12 @@ const GalleryPicker: React.FC<Props> = ({
                       src={img.url}
                       alt={img.name}
                       className="w-full h-full object-contain"
+                      loading="eager"
+                      decoding="async"
+                      onError={(e) => {
+                        console.error('이미지 로드 실패:', img.url);
+                        e.currentTarget.style.display = 'none';
+                      }}
                     />
                     <div className="absolute top-2 left-2 px-2 py-1 bg-blue-600 text-white rounded text-xs font-semibold">
                       {idx + 1}
@@ -1053,8 +1059,8 @@ const GalleryPicker: React.FC<Props> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-2 sm:p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-full sm:max-w-7xl max-h-[95vh] overflow-hidden flex flex-col">
+    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-2 sm:p-4 ${isMobile ? '' : 'backdrop-blur-sm'}`}>
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-full sm:max-w-7xl max-h-[95vh] flex flex-col">
         {/* 헤더 */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 sm:p-6 border-b bg-gradient-to-r from-gray-50 to-blue-50 gap-2 sm:gap-3">
           {/* 모바일: 제목 + 접기 버튼 + 닫기 */}
@@ -1732,6 +1738,12 @@ const GalleryPicker: React.FC<Props> = ({
                           src={img.url}
                           alt={img.name}
                           className="w-full h-full object-contain p-2"
+                          loading="eager"
+                          decoding="async"
+                          onError={(e) => {
+                            console.error('이미지 로드 실패:', img.url);
+                            e.currentTarget.style.display = 'none';
+                          }}
                         />
                         {isFeatured(img) && (
                           <div className="absolute inset-0 rounded-lg border-2 border-yellow-400 shadow-[0_0_0_2px_rgba(255,193,7,0.3)_inset] pointer-events-none"></div>
