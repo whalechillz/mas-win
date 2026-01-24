@@ -223,14 +223,66 @@ const GalleryPicker: React.FC<Props> = ({
       
       const apiUrl = `/api/admin/all-images?${params.toString()}`;
       const requestStartTime = Date.now();
-      console.log('🔍 GalleryPicker 이미지 로드 요청:', apiUrl, retryCount > 0 ? `(재시도 ${retryCount})` : folderFilter ? '(캐시 무효화)' : '');
       
-      const res = await fetch(apiUrl);
+      // ✅ 배포 환경 디버깅: 상세 로그 추가
+      console.log('🔍 [DEPLOY DEBUG] GalleryPicker 이미지 로드 요청 시작:', {
+        apiUrl,
+        fullUrl: typeof window !== 'undefined' ? window.location.origin + apiUrl : 'N/A',
+        folderFilter,
+        imageSource,
+        retryCount,
+        timestamp: new Date().toISOString(),
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'N/A',
+        cookies: typeof document !== 'undefined' ? document.cookie : 'N/A'
+      });
+      
+      // ✅ 배포 환경 디버깅: fetch 옵션 확인
+      const fetchOptions: RequestInit = {
+        method: 'GET',
+        credentials: 'include', // 쿠키 포함
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      };
+      
+      console.log('🔍 [DEPLOY DEBUG] Fetch 옵션:', {
+        method: fetchOptions.method,
+        credentials: fetchOptions.credentials,
+        headers: fetchOptions.headers,
+        hasCredentials: fetchOptions.credentials === 'include'
+      });
+      
+      const res = await fetch(apiUrl, fetchOptions);
       
       const requestDuration = Date.now() - requestStartTime;
-      console.log(`⏱️ API 응답 시간: ${requestDuration}ms`);
+      console.log(`⏱️ [DEPLOY DEBUG] API 응답 시간: ${requestDuration}ms`);
+      console.log('🔍 [DEPLOY DEBUG] API 응답 상태:', {
+        status: res.status,
+        statusText: res.statusText,
+        ok: res.ok,
+        headers: Object.fromEntries(res.headers.entries()),
+        url: res.url,
+        redirected: res.redirected,
+        type: res.type
+      });
       
       if (!res.ok) {
+        // ✅ 배포 환경 디버깅: 401 에러 상세 로그
+        if (res.status === 401) {
+          const errorText = await res.text().catch(() => 'Unknown error');
+          console.error('❌ [DEPLOY DEBUG] 401 Unauthorized 에러 상세:', {
+            status: res.status,
+            statusText: res.statusText,
+            errorText,
+            apiUrl,
+            fullUrl: typeof window !== 'undefined' ? window.location.origin + apiUrl : 'N/A',
+            cookies: typeof document !== 'undefined' ? document.cookie : 'N/A',
+            sessionStorage: typeof window !== 'undefined' && window.sessionStorage ? Object.fromEntries(Object.entries(window.sessionStorage)) : 'N/A',
+            localStorage: typeof window !== 'undefined' && window.localStorage ? Object.fromEntries(Object.entries(window.localStorage)) : 'N/A',
+            timestamp: new Date().toISOString()
+          });
+        }
+        
         // ✅ 504 타임아웃 시 자동 재시도 (최대 2회)
         if (res.status === 504 && retryCount < 2) {
           const retryDelay = (retryCount + 1) * 2000; // 2초, 4초
@@ -239,15 +291,37 @@ const GalleryPicker: React.FC<Props> = ({
           return fetchImages(resetPage, retryCount + 1);
         }
         
-        console.error('❌ 이미지 로드 실패:', res.status, res.statusText);
+        console.error('❌ [DEPLOY DEBUG] 이미지 로드 실패:', {
+          status: res.status,
+          statusText: res.statusText,
+          apiUrl,
+          retryCount
+        });
         const errorText = await res.text().catch(() => 'Unknown error');
-        console.error('에러 상세:', errorText);
+        console.error('❌ [DEPLOY DEBUG] 에러 상세:', errorText);
         setAllImages([]);
         setTotal(0);
         return;
       }
       
       const data = await res.json();
+      
+      // ✅ 배포 환경 디버깅: API 응답 상세 로그
+      console.log('🔍 [DEPLOY DEBUG] API 응답 데이터:', {
+        images: data.images,
+        imagesLength: data.images?.length || 0,
+        total: data.total || 0,
+        count: data.count || 0,
+        folderFilter: folderFilter || '전체',
+        apiUrl: apiUrl,
+        fullUrl: typeof window !== 'undefined' ? window.location.origin + apiUrl : 'N/A',
+        forceRefresh: params.get('forceRefresh'),
+        timestamp: params.get('_t'),
+        prefix: params.get('prefix'),
+        includeChildren: params.get('includeChildren'),
+        responseTime: requestDuration,
+        timestamp: new Date().toISOString()
+      });
       
       // ✅ 디버깅: 상세 로그 추가
       console.log('🔍 [DEBUG] API 응답 상세:', {
@@ -388,9 +462,25 @@ const GalleryPicker: React.FC<Props> = ({
 
   useEffect(() => {
     if (!isOpen) return;
+    
+    // ✅ 배포 환경 디버깅: 모달 열림 시점 로그
+    console.log('🔍 [DEPLOY DEBUG] GalleryPicker 모달 열림:', {
+      isOpen,
+      autoFilterFolder,
+      folderFilter,
+      imageSource,
+      timestamp: new Date().toISOString(),
+      url: typeof window !== 'undefined' ? window.location.href : 'N/A',
+      cookies: typeof document !== 'undefined' ? document.cookie : 'N/A'
+    });
+    
     // 모달이 열릴 때 autoFilterFolder가 있으면 폴더 필터 설정
     if (autoFilterFolder) {
       console.log('📁 GalleryPicker autoFilterFolder:', autoFilterFolder);
+      console.log('🔍 [DEPLOY DEBUG] autoFilterFolder 설정:', {
+        autoFilterFolder,
+        timestamp: new Date().toISOString()
+      });
       
       // ✅ 수정: 이전 이미지 즉시 클리어
       setAllImages([]);
