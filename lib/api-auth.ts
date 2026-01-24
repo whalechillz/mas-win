@@ -29,12 +29,40 @@ export async function requireAuth(
     requireEditor?: boolean;
   }
 ): Promise<AuthResult> {
+  // ✅ 디버깅: 쿠키 확인 로그 추가 (프로덕션에서만)
+  if (process.env.NODE_ENV === 'production') {
+    const cookies = req.cookies;
+    console.log('🔍 인증 체크 - 쿠키 확인:', {
+      hasSessionToken: !!cookies['next-auth.session-token'],
+      hasSecureToken: !!cookies['__Secure-next-auth.session-token'],
+      hasHostToken: !!cookies['__Host-next-auth.session-token'],
+      cookieNames: Object.keys(cookies).filter(name => name.includes('auth')),
+      host: req.headers.host,
+      url: req.url,
+      referer: req.headers.referer,
+    });
+  }
+  
   const session = await getServerSession(req, res, authOptions);
   
   if (!session?.user) {
+    // ✅ 개선: 더 명확한 에러 메시지 및 디버깅 정보
+    const cookies = req.cookies;
+    console.error('❌ 인증 실패:', {
+      hasSession: !!session,
+      hasCookies: Object.keys(cookies).length > 0,
+      cookieNames: Object.keys(cookies).filter(name => name.includes('auth')),
+      host: req.headers.host,
+      url: req.url,
+      nodeEnv: process.env.NODE_ENV,
+      nextAuthUrl: process.env.NEXTAUTH_URL,
+    });
+    
     res.status(401).json({
       success: false,
-      message: '인증이 필요합니다. 로그인해주세요.'
+      error: 'Unauthorized',
+      message: 'No valid session',
+      details: '세션이 만료되었거나 쿠키가 전달되지 않았습니다. 페이지를 새로고침하거나 다시 로그인해주세요.'
     });
     throw new Error('Unauthorized');
   }

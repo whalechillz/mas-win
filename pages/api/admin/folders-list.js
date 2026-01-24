@@ -78,6 +78,40 @@ async function getFoldersFromStorage(maxDepth = 5, startTime = Date.now(), maxTi
 }
 
 export default async function handler(req, res) {
+  // ✅ 인증 체크 추가 (에디터 이상)
+  try {
+    const { requireAuth } = await import('../../../lib/api-auth');
+    await requireAuth(req, res, { requireEditor: true });
+  } catch (error) {
+    // 모듈을 찾을 수 없는 경우 fallback 처리
+    if (error?.message?.includes('Cannot find module') || error?.code === 'MODULE_NOT_FOUND') {
+      console.error('api-auth 모듈을 찾을 수 없습니다. 기본 인증 체크를 수행합니다.');
+      // 기본 인증 체크 (getServerSession 사용)
+      const { getServerSession } = await import('next-auth/next');
+      const { authOptions } = await import('../auth/[...nextauth]');
+      const session = await getServerSession(req, res, authOptions);
+      
+      if (!session?.user) {
+        return res.status(401).json({
+          success: false,
+          error: 'Unauthorized',
+          message: 'No valid session'
+        });
+      }
+      
+      // 에디터 이상 권한 체크
+      const userRole = session.user.role;
+      if (userRole !== 'admin' && userRole !== 'editor') {
+        return res.status(403).json({
+          success: false,
+          message: '에디터 이상의 권한이 필요합니다.'
+        });
+      }
+    } else {
+      return; // requireAuth에서 이미 응답을 보냄
+    }
+  }
+  
   const startTime = Date.now();
   const { parent } = req.query; // 특정 폴더의 하위 폴더만 조회
   console.log('🔍 폴더 목록 조회 API 요청:', req.method, req.url, parent ? `(parent: ${parent})` : '');
