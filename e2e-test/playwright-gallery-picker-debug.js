@@ -226,18 +226,21 @@ async function testGalleryPickerImageLoad() {
     await galleryButtons.first().click();
     await page.waitForTimeout(3000);
     
-    // 4. 갤러리 모달이 열렸는지 확인
-    log('\n4️⃣ 갤러리 모달 확인...', 'info');
-    
-    const modal = page.locator('text=갤러리에서 이미지 선택, text=갤러리에서 선택').first();
-    if (await modal.isVisible({ timeout: 5000 })) {
-      log('   ✅ 갤러리 모달이 열렸습니다.', 'success');
+      // 4. 갤러리 모달이 열렸는지 확인
+      log('\n4️⃣ 갤러리 모달 확인...', 'info');
       
-      // 모달 내부 요소 확인
-      const modalContent = await page.locator('[class*="modal"], [class*="Modal"]').first();
-      if (await modalContent.isVisible({ timeout: 2000 })) {
-        log('   ✅ 모달 컨텐츠 확인', 'success');
-      }
+      const modal = page.locator('text=갤러리에서 이미지 선택, text=갤러리에서 선택').first();
+      if (await modal.isVisible({ timeout: 5000 })) {
+        log('   ✅ 갤러리 모달이 열렸습니다.', 'success');
+        
+        // 모달 내부 요소 확인
+        const modalContent = await page.locator('[class*="modal"], [class*="Modal"]').first();
+        if (await modalContent.isVisible({ timeout: 2000 })) {
+          log('   ✅ 모달 컨텐츠 확인', 'success');
+        }
+        
+        // 모달이 열린 직후 쿠키 상태 확인
+        await page.waitForTimeout(1000);
       
       // 5. 브라우저에서 실제 쿠키 상태 확인
       log('\n5️⃣ 브라우저 쿠키 상태 확인...', 'info');
@@ -283,6 +286,15 @@ async function testGalleryPickerImageLoad() {
         try {
           // fetch 요청 전 쿠키 확인
           const beforeCookies = document.cookie;
+          const cookieList = beforeCookies.split(';').map(c => c.trim());
+          const sessionToken = cookieList.find(c => c.startsWith('next-auth.session-token'));
+          
+          console.log('[BROWSER DEBUG] Fetch 전 쿠키:', {
+            allCookies: beforeCookies,
+            cookieCount: cookieList.length,
+            hasSessionToken: !!sessionToken,
+            sessionTokenPreview: sessionToken ? sessionToken.substring(0, 50) + '...' : null
+          });
           
           // fetch 요청 실행
           const response = await fetch(apiUrl, {
@@ -297,17 +309,24 @@ async function testGalleryPickerImageLoad() {
           const status = response.status;
           const errorText = status !== 200 ? await response.text().catch(() => '') : '';
           
+          console.log('[BROWSER DEBUG] Fetch 응답:', {
+            status: status,
+            statusText: response.statusText,
+            hasError: status !== 200,
+            errorText: errorText.substring(0, 200)
+          });
+          
           return {
             beforeCookies: beforeCookies,
             hasCookies: !!beforeCookies,
+            cookieCount: cookieList.length,
+            hasSessionToken: !!sessionToken,
             status: status,
             errorText: errorText,
-            headers: {
-              // fetch API는 요청 헤더를 직접 읽을 수 없지만, 
-              // credentials: 'include'가 설정되어 있으면 쿠키가 자동으로 전달되어야 함
-            }
+            url: apiUrl
           };
         } catch (error) {
+          console.error('[BROWSER DEBUG] Fetch 에러:', error);
           return {
             error: error.message,
             beforeCookies: document.cookie
@@ -318,8 +337,10 @@ async function testGalleryPickerImageLoad() {
       log(`   Fetch 테스트 결과:`, 'info');
       log(`     상태 코드: ${fetchTest.status}`, fetchTest.status === 200 ? 'success' : 'error');
       log(`     요청 전 쿠키: ${fetchTest.hasCookies ? '✅ 있음' : '❌ 없음'}`, fetchTest.hasCookies ? 'success' : 'error');
+      log(`     쿠키 개수: ${fetchTest.cookieCount || 0}`, 'info');
+      log(`     세션 토큰: ${fetchTest.hasSessionToken ? '✅ 있음' : '❌ 없음'}`, fetchTest.hasSessionToken ? 'success' : 'error');
       if (fetchTest.errorText) {
-        log(`     에러 메시지: ${fetchTest.errorText}`, 'error');
+        log(`     에러 메시지: ${fetchTest.errorText.substring(0, 300)}`, 'error');
       }
       
       // 이미지 로드 대기 및 확인
