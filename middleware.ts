@@ -107,12 +107,13 @@ export async function middleware(request: NextRequest) {
       // 쿠키가 있으면 getToken 시도
       if (hasSessionCookie) {
         try {
+          // ✅ 프로덕션에서도 실제 쿠키 이름 사용 (useSecureCookies가 true여도 쿠키 이름은 그대로)
+          // NextAuth는 useSecureCookies가 true일 때 자동으로 __Secure- 접두사를 추가하지 않음
+          // 쿠키 이름은 설정한 그대로 유지됨
           const token = await getToken({ 
             req: request, 
             secret: process.env.NEXTAUTH_SECRET || 'masgolf-admin-secret-key-2024',
-            cookieName: process.env.NODE_ENV === 'production' 
-              ? '__Secure-next-auth.session-token'
-              : 'next-auth.session-token',
+            cookieName: 'next-auth.session-token', // 프로덕션/개발 모두 동일한 이름 사용
           });
           
           if (token) {
