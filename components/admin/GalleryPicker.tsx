@@ -64,6 +64,43 @@ const GalleryPicker: React.FC<Props> = ({
   // 이미지 복사/링크 모달 관련 상태
   const [showCopyLinkModal, setShowCopyLinkModal] = useState(false);
   const [pendingImageDrop, setPendingImageDrop] = useState<{ imageData: any; targetFolder: string } | null>(null);
+  
+  // 모바일 UI 최적화 상태
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  const [isMobileHeaderExpanded, setIsMobileHeaderExpanded] = useState(false);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [isMobileUploadOpen, setIsMobileUploadOpen] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showAltModal, setShowAltModal] = useState(false);
+  
+  // 그리드 컬럼 수 상태
+  const [mobileGridColumns, setMobileGridColumns] = useState<1 | 2>(1);
+  const [desktopGridColumns, setDesktopGridColumns] = useState<1 | 2 | 3 | 4 | 5>(4);
+  
+  // 모바일/태블릿 감지
+  useEffect(() => {
+    const checkDevice = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < 640);      // 모바일: < 640px
+      setIsTablet(width >= 640 && width < 1024); // 태블릿: 640px ~ 1024px
+    };
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkDevice);
+  }, []);
+
+  // 모달이 열릴 때 body 스크롤 막기
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
 
   // Solapi 이미지 로드 함수
   const fetchSolapiImages = async (resetPage = false) => {
@@ -996,9 +1033,33 @@ const GalleryPicker: React.FC<Props> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-2 sm:p-4 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-full sm:max-w-7xl max-h-[95vh] overflow-hidden flex flex-col">
         {/* 헤더 */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-6 border-b bg-gradient-to-r from-gray-50 to-blue-50 gap-3">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-1 w-full">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-800">🖼️ 갤러리에서 이미지 선택</h3>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 sm:p-6 border-b bg-gradient-to-r from-gray-50 to-blue-50 gap-2 sm:gap-3">
+          {/* 모바일: 제목 + 접기 버튼 + 닫기 */}
+          <div className="flex items-center justify-between w-full sm:hidden">
+            <h3 className="text-base font-bold text-gray-800">🖼️ 갤러리에서 이미지 선택</h3>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsMobileHeaderExpanded(!isMobileHeaderExpanded)}
+                className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label={isMobileHeaderExpanded ? "접기" : "펼치기"}
+              >
+                {isMobileHeaderExpanded ? "▲" : "▼"}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-light w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+          
+          {/* 모바일: 접힌 상태에서 숨김, 데스크톱: 항상 표시 */}
+          <div className={`${isMobile && !isMobileHeaderExpanded ? 'hidden' : 'flex'} flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-1 w-full`}>
+            {/* 데스크톱: 제목 */}
+            <h3 className="hidden sm:block text-xl font-bold text-gray-800">🖼️ 갤러리에서 이미지 선택</h3>
             {/* 이미지 소스 탭 */}
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
@@ -1062,194 +1123,188 @@ const GalleryPicker: React.FC<Props> = ({
               </nav>
             )}
           </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          {/* 데스크톱: 새로고침 + 닫기 */}
+          <div className="hidden sm:flex items-center gap-2">
             <button 
               type="button" 
               onClick={() => fetchImages(true)} 
-              className="px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2 transition-colors shadow-sm min-h-[44px] sm:min-h-0 flex-1 sm:flex-none"
+              className="px-4 py-2 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2 transition-colors shadow-sm"
               disabled={isLoading}
             >
               {isLoading ? (
                 <>
-                  <span className="animate-spin">⏳</span> <span className="hidden sm:inline">로딩 중...</span>
+                  <span className="animate-spin">⏳</span> 로딩 중...
                 </>
               ) : (
                 <>
-                  <span>🔄</span> <span className="hidden sm:inline">새로고침</span>
+                  <span>🔄</span> 새로고침
                 </>
               )}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-3xl sm:text-2xl font-light w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
+              className="text-gray-500 hover:text-gray-700 text-2xl font-light w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
             >
               ×
             </button>
           </div>
         </div>
         {/* 필터 및 검색 바 */}
-        <div className="p-3 sm:p-4 border-b bg-white">
-          {/* 최근 사용 폴더 섹션 */}
-          {(recentFolders.length > 0 || folderFilter) && (
-            <div className="mb-3">
-              <label className="block text-xs text-gray-500 font-medium mb-2">
-                📁 최근 사용 폴더
-              </label>
-              <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                {/* 현재 폴더가 최근 폴더 목록에 없으면 먼저 표시 */}
-                {folderFilter && !recentFolders.includes(folderFilter) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      addRecentFolder(folderFilter);
-                      setPage(1);
-                      fetchImages(true);
-                    }}
-                    className="px-2 py-1.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs border border-blue-500 bg-blue-50 text-blue-700 rounded-lg transition-all hover:bg-blue-100 min-h-[36px] sm:min-h-0"
-                    title={folderFilter}
-                  >
-                    {folderFilter.replace(/^originals\//, '')}
-                  </button>
-                )}
-                {/* 기존 최근 폴더들 */}
-                {recentFolders.map((folder, index) => {
-                  const displayPath = folder.replace(/^originals\//, '');
-                  return (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => {
-                        setFolderFilter(folder);
-                        setPage(1);
-                        fetchImages(true);
-                      }}
-                      className={`px-2 py-1.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs border rounded-lg transition-all min-h-[36px] sm:min-h-0 ${
-                        folderFilter === folder
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                      }`}
-                      title={folder}
-                    >
-                      {displayPath}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+        <div className="p-2 sm:p-4 border-b bg-white">
+          {/* 모바일: 아이콘 버튼만 표시 */}
+          <div className="flex items-center gap-2 sm:hidden">
+            <button
+              type="button"
+              onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
+              className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="필터"
+            >
+              {isMobileFiltersOpen ? "▲" : "▼"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowSearchModal(true)}
+              className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              title="검색"
+            >
+              🔍
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAltModal(true)}
+              className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              title="ALT 텍스트"
+            >
+              📝
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowLikedOnly(!showLikedOnly);
+              }}
+              className={`p-2 rounded-lg transition-colors ${
+                showLikedOnly
+                  ? 'bg-pink-500 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              title="좋아요"
+            >
+              ❤️
+            </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
+              title="업로드"
+            >
+              {isUploading ? "⏳" : "📤"}
+            </button>
+            {/* 모바일: 컬럼 수 변경 버튼 */}
+            <button
+              type="button"
+              onClick={() => setMobileGridColumns(mobileGridColumns === 1 ? 2 : 1)}
+              className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              title={`${mobileGridColumns}열 → ${mobileGridColumns === 1 ? 2 : 1}열`}
+            >
+              {mobileGridColumns === 1 ? '1️⃣' : '2️⃣'}
+            </button>
+          </div>
           
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-            {/* 날짜 선택 (kakao 폴더인 경우) */}
-            {autoFilterFolder && autoFilterFolder.includes('kakao') && (
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <span className="text-xs text-gray-500 font-medium whitespace-nowrap">날짜:</span>
+          {/* 모바일: 접힌 필터 영역 (접기/펼치기) */}
+          <div className={`${isMobile && !isMobileFiltersOpen ? 'hidden' : 'block'} sm:block`}>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+              {/* 검색 */}
+              <div className="hidden sm:flex items-center gap-2 flex-1 min-w-0">
                 <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => handleDateChange(e.target.value)}
-                  aria-label="날짜 선택"
-                  className="px-2 py-2 sm:px-3 sm:py-1.5 border border-gray-300 rounded-lg text-sm flex-1 sm:flex-none min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="검색 (파일명/확장자)"
+                  aria-label="검색 (파일명/확장자)"
+                  className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-            )}
 
-            {/* 폴더 필터 - 항상 표시 */}
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <span className="text-xs text-gray-500 font-medium whitespace-nowrap">폴더:</span>
-              <input
-                value={folderFilter}
-                onChange={(e) => setFolderFilter(e.target.value)}
-                placeholder="폴더 경로"
-                aria-label="폴더 경로 필터"
-                className="px-2 py-2 sm:px-3 sm:py-1.5 border border-gray-300 rounded-lg text-xs sm:text-sm flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
-              />
-              {folderFilter && (
+              {/* ALT 입력 */}
+              <div className="hidden sm:flex items-center gap-2 w-auto">
+                <input
+                  value={altText}
+                  onChange={(e) => setAltText(e.target.value)}
+                  placeholder="ALT 텍스트"
+                  aria-label="ALT 텍스트"
+                  className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm flex-none min-w-[160px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* 핫키 필터 버튼 및 업로드 버튼 */}
+              <div className="hidden sm:flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => {
-                    setFolderFilter('');
-                    setSelectedDate('');
+                    setShowLikedOnly(!showLikedOnly);
                   }}
-                  className="px-2 py-2 sm:py-1.5 text-xs text-gray-500 hover:text-gray-700 min-h-[44px] sm:min-h-0 flex-shrink-0"
-                  title="필터 초기화"
+                  className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${
+                    showLikedOnly
+                      ? 'bg-pink-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  title="좋아요한 이미지만 표시"
                 >
-                  ✕
+                  ❤️ 좋아요
                 </button>
-              )}
-            </div>
-
-            {/* 검색 */}
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="검색 (파일명/확장자)"
-                aria-label="검색 (파일명/확장자)"
-                className="px-2 py-2 sm:px-3 sm:py-1.5 border border-gray-300 rounded-lg text-sm flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
-              />
-            </div>
-
-            {/* ALT 입력 */}
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <input
-                value={altText}
-                onChange={(e) => setAltText(e.target.value)}
-                placeholder="ALT 텍스트"
-                aria-label="ALT 텍스트"
-                className="px-2 py-2 sm:px-3 sm:py-1.5 border border-gray-300 rounded-lg text-sm flex-1 sm:flex-none sm:min-w-[160px] min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] sm:min-h-0"
-              />
-            </div>
-
-            {/* 핫키 필터 버튼 및 업로드 버튼 */}
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowLikedOnly(!showLikedOnly);
-                }}
-                className={`px-3 py-2 sm:px-3 sm:py-1.5 text-xs rounded-lg font-medium transition-colors min-h-[44px] sm:min-h-0 ${
-                  showLikedOnly
-                    ? 'bg-pink-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-                title="좋아요한 이미지만 표시"
-              >
-                ❤️ 좋아요
-              </button>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="px-4 py-2.5 sm:px-4 sm:py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors shadow-sm min-h-[44px] sm:min-h-0 w-full sm:w-auto"
-              >
-                {isUploading ? (
-                  <>
-                    <span className="animate-spin">⏳</span> 업로드 중...
-                  </>
-                ) : (
-                  <>
-                    <span>📤</span> 이미지 업로드
-                  </>
-                )}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                disabled={isUploading}
-                accept="image/*,.heic,.heif"
-                aria-label="이미지 파일 업로드"
-                className="hidden"
-                onChange={handleFileSelect}
-              />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="px-4 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors shadow-sm"
+                >
+                  {isUploading ? (
+                    <>
+                      <span className="animate-spin">⏳</span> 업로드 중...
+                    </>
+                  ) : (
+                    <>
+                      <span>📤</span> 이미지 업로드
+                    </>
+                  )}
+                </button>
+                {/* 데스크톱: 컬럼 수 변경 버튼 */}
+                <div className="hidden sm:flex items-center gap-1 px-2 border-l border-gray-300 ml-2 pl-2">
+                  <span className="text-xs text-gray-500 mr-1">열:</span>
+                  {[1, 2, 3, 4, 5].map(cols => (
+                    <button
+                      key={cols}
+                      type="button"
+                      onClick={() => setDesktopGridColumns(cols as 1 | 2 | 3 | 4 | 5)}
+                      className={`px-2 py-1 text-xs rounded transition-colors ${
+                        desktopGridColumns === cols
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {cols}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  disabled={isUploading}
+                  accept="image/*,.heic,.heif"
+                  aria-label="이미지 파일 업로드"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+              </div>
             </div>
           </div>
         </div>
 
         {/* 드래그 앤 드롭 업로드 영역 */}
         <div
-          className={`mx-4 mb-4 border-2 border-dashed rounded-lg p-6 text-center transition-all ${
+          className={`${isMobile && !isMobileUploadOpen ? 'hidden' : 'block'} mx-2 sm:mx-4 mb-2 sm:mb-4 border-2 border-dashed rounded-lg p-3 sm:p-6 text-center transition-all ${
             isUploading
               ? 'border-gray-200 bg-gray-50 pointer-events-none opacity-50'
               : isDragging
@@ -1421,7 +1476,10 @@ const GalleryPicker: React.FC<Props> = ({
             </div>
           </div>
         )}
-        <div className="flex-1 overflow-auto p-2 sm:p-6 bg-gray-50">
+        <div 
+          className="flex-1 overflow-y-auto p-2 sm:p-6 bg-gray-50 min-h-0"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
@@ -1541,20 +1599,17 @@ const GalleryPicker: React.FC<Props> = ({
                       전체 선택 ({selected.size}/{filtered.length}개 표시)
                     </span>
                   </label>
-                  {showCompareMode && (
-                    <div className="text-xs text-gray-500">
-                      💡 비교 모드: 이미지를 클릭하여 최대 {maxCompareCount}개까지 선택 가능 (2개 이상 선택 시 자동 비교)
-                    </div>
-                  )}
                 </div>
               </div>
-              {/* 이미지 개수에 따른 그리드 레이아웃 */}
+              {/* 동적 그리드 레이아웃 */}
               <div className={`grid gap-2 sm:gap-4 ${
-                filtered.length === 1
-                  ? 'grid-cols-1 max-w-md mx-auto' // 1개일 때 최대한 크게 (중앙 정렬)
-                  : filtered.length >= 2 && filtered.length <= 3
-                  ? 'grid-cols-1 sm:grid-cols-2' // 2-3개일 때 모바일 1열, 데스크톱 2열
-                  : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' // 4개 이상일 때 모바일 1열, 데스크톱 반응형
+                isMobile
+                  ? mobileGridColumns === 1 ? 'grid-cols-1' : 'grid-cols-2'
+                  : desktopGridColumns === 1 ? 'grid-cols-1'
+                  : desktopGridColumns === 2 ? 'grid-cols-2'
+                  : desktopGridColumns === 3 ? 'grid-cols-3'
+                  : desktopGridColumns === 4 ? 'grid-cols-4'
+                  : 'grid-cols-5'
               }`}>
               {filtered.map((img, idx) => {
                 const isCompareSelected = selectedForCompare.has(img.name);
@@ -1668,120 +1723,230 @@ const GalleryPicker: React.FC<Props> = ({
                       </div>
                     </button>
 
-                    {/* 퀵액션 (모바일에서 항상 표시, 데스크톱에서는 호버 시 노출 또는 2-3개일 때 항상 표시) */}
-                    <div className={`absolute inset-0 bg-black/40 sm:bg-black/0 sm:group-hover:bg-black/20 transition-all flex items-center justify-center gap-2 rounded-xl opacity-100 sm:opacity-0 sm:group-hover:opacity-100 ${
-                      shouldHighlightCompare ? 'sm:opacity-100' : ''
-                    }`}>
-                      <button
-                        type="button"
-                        title="빠른 삽입"
-                        className="px-4 py-3 sm:px-4 sm:py-2 text-sm sm:text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-lg font-medium transition-colors min-h-[44px] sm:min-h-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSingleSelect(img);
-                        }}
-                      >
-                        ➕ 삽입
-                      </button>
-                      <button
-                        type="button"
-                        title="이미지 확대 보기"
-                        className="px-4 py-3 sm:px-4 sm:py-2 text-sm sm:text-xs rounded-lg bg-white text-gray-800 hover:bg-gray-100 shadow-lg font-medium transition-colors min-h-[44px] sm:min-h-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPreviewUrl(img.url);
-                        }}
-                      >
-                        🔍 확대
-                      </button>
-                      <button
-                        type="button"
-                        title="cleanup.pictures에서 편집"
-                        className="px-4 py-3 sm:px-4 sm:py-2 text-sm sm:text-xs rounded-lg bg-purple-600 text-white hover:bg-purple-700 shadow-lg font-medium transition-colors min-h-[44px] sm:min-h-0"
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          try {
-                            // 1. 이미지 다운로드
-                            const response = await fetch(img.url);
-                            if (!response.ok) {
-                              throw new Error(`이미지 다운로드 실패: ${response.status}`);
-                            }
-                            const blob = await response.blob();
-                            
-                            // 2. cleanup.pictures 열기
-                            const cleanupWindow = window.open('https://cleanup.pictures/', '_blank');
-                            
-                            // 3. 이미지를 다운로드 폴더에 저장 (사용자가 cleanup.pictures에 드래그 앤 드롭 가능)
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = img.name || `image-${Date.now()}.${img.name?.split('.').pop() || 'png'}`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            
-                            // 4. 안내 메시지
-                            setTimeout(() => {
-                              if (cleanupWindow) {
-                                cleanupWindow.focus();
-                                alert(
-                                  '✅ 이미지가 다운로드되었습니다.\n\n' +
-                                  '📋 다음 단계:\n' +
-                                  '1. cleanup.pictures에 다운로드된 이미지를 드래그 앤 드롭하세요\n' +
-                                  '2. 편집 후 "Continue with SD" 버튼을 클릭하세요\n' +
-                                  '3. 편집된 이미지를 다운로드하세요'
-                                );
-                              }
-                              window.URL.revokeObjectURL(url);
-                            }, 500);
-                            
-                          } catch (error) {
-                            console.error('이미지 처리 오류:', error);
-                            alert('이미지 처리에 실패했습니다: ' + (error instanceof Error ? error.message : String(error)));
-                          }
-                        }}
-                      >
-                        ✏️ 수정
-                      </button>
-                      <button
-                        type="button"
-                        title="이미지 다운로드"
-                        className="px-4 py-3 sm:px-4 sm:py-2 text-sm sm:text-xs rounded-lg bg-green-600 text-white hover:bg-green-700 shadow-lg font-medium transition-colors min-h-[44px] sm:min-h-0"
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          try {
-                            // 이미지 다운로드
-                            const response = await fetch(img.url);
-                            const blob = await response.blob();
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = img.name || `image-${Date.now()}.jpg`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            window.URL.revokeObjectURL(url);
-                          } catch (error) {
-                            console.error('다운로드 오류:', error);
-                            alert('이미지 다운로드에 실패했습니다.');
-                          }
-                        }}
-                      >
-                        ⬇️ 다운로드
-                      </button>
-                      <button
-                        type="button"
-                        title={likedImages.has(img.url) ? "좋아요 취소" : "좋아요"}
-                        className={`px-4 py-2 text-xs rounded-lg shadow-lg font-medium transition-colors ${
-                          likedImages.has(img.url)
-                            ? 'bg-red-500 text-white hover:bg-red-600'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                        onClick={(e) => handleToggleLike(img, e)}
-                      >
-                        {likedImages.has(img.url) ? '❤️ 좋아요' : '🤍 좋아요'}
-                      </button>
-                    </div>
+                    {/* 퀵액션 (호버/터치 시에만 표시, 컬럼 수에 따라 UI 변경) */}
+                    {(() => {
+                      const currentColumns = isMobile ? mobileGridColumns : desktopGridColumns;
+                      // 모바일: 2컬럼 이상이면 컴팩트 모드, 태블릿/PC: 3컬럼 이상이면 컴팩트 모드
+                      const isCompact = isMobile 
+                        ? mobileGridColumns >= 2
+                        : (isTablet || desktopGridColumns >= 3);
+                      
+                      return (
+                        <div className={`absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all rounded-xl opacity-0 group-hover:opacity-100 active:opacity-100 ${
+                          isCompact ? 'flex items-center justify-center gap-1 p-1' : 'flex items-center justify-center gap-2'
+                        }`}>
+                          {isCompact ? (
+                            // 컴팩트 모드: 아이콘만 (한 줄 배치)
+                            <>
+                              <button
+                                type="button"
+                                title="빠른 삽입"
+                                className="p-1.5 rounded bg-blue-600 text-white text-xs hover:bg-blue-700 shadow-lg font-medium transition-colors flex-shrink-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSingleSelect(img);
+                                }}
+                              >
+                                ➕
+                              </button>
+                              <button
+                                type="button"
+                                title="이미지 확대 보기"
+                                className="p-1.5 rounded bg-white text-gray-800 text-xs hover:bg-gray-100 shadow-lg font-medium transition-colors flex-shrink-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPreviewUrl(img.url);
+                                }}
+                              >
+                                🔍
+                              </button>
+                              <button
+                                type="button"
+                                title="cleanup.pictures에서 편집"
+                                className="p-1.5 rounded bg-purple-600 text-white text-xs hover:bg-purple-700 shadow-lg font-medium transition-colors flex-shrink-0"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  try {
+                                    const response = await fetch(img.url);
+                                    if (!response.ok) {
+                                      throw new Error(`이미지 다운로드 실패: ${response.status}`);
+                                    }
+                                    const blob = await response.blob();
+                                    const cleanupWindow = window.open('https://cleanup.pictures/', '_blank');
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = img.name || `image-${Date.now()}.${img.name?.split('.').pop() || 'png'}`;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    setTimeout(() => {
+                                      if (cleanupWindow) {
+                                        cleanupWindow.focus();
+                                        alert(
+                                          '✅ 이미지가 다운로드되었습니다.\n\n' +
+                                          '📋 다음 단계:\n' +
+                                          '1. cleanup.pictures에 다운로드된 이미지를 드래그 앤 드롭하세요\n' +
+                                          '2. 편집 후 "Continue with SD" 버튼을 클릭하세요\n' +
+                                          '3. 편집된 이미지를 다운로드하세요'
+                                        );
+                                      }
+                                      window.URL.revokeObjectURL(url);
+                                    }, 500);
+                                  } catch (error) {
+                                    console.error('이미지 처리 오류:', error);
+                                    alert('이미지 처리에 실패했습니다: ' + (error instanceof Error ? error.message : String(error)));
+                                  }
+                                }}
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                type="button"
+                                title="이미지 다운로드"
+                                className="p-1.5 rounded bg-green-600 text-white text-xs hover:bg-green-700 shadow-lg font-medium transition-colors flex-shrink-0"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  try {
+                                    const response = await fetch(img.url);
+                                    const blob = await response.blob();
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = img.name || `image-${Date.now()}.jpg`;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    window.URL.revokeObjectURL(url);
+                                  } catch (error) {
+                                    console.error('다운로드 오류:', error);
+                                    alert('이미지 다운로드에 실패했습니다.');
+                                  }
+                                }}
+                              >
+                                ⬇️
+                              </button>
+                              <button
+                                type="button"
+                                title={likedImages.has(img.url) ? "좋아요 취소" : "좋아요"}
+                                className={`p-1.5 rounded text-xs shadow-lg font-medium transition-colors flex-shrink-0 ${
+                                  likedImages.has(img.url)
+                                    ? 'bg-red-500 text-white hover:bg-red-600'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                                onClick={(e) => handleToggleLike(img, e)}
+                              >
+                                {likedImages.has(img.url) ? '❤️' : '🤍'}
+                              </button>
+                            </>
+                          ) : (
+                            // 1-2컬럼: 아이콘 + 텍스트 (가로 배치)
+                            <>
+                              <button
+                                type="button"
+                                title="빠른 삽입"
+                                className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-lg font-medium transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSingleSelect(img);
+                                }}
+                              >
+                                ➕ 삽입
+                              </button>
+                              <button
+                                type="button"
+                                title="이미지 확대 보기"
+                                className="px-4 py-2 text-sm rounded-lg bg-white text-gray-800 hover:bg-gray-100 shadow-lg font-medium transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPreviewUrl(img.url);
+                                }}
+                              >
+                                🔍 확대
+                              </button>
+                              <button
+                                type="button"
+                                title="cleanup.pictures에서 편집"
+                                className="px-4 py-2 text-sm rounded-lg bg-purple-600 text-white hover:bg-purple-700 shadow-lg font-medium transition-colors"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  try {
+                                    const response = await fetch(img.url);
+                                    if (!response.ok) {
+                                      throw new Error(`이미지 다운로드 실패: ${response.status}`);
+                                    }
+                                    const blob = await response.blob();
+                                    const cleanupWindow = window.open('https://cleanup.pictures/', '_blank');
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = img.name || `image-${Date.now()}.${img.name?.split('.').pop() || 'png'}`;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    setTimeout(() => {
+                                      if (cleanupWindow) {
+                                        cleanupWindow.focus();
+                                        alert(
+                                          '✅ 이미지가 다운로드되었습니다.\n\n' +
+                                          '📋 다음 단계:\n' +
+                                          '1. cleanup.pictures에 다운로드된 이미지를 드래그 앤 드롭하세요\n' +
+                                          '2. 편집 후 "Continue with SD" 버튼을 클릭하세요\n' +
+                                          '3. 편집된 이미지를 다운로드하세요'
+                                        );
+                                      }
+                                      window.URL.revokeObjectURL(url);
+                                    }, 500);
+                                  } catch (error) {
+                                    console.error('이미지 처리 오류:', error);
+                                    alert('이미지 처리에 실패했습니다: ' + (error instanceof Error ? error.message : String(error)));
+                                  }
+                                }}
+                              >
+                                ✏️ 수정
+                              </button>
+                              <button
+                                type="button"
+                                title="이미지 다운로드"
+                                className="px-4 py-2 text-sm rounded-lg bg-green-600 text-white hover:bg-green-700 shadow-lg font-medium transition-colors"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  try {
+                                    const response = await fetch(img.url);
+                                    const blob = await response.blob();
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = img.name || `image-${Date.now()}.jpg`;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    window.URL.revokeObjectURL(url);
+                                  } catch (error) {
+                                    console.error('다운로드 오류:', error);
+                                    alert('이미지 다운로드에 실패했습니다.');
+                                  }
+                                }}
+                              >
+                                ⬇️ 다운로드
+                              </button>
+                              <button
+                                type="button"
+                                title={likedImages.has(img.url) ? "좋아요 취소" : "좋아요"}
+                                className={`px-4 py-2 text-sm rounded-lg shadow-lg font-medium transition-colors ${
+                                  likedImages.has(img.url)
+                                    ? 'bg-red-500 text-white hover:bg-red-600'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                                onClick={(e) => handleToggleLike(img, e)}
+                              >
+                                {likedImages.has(img.url) ? '❤️ 좋아요' : '🤍 좋아요'}
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })}
@@ -1790,45 +1955,50 @@ const GalleryPicker: React.FC<Props> = ({
           )}
         </div>
         {/* 푸터 */}
-        <div className="flex items-center justify-between p-4 border-t bg-white">
-          <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center justify-between p-2 sm:p-4 border-t bg-white text-xs sm:text-sm">
+          {/* 모바일: 컴팩트 레이아웃 */}
+          <div className="flex items-center gap-2 sm:gap-4">
             <span className="font-semibold text-gray-700">
-              📊 총 <span className="text-blue-600">{total}</span>개 이미지
+              📊 <span className="text-blue-600">{total}</span>개
             </span>
-            <span className="text-gray-500">
-              페이지 <span className="font-medium text-gray-700">{page}</span>
-            </span>
-            {filtered.length > 0 && (
+            <div className="hidden sm:flex items-center gap-2">
               <span className="text-gray-500">
-                표시: <span className="font-medium text-gray-700">{filtered.length}</span>개
+                페이지 <span className="font-medium text-gray-700">{page}</span>
               </span>
-            )}
+              {filtered.length > 0 && (
+                <span className="text-gray-500">
+                  표시: <span className="font-medium text-gray-700">{filtered.length}</span>개
+                </span>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <button
               type="button"
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              className="px-2 py-1 sm:px-4 sm:py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-xs sm:text-sm"
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page <= 1}
             >
-              ← 이전
+              <span className="sm:hidden">◀</span>
+              <span className="hidden sm:inline">← 이전</span>
             </button>
-            <span className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg font-medium">
+            <span className="px-2 py-1 sm:px-4 sm:py-2 bg-gray-100 border border-gray-300 rounded-lg font-medium text-xs sm:text-sm">
               {page}
             </span>
             <button
               type="button"
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              className="px-2 py-1 sm:px-4 sm:py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-xs sm:text-sm"
               onClick={() => setPage(page + 1)}
               disabled={page * pageSize >= total}
             >
-              다음 →
+              <span className="sm:hidden">▶</span>
+              <span className="hidden sm:inline">다음 →</span>
             </button>
           </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+              className="px-3 py-1.5 sm:px-6 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm text-xs sm:text-sm"
               onClick={onClose}
             >
               닫기
@@ -1860,6 +2030,56 @@ const GalleryPicker: React.FC<Props> = ({
         )}
 
       </div>
+
+      {/* 검색 모달 (모바일) */}
+      {showSearchModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80] p-4" onClick={() => setShowSearchModal(false)}>
+          <div className="bg-white rounded-lg p-4 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">검색</h3>
+              <button onClick={() => setShowSearchModal(false)} className="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+            </div>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="검색 (파일명/확장자)"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              autoFocus
+            />
+            <button
+              onClick={() => setShowSearchModal(false)}
+              className="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ALT 텍스트 모달 (모바일) */}
+      {showAltModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80] p-4" onClick={() => setShowAltModal(false)}>
+          <div className="bg-white rounded-lg p-4 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">ALT 텍스트</h3>
+              <button onClick={() => setShowAltModal(false)} className="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+            </div>
+            <input
+              value={altText}
+              onChange={(e) => setAltText(e.target.value)}
+              placeholder="ALT 텍스트"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              autoFocus
+            />
+            <button
+              onClick={() => setShowAltModal(false)}
+              className="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 이미지 복사/링크 선택 모달 */}
       {showCopyLinkModal && pendingImageDrop && (
