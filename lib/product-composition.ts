@@ -264,22 +264,31 @@ export function generateCompositionPrompt(
     const isMuziikProduct = product.name?.toLowerCase().includes('muziik') || 
                            product.slug?.includes('muziik');
 
-    let prompt = `You are an expert 3D image editor. Analyze the image (whether original or previously composed) and replace the existing golf driver head with the ${product.name} driver head.
+    let prompt = `You are an expert 3D image editor. Analyze the image and replace the golf club head with the ${product.name} driver head.
 
-CRITICAL: The image contains a DRIVER club (whether it's an original driver or a previously composed driver). You must replace ONLY the driver head with the specified ${product.name} driver model. Do NOT convert from iron or any other club type. The club in the image is already a driver. If the image already contains a composed driver, replace it with the new ${product.name} driver model while maintaining the exact same position, size, angle, and connection to the shaft.
+CRITICAL CLUB TYPE ANALYSIS:
+- FIRST, analyze what type of golf club is in the image (driver, iron, hybrid, wedge, etc.)
+- If the image contains an IRON or any other club type (NOT a driver), you MUST convert it to a DRIVER
+- Replace the entire club head (iron head → driver head) with the ${product.name} driver head
+- The driver head should be LARGER than an iron head (driver heads are significantly bigger - approximately 2-3x the size)
+- Maintain the same shaft position, hand grip, and swing angle
+- If the image already contains a DRIVER, replace it with the new ${product.name} driver model while maintaining the exact same position, size, angle, and connection to the shaft
 
 ANALYSIS & TRANSFORMATION:
 1. Identify visible part: FACE → use FACE ref, CROWN → use CROWN ref, SOLE → use SOLE ref
 2. Measure 3D orientation: viewing angle, tilt, rotation, distance (affects apparent size)
 3. Geometric transformation:
-   - Scale: Match original head's apparent size exactly (perspective-aware)
+   - Scale: 
+     * If converting from IRON to DRIVER: Driver head must be 2-3x LARGER than the original iron head (perspective-aware scaling)
+     * If replacing existing DRIVER: Match original driver head's apparent size exactly (perspective-aware scaling)
    - Rotate: Head MUST rotate around hosel to align with shaft (geometrically perfect)
    - Perspective warp: Match camera angle and distortion exactly
 
 HEAD-TO-SHAFT CONNECTION (CRITICAL):
 - Rotate head around hosel point until hosel opening aligns with shaft entry
 - NO gaps, NO separation, NO misalignment - must appear as ONE continuous piece
-- Head size must match original (perspective-aware scaling)
+- Head size: If converting from iron to driver, the driver head must be LARGER (2-3x the size of the iron head) while maintaining perspective-aware scaling
+- If replacing an existing driver, match the original driver head's size exactly (perspective-aware scaling)
 - Hosel area: smooth transition with proper shadows/reflections
 
 CRITICAL REQUIREMENTS:

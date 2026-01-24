@@ -75,7 +75,6 @@ export default function FeedManager({
   const [isGeneratingBasePrompt, setIsGeneratingBasePrompt] = useState(false);
   const [isRegeneratingPrompt, setIsRegeneratingPrompt] = useState(false);
   const [isRecoveringImage, setIsRecoveringImage] = useState(false);
-  const [isRegeneratingWithTextOption, setIsRegeneratingWithTextOption] = useState<string | null>(null);
   // 프롬프트 토글 상태
   const [isPromptExpanded, setIsPromptExpanded] = useState(false);
   
@@ -634,85 +633,6 @@ export default function FeedManager({
     }
   };
 
-  // 로고 옵션으로 이미지 재생성 함수
-  const handleRegenerateWithLogoOption = async (logoOption: 'logo' | 'full-brand' | 'none') => {
-    // ✅ 배포 완료 상태면 차단
-    if (publishStatus === 'published') {
-      alert('배포 완료 상태에서는 이미지를 재생성할 수 없습니다. 배포 대기로 변경해주세요.');
-      return;
-    }
-
-    try {
-      setIsRegeneratingWithTextOption(logoOption);
-      
-      let modifiedPrompt = feedData.imagePrompt;
-      
-      // 기존 브랜딩 관련 지시사항 제거
-      modifiedPrompt = modifiedPrompt.replace(/\.?\s*(CRITICAL.*?MASSGOO|brandSpec|logo|branding|embroidery|ABSOLUTELY NO.*?MASSGOO)[^.]*\.?/gi, '');
-      
-      // account type에 맞는 나이/인물 지시사항
-      const accountType = accountKey || (account.tone === 'gold' ? 'account1' : 'account2');
-      const ageSpec = accountType === 'account1' 
-        ? 'Korean senior golfer (50-70 years old, Korean ethnicity, Asian facial features, silver/gray hair)'
-        : 'Korean young golfer (30-50 years old, Korean ethnicity, Asian facial features)';
-      
-      // 로고 옵션에 따른 브랜딩 지시사항
-      let brandSpec = '';
-      if (logoOption === 'logo') {
-        // L: 인물의 옷, 모자, 건물, 매장, 조형물에 MASSGOO 로고
-        brandSpec = 'CRITICAL: If the golfer is wearing a cap, hat, or any headwear, the cap MUST have "MASSGOO" logo or embroidery clearly visible and readable. If the golfer is wearing clothing (polo shirt, jacket, etc.), the clothing MUST have "MASSGOO" logo or branding clearly visible. If the scene includes buildings, stores, or structures, include "MASSGOO" store sign, logo, or branding visible on storefronts, interior walls, displays, or architectural elements. If the scene includes sculptures or decorative elements, include "MASSGOO" branding naturally integrated. The brand name "MASSGOO" must be naturally integrated into the cap/hat fabric as embroidery or printed logo, on clothing as a logo patch or embroidered text, and on buildings/structures as realistic store signs or architectural elements. Use "MASSGOO" (not "MASGOO") as the official brand name.';
-      } else if (logoOption === 'full-brand') {
-        // BL: 전체 MASSGOO (로고 + 브랜딩 요소 전체)
-        brandSpec = 'CRITICAL: Prominently feature "MASSGOO" branding throughout the entire image. Include "MASSGOO" logo or embroidery on golfer\'s cap, hat, or headwear clearly visible and readable. Include "MASSGOO" logo or branding on golfer\'s clothing (polo shirt, jacket, etc.) clearly visible. If the scene includes buildings, stores, or structures, prominently display "MASSGOO" store signs, logos, or branding on storefronts, interior walls, displays, or architectural elements. If the scene includes sculptures, decorative elements, or background elements, integrate "MASSGOO" branding naturally throughout. The brand name "MASSGOO" should be visible in multiple locations naturally integrated into the scene. Use "MASSGOO" (not "MASGOO") as the official brand name.';
-      } else {
-        // X: 아무것도 안 넣음
-        brandSpec = 'ABSOLUTELY NO "MASSGOO" branding, logo, text, or any brand elements whatsoever in the image. No logos on caps, hats, clothing, buildings, stores, structures, or any elements. The image must be completely brand-free.';
-      }
-      
-      // 피드 이미지: 나이 스펙 + 브랜딩 옵션
-      modifiedPrompt = `${modifiedPrompt}. ${ageSpec}. ${brandSpec}`;
-      
-      // 프롬프트 재생성 없이 직접 이미지 생성 API 호출
-      const account = accountKey || (account.tone === 'gold' ? 'account1' : 'account2');
-      
-      const response = await fetch('/api/kakao-content/generate-images', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompts: [{ prompt: modifiedPrompt, paragraph: '' }],
-          imageCount: 1,
-          logoOption: logoOption, // 로고 옵션 전달
-          metadata: {
-            account: account,
-            type: 'feed',
-            date: selectedDate || new Date().toISOString().split('T')[0],
-            message: feedData.caption || ''
-          }
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
-        throw new Error(errorData.error || errorData.message || `HTTP ${response.status}`);
-      }
-      
-      const data = await response.json();
-      const imageUrls = data.imageUrls || [];
-      
-      if (imageUrls.length > 0) {
-        onUpdate({
-          ...feedData,
-          imagePrompt: modifiedPrompt,
-          imageUrl: imageUrls[0]
-        });
-        alert(`✅ ${logoOption === 'logo' ? '로고 추가' : logoOption === 'full-brand' ? '전체 브랜딩' : '브랜딩 없음'} 옵션으로 이미지가 재생성되었습니다.`);
-      }
-    } catch (error: any) {
-      alert(`이미지 재생성 실패: ${error.message}`);
-    } finally {
-      setIsRegeneratingWithTextOption(null);
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -936,28 +856,6 @@ export default function FeedManager({
                     </>
                   )}
                 </button>
-              )}
-              {feedData.imageUrl && (
-                <>
-                  <button
-                    onClick={() => handleRegenerateWithLogoOption('logo')}
-                    disabled={isRegeneratingWithTextOption !== null || isGeneratingImage || isGenerating}
-                    className="w-6 h-6 text-xs font-bold bg-blue-500 hover:bg-blue-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
-                    title="인물 옷/모자/건물/매장/조형물에 MASSGOO 로고 추가"
-                  >로고</button>
-                  <button
-                    onClick={() => handleRegenerateWithLogoOption('full-brand')}
-                    disabled={isRegeneratingWithTextOption !== null || isGeneratingImage || isGenerating}
-                    className="w-6 h-6 text-xs font-bold bg-green-500 hover:bg-green-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
-                    title="전체 MASSGOO 브랜딩 추가"
-                  >전체</button>
-                  <button
-                    onClick={() => handleRegenerateWithLogoOption('none')}
-                    disabled={isRegeneratingWithTextOption !== null || isGeneratingImage || isGenerating}
-                    className="w-6 h-6 text-xs font-bold bg-red-500 hover:bg-red-600 text-white rounded disabled:opacity-50 flex items-center justify-center"
-                    title="브랜딩 없음"
-                  >없음</button>
-                </>
               )}
             </div>
           </div>
