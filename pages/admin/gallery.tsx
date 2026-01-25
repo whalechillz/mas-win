@@ -971,12 +971,11 @@ export default function GalleryAdmin() {
   const [searchQuery, setSearchQuery] = useState('');
   // 검색어 디바운싱 (500ms 지연)
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
-  const [filterType, setFilterType] = useState<'all' | 'featured' | 'unused' | 'duplicates' | 'category' | 'logos'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'unused' | 'duplicates'>('all');
   const [folderFilter, setFolderFilter] = useState<string>('all'); // 폴더 필터 추가
   const [includeChildren, setIncludeChildren] = useState<boolean>(true); // 하위 폴더 포함
   const [initialFolderSet, setInitialFolderSet] = useState<boolean>(false); // 초기 폴더 설정 여부 추적
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null);
-  const [sortBy, setSortBy] = useState<'created_at' | 'name' | 'size' | 'usage_count' | 'folder_path'>('created_at');
+  const [sortBy, setSortBy] = useState<'created_at' | 'name' | 'usage_count' | 'folder_path'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   
   // ✅ 좋아요 관련 상태 (useMemo보다 먼저 정의)
@@ -1210,13 +1209,9 @@ export default function GalleryAdmin() {
     
     // 폴더 필터
     if (folderFilter !== 'all') {
-      console.log('🔍 폴더 필터 적용:', folderFilter);
-      console.log('🔍 필터링 전 이미지 수:', filtered.length);
-      
       if (folderFilter === 'root') {
         // 루트 폴더 (폴더 경로가 없는 이미지들)
         filtered = filtered.filter(img => !img.folder_path || img.folder_path === '');
-        console.log('🔍 루트 폴더 필터링 후:', filtered.length);
       } else {
         // 특정 폴더
         const beforeCount = filtered.length;
@@ -1270,15 +1265,11 @@ export default function GalleryAdmin() {
           }
           return matches;
         });
-        console.log('🔍 특정 폴더 필터링 후:', filtered.length, '(이전:', beforeCount, ')');
       }
     }
     
     // 타입 필터
     switch (filterType) {
-      case 'featured':
-        filtered = filtered.filter(img => img.is_featured);
-        break;
       case 'unused':
         filtered = filtered.filter(img => !img.usage_count || img.usage_count === 0);
         break;
@@ -1292,39 +1283,9 @@ export default function GalleryAdmin() {
           return acc;
         }, {} as Record<string, number>);
         
-        // ✅ 개선: 로그 추가로 디버깅 용이
-        console.log('🔍 중복 이미지 필터링:', Object.keys(nameCounts).filter(name => nameCounts[name] > 1).length, '개 중복 그룹');
-        
         filtered = filtered.filter(img => {
           const fileName = img.name || img.url?.split('/').pop() || '';
           return nameCounts[fileName] > 1;
-        });
-        break;
-      case 'category':
-        if (selectedCategoryFilter !== null) {
-          filtered = filtered.filter(img => {
-            // 카테고리가 숫자 ID인 경우
-            if (typeof img.category === 'number') {
-              return img.category === selectedCategoryFilter;
-            }
-            // 카테고리가 문자열인 경우 (하위 호환성)
-            const category = dynamicCategories.find(cat => cat.id === selectedCategoryFilter);
-            return category && img.category === category.name;
-          });
-        }
-        break;
-      case 'logos':
-        // 로고만 필터링 (is_logo = true 또는 folder_path가 originals/logos로 시작)
-        filtered = filtered.filter(img => {
-          // image_metadata의 is_logo 필드 확인
-          if (img.is_logo === true) {
-            return true;
-          }
-          // folder_path로 확인 (originals/logos로 시작)
-          if (img.folder_path && img.folder_path.startsWith('originals/logos')) {
-            return true;
-          }
-          return false;
         });
         break;
       case 'all':
@@ -1346,10 +1307,6 @@ export default function GalleryAdmin() {
         case 'name':
           aValue = a.name.toLowerCase();
           bValue = b.name.toLowerCase();
-          break;
-        case 'size':
-          aValue = a.size || 0;
-          bValue = b.size || 0;
           break;
         case 'usage_count':
           aValue = a.usage_count || 0;
@@ -1380,7 +1337,7 @@ export default function GalleryAdmin() {
     });
     
     return filtered;
-  }, [images, filterType, folderFilter, selectedCategoryFilter, dynamicCategories, sortBy, sortOrder, showLikedOnly]);
+  }, [images, filterType, folderFilter, sortBy, sortOrder, showLikedOnly]);
   // searchQuery는 의존성에서 제거 (서버 사이드 검색 사용)
   
   // 복사/붙여넣기 상태
@@ -4921,33 +4878,11 @@ export default function GalleryAdmin() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="all">전체</option>
-                  <option value="featured">⭐ 대표 이미지</option>
-                  <option value="unused">사용되지 않음</option>
+                  <option value="unused">사용 횟수 0</option>
                   <option value="duplicates">중복 이미지</option>
-                  <option value="category">📂 카테고리별</option>
-                  <option value="logos">🎨 로고만 보기</option>
                 </select>
               </div>
 
-              {/* 카테고리 선택 (카테고리별 필터가 선택된 경우에만 표시) */}
-              {filterType === 'category' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">카테고리 선택</label>
-                  <select
-                    value={selectedCategoryFilter || ''}
-                    onChange={(e) => setSelectedCategoryFilter(e.target.value ? parseInt(e.target.value) : null)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">카테고리 선택</option>
-                    {dynamicCategories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-              )}
               
               {/* ✅ 좋아요 필터 버튼 */}
               <div>
@@ -5001,7 +4936,6 @@ export default function GalleryAdmin() {
                 >
                   <option value="created_at">생성일</option>
                   <option value="name">파일명</option>
-                  <option value="size">파일 크기</option>
                   <option value="usage_count">사용 횟수</option>
                   <option value="folder_path">📁 폴더 경로</option>
                 </select>
@@ -5491,6 +5425,13 @@ export default function GalleryAdmin() {
                         {getFileType(image.name, image.url) === 'video' && (
                           <div className="absolute top-2 left-2 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs font-semibold">
                             🎬 동영상
+                          </div>
+                        )}
+                        
+                        {/* ✅ 좋아요 마크 (오른쪽 상단) */}
+                        {(image.is_liked || likedImages.has(image.url)) && (
+                          <div className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg z-10">
+                            <span className="text-lg">❤️</span>
                           </div>
                         )}
                         
