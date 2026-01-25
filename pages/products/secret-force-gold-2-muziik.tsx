@@ -648,19 +648,25 @@ export default function Gold2SapphireProduct() {
             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-8">
               <div className="group relative bg-gradient-to-br from-yellow-50 to-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border border-yellow-200 hover:border-yellow-400">
                 <div className="relative min-h-80 md:h-96 overflow-hidden">
-                  <div className="absolute inset-0">
-                    <Image 
-                      src={performanceImages.length > 0 ? performanceImages[0] : '/main/testimonials/hero-faces/review-face-01.jpg'}
-                      alt="비거리 회복 추구 후기"
-                      fill
-                      className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/main/testimonials/hero-faces/review-face-01.jpg';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/50 to-transparent"></div>
-                  </div>
+                  {isLoadingProduct || performanceImages.length === 0 ? (
+                    <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                      <p className="text-gray-500 text-sm">이미지 로딩 중...</p>
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0">
+                      <Image 
+                        src={performanceImages[0]}
+                        alt="비거리 회복 추구 후기"
+                        fill
+                        className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/50 to-transparent"></div>
+                    </div>
+                  )}
                   <div className="absolute top-4 left-4 z-10">
                     <span className="bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg">시크리트포스 골드 2 MUZIIK</span>
                   </div>

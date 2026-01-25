@@ -1,6 +1,112 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
-## ✅ 최근 작업: 메인 페이지 퍼포먼스의 변화 섹션 개선 (2026-01-25)
+## ✅ 최근 작업: 박준영 원장 나이 정보 수정 (2026-01-25)
+
+### 완료된 작업
+
+#### 메인 페이지 및 제품 페이지 박준영 원장 나이 수정 ✅
+- **작업 내용**: 
+  - 메인 페이지 "퍼포먼스의 변화" 섹션의 박준영 원장 카드 나이 수정
+  - 제품 페이지 "실제 성능 데이터" 섹션의 박준영 원장 나이 수정
+- **수정 내용**:
+  1. **메인 페이지 (index.js)**:
+     - 박준영 원장: 55세 → 58세
+  2. **제품 페이지 (secret-force-pro-3-muziik.tsx)**:
+     - 박준영 원장: "55세, 비거리 향상" → "58세, 비거리 향상"
+- **수정 파일**:
+  - `pages/index.js`: 박준영 원장 카드의 나이 변경
+  - `pages/products/secret-force-pro-3-muziik.tsx`: 박준영 원장 나이 정보 변경
+- **효과**: 메인 페이지와 제품 페이지의 박준영 원장 정보가 일치하도록 업데이트됨
+
+## ✅ 이전 작업: 이재민 회장 성능 데이터 수정 (2026-01-25)
+
+### 완료된 작업
+
+#### 메인 페이지 및 제품 페이지 이재민 회장 데이터 수정 ✅
+- **작업 내용**: 
+  - 메인 페이지 "퍼포먼스의 변화" 섹션의 이재민 회장 카드 정보 수정
+  - 제품 페이지 "실제 성능 데이터" 섹션의 비거리 증가 수치 수정
+- **수정 내용**:
+  1. **메인 페이지 (index.js)**:
+     - 이재민 회장: +40m → +32m
+     - 이재민 회장: 58세 → 55세
+  2. **제품 페이지 (secret-weapon-black-muziik.tsx)**:
+     - 비거리 증가 수치: +20m → +32m
+- **수정 파일**:
+  - `pages/index.js`: 이재민 회장 카드의 비거리 증가 수치 및 나이 변경
+  - `pages/products/secret-weapon-black-muziik.tsx`: 비거리 증가 수치 변경
+- **효과**: 메인 페이지와 제품 페이지의 성능 데이터가 정확하게 일치하도록 업데이트됨
+
+## ✅ 이전 작업: 김성호 대표 비거리 증가 수치 수정 (2026-01-25)
+
+### 완료된 작업
+
+#### 메인 페이지 김성호 대표 카드 수정 ✅
+- **작업 내용**: 메인 페이지 "퍼포먼스의 변화" 섹션의 김성호 대표 카드에서 비거리 증가 수치를 "+35m"에서 "+25m"로 변경
+- **수정 파일**:
+  - `pages/index.js`: 김성호 대표 카드의 비거리 증가 수치 변경 (+35m → +25m)
+- **효과**: 메인 페이지의 성능 데이터가 정확하게 표시됨
+
+## ✅ 이전 작업: fallback 이미지 제거 및 구식 제품 페이지 삭제 (2026-01-25)
+
+### 완료된 작업
+
+#### fallback 이미지 제거 및 구식 제품 페이지 정리 ✅
+- **작업 내용**: 
+  - 메인 페이지와 제품 페이지에서 fallback 이미지 제거
+  - 로딩 중에는 placeholder 표시하도록 개선
+  - 구식 slug를 사용하는 페이지 파일 삭제 및 링크 업데이트
+- **수정 내용**:
+  1. **pages/index.js 링크 업데이트**:
+     - `/products/weapon-beryl` → `/products/secret-weapon-black-muziik`
+     - `/products/gold2-sapphire` → `/products/secret-force-gold-2-muziik`
+     - `/products/pro3-muziik` → `/products/secret-force-pro-3-muziik`
+     - 데스크톱 메뉴, 모바일 메뉴, 제품 카드 링크 모두 업데이트
+  2. **구식 제품 페이지 파일 삭제**:
+     - `pages/products/weapon-beryl.tsx` 삭제 (middleware에서 리다이렉트 처리)
+     - `pages/products/gold2-sapphire.tsx` 삭제 (middleware에서 리다이렉트 처리)
+  3. **fallback 이미지 제거**:
+     - 메인 페이지: `performanceImagesLoading` 상태로 로딩 중에는 placeholder 표시
+     - 제품 페이지: `isLoadingProduct || performanceImages.length === 0` 조건으로 로딩 처리
+     - fallback 이미지 경로 제거 (`/main/testimonials/hero-faces/review-face-XX.jpg`)
+  4. **로딩 처리 개선**:
+     - 이미지가 로드되기 전에는 "이미지 로딩 중..." placeholder 표시
+     - 예전 썸네일 이미지가 잠깐 나타나는 문제 해결
+- **효과**:
+  - 예전 썸네일 이미지가 잠깐 나타나는 문제 해결
+  - 깔끔한 로딩 경험 제공
+  - 구식 slug 사용 중단으로 코드 정리
+  - 모든 링크가 최신 slug로 통일
+- **수정 파일**:
+  - `pages/index.js`: 링크 업데이트 및 fallback 이미지 제거, 로딩 처리 추가
+  - `pages/products/secret-weapon-black-muziik.tsx`: fallback 이미지 제거 및 로딩 처리 추가
+  - `pages/products/secret-force-gold-2-muziik.tsx`: fallback 이미지 제거 및 로딩 처리 추가
+  - `pages/products/weapon-beryl.tsx`: 삭제
+  - `pages/products/gold2-sapphire.tsx`: 삭제
+
+## ✅ 이전 작업: 박준영 원장 성능 데이터 수정 (2026-01-25)
+
+### 완료된 작업
+
+#### 메인 페이지 및 제품 페이지 성능 데이터 수정 ✅
+- **작업 내용**: 
+  - 메인 페이지 "퍼포먼스의 변화" 섹션의 박준영 원장 카드 정보 수정
+  - 제품 페이지 "실제 성능 데이터" 섹션의 성능 데이터 수정
+- **수정 내용**:
+  1. **메인 페이지 (index.js)**:
+     - 박준영 원장: 65세 → 55세
+     - 비거리 증가: +32m → +22m
+  2. **제품 페이지 (secret-force-pro-3-muziik.tsx)**:
+     - 비거리 증가: +20m → +22m
+     - 나이 및 설명: 53세, 비거리 향상 → 55세, 비거리 향상
+- **효과**:
+  - 성능 데이터 일관성 향상
+  - 메인 페이지와 제품 페이지 간 정보 일치
+- **수정 파일**:
+  - `pages/index.js`: 박준영 원장 카드 정보 수정 (65세 → 55세, +32m → +22m)
+  - `pages/products/secret-force-pro-3-muziik.tsx`: 실제 성능 데이터 섹션 수정 (+20m → +22m, 53세 → 55세)
+
+## ✅ 이전 작업: 메인 페이지 퍼포먼스의 변화 섹션 개선 (2026-01-25)
 
 ### 완료된 작업
 

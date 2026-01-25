@@ -703,13 +703,13 @@ export default function Pro3MuziikProduct() {
                     <span className="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">시크리트포스 PRO3 MUZIIK</span>
                   </div>
                   <div className="absolute bottom-4 right-4 z-10 text-right">
-                    <div className="text-3xl font-black text-red-600 mb-1">+20m</div>
+                    <div className="text-3xl font-black text-red-600 mb-1">+22m</div>
                     <div className="text-xs text-gray-600 font-semibold">비거리 증가</div>
                   </div>
                 </div>
                 <div className="p-6">
                   <h3 className="text-lg font-bold text-gray-900 mb-1">비거리 향상의 선택</h3>
-                  <p className="text-sm text-gray-500 mb-4">53세, 비거리 향상</p>
+                  <p className="text-sm text-gray-500 mb-4">58세, 비거리 향상</p>
                   <p className="text-gray-700 text-sm leading-relaxed italic">
                     &quot;PRO3에 MUZIIK 샤프트를 추가한 버전을 사용하면서 정말 놀랐습니다. 기존 PRO3보다 확실히 비거리가 늘었고, 무엇보다 샤프트의 반응이 훨씬 좋습니다.&quot;
                   </p>

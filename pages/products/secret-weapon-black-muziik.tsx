@@ -672,24 +672,30 @@ export default function WeaponBerylProduct() {
             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-8">
               <div className="group relative bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-800 hover:border-green-400">
                 <div className="relative min-h-80 md:h-96 overflow-hidden">
-                  <div className="absolute inset-0">
-                    <Image 
-                      src={performanceImages.length > 0 ? performanceImages[0] : '/main/testimonials/hero-faces/review-face-02.jpg'}
-                      alt="프로 골퍼 후기"
-                      fill
-                      className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/main/testimonials/hero-faces/review-face-02.jpg';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
-                  </div>
+                  {isLoadingProduct || performanceImages.length === 0 ? (
+                    <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+                      <p className="text-gray-400 text-sm">이미지 로딩 중...</p>
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0">
+                      <Image 
+                        src={performanceImages[0]}
+                        alt="프로 골퍼 후기"
+                        fill
+                        className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
+                    </div>
+                  )}
                   <div className="absolute top-4 left-4 z-10">
                     <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">시크리트웨폰 블랙 MUZIIK</span>
                   </div>
                   <div className="absolute bottom-4 right-4 z-10 text-right">
-                    <div className="text-3xl font-black text-green-400 mb-1">+20m</div>
+                    <div className="text-3xl font-black text-green-400 mb-1">+32m</div>
                     <div className="text-xs text-gray-400 font-semibold">비거리 증가</div>
                   </div>
                 </div>

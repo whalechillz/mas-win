@@ -431,7 +431,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                   {driverMenuOpen && (
                     <div className="absolute top-full left-0 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
                       <Link 
-                        href="/products/weapon-beryl"
+                        href="/products/secret-weapon-black-muziik"
                         className="block px-4 pt-5 pb-3 hover:bg-gray-50 transition-colors"
                         onClick={() => setDriverMenuOpen(false)}
                       >
@@ -442,7 +442,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                         <p className="text-sm text-gray-600 mt-1">MUZIIK 협업 제품</p>
                       </Link>
                       <Link 
-                        href="/products/gold2-sapphire"
+                        href="/products/secret-force-gold-2-muziik"
                         className="block px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-100"
                         onClick={() => setDriverMenuOpen(false)}
                       >
@@ -453,7 +453,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                         <p className="text-sm text-gray-600 mt-1">MUZIIK 협업 제품</p>
                       </Link>
                       <Link 
-                        href="/products/pro3-muziik"
+                        href="/products/secret-force-pro-3-muziik"
                         className="block px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-100"
                         onClick={() => setDriverMenuOpen(false)}
                       >
@@ -510,7 +510,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                     {driverMenuOpen && (
                       <div className="pl-4 mt-2 space-y-2 border-l-2 border-gray-200">
                         <Link 
-                          href="/products/weapon-beryl"
+                          href="/products/secret-weapon-black-muziik"
                           className="block py-2 text-gray-700 hover:text-gray-900"
                           onClick={() => {
                             setMobileMenuOpen(false);
@@ -524,7 +524,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                           <p className="text-xs text-gray-600 mt-1">MUZIIK 협업 제품</p>
                         </Link>
                         <Link 
-                          href="/products/gold2-sapphire"
+                          href="/products/secret-force-gold-2-muziik"
                           className="block py-2 text-gray-700 hover:text-gray-900"
                           onClick={() => {
                             setMobileMenuOpen(false);
@@ -538,7 +538,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                           <p className="text-xs text-gray-600 mt-1">MUZIIK 협업 제품</p>
                         </Link>
                         <Link 
-                          href="/products/pro3-muziik"
+                          href="/products/secret-force-pro-3-muziik"
                           className="block py-2 text-gray-700 hover:text-gray-900"
                           onClick={() => {
                             setMobileMenuOpen(false);
@@ -719,7 +719,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                       </div>
                     </div>
                     <Link
-                      href="/products/weapon-beryl"
+                      href="/products/secret-weapon-black-muziik"
                       className="inline-block bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white px-6 py-3 rounded-lg font-semibold transition-all"
                     >
                       자세히 보기 →
@@ -754,7 +754,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                       </div>
                     </div>
                     <Link
-                      href="/products/gold2-sapphire"
+                      href="/products/secret-force-gold-2-muziik"
                       className="inline-block bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-yellow-600 text-white px-6 py-3 rounded-lg font-semibold transition-all"
                     >
                       자세히 보기 →
@@ -789,7 +789,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                       </div>
                     </div>
                     <Link
-                      href="/products/pro3-muziik"
+                      href="/products/secret-force-pro-3-muziik"
                       className="inline-block bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-all"
                     >
                       자세히 보기 →
@@ -1096,27 +1096,33 @@ export default function Home({ hostname, initialProducts = [] }) {
                 className="group relative bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-yellow-300 cursor-pointer"
               >
                 <div className="relative min-h-80 md:h-96 overflow-hidden bg-gradient-to-br from-yellow-50 to-white">
-                  <div className="absolute inset-0">
-                    <Image
-                      src={performanceImages['secret-force-gold-2-muziik'] || '/main/testimonials/hero-faces/review-face-01.jpg'}
-                      alt="김성호 대표"
-                      fill
-                      className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
-                      onError={(e) => {
-                        const target = e.target;
-                        target.src = '/main/testimonials/hero-faces/review-face-01.jpg';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/50 to-transparent"></div>
-                </div>
+                  {performanceImagesLoading || !performanceImages['secret-force-gold-2-muziik'] ? (
+                    <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                      <p className="text-gray-500 text-sm">이미지 로딩 중...</p>
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0">
+                      <Image
+                        src={performanceImages['secret-force-gold-2-muziik']}
+                        alt="김성호 대표"
+                        fill
+                        className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
+                        onError={(e) => {
+                          const target = e.target;
+                          target.style.display = 'none';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/50 to-transparent"></div>
+                    </div>
+                  )}
                   <div className="absolute top-4 left-4 z-10">
                     <span className="bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg">시크리트포스 골드 2 MUZIIK</span>
                   </div>
                   <div className="absolute bottom-4 right-4 z-10 text-right">
-                    <div className="text-3xl font-black text-green-600 mb-1">+35m</div>
+                    <div className="text-3xl font-black text-green-600 mb-1">+25m</div>
                     <div className="text-xs text-gray-600 font-semibold">비거리 증가</div>
                   </div>
-              </div>
+                </div>
                 <div className="p-6">
                   <h3 className="text-lg font-bold mb-1">김성호 대표</h3>
                   <p className="text-sm text-gray-500 mb-4">62세</p>
@@ -1130,30 +1136,36 @@ export default function Home({ hostname, initialProducts = [] }) {
                 className="group relative bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-800 hover:border-green-400 cursor-pointer"
               >
                 <div className="relative min-h-80 md:h-96 overflow-hidden">
-                  <div className="absolute inset-0">
-                    <Image
-                      src={performanceImages['secret-weapon-black-muziik'] || '/main/testimonials/hero-faces/review-face-02.jpg'}
-                      alt="이재민 회장"
-                      fill
-                      className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
-                      onError={(e) => {
-                        const target = e.target;
-                        target.src = '/main/testimonials/hero-faces/review-face-02.jpg';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
-                </div>
+                  {performanceImagesLoading || !performanceImages['secret-weapon-black-muziik'] ? (
+                    <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+                      <p className="text-gray-400 text-sm">이미지 로딩 중...</p>
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0">
+                      <Image
+                        src={performanceImages['secret-weapon-black-muziik']}
+                        alt="이재민 회장"
+                        fill
+                        className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
+                        onError={(e) => {
+                          const target = e.target;
+                          target.style.display = 'none';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
+                    </div>
+                  )}
                   <div className="absolute top-4 left-4 z-10">
                     <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">시크리트웨폰 블랙 MUZIIK</span>
                   </div>
                   <div className="absolute bottom-4 right-4 z-10 text-right">
-                    <div className="text-3xl font-black text-green-400 mb-1">+40m</div>
+                    <div className="text-3xl font-black text-green-400 mb-1">+32m</div>
                     <div className="text-xs text-gray-400 font-semibold">비거리 증가</div>
                   </div>
-              </div>
+                </div>
                 <div className="p-6 text-white">
                   <h3 className="text-lg font-bold mb-1">이재민 회장</h3>
-                  <p className="text-sm text-gray-400 mb-4">58세</p>
+                  <p className="text-sm text-gray-400 mb-4">55세</p>
                   <p className="text-gray-300 text-sm leading-relaxed italic">
                     "풀 티타늄 4X 샤프트의 시크리트웨폰 블랙을 사용하면서 정말 놀랐습니다. 40g대의 가벼움과 강함이 동시에 가능한 혁신적인 제품이에요."
                   </p>
@@ -1164,30 +1176,36 @@ export default function Home({ hostname, initialProducts = [] }) {
                 className="group relative bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-blue-300 cursor-pointer"
               >
                 <div className="relative min-h-80 md:h-96 overflow-hidden bg-gradient-to-br from-blue-50 to-white">
-                  <div className="absolute inset-0">
-                    <Image
-                      src={performanceImages['secret-force-pro-3-muziik'] || '/main/testimonials/hero-faces/review-face-03.jpg'}
-                      alt="박준영 원장"
-                      fill
-                      className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
-                      onError={(e) => {
-                        const target = e.target;
-                        target.src = '/main/testimonials/hero-faces/review-face-03.jpg';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/50 to-transparent"></div>
-                </div>
+                  {performanceImagesLoading || !performanceImages['secret-force-pro-3-muziik'] ? (
+                    <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                      <p className="text-gray-500 text-sm">이미지 로딩 중...</p>
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0">
+                      <Image
+                        src={performanceImages['secret-force-pro-3-muziik']}
+                        alt="박준영 원장"
+                        fill
+                        className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
+                        onError={(e) => {
+                          const target = e.target;
+                          target.style.display = 'none';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/50 to-transparent"></div>
+                    </div>
+                  )}
                   <div className="absolute top-4 left-4 z-10">
                     <span className="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">시크리트포스 PRO3 MUZIIK</span>
                   </div>
                   <div className="absolute bottom-4 right-4 z-10 text-right">
-                    <div className="text-3xl font-black text-green-600 mb-1">+32m</div>
+                    <div className="text-3xl font-black text-green-600 mb-1">+22m</div>
                     <div className="text-xs text-gray-600 font-semibold">비거리 증가</div>
-              </div>
-            </div>
+                  </div>
+                </div>
                 <div className="p-6">
                   <h3 className="text-lg font-bold mb-1">박준영 원장</h3>
-                  <p className="text-sm text-gray-500 mb-4">65세</p>
+                  <p className="text-sm text-gray-500 mb-4">58세</p>
                   <p className="text-gray-700 text-sm leading-relaxed italic">
                     "스윙 스피드가 예전 같지 않아 포기하고 있었는데, MASSGOO 드라이버로 바꾸니 젊은 시절 비거리가 다시 나옵니다. 골프가 다시 재미있어졌어요."
                   </p>
