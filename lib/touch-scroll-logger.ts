@@ -178,9 +178,11 @@ class TouchScrollLogger {
     if (styles.htmlHeight === '100%' && styles.bodyHeight === '100%') {
       issues.push('html/body 높이가 100%로 고정됨');
     }
-    if (styles.webkitOverflowScrolling === 'N/A' || styles.webkitOverflowScrolling === 'auto') {
-      issues.push('-webkit-overflow-scrolling: touch 미적용');
-    }
+    // -webkit-overflow-scrolling: touch는 globals.css에 이미 적용되어 있음
+    // getComputedStyle로는 정확히 감지되지 않을 수 있어 경고 제거
+    // if (styles.webkitOverflowScrolling === 'N/A' || styles.webkitOverflowScrolling === 'auto') {
+    //   issues.push('-webkit-overflow-scrolling: touch 미적용');
+    // }
 
     console.log('[TOUCH-SCROLL] [INIT] 페이지 스크롤 가능 여부 체크');
     console.log(`  스크롤 가능: ${canScroll ? '✅ 예' : '❌ 아니오'}`);
