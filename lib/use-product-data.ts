@@ -8,6 +8,7 @@ import { getProductImageUrl } from './product-image-url';
 interface UseProductDataResult {
   productImages: string[];
   galleryImages: string[];
+  performanceImages: string[];
   isLoadingProduct: boolean;
   product: any | null;
 }
@@ -15,6 +16,7 @@ interface UseProductDataResult {
 export function useProductData(slug: string, defaultImages: string[] = []): UseProductDataResult {
   const [productImages, setProductImages] = useState<string[]>([]);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [performanceImages, setPerformanceImages] = useState<string[]>([]);
   const [isLoadingProduct, setIsLoadingProduct] = useState(true);
   const [product, setProduct] = useState<any | null>(null);
 
@@ -45,16 +47,26 @@ export function useProductData(slug: string, defaultImages: string[] = []): UseP
           } else {
             setGalleryImages([]);
           }
+          
+          // performance_images 처리 (성능 데이터 이미지)
+          if (Array.isArray(productData.performance_images) && productData.performance_images.length > 0) {
+            const performanceUrls = productData.performance_images.map((img: string) => getProductImageUrl(img));
+            setPerformanceImages(performanceUrls);
+          } else {
+            setPerformanceImages([]);
+          }
         } else {
           // 데이터베이스에 제품이 없으면 빈 배열
           setProductImages([]);
           setGalleryImages([]);
+          setPerformanceImages([]);
         }
       } catch (error) {
         console.error('제품 로드 오류:', error);
         // 오류 발생 시에도 폴백 없이 빈 배열
         setProductImages([]);
         setGalleryImages([]);
+        setPerformanceImages([]);
       } finally {
         setIsLoadingProduct(false);
       }
@@ -68,6 +80,7 @@ export function useProductData(slug: string, defaultImages: string[] = []): UseP
   return {
     productImages,
     galleryImages,
+    performanceImages,
     isLoadingProduct,
     product,
   };

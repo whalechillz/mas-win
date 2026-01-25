@@ -38,6 +38,7 @@ type Product = {
   detail_images?: string[] | null;
   composition_images?: string[] | null;
   gallery_images?: string[] | null;
+  performance_images?: string[] | null;
   // 제품 합성 관리 데이터
   product_composition?: {
     id: string;
@@ -91,8 +92,9 @@ export default function ProductsAdminPage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [detailImages, setDetailImages] = useState<string[]>([]);
   const [showGalleryPicker, setShowGalleryPicker] = useState(false);
-  const [galleryPickerMode, setGalleryPickerMode] = useState<'detail' | null>(null);
+  const [galleryPickerMode, setGalleryPickerMode] = useState<'detail' | 'performance' | null>(null);
   const [mainImageUrl, setMainImageUrl] = useState<string>(''); // 대표 이미지
+  const [performanceImages, setPerformanceImages] = useState<string[]>([]); // 성능 데이터 이미지
   
   // 합성 관리가 불필요한 카테고리
   const COMPOSITION_EXCLUDED_CATEGORIES = ['component', 'weight_pack'];
@@ -393,6 +395,9 @@ export default function ProductsAdminPage() {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingProduct(null);
+    setMainImageUrl('');
+    setDetailImages([]);
+    setPerformanceImages([]);
     setFormState({
       name: '',
       sku: '',
@@ -540,6 +545,9 @@ export default function ProductsAdminPage() {
       setMainImageUrl('');
       setDetailImages([]);
     }
+    // 성능 데이터 이미지 초기화
+    const perfImages = Array.isArray(product.performance_images) ? product.performance_images : [];
+    setPerformanceImages(perfImages);
     setShowModal(true);
   };
 
@@ -592,6 +600,7 @@ export default function ProductsAdminPage() {
             ? null
             : formState.sale_price,
         detail_images: finalDetailImages,
+        performance_images: performanceImages.length > 0 ? performanceImages : [],
         // 합성 데이터 생성 옵션 (신규 제품 또는 합성 데이터가 없는 제품)
         ...(isEdit 
           ? (createComposition && !editingProduct?.product_composition ? { createComposition: true } : {})
@@ -865,6 +874,25 @@ export default function ProductsAdminPage() {
     return `originals/goods/${slug}/detail`;
   };
 
+  // 성능 데이터 이미지용 폴더 경로
+  const getPerformanceFolderPath = (): string | undefined => {
+    if (!formState.slug && !formState.sku) return undefined;
+    
+    // slug 정규화: SKU를 slug 형식으로 변환
+    let slug = formState.slug;
+    if (!slug && formState.sku) {
+      slug = formState.sku.toLowerCase().replace(/_+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    }
+    if (!slug) return undefined;
+    
+    // 성능 데이터 이미지는 products/{slug}/gallery 폴더 사용
+    if (formState.product_type === 'driver') {
+      return `originals/products/${slug}/gallery`;
+    }
+    
+    return undefined; // 드라이버 제품만 지원
+  };
+
   const handleOpenGallery = () => {
     if (!formState.slug && !formState.sku) {
       alert('제품 정보(Slug, SKU)를 먼저 입력해주세요.');
@@ -874,7 +902,33 @@ export default function ProductsAdminPage() {
     setShowGalleryPicker(true);
   };
 
+  const handleOpenPerformanceGallery = () => {
+    if (!formState.slug && !formState.sku) {
+      alert('제품 정보(Slug, SKU)를 먼저 입력해주세요.');
+      return;
+    }
+    if (formState.product_type !== 'driver') {
+      alert('성능 데이터 이미지는 드라이버 제품만 지원합니다.');
+      return;
+    }
+    setGalleryPickerMode('performance');
+    setShowGalleryPicker(true);
+  };
+
   const handleGalleryImageSelect = (imageUrl: string) => {
+    if (galleryPickerMode === 'performance') {
+      // 성능 데이터 이미지 추가
+      if (performanceImages.includes(imageUrl)) {
+        alert('이미 추가된 이미지입니다.');
+        return;
+      }
+      setPerformanceImages([...performanceImages, imageUrl]);
+      setShowGalleryPicker(false);
+      setGalleryPickerMode(null);
+      return;
+    }
+    
+    // 기존 로직 (detail_images)
     const allImages = getAllImages();
     
     // 이미 존재하는 이미지는 추가하지 않음
@@ -1720,9 +1774,10 @@ export default function ProductsAdminPage() {
                       name="product_type"
                       value="goods"
                       checked={formState.product_type === 'goods'}
-                      onChange={(e) =>
-                        setFormState({ ...formState, product_type: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value as 'goods' | 'driver' | 'component';
+                        setFormState({ ...formState, product_type: value });
+                      }}
                       className="rounded"
                     />
                     굿즈
@@ -1733,9 +1788,10 @@ export default function ProductsAdminPage() {
                       name="product_type"
                       value="driver"
                       checked={formState.product_type === 'driver'}
-                      onChange={(e) =>
-                        setFormState({ ...formState, product_type: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value as 'goods' | 'driver' | 'component';
+                        setFormState({ ...formState, product_type: value });
+                      }}
                       className="rounded"
                     />
                     드라이버
@@ -1746,9 +1802,10 @@ export default function ProductsAdminPage() {
                       name="product_type"
                       value="component"
                       checked={formState.product_type === 'component'}
-                      onChange={(e) =>
-                        setFormState({ ...formState, product_type: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value as 'goods' | 'driver' | 'component';
+                        setFormState({ ...formState, product_type: value });
+                      }}
                       className="rounded"
                     />
                     부품
@@ -1925,6 +1982,118 @@ export default function ProductsAdminPage() {
                 )}
               </div>
               
+              {/* 성능 데이터 이미지 관리 (드라이버 제품만) */}
+              {formState.product_type === 'driver' && (
+                <div className="border-t pt-4 mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    성능 데이터 이미지 관리
+                    {performanceImages.length > 0 && (
+                      <span className="ml-2 text-xs text-gray-500 font-normal">
+                        (총 {performanceImages.length}개)
+                      </span>
+                    )}
+                  </label>
+                  <p className="text-xs text-gray-500 mb-3">
+                    실제 성능 데이터 섹션에 표시될 이미지를 선택하세요. (originals/products/{'{slug}'}/gallery)
+                  </p>
+                  
+                  {/* 이미지 추가 버튼 */}
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      type="button"
+                      onClick={handleOpenPerformanceGallery}
+                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
+                    >
+                      🖼️ 갤러리에서 선택
+                    </button>
+                  </div>
+
+                  {/* 성능 데이터 이미지 그리드 */}
+                  {performanceImages.length > 0 ? (
+                    <div className="grid grid-cols-4 gap-4">
+                      {performanceImages.map((img, index) => {
+                        const fileName = getFileNameFromUrl(img);
+                        return (
+                          <div key={index} className="relative group">
+                            <div className="relative w-full h-32 bg-gray-100 rounded overflow-hidden border-2 border-purple-300">
+                              <Image
+                                src={getProductImageUrl(img)}
+                                alt={`성능 데이터 이미지 ${index + 1}`}
+                                fill
+                                className="object-contain"
+                                unoptimized
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  console.error('❌ 이미지 로드 실패:', img);
+                                }}
+                              />
+                              <div className="absolute top-1 left-1 bg-purple-500 text-white text-xs px-2 py-1 rounded">
+                                성능
+                              </div>
+                            </div>
+                            
+                            {/* 파일명 표시 */}
+                            <div className="mt-1 text-xs text-gray-600 truncate" title={fileName || img}>
+                              {fileName || '파일명 없음'}
+                            </div>
+                            
+                            {/* 버튼 그룹 */}
+                            <div className="mt-2 flex gap-1">
+                              {index > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newImages = [...performanceImages];
+                                    [newImages[index - 1], newImages[index]] = [newImages[index], newImages[index - 1]];
+                                    setPerformanceImages(newImages);
+                                  }}
+                                  className="flex-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                  title="위로 이동"
+                                >
+                                  ↑
+                                </button>
+                              )}
+                              {index < performanceImages.length - 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newImages = [...performanceImages];
+                                    [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
+                                    setPerformanceImages(newImages);
+                                  }}
+                                  className="flex-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                  title="아래로 이동"
+                                >
+                                  ↓
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setPerformanceImages(performanceImages.filter((_, i) => i !== index));
+                                }}
+                                className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                                title="이미지 삭제"
+                              >
+                                삭제
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded">
+                      <p className="mb-2 font-medium">성능 데이터 이미지가 없습니다.</p>
+                      <p className="text-xs text-gray-400">
+                        위 버튼을 사용하여 갤러리에서 이미지를 선택하세요.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+              
               {/* 메모 (하단으로 이동) */}
               <div className="border-t pt-4 mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1969,8 +2138,16 @@ export default function ProductsAdminPage() {
           setGalleryPickerMode(null);
         }}
         onSelect={handleGalleryImageSelect}
-        folderPath={getDetailFolderPath() || ''}
-        title="갤러리에서 이미지 선택"
+        folderPath={
+          galleryPickerMode === 'performance' 
+            ? (getPerformanceFolderPath() || '')
+            : (getDetailFolderPath() || '')
+        }
+        title={
+          galleryPickerMode === 'performance'
+            ? '성능 데이터 이미지 선택'
+            : '갤러리에서 이미지 선택'
+        }
       />
 
       {inventoryModalOpen && inventoryProduct && (

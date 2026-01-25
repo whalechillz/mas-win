@@ -6,6 +6,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // 공통으로 사용하는 컬럼 목록 (SELECT 시 재사용)
+// performance_images는 필드가 없을 수 있으므로 별도로 처리
 const PRODUCT_SELECT_COLUMNS =
   'id, name, sku, category, color, size, legacy_name, is_gift, is_sellable, is_active, normal_price, sale_price, is_component, condition, product_type, slug, subtitle, badge_left, badge_right, badge_left_color, badge_right_color, border_color, features, specifications, display_order, detail_images, composition_images, gallery_images';
 
@@ -102,10 +103,12 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
     const sortColumn = allowedSortColumns.includes(sortBy) ? sortBy : 'name';
     const ascending = sortOrder === 'asc';
 
+    // performance_images 필드가 있을 수 있으므로 별도로 추가 (필드가 없어도 에러 방지)
     let query = supabase
       .from('products')
       .select(`
         ${PRODUCT_SELECT_COLUMNS},
+        performance_images,
         product_composition!product_composition_product_id_fkey (
           id,
           name,
@@ -221,6 +224,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       is_component = false,
       condition = 'new',
       detail_images,
+      performance_images,
       product_type,
     } = req.body || {};
 
@@ -341,6 +345,9 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     }
     if (detail_images !== undefined) {
       payload.detail_images = Array.isArray(detail_images) ? detail_images : [];
+    }
+    if (performance_images !== undefined) {
+      payload.performance_images = Array.isArray(performance_images) ? performance_images : [];
     }
 
     const { data, error } = await supabase
@@ -586,6 +593,7 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
       is_component,
       condition,
       detail_images,
+      performance_images,
       subtitle,
       badge_left,
       badge_right,
@@ -621,6 +629,9 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     }
     if (detail_images !== undefined) {
       update.detail_images = Array.isArray(detail_images) ? detail_images : [];
+    }
+    if (performance_images !== undefined) {
+      update.performance_images = Array.isArray(performance_images) ? performance_images : [];
     }
 
     // 드라이버 제품 전용 필드
@@ -663,7 +674,7 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
       .from('products')
       .update(update)
       .eq('id', id)
-      .select(PRODUCT_SELECT_COLUMNS)
+      .select(`${PRODUCT_SELECT_COLUMNS}, performance_images`)
       .single();
 
     if (error) {
@@ -890,7 +901,7 @@ async function handleDelete(req: NextApiRequest, res: NextApiResponse) {
         .from('products')
         .update({ is_active: false })
         .eq('id', id)
-        .select(PRODUCT_SELECT_COLUMNS)
+        .select(`${PRODUCT_SELECT_COLUMNS}, performance_images`)
         .single();
 
       if (error) {

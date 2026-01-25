@@ -22,7 +22,7 @@ export default function Pro3MuziikProduct() {
   ];
 
   // 제품 데이터 로드
-  const { productImages, galleryImages, isLoadingProduct } = useProductData('secret-force-pro-3-muziik', defaultImages);
+  const { productImages, galleryImages, performanceImages, isLoadingProduct } = useProductData('secret-force-pro-3-muziik', defaultImages);
 
   // 블로그 후기 가져오기
   useEffect(() => {
@@ -682,15 +682,20 @@ export default function Pro3MuziikProduct() {
               <p className="text-lg text-gray-600">실제 사용자가 인정하는 성능</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-8">
+              {/* 대표 이미지 카드 (첫 번째 이미지 또는 기본 이미지) */}
               <div className="group relative bg-gradient-to-br from-gray-50 to-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-200 hover:border-red-400">
                 <div className="relative min-h-80 md:h-96 overflow-hidden">
                   <div className="absolute inset-0">
                     <Image 
-                      src="/main/testimonials/hero-faces/review-face-05.webp"
+                      src={performanceImages.length > 0 ? performanceImages[0] : '/main/testimonials/hero-faces/review-face-05.webp'}
                       alt="비거리 회복 후기"
                       fill
                       className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/main/testimonials/hero-faces/review-face-05.webp';
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/50 to-transparent"></div>
                   </div>
@@ -710,6 +715,7 @@ export default function Pro3MuziikProduct() {
                   </p>
                 </div>
               </div>
+              {/* 통계 박스들 */}
               <div className="space-y-4">
                 <div className="text-center bg-red-50 rounded-2xl p-6 border border-red-200">
                   <div className="text-3xl font-bold text-red-600 mb-2">+15m ~ +25m</div>
@@ -728,6 +734,35 @@ export default function Pro3MuziikProduct() {
                 </div>
               </div>
             </div>
+
+            {/* 갤러리 이미지 그리드 (2개 이상일 때만 표시) */}
+            {performanceImages.length > 1 && (
+              <div className="max-w-5xl mx-auto">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                  {performanceImages.slice(1, 7).map((image, index) => (
+                    <div key={index} className="relative aspect-square rounded-lg overflow-hidden shadow-lg group cursor-pointer hover:shadow-xl transition-shadow">
+                      <Image
+                        src={image}
+                        alt={`성능 데이터 이미지 ${index + 2}`}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                {performanceImages.length > 7 && (
+                  <div className="text-center mt-4">
+                    <p className="text-sm text-gray-500">
+                      총 {performanceImages.length}개의 성능 데이터 이미지
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </section>
 

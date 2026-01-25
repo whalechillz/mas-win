@@ -1,6 +1,80 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
-## ✅ 최근 작업: About 페이지 제조 경력 연도 업데이트 (2026-01-25)
+## ✅ 최근 작업: 제품 페이지 performanceImages 연결 수정 (2026-01-25)
+
+### 완료된 작업
+
+#### secret-weapon-black-muziik 및 secret-force-gold-2-muziik 페이지 performanceImages 연결 ✅
+- **작업 내용**: 
+  - `secret-weapon-black-muziik.tsx`와 `secret-force-gold-2-muziik.tsx` 페이지에서 `performanceImages`가 적용되지 않는 문제 수정
+  - `secret-force-pro-3-muziik.tsx`와 동일하게 `performanceImages`를 동적으로 로드하도록 수정
+- **문제 원인**:
+  - `useProductData`에서 `performanceImages`를 디스트럭처링하지 않음
+  - 하드코딩된 이미지 경로 사용 (`/main/testimonials/hero-faces/review-face-02.jpg`, `review-face-01.jpg`)
+  - 갤러리 그리드 섹션이 없음
+- **수정 내용**:
+  1. **useProductData에서 performanceImages 추가**:
+     - `secret-weapon-black-muziik.tsx`: Line 30에 `performanceImages` 추가
+     - `secret-force-gold-2-muziik.tsx`: Line 31에 `performanceImages` 추가
+  2. **동적 이미지 소스 변경**:
+     - 하드코딩된 이미지 경로를 `performanceImages[0]`로 변경
+     - fallback 이미지 유지 (기존 하드코딩 경로)
+     - `onError` 핸들러 추가
+  3. **갤러리 그리드 섹션 추가**:
+     - `performanceImages.length > 1`일 때만 표시
+     - 2-3열 그리드 레이아웃 (최대 6개 미리보기)
+     - 7개 이상일 때 총 개수 표시
+  4. **레이아웃 조정**:
+     - 성능 데이터 섹션에 `mb-8` 추가 (갤러리 공간 확보)
+- **효과**:
+  - 데이터베이스의 `performance_images`가 동적으로 로드되어 표시됨
+  - 관리자가 제품 관리 페이지에서 선택한 이미지가 자동으로 반영됨
+  - `secret-force-pro-3-muziik.tsx`와 동일한 동작으로 일관성 유지
+- **수정 파일**:
+  - `pages/products/secret-weapon-black-muziik.tsx`: `performanceImages` 추가 및 동적 이미지 적용
+  - `pages/products/secret-force-gold-2-muziik.tsx`: `performanceImages` 추가 및 동적 이미지 적용
+
+## ✅ 이전 작업: 제품 페이지 성능 데이터 이미지 갤러리 연결 (2026-01-25)
+
+### 완료된 작업
+
+#### 성능 데이터 이미지 갤러리 연결 기능 구현 ✅
+- **작업 내용**: 
+  - 실제 성능 데이터 섹션에 `originals/products/{slug}/gallery` 이미지 연결
+  - 제품 관리 페이지에서 성능 데이터 이미지 선택 기능 추가
+  - 하이브리드 레이아웃 구현 (대표 이미지 + 그리드 + 더보기)
+- **구현 내용**:
+  1. **데이터베이스 스키마 확장**:
+     - `products` 테이블에 `performance_images` 필드 추가 (JSONB 배열)
+     - SQL 파일: `database/add-performance-images-to-products.sql`
+  2. **제품 관리 페이지 UI 추가**:
+     - 성능 데이터 이미지 관리 섹션 추가 (드라이버 제품만)
+     - 갤러리에서 이미지 선택 기능
+     - 이미지 순서 변경 (위/아래 이동)
+     - 이미지 삭제 기능
+  3. **API 수정**:
+     - `pages/api/admin/products.ts`: `performance_images` 필드 처리 (POST/PUT)
+     - `PRODUCT_SELECT_COLUMNS`에 `performance_images` 추가
+  4. **제품 데이터 훅 확장**:
+     - `lib/use-product-data.ts`: `performanceImages` 반환 추가
+  5. **제품 페이지 수정**:
+     - `pages/products/secret-force-pro-3-muziik.tsx`:
+       - 대표 이미지 카드에 첫 번째 `performanceImages` 사용
+       - 2개 이상일 때 그리드 레이아웃 표시 (2-3열, 최대 6개 미리보기)
+       - 하이브리드 레이아웃으로 CTA까지 자연스러운 흐름 유지
+- **효과**:
+  - 갤러리 이미지를 성능 데이터 섹션에 동적으로 연결
+  - 관리자가 쉽게 이미지 선택 및 관리 가능
+  - 하이브리드 레이아웃으로 초기 로딩 빠름 + 전체 이미지 노출
+  - CTA까지 자연스러운 스크롤 유도
+- **수정 파일**:
+  - `database/add-performance-images-to-products.sql`: 스키마 확장 SQL
+  - `pages/admin/products.tsx`: 성능 데이터 이미지 관리 UI 추가
+  - `pages/api/admin/products.ts`: `performance_images` 필드 처리
+  - `lib/use-product-data.ts`: `performanceImages` 추가
+  - `pages/products/secret-force-pro-3-muziik.tsx`: 동적 이미지 적용
+
+## ✅ 이전 작업: About 페이지 제조 경력 연도 업데이트 (2026-01-25)
 
 ### 완료된 작업
 
