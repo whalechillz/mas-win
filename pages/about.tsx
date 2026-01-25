@@ -350,7 +350,7 @@ export default function About() {
               <div className="bg-gradient-to-br from-gray-900 to-black rounded-2xl p-8 text-white">
                 <div className="grid grid-cols-3 gap-6 text-center">
                   <div>
-                    <div className="text-4xl font-bold mb-2">22</div>
+                    <div className="text-4xl font-bold mb-2">23</div>
                     <div className="text-sm text-gray-300">년 제조 경력</div>
                   </div>
                   <div>

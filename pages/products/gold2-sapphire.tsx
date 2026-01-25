@@ -873,7 +873,7 @@ export default function Gold2SapphireProduct() {
               <div className="flex items-center justify-center mb-6">
                 <span className="text-2xl font-bold">MASSGOO X MUZIIK</span>
               </div>
-              <p className="text-gray-400 mb-4">© 2025 MASSGOO X MUZIIK. All rights reserved.</p>
+              <p className="text-gray-400 mb-4">© 2026 MASSGOO X MUZIIK. All rights reserved.</p>
               <p className="text-sm text-gray-500">
                 사업자등록번호: 877-07-00641 | 대표자: 김탁수 | 통신판매업신고번호: 제 2017-수원영통-0623호
               </p>

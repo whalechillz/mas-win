@@ -263,6 +263,360 @@ export default function Pro3MuziikProduct() {
           </div>
         </section>
 
+        {/* 혁신적인 테크놀로지 섹션 */}
+        <section className="py-16 bg-gradient-to-br from-gray-900 via-black to-gray-900">
+          <div className="container mx-auto px-4 max-w-7xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                혁신적인 테크놀로지
+              </h2>
+              <p className="text-lg sm:text-xl text-gray-300">
+                MUZIIK 독자 기술이 실현하는, 골프 샤프트의 새로운 가능성.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
+              {/* 1. 나노레벨 수지 채택 */}
+              <div className="bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-700 hover:border-gray-600 transition-colors">
+                <div className="relative w-full h-48 sm:h-64 mb-6 rounded-lg overflow-hidden bg-gray-700">
+                  <Image
+                    src="/main/technology/nano-resin-structure.webp"
+                    alt="나노레벨 수지 채택"
+                    fill
+                    className="object-cover"
+                    onError={(e) => {
+                      console.error('이미지 로드 실패:', '/main/technology/nano-resin-structure.webp');
+                    }}
+                  />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
+                  나노레벨 수지 채택
+                </h3>
+                <p className="text-gray-300 mb-4 text-sm sm:text-base">
+                  수지 함유율을 감소시키고 카본 밀도를 높여 반발성과 타감의 향상을 실현합니다.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    수지 함유율 감소
+                  </li>
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    카본 밀도 향상
+                  </li>
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    반발성 향상
+                  </li>
+                </ul>
+              </div>
+
+              {/* 2. 임팩트시 역토크 방지 */}
+              <div className="bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-700 hover:border-gray-600 transition-colors">
+                <div className="relative w-full h-48 sm:h-64 mb-6 rounded-lg overflow-hidden bg-gray-700">
+                  <Image
+                    src="/main/technology/reverse-torque-prevention.webp"
+                    alt="임팩트시 역토크 방지"
+                    fill
+                    className="object-cover"
+                    onError={(e) => {
+                      console.error('이미지 로드 실패:', '/main/technology/reverse-torque-prevention.webp');
+                    }}
+                  />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
+                  임팩트시 역토크 방지
+                </h3>
+                <p className="text-gray-300 mb-4 text-sm sm:text-base">
+                  경량 샤프트 특유의 역토크를 억제하여 헤드의 직진성과 방향성을 향상시킵니다.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    역토크 발생 감소
+                  </li>
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    헤드 스피드 향상
+                  </li>
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    방향성 안정
+                  </li>
+                </ul>
+              </div>
+
+              {/* 3. 티타늄 그라파이트 사용 */}
+              <div className="bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-700 hover:border-gray-600 transition-colors">
+                <div className="relative w-full h-48 sm:h-64 mb-6 rounded-lg overflow-hidden bg-gray-700">
+                  <Image
+                    src="/main/technology/titanium-graphite-structure.webp"
+                    alt="티타늄 그라파이트 사용"
+                    fill
+                    className="object-cover"
+                    onError={(e) => {
+                      console.error('이미지 로드 실패:', '/main/technology/titanium-graphite-structure.webp');
+                    }}
+                  />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
+                  티타늄 그라파이트 사용
+                </h3>
+                <p className="text-gray-300 mb-4 text-sm sm:text-base">
+                  경량이면서도 전장 제작으로 초고탄성을 실현. 휨 복원과 임팩트시 안정감을 양립합니다.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    전장 티타늄 파이버 사용
+                  </li>
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    경량성 유지
+                  </li>
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    초고탄성 실현
+                  </li>
+                  <li className="flex items-center text-gray-400 text-sm">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    임팩트시 안정감
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 기술 사양 섹션 */}
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">프리미엄 디자인의 완벽한 조합</h2>
+              <p className="text-lg text-gray-600">나노레벨 카본 기술의 최고급 성능</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl p-4 sm:p-8 shadow-2xl border border-gray-800">
+              {/* 타이틀 영역 */}
+              <h3 className="text-2xl sm:text-3xl font-bold text-white mb-6 sm:mb-8 text-center">시크리트포스 PRO3 MUZIIK</h3>
+              <p className="text-center text-gray-400 mb-6 sm:mb-8 text-sm sm:text-base">상품 스펙 안내</p>
+              
+              {/* 구분선 */}
+              <div className="border-t border-gray-800 mb-6 sm:mb-8"></div>
+              
+              {/* 스크롤 가능한 영역 */}
+              <div className="overflow-x-auto product-scrollbar">
+                <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 mb-6 sm:mb-8 min-w-[700px] sm:min-w-0">
+                  <div></div>
+                  <div className="bg-gray-800 rounded-lg p-3 text-center border border-gray-700">
+                    <div className="text-2xl font-black text-white mb-1">230</div>
+                    <div className="text-xs text-gray-400">부드러움</div>
+                  </div>
+                  <div className="bg-gray-800 rounded-lg p-3 text-center border border-gray-700">
+                    <div className="text-2xl font-black text-white mb-1">240</div>
+                    <div className="text-xs text-gray-400">표준</div>
+                  </div>
+                  <div className="bg-gray-800 rounded-lg p-3 text-center border border-gray-700">
+                    <div className="text-2xl font-black text-white mb-1">250</div>
+                    <div className="text-xs text-gray-400">강함</div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8 min-w-[700px] sm:min-w-0">
+                  <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
+                    <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">헤드 각도</div>
+                    <div className="col-span-3 text-center">
+                      <div className="text-white font-bold text-xl">9° 10°</div>
+                      <div className="text-gray-400 text-sm mt-1">스트레이트 페이스 [실제 각도]</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
+                    <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">최적 무게</div>
+                    <div className="text-center">
+                      <div className="text-white font-bold text-lg">280</div>
+                      <div className="text-gray-400 text-xs">276g~284g</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-white font-bold text-lg">287</div>
+                      <div className="text-gray-400 text-xs">283g~290g</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-white font-bold text-lg">290</div>
+                      <div className="text-gray-400 text-xs">286g~294g</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
+                    <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">탄성 샤프트</div>
+                    <div className="text-center">
+                      <div className="text-white font-bold text-lg">42</div>
+                      <div className="text-gray-400 text-xs">gram</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-white font-bold text-lg">47</div>
+                      <div className="text-gray-400 text-xs">gram</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-white font-bold text-lg">49</div>
+                      <div className="text-gray-400 text-xs">gram</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
+                    <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">토크</div>
+                    <div className="text-center">
+                      <div className="text-white font-bold text-lg">4.8</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-white font-bold text-lg">3.8</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-white font-bold text-lg">3.8</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
+                    <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">탄성 그립</div>
+                    <div className="col-span-3 text-center">
+                      <div className="text-white font-bold text-xl">45</div>
+                      <div className="text-gray-400 text-xs">gram</div>
+                      <div className="text-gray-400 text-sm mt-1">600 스탠다드 [장갑 23호 ±1 적합]</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
+                    <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">고반발 헤드</div>
+                    <div className="col-span-3 text-center">
+                      <div className="text-white font-bold text-xl">193</div>
+                      <div className="text-gray-400 text-xs">±4g</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
+                    <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">헤드 라이각</div>
+                    <div className="col-span-3 text-center">
+                      <div className="text-white font-bold text-xl">59°</div>
+                      <div className="text-gray-400 text-sm mt-1">표준 [키 165cm-175cm 적합]</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
+                    <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">킥 포인트</div>
+                    <div className="col-span-3 text-center">
+                      <div className="text-white font-bold text-xl">Mid Low</div>
+                      <div className="text-gray-400 text-sm mt-1">중하단</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
+                    <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">최적의 길이 & 헤드 부피</div>
+                    <div className="col-span-3">
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="text-center">
+                          <div className="text-gray-400 text-sm mb-2">최적의 길이</div>
+                          <div className="text-white font-bold text-2xl">46&quot;</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-gray-400 text-sm mb-2">헤드 부피</div>
+                          <div className="text-white font-bold text-2xl">460 cc</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
+                    <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">최적 밸런스</div>
+                    <div className="col-span-3 text-center">
+                      <div className="text-white font-bold text-xl">D2</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4 border-b border-gray-800">
+                    <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">샤프트 진동수</div>
+                    <div className="text-center">
+                      <div className="text-white font-bold text-lg">230</div>
+                      <div className="text-gray-400 text-xs">cpm</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-white font-bold text-lg">240</div>
+                      <div className="text-gray-400 text-xs">cpm</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-white font-bold text-lg">250</div>
+                      <div className="text-gray-400 text-xs">cpm</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-[120px_1fr_1fr_1fr] sm:grid-cols-[180px_1fr_1fr_1fr] gap-2 sm:gap-4 py-3 sm:py-4">
+                    <div className="text-gray-300 font-semibold text-xs sm:text-sm whitespace-nowrap">맞춤 볼스피드</div>
+                    <div className="text-center">
+                      <div className="text-white font-bold text-lg">58</div>
+                      <div className="text-gray-400 text-xs">m/s</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-white font-bold text-lg">62</div>
+                      <div className="text-gray-400 text-xs">m/s</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-white font-bold text-lg">66</div>
+                      <div className="text-gray-400 text-xs">m/s</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-8 border-t border-gray-800">
+                <h4 className="text-xl font-bold text-white mb-6 text-center">DOGATTI GENERATION BERYL</h4>
+                <div className="overflow-x-auto product-scrollbar">
+                  <table className="w-full min-w-[700px] sm:min-w-0">
+                    <thead>
+                      <tr className="border-b border-gray-700">
+                        <th className="text-left py-4 px-4 font-bold text-gray-300">FLEX</th>
+                        <th className="text-center py-4 px-4 font-bold text-gray-300">전장(mm)</th>
+                        <th className="text-center py-4 px-4 font-bold text-gray-300">중량(g)</th>
+                        <th className="text-center py-4 px-4 font-bold text-gray-300">Tip(mm)</th>
+                        <th className="text-center py-4 px-4 font-bold text-gray-300">Butt(mm)</th>
+                        <th className="text-center py-4 px-4 font-bold text-gray-300">토크(°↓)</th>
+                        <th className="text-center py-4 px-4 font-bold text-gray-300">CPM</th>
+                        <th className="text-center py-4 px-4 font-bold text-gray-300">K.P.</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-gray-800">
+                        <td className="py-4 px-4 font-semibold text-white">230(부드러움) R2</td>
+                        <td className="text-center py-4 px-4 text-gray-300">1136</td>
+                        <td className="text-center py-4 px-4 text-gray-300">43</td>
+                        <td className="text-center py-4 px-4 text-gray-300">8.55</td>
+                        <td className="text-center py-4 px-4 text-gray-300">14.95</td>
+                        <td className="text-center py-4 px-4 text-gray-300">4.8</td>
+                        <td className="text-center py-4 px-4 text-white font-bold">230</td>
+                        <td className="text-center py-4 px-4 text-gray-300">先中調子</td>
+                      </tr>
+                      <tr className="border-b border-gray-800">
+                        <td className="py-4 px-4 font-semibold text-white">240(표준) R</td>
+                        <td className="text-center py-4 px-4 text-gray-300">1136</td>
+                        <td className="text-center py-4 px-4 text-gray-300">47</td>
+                        <td className="text-center py-4 px-4 text-gray-300">8.55</td>
+                        <td className="text-center py-4 px-4 text-gray-300">15.1</td>
+                        <td className="text-center py-4 px-4 text-gray-300">3.8</td>
+                        <td className="text-center py-4 px-4 text-white font-bold">240</td>
+                        <td className="text-center py-4 px-4 text-gray-300">先中調子</td>
+                      </tr>
+                      <tr>
+                        <td className="py-4 px-4 font-semibold text-white">250(강함) SR</td>
+                        <td className="text-center py-4 px-4 text-gray-300">1136</td>
+                        <td className="text-center py-4 px-4 text-gray-300">49</td>
+                        <td className="text-center py-4 px-4 text-gray-300">8.55</td>
+                        <td className="text-center py-4 px-4 text-gray-300">15.15</td>
+                        <td className="text-center py-4 px-4 text-gray-300">3.8</td>
+                        <td className="text-center py-4 px-4 text-white font-bold">250</td>
+                        <td className="text-center py-4 px-4 text-gray-300">先中調子</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <p className="text-sm text-gray-500 mt-4 text-center">※ BERYL 50 (SR: 55g) 中調子</p>
+                </div>
+              </div>
+              <div className="mt-8 pt-8 border-t border-gray-800">
+                <p className="text-sm text-gray-400 text-center leading-relaxed">
+                  *권장 스펙은 마쓰구골프 고객님들께서 가장 만족하시고 적합했던 표준값 입니다.<br />
+                  모든 고객님들께 적합하지 않을수 있으니 스페셜 스펙은 별도 문의해 주세요.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* 다른 브랜드와의 비교 섹션 */}
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-4">
@@ -277,22 +631,22 @@ export default function Pro3MuziikProduct() {
                   <thead>
                     <tr className="border-b border-gray-300">
                       <th className="text-left py-4 px-4 font-bold">구분</th>
-                      <th className="text-center py-4 px-4 font-bold">일반 PRO3</th>
                       <th className="text-center py-4 px-4 font-bold">경쟁사 제품</th>
-                      <th className="text-center py-4 px-4 font-bold text-red-600">PRO3 MUZIIK</th>
+                      <th className="text-center py-4 px-4 font-bold">시크리트포스 PRO 3</th>
+                      <th className="text-center py-4 px-4 font-bold text-red-600">시크리트포스 PRO 3 MUZIIK</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr className="border-b border-gray-200">
                       <td className="py-4 px-4 font-semibold">가격</td>
-                      <td className="text-center py-4 px-4">1,150,000원</td>
                       <td className="text-center py-4 px-4">1,500,000원~</td>
+                      <td className="text-center py-4 px-4">1,150,000원</td>
                       <td className="text-center py-4 px-4 text-red-600 font-bold">1,700,000원</td>
                     </tr>
                     <tr className="border-b border-gray-200">
                       <td className="py-4 px-4 font-semibold">샤프트</td>
-                      <td className="text-center py-4 px-4">일반 샤프트</td>
                       <td className="text-center py-4 px-4">카본 샤프트</td>
+                      <td className="text-center py-4 px-4">NGS 카본 샤프트</td>
                       <td className="text-center py-4 px-4 text-red-600 font-bold">MUZIIK 티타늄 샤프트</td>
                     </tr>
                     <tr className="border-b border-gray-200">
@@ -309,9 +663,9 @@ export default function Pro3MuziikProduct() {
                     </tr>
                     <tr>
                       <td className="py-4 px-4 font-semibold">가성비</td>
-                      <td className="text-center py-4 px-4">탁월</td>
                       <td className="text-center py-4 px-4">보통</td>
-                      <td className="text-center py-4 px-4 text-red-600 font-bold">탁월</td>
+                      <td className="text-center py-4 px-4">탁월</td>
+                      <td className="text-center py-4 px-4 text-red-600 font-bold">매우 탁월</td>
                     </tr>
                   </tbody>
                 </table>
@@ -568,7 +922,7 @@ export default function Pro3MuziikProduct() {
               <div className="flex items-center justify-center mb-6">
                 <span className="text-2xl font-bold">MASSGOO X MUZIIK</span>
               </div>
-              <p className="text-gray-400 mb-4">© 2025 MASSGOO X MUZIIK. All rights reserved.</p>
+              <p className="text-gray-400 mb-4">© 2026 MASSGOO X MUZIIK. All rights reserved.</p>
               <p className="text-sm text-gray-500">
                 사업자등록번호: 877-07-00641 | 대표자: 김탁수 | 통신판매업신고번호: 제 2017-수원영통-0623호
               </p>
