@@ -638,7 +638,7 @@ export default function Gold2SapphireProduct() {
         </section>
 
         {/* 성능 검증 섹션 */}
-        <section className="py-16 bg-white">
+        <section id="performance-data" className="py-16 bg-white">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">실제 성능 데이터</h2>

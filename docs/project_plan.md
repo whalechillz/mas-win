@@ -1,6 +1,43 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
-## ✅ 최근 작업: 제품 페이지 performanceImages 연결 수정 (2026-01-25)
+## ✅ 최근 작업: 메인 페이지 퍼포먼스의 변화 섹션 개선 (2026-01-25)
+
+### 완료된 작업
+
+#### 메인 페이지 "퍼포먼스의 변화" 섹션 동적 이미지 및 클릭 기능 추가 ✅
+- **작업 내용**: 
+  - 메인 페이지의 "퍼포먼스의 변화" 섹션 3개 카드에 제품의 `performanceImages[0]` 동적 적용
+  - 각 카드 클릭 시 해당 제품 페이지의 "실제 성능 데이터" 섹션으로 이동
+  - 제품 페이지에 `id="performance-data"` 추가하여 앵커 링크 지원
+- **구현 내용**:
+  1. **메인 페이지 제품 이미지 로드**:
+     - 3개 제품(`secret-force-gold-2-muziik`, `secret-weapon-black-muziik`, `secret-force-pro-3-muziik`)의 `performanceImages` 로드
+     - `useEffect`로 제품 API 호출하여 `performance_images[0]` 가져오기
+     - 각 카드에 `performanceImages[0]` 동적 적용 (fallback 이미지 유지)
+  2. **카드 클릭 기능 추가**:
+     - 각 카드를 `Link` 컴포넌트로 감싸서 클릭 가능하게 변경
+     - 클릭 시 `/products/{slug}#performance-data`로 이동
+     - 부드러운 스크롤로 해당 섹션으로 이동
+  3. **제품 페이지 앵커 추가**:
+     - `secret-force-gold-2-muziik.tsx`: `id="performance-data"` 추가
+     - `secret-weapon-black-muziik.tsx`: `id="performance-data"` 추가
+     - `secret-force-pro-3-muziik.tsx`: `id="performance-data"` 추가
+  4. **이미지 전략**:
+     - 메인 페이지: `performanceImages[0]` 사용 (고객 후기용 이미지)
+     - 제품 페이지: `performanceImages[0]` 사용 (성능 데이터용 이미지)
+     - 내용은 각각 고유하게 유지 (메인: 고객 후기, 제품: 성능 데이터)
+- **효과**:
+  - 메인 페이지에서 제품의 실제 갤러리 이미지가 동적으로 표시됨
+  - 클릭 한 번으로 해당 제품의 상세 성능 데이터로 이동 가능
+  - 퍼널 페이지로서 사용자 경험 향상
+  - 관리자가 제품 관리 페이지에서 선택한 이미지가 자동으로 반영됨
+- **수정 파일**:
+  - `pages/index.js`: 제품 이미지 로드 로직 추가 및 카드 클릭 기능 구현
+  - `pages/products/secret-force-gold-2-muziik.tsx`: `id="performance-data"` 추가
+  - `pages/products/secret-weapon-black-muziik.tsx`: `id="performance-data"` 추가
+  - `pages/products/secret-force-pro-3-muziik.tsx`: `id="performance-data"` 추가
+
+## ✅ 이전 작업: 제품 페이지 performanceImages 연결 수정 (2026-01-25)
 
 ### 완료된 작업
 

@@ -15,12 +15,60 @@ export default function Home({ hostname, initialProducts = [] }) {
   const [driverMenuOpen, setDriverMenuOpen] = useState(false);
   const [products, setProducts] = useState(initialProducts);
   const [productsLoading, setProductsLoading] = useState(!initialProducts.length);
+  
+  // 퍼포먼스의 변화 섹션용 제품 이미지 데이터
+  const [performanceImages, setPerformanceImages] = useState({
+    'secret-force-gold-2-muziik': null,
+    'secret-weapon-black-muziik': null,
+    'secret-force-pro-3-muziik': null,
+  });
+  const [performanceImagesLoading, setPerformanceImagesLoading] = useState(true);
 
   // 제품 데이터 로드 (데이터베이스에서)
   useEffect(() => {
     if (initialProducts.length === 0) {
       loadProductsFromDB();
     }
+  }, []);
+
+  // 퍼포먼스의 변화 섹션용 제품 이미지 로드
+  useEffect(() => {
+    const loadPerformanceImages = async () => {
+      try {
+        setPerformanceImagesLoading(true);
+        const slugs = ['secret-force-gold-2-muziik', 'secret-weapon-black-muziik', 'secret-force-pro-3-muziik'];
+        
+        const imagePromises = slugs.map(async (slug) => {
+          try {
+            const res = await fetch(`/api/products/${slug}`);
+            const json = await res.json();
+            
+            if (json.success && json.product && Array.isArray(json.product.performance_images) && json.product.performance_images.length > 0) {
+              const imageUrl = getProductImageUrl(json.product.performance_images[0]);
+              return { slug, imageUrl };
+            }
+            return { slug, imageUrl: null };
+          } catch (error) {
+            console.error(`제품 이미지 로드 실패 (${slug}):`, error);
+            return { slug, imageUrl: null };
+          }
+        });
+
+        const results = await Promise.all(imagePromises);
+        const imagesMap = {};
+        results.forEach(({ slug, imageUrl }) => {
+          imagesMap[slug] = imageUrl;
+        });
+        
+        setPerformanceImages(imagesMap);
+      } catch (error) {
+        console.error('성능 이미지 로드 오류:', error);
+      } finally {
+        setPerformanceImagesLoading(false);
+      }
+    };
+
+    loadPerformanceImages();
   }, []);
 
   // 제품별 기본 이미지 매핑 (fallback)
@@ -1043,14 +1091,21 @@ export default function Home({ hostname, initialProducts = [] }) {
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">기술이 만드는 새로운 가능성</p>
               </div>
             <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-              <div className="group relative bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-yellow-300">
+              <Link 
+                href="/products/secret-force-gold-2-muziik#performance-data"
+                className="group relative bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-yellow-300 cursor-pointer"
+              >
                 <div className="relative min-h-80 md:h-96 overflow-hidden bg-gradient-to-br from-yellow-50 to-white">
                   <div className="absolute inset-0">
                     <Image
-                      src="/main/testimonials/hero-faces/review-face-01.jpg"
+                      src={performanceImages['secret-force-gold-2-muziik'] || '/main/testimonials/hero-faces/review-face-01.jpg'}
                       alt="김성호 대표"
                       fill
                       className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
+                      onError={(e) => {
+                        const target = e.target;
+                        target.src = '/main/testimonials/hero-faces/review-face-01.jpg';
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/50 to-transparent"></div>
                 </div>
@@ -1069,15 +1124,22 @@ export default function Home({ hostname, initialProducts = [] }) {
                     "오토플렉스 사파이어 샤프트와 결합한 골드 2를 처음 사용했을 때 놀랐습니다. 첫 시타부터 체감되는 비거리 증가가 있었고, 이제 젊은 후배들과 비거리 차이가 거의 없습니다."
                   </p>
                 </div>
-              </div>
-              <div className="group relative bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-800 hover:border-green-400">
+              </Link>
+              <Link 
+                href="/products/secret-weapon-black-muziik#performance-data"
+                className="group relative bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-800 hover:border-green-400 cursor-pointer"
+              >
                 <div className="relative min-h-80 md:h-96 overflow-hidden">
                   <div className="absolute inset-0">
                     <Image
-                      src="/main/testimonials/hero-faces/review-face-02.jpg"
+                      src={performanceImages['secret-weapon-black-muziik'] || '/main/testimonials/hero-faces/review-face-02.jpg'}
                       alt="이재민 회장"
                       fill
                       className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
+                      onError={(e) => {
+                        const target = e.target;
+                        target.src = '/main/testimonials/hero-faces/review-face-02.jpg';
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
                 </div>
@@ -1096,18 +1158,28 @@ export default function Home({ hostname, initialProducts = [] }) {
                     "풀 티타늄 4X 샤프트의 시크리트웨폰 블랙을 사용하면서 정말 놀랐습니다. 40g대의 가벼움과 강함이 동시에 가능한 혁신적인 제품이에요."
                   </p>
                 </div>
-              </div>
-              <div className="group relative bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-blue-300">
+              </Link>
+              <Link 
+                href="/products/secret-force-pro-3-muziik#performance-data"
+                className="group relative bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-blue-300 cursor-pointer"
+              >
                 <div className="relative min-h-80 md:h-96 overflow-hidden bg-gradient-to-br from-blue-50 to-white">
                   <div className="absolute inset-0">
                     <Image
-                      src="/main/testimonials/hero-faces/review-face-03.jpg"
+                      src={performanceImages['secret-force-pro-3-muziik'] || '/main/testimonials/hero-faces/review-face-03.jpg'}
                       alt="박준영 원장"
                       fill
                       className="object-contain md:object-cover group-hover:scale-110 transition-transform duration-700"
+                      onError={(e) => {
+                        const target = e.target;
+                        target.src = '/main/testimonials/hero-faces/review-face-03.jpg';
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/50 to-transparent"></div>
                 </div>
+                  <div className="absolute top-4 left-4 z-10">
+                    <span className="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">시크리트포스 PRO3 MUZIIK</span>
+                  </div>
                   <div className="absolute bottom-4 right-4 z-10 text-right">
                     <div className="text-3xl font-black text-green-600 mb-1">+32m</div>
                     <div className="text-xs text-gray-600 font-semibold">비거리 증가</div>
@@ -1120,7 +1192,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                     "스윙 스피드가 예전 같지 않아 포기하고 있었는데, MASSGOO 드라이버로 바꾸니 젊은 시절 비거리가 다시 나옵니다. 골프가 다시 재미있어졌어요."
                   </p>
                 </div>
-              </div>
+              </Link>
             </div>
             <div className="text-center mt-12">
               <p className="text-lg mb-4 text-gray-700">지금 무료 시타를 신청하고 직접 경험해보세요</p>
