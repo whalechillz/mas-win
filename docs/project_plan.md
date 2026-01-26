@@ -1,6 +1,53 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
-## ✅ 최근 작업: 고객 이미지 마이그레이션 완료 및 배포 (2026-01-26)
+## ✅ 최근 작업: 제품 페이지 네이버 스마트스토어 링크 업데이트 (2026-01-26)
+
+### 작업 내용
+- 시크리트포스 PRO3 MUZIIK 제품 페이지의 "네이버 스마트스토어에서 구매하기" 버튼 링크 업데이트
+- 스마트스토어 메인 페이지 링크에서 특정 제품 페이지 링크로 변경
+
+### 구현 사항
+- `pages/products/secret-force-pro-3-muziik.tsx` 파일의 211번째 줄 링크 수정
+- 기존: `https://smartstore.naver.com/mas9golf`
+- 변경: `https://smartstore.naver.com/mas9golf/products/13022193504`
+
+### 변경된 파일
+- `pages/products/secret-force-pro-3-muziik.tsx`: 네이버 스마트스토어 구매 버튼 링크 업데이트
+
+---
+
+## ✅ 이전 작업: 갤러리 관리 - 제품 합성 활성화 기능 추가 (2026-01-26)
+
+### 작업 내용
+- 갤러리 관리 페이지의 이미지 상세 정보에 제품 합성 활성화 기능 추가
+- 톤변경/배경변경/오브젝트 변경은 Nanobanana 드롭다운에 유지 (텍스트 프롬프트 입력)
+- 제품 합성 활성화는 별도 버튼으로 분리 (제품 선택 필요)
+- 제품 합성 관리는 기존 `product-composition.tsx` 페이지 활용
+
+### 구현 사항
+1. `ProductSelector` 컴포넌트 import 추가
+2. 제품 합성 관련 상태 변수 추가:
+   - `showProductCompositionModal`: 제품 합성 모달 표시 여부
+   - `isComposingProduct`: 제품 합성 진행 중 여부
+   - `selectedProductId`: 선택된 제품 ID
+   - `compositionTarget`: 합성 타겟 (hands/head/body/accessory)
+3. `handleProductComposition` 함수 추가: 제품 합성 API 호출
+4. 제품 합성 버튼 추가: 변형 버튼들과 분리된 별도 버튼
+5. 제품 합성 모달 추가: 제품 선택 및 합성 타겟 선택 UI
+
+### 변경된 파일
+- `pages/admin/gallery.tsx`: 제품 합성 활성화 기능 추가
+
+### 설계 결정
+- 제품 합성 활성화를 별도 버튼으로 분리한 이유:
+  - 톤변경/배경변경/오브젝트 변경은 텍스트 프롬프트 입력이 필요
+  - 제품 합성은 제품 선택이 필요하여 다른 워크플로우
+  - 기능 분리로 사용자 혼동 방지
+  - 기존 제품 합성 관리 페이지 재사용 가능
+
+---
+
+## ✅ 이전 작업: 고객 이미지 마이그레이션 완료 및 배포 (2026-01-26)
 
 ### 완료된 작업
 

@@ -208,7 +208,7 @@ export default function Pro3MuziikProduct() {
                   <a href="tel:080-028-8888" className="w-full bg-red-600 text-white text-base sm:text-lg lg:text-xl font-bold py-3 sm:py-4 px-4 sm:px-8 rounded-lg hover:bg-red-700 transition-colors text-center block whitespace-nowrap overflow-hidden text-ellipsis">
                     080-028-8888 무료 상담하기
                   </a>
-                  <a href="https://smartstore.naver.com/mas9golf" target="_blank" rel="noopener noreferrer" className="w-full bg-blue-600 text-white text-base sm:text-lg lg:text-xl font-bold py-3 sm:py-4 px-4 sm:px-8 rounded-lg hover:bg-blue-700 transition-colors text-center block whitespace-nowrap overflow-hidden text-ellipsis">
+                  <a href="https://smartstore.naver.com/mas9golf/products/13022193504" target="_blank" rel="noopener noreferrer" className="w-full bg-blue-600 text-white text-base sm:text-lg lg:text-xl font-bold py-3 sm:py-4 px-4 sm:px-8 rounded-lg hover:bg-blue-700 transition-colors text-center block whitespace-nowrap overflow-hidden text-ellipsis">
                     네이버 스마트스토어에서 구매하기
                   </a>
                   <p className="text-center text-xs sm:text-sm text-gray-500">
