@@ -1,5 +1,305 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
+## ✅ 완료: 성능 데이터 이미지 관리 개선 (2026-01-27)
+
+### 작업 내용
+- 성능 데이터 이미지 관리에 제품 이미지 관리와 동일한 "제외" 및 "삭제" 기능 추가
+- "삭제" 버튼을 "제외" 버튼으로 변경 (노출만 제외, Storage에는 유지)
+- 갤러리 선택 모달에 삭제 기능 추가
+
+### 계획서
+- `docs/performance-image-management-improvement-plan.md`: 성능 데이터 이미지 관리 개선 상세 계획서
+
+### 구현 완료 사항
+
+1. **"삭제" → "제외" 및 "삭제" 분리:**
+   - ✅ `handleExcludePerformanceImage` 함수 구현
+     - Storage는 유지하고 배열에서만 제거
+     - 제외된 이미지는 나중에 다시 추가 가능
+   - ✅ `handleDeletePerformanceImage` 함수 구현 (갤러리 모달용)
+     - Storage에서 완전 삭제
+   - ✅ 버튼 텍스트: "삭제" → "제외"
+   - ✅ 버튼 색상: 빨간색 → 주황색 (bg-orange-500)
+
+2. **갤러리 선택 모달에 삭제 기능:**
+   - ✅ `FolderImagePicker`의 `onDelete` 콜백에 성능 데이터 이미지 처리 로직 추가
+   - ✅ `galleryPickerMode`가 `'performance'`인지 확인하여 적절한 이미지 목록 업데이트
+   - ✅ 삭제 후 성능 데이터 이미지 목록 자동 업데이트
+
+### 변경된 파일
+- `pages/admin/products.tsx`: 
+  - `handleExcludePerformanceImage` 함수 추가
+  - `handleDeletePerformanceImage` 함수 추가 (갤러리 모달용)
+  - 성능 데이터 이미지 관리 UI에서 "삭제" → "제외" 변경
+  - `FolderImagePicker`의 `onDelete` 콜백에 성능 데이터 이미지 처리 로직 추가
+
+---
+
+## ✅ 완료: 제품 이미지 관리 개선 (2026-01-27)
+
+### 작업 내용
+- 제품 이미지 관리에 순번 표시 및 순서 변경 기능 추가 (성능 데이터 이미지 관리와 동일)
+- "삭제" 버튼을 "제외" 버튼으로 변경 (노출만 제외, Storage에는 유지)
+- 갤러리 선택 모달에 삭제 기능 추가
+
+### 계획서
+- `docs/product-image-management-improvement-plan.md`: 제품 이미지 관리 개선 상세 계획서
+
+### 구현 완료 사항
+
+1. **순번 표시 및 순서 변경:**
+   - ✅ 각 이미지에 순번 표시 (1, 2, 3...) - 우측 상단 배지
+   - ✅ 위로 이동 (↑) 버튼 추가
+   - ✅ 아래로 이동 (↓) 버튼 추가
+   - ✅ 성능 데이터 이미지 관리와 동일한 UX
+   - ✅ `handleMoveDetailImage` 함수 활용
+
+2. **"삭제" → "제외" 변경:**
+   - ✅ 버튼 텍스트: "삭제" → "제외"
+   - ✅ 버튼 색상: 빨간색 → 주황색 (bg-orange-500)
+   - ✅ 기능: Storage에서 삭제하지 않고 배열에서만 제거
+   - ✅ `handleExcludeImage` 함수 구현
+   - ✅ 제외된 이미지는 나중에 다시 추가 가능
+
+3. **갤러리 선택 모달에 삭제 기능:**
+   - ✅ `FolderImagePicker`에 `enableDelete={true}` 추가
+   - ✅ `onDelete` 콜백 구현
+   - ✅ 삭제 후 제품 이미지 목록 자동 업데이트
+   - ✅ 완전 삭제는 갤러리 모달에서만 가능
+
+### 변경된 파일
+- `pages/admin/products.tsx`: 
+  - 순번 표시 UI 추가 (우측 상단 배지)
+  - 위/아래 이동 버튼 추가
+  - `handleExcludeImage` 함수 추가 (Storage 유지, 배열에서만 제거)
+  - `handleDeleteImage` 함수 유지 (갤러리 모달에서 사용)
+  - "삭제" 버튼 → "제외" 버튼으로 변경
+  - `FolderImagePicker`에 `enableDelete` 및 `onDelete` 추가
+
+---
+
+## ✅ 완료: 제품 이미지 업로드 파일명 표준화 (2026-01-26)
+
+### 작업 내용
+- 제품 이미지 업로드 파일명을 `massgoo-{풀제품명}-{날짜}-{순번}.webp` 형식으로 표준화
+- 갤러리 일반 업로드(방식 1)를 표준 파일명 형식으로 변경
+- 갤러리 일반 업로드(방식 2)는 기존 방식 유지 (동영상 등)
+
+### 계획서
+- `docs/product-image-upload-filename-plan.md`: 제품 이미지 업로드 파일명 표준화 상세 계획서
+
+### 구현 완료 사항
+
+1. **제품 이미지 업로드:**
+   - 파일명 형식: `massgoo-{풀제품명}-{날짜}-{순번}.webp`
+   - 예시: `massgoo-secret-force-gold-2-muziik-20260126-01.webp`
+   - 제품명 포함, 순번 자동 증가
+   - 커스텀 파일명 및 preserveFilename 옵션은 기존 방식 유지
+
+2. **갤러리 일반 업로드 (방식 1):**
+   - 파일명 형식: `{위치}-{제품명}-upload-{날짜}-{고유번호}.{확장자}`
+   - 위치 기반 파일명 생성
+   - 표준 파일명 형식 적용
+   - 이미지 및 동영상 모두 지원
+
+3. **갤러리 일반 업로드 (방식 2):**
+   - 한글만 영문으로 변환, 확장자 유지
+   - 동영상 등 특수 케이스용 (기존 방식 유지)
+
+### 변경된 파일
+- `lib/filename-generator.ts`: 
+  - `generateProductImageFileName` 함수 추가
+  - `getNextProductImageUniqueNumber` 함수 추가
+  - `extractProductName` 함수 수정 (targetFolder 지원)
+  - `FilenameOptions` 인터페이스에 `upload` compositionFunction 추가
+- `pages/api/admin/upload-product-image.js`: 표준 파일명 형식 적용
+- `pages/api/upload-image-supabase.js`: 표준 파일명 형식 적용 (방식 1, 이미지 및 동영상)
+
+---
+
+## 📋 계획 중: is_liked 컬럼 마이그레이션 (2026-01-26)
+
+### 문제 상황
+- 좋아요 토글 기능에서 "is_liked 컬럼이 데이터베이스에 없습니다" 오류 발생
+- `image_metadata` → `image_assets` 테이블 마이그레이션 중 `is_liked` 컬럼이 누락됨
+- 현재 API는 `image_assets` 테이블을 사용하지만, 해당 테이블에 `is_liked` 컬럼이 없음
+
+### 해결 방법
+- `image_assets` 테이블에 `is_liked` 컬럼 추가
+- 기존 `image_metadata` 테이블의 `is_liked` 데이터 마이그레이션 (선택사항)
+
+### 계획서
+- `docs/is-liked-column-migration-plan.md`: is_liked 컬럼 마이그레이션 상세 계획서
+- `database/add-is-liked-column-to-image-assets.sql`: 마이그레이션 SQL 파일
+
+### 실행 방법
+1. Supabase Dashboard > SQL Editor 접속
+2. `database/add-is-liked-column-to-image-assets.sql` 파일 내용 실행
+3. 좋아요 토글 기능 테스트
+
+---
+
+## ✅ 완료: 갤러리 관리 UI 및 파일명 개선 (2026-01-26)
+
+### 작업 내용
+- 생성된 이미지 썸네일 UI 개선 (하단 썸네일과 동일한 기능 추가)
+- 하단 이미지 그리드 리프레시 버튼 추가
+- 업스케일 파일명 및 저장 위치 표준화
+- 회전/변환 파일명 표준화
+
+### 계획서
+- `docs/gallery-ui-filename-improvement-plan.md`: 갤러리 관리 UI 및 파일명 개선 상세 계획서
+
+### 구현 완료 사항
+
+1. **생성된 이미지 썸네일 개선:**
+   - 기존 "삭제" 버튼 제거 (작동하지 않음)
+   - 기존 "replicate 변형" 버튼 제거 (이미지 상세 정보에 있음)
+   - 하단 썸네일과 동일한 기능 추가:
+     - 확대 버튼 (이미지 상세 정보로 이동)
+     - 하트 버튼 (좋아요 토글)
+     - 편집 버튼 (메타데이터 편집)
+     - 삭제 버튼 (진짜 삭제 - Supabase Storage에서 완전 삭제)
+
+2. **리프레시 기능:**
+   - 하단 이미지 그리드 상단에 리프레시 버튼 추가
+   - 클릭 시 현재 폴더의 이미지만 다시 로드
+
+3. **업스케일 파일명 및 저장 위치:**
+   - 파일명 형식: `{원본이미지위치}-{제품명}-replicate-upscale-{날짜}-{고유번호}.{확장자}`
+   - 저장 위치: 원본 이미지 기반 (제품 갤러리, 굿즈 갤러리 등)
+   - AI 설명 추가: "Replicate Real-ESRGAN AI를 사용한 2배/4배 업스케일링"
+   - 파일: `pages/api/admin/upscale-image.js` 수정
+
+4. **회전 파일명 표준화:**
+   - 파일명 형식: `{원본이미지위치}-{제품명}-rotate-{각도}-{포맷품질}-{날짜}-{고유번호}.{확장자}`
+   - 예시: `products-secret-force-gold-2-muziik-rotate-90-webp90-20260122-01.webp`
+   - 파일: `pages/api/admin/rotate-image.js` 수정
+   - 유틸리티: `lib/filename-generator.ts`에 `generateRotationFileName` 함수 추가
+
+5. **변환 파일명 표준화:**
+   - 파일명 형식: `{원본이미지위치}-{제품명}-convert-{툴명}-{포맷품질}-{날짜}-{고유번호}.{확장자}`
+   - 예시: `products-secret-force-gold-2-muziik-convert-sharp-webp85-20260122-01.webp`
+   - 파일: `pages/api/admin/convert-image.js` 수정
+   - 유틸리티: `lib/filename-generator.ts`에 `generateConvertFileName` 함수 추가
+
+### 변경된 파일
+- `pages/admin/gallery.tsx`: 생성된 이미지 썸네일 개선, 리프레시 버튼 추가
+- `pages/api/admin/upscale-image.js`: 표준 파일명 생성 및 저장 위치 결정 로직 추가
+- `pages/api/admin/rotate-image.js`: 표준 회전 파일명 생성 로직 추가
+- `pages/api/admin/convert-image.js`: 표준 변환 파일명 생성 로직 추가
+- `lib/filename-generator.ts`: `generateRotationFileName`, `generateConvertFileName` 함수 추가
+
+---
+
+## ✅ 완료: 파일명 생성 규칙 표준화 구현 (2026-01-26)
+
+### 작업 내용
+- 모든 이미지 파일명 생성 방식을 표준화된 구조로 통일
+- 새로운 파일명 구조: `{위치}-{제품명}-{합성프로그램}-{합성기능}-{생성일}-{고유번호}.{확장자}`
+- 현재 파일명 생성 방식 전부 분석 완료
+- 상세 계획서 작성 완료
+- **코드 구현 완료**
+
+### 구현 완료된 파일
+
+1. **유틸리티 함수:**
+   - `lib/filename-generator.ts` (신규 생성) ✅
+     - `generateStandardFileName`: 표준 파일명 생성
+     - `generateBlogFileName`: 블로그 파일명 생성
+     - `generateStoragePath`: 저장 경로 생성
+     - `determineStorageLocationForAI`: FAL/Replicate 저장 위치 결정
+     - `detectLocation`: 위치 자동 감지
+     - `extractProductName`: 제품명 추출
+
+2. **API 파일 수정:**
+   - `pages/api/compose-product-image.js` ✅ (제품 합성)
+   - `pages/api/vary-nanobanana.js` ✅ (Nanobanana 변형)
+   - `pages/api/vary-existing-image.js` ✅ (FAL 변형 + 저장 위치 결정)
+   - `pages/api/kakao-content/generate-images.js` ✅ (카카오 콘텐츠)
+   - `pages/api/admin/copy-draft-to-blog.ts` ✅ (블로그 파일명)
+
+### 주요 변경 사항
+
+1. **파일명 형식 통일:**
+   - 하이픈(`-`)으로 연결된 단일 파일명
+   - 위치, 제품명, 합성 프로그램, 합성 기능, 생성일(YYYYMMDD), 고유번호 포함
+
+2. **블로그 파일명:**
+   - 형식: `blog-{blogId}-{YYYYMMDD}-{원본파일명영문추출}-{고유번호2자리}.{확장자}`
+   - 타임스탬프 대신 생성일(YYYYMMDD) 사용
+
+3. **FAL/Replicate 저장 위치 결정:**
+   - 현재 폴더 위치 확인
+   - 있으면 → 원본과 동일한 폴더에 저장
+   - 없으면 → `originals/ai-generated/{YYYY-MM-DD}/` 폴더에 저장
+
+4. **복수 파일 생성:**
+   - 같은 이미지에서 여러 변형 생성 시 각각 고유번호 자동 할당 (01, 02, 03...)
+
+### 계획서
+- `docs/filename-generation-standardization-plan.md`: 파일명 생성 규칙 표준화 상세 계획서
+
+### 현재 파일명 생성 방식 분석 결과
+
+1. **제품 합성 이미지:**
+   - 형식: `composed-1-{UUID}-{timestamp}.webp` 또는 `{원본파일명}-composed-{제품slug}.{확장자}`
+   - 문제: 파일명이 너무 복잡, `-composed-` 패턴 중복 가능
+
+2. **Nanobanana 변형:**
+   - 형식: `nanobanana-variation-{timestamp}-{randomString}.{확장자}`
+   - 문제: 합성 기능 정보 없음, 생성일이 타임스탬프로만 표시
+
+3. **FAL AI 변형:**
+   - 형식: `existing-variation-{timestamp}.png`
+   - 문제: 합성 프로그램 정보 없음, 위치 정보 없음
+
+4. **Replicate 변형:**
+   - 형식: `replicate-variation-{timestamp}-{index}.png`
+   - 문제: 합성 기능 정보 없음, 생성일이 타임스탬프로만 표시
+
+5. **카카오 콘텐츠:**
+   - 형식: `kakao-{account}-{type}-{timestamp}-{i}-{imgIdx}.jpg`
+   - 문제: 합성 프로그램/기능 정보 없음, 제품 정보 없음
+
+6. **고객 이미지:**
+   - 형식: `{영문이름}_s{장면코드}_{타입}_{번호}.webp`
+   - 상태: 이미 표준화됨, 변경 불필요
+
+### 새로운 파일명 구조 예시
+
+**1. 제품 합성/변형 이미지:**
+- 파일명: `products-secret-force-gold-2-muziik-nanobanana-tone-20260122-01.webp`
+- 저장 경로: `originals/products/secret-force-gold-2-muziik/gallery/products-secret-force-gold-2-muziik-nanobanana-tone-20260122-01.webp`
+
+**2. 카카오 콘텐츠 이미지:**
+- 파일명: `daily-kakao-secret-force-gold-2-muziik-nanobanana-composed-20260122-01.webp`
+- 저장 경로: `originals/daily-branding/kakao/2026-01-22/account1/feed/daily-kakao-secret-force-gold-2-muziik-nanobanana-composed-20260122-01.webp`
+
+**3. 블로그 이미지:**
+- 파일명: `blog-309-20260122-driver-image-01.webp`
+- 저장 경로: `originals/blog/2026-01/309/blog-309-20260122-driver-image-01.webp`
+- 특징: 생성일(YYYYMMDD), 원본파일명 영문 추출, 고유번호 2자리 포함
+
+**4. 고객 이미지 (기존 규칙 유지):**
+- 파일명: `joseotdae_s6_signature_01.webp`
+- 저장 경로: `originals/customers/joseotdae-7010/2026-01-22/joseotdae_s6_signature_01.webp`
+
+### 주요 변경 사항
+1. **블로그 파일명 형식 변경**: `blog-{blogId}-{YYYYMMDD}-{원본파일명영문추출}-{고유번호2자리}.{확장자}`
+2. **복수 파일 생성 시 각각 최적화**: 같은 이미지에서 여러 변형 생성 시 각각 고유번호 자동 할당
+3. **FAL/Replicate 저장 위치 결정**: 현재 폴더 위치 확인 후 없을 때만 `ai-generated` 폴더에 업로드
+
+### 다음 단계
+- Phase 1: 파일명 생성 유틸리티 함수 생성
+- Phase 2: 각 API 파일 수정 (블로그, FAL, Replicate 포함)
+- Phase 3: 고유번호 자동 생성 로직 구현 (복수 파일 지원)
+- Phase 4: 위치 자동 감지 로직 구현 (FAL/Replicate 저장 위치 결정)
+- Phase 5: 제품명 추출 로직 구현
+- Phase 6: 저장 경로 구조 변경
+
+---
+
 ## ✅ 최근 작업: 제품 페이지 네이버 스마트스토어 링크 업데이트 (2026-01-26)
 
 ### 작업 내용

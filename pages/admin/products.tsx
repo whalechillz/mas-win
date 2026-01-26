@@ -708,7 +708,68 @@ export default function ProductsAdminPage() {
     setMainImageUrl(imageUrl);
   };
 
-  // 이미지 삭제 (Storage에서도 삭제)
+  // 이미지 제외 (Storage에는 유지, 배열에서만 제거)
+  const handleExcludeImage = (imageUrl: string) => {
+    if (!confirm('이 이미지를 제품에서 제외하시겠습니까?\n\n(이미지는 Storage에 그대로 유지되며, 나중에 다시 추가할 수 있습니다.)')) {
+      return;
+    }
+    
+    // mainImageUrl인 경우
+    if (mainImageUrl === imageUrl) {
+      const remainingImages = detailImages;
+      if (remainingImages.length > 0) {
+        setMainImageUrl(remainingImages[0]);
+        setDetailImages(remainingImages.slice(1));
+      } else {
+        setMainImageUrl('');
+      }
+    } else {
+      // detailImages에서 제거
+      setDetailImages(detailImages.filter(img => img !== imageUrl));
+    }
+  };
+
+  // 성능 데이터 이미지 제외 (Storage에는 유지, 배열에서만 제거)
+  const handleExcludePerformanceImage = (imageUrl: string) => {
+    if (!confirm('이 이미지를 성능 데이터에서 제외하시겠습니까?\n\n(이미지는 Storage에 그대로 유지되며, 나중에 다시 추가할 수 있습니다.)')) {
+      return;
+    }
+    
+    setPerformanceImages(performanceImages.filter(img => img !== imageUrl));
+  };
+
+  // 성능 데이터 이미지 삭제 (Storage에서도 삭제) - 갤러리 선택 모달에서 사용
+  const handleDeletePerformanceImage = async (imageUrl: string) => {
+    if (!confirm('정말로 이 이미지를 삭제하시겠습니까?\n\n⚠️ Supabase Storage에서도 영구적으로 삭제됩니다.')) {
+      return;
+    }
+
+    try {
+      // Storage에서 삭제
+      const response = await fetch('/api/admin/delete-image', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ imageUrl }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || '이미지 삭제에 실패했습니다.');
+      }
+
+      // 성능 데이터 이미지 목록에서도 제거
+      setPerformanceImages(performanceImages.filter(img => img !== imageUrl));
+      
+      alert('이미지가 삭제되었습니다.');
+    } catch (error: any) {
+      console.error('이미지 삭제 오류:', error);
+      alert(`이미지 삭제 중 오류가 발생했습니다: ${error.message}`);
+    }
+  };
+
+  // 이미지 삭제 (Storage에서도 삭제) - 갤러리 선택 모달에서 사용
   const handleDeleteImage = async (imageUrl: string) => {
     if (!confirm('정말로 이 이미지를 삭제하시겠습니까?\n\n⚠️ Supabase Storage에서도 영구적으로 삭제됩니다.')) {
       return;
@@ -1934,9 +1995,13 @@ export default function ProductsAdminPage() {
                                 console.error('❌ 이미지 로드 실패:', img);
                               }}
                             />
+                            {/* 순번 표시 */}
+                            <div className="absolute top-1 right-1 bg-gray-800 text-white text-xs px-2 py-1 rounded z-10 font-semibold">
+                              {index + 1}
+                            </div>
                             {/* 대표 이미지 배지 */}
                             {isMain && (
-                              <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                              <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded z-10">
                                 대표
                               </div>
                             )}
@@ -1949,6 +2014,29 @@ export default function ProductsAdminPage() {
                           
                           {/* 버튼 그룹 */}
                           <div className="mt-2 flex gap-1">
+                            {/* 위로 이동 버튼 */}
+                            {index > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => handleMoveDetailImage(index, 'up')}
+                                className="flex-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                title="위로 이동"
+                              >
+                                ↑
+                              </button>
+                            )}
+                            {/* 아래로 이동 버튼 */}
+                            {index < getAllImages().length - 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleMoveDetailImage(index, 'down')}
+                                className="flex-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                title="아래로 이동"
+                              >
+                                ↓
+                              </button>
+                            )}
+                            {/* 대표로 버튼 */}
                             {!isMain && (
                               <button
                                 type="button"
@@ -1959,13 +2047,14 @@ export default function ProductsAdminPage() {
                                 대표로
                               </button>
                             )}
+                            {/* 제외 버튼 */}
                             <button
                               type="button"
-                              onClick={() => handleDeleteImage(img)}
-                              className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
-                              title="이미지 삭제"
+                              onClick={() => handleExcludeImage(img)}
+                              className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+                              title="노출에서 제외"
                             >
-                              삭제
+                              제외
                             </button>
                           </div>
                         </div>
@@ -2068,15 +2157,14 @@ export default function ProductsAdminPage() {
                                   ↓
                                 </button>
                               )}
+                              {/* 제외 버튼 */}
                               <button
                                 type="button"
-                                onClick={() => {
-                                  setPerformanceImages(performanceImages.filter((_, i) => i !== index));
-                                }}
-                                className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
-                                title="이미지 삭제"
+                                onClick={() => handleExcludePerformanceImage(img)}
+                                className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+                                title="노출에서 제외"
                               >
-                                삭제
+                                제외
                               </button>
                             </div>
                           </div>
@@ -2148,6 +2236,47 @@ export default function ProductsAdminPage() {
             ? '성능 데이터 이미지 선택'
             : '갤러리에서 이미지 선택'
         }
+        // ✅ 삭제 기능 활성화
+        enableDelete={true}
+        onDelete={async (imageUrl: string) => {
+          // Storage에서 삭제
+          const response = await fetch('/api/admin/delete-image', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ imageUrl }),
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || '이미지 삭제에 실패했습니다.');
+          }
+
+          // ✅ 성능 데이터 이미지 모달인 경우
+          if (galleryPickerMode === 'performance') {
+            // 성능 데이터 이미지 목록에서도 자동 제거
+            if (performanceImages.includes(imageUrl)) {
+              setPerformanceImages(performanceImages.filter(img => img !== imageUrl));
+            }
+          } else {
+            // ✅ 제품 이미지 관리 모달인 경우 (기존 로직)
+            const allImages = getAllImages();
+            if (allImages.includes(imageUrl)) {
+              if (mainImageUrl === imageUrl) {
+                const remainingImages = detailImages;
+                if (remainingImages.length > 0) {
+                  setMainImageUrl(remainingImages[0]);
+                  setDetailImages(remainingImages.slice(1));
+                } else {
+                  setMainImageUrl('');
+                }
+              } else {
+                setDetailImages(detailImages.filter(img => img !== imageUrl));
+              }
+            }
+          }
+        }}
       />
 
       {inventoryModalOpen && inventoryProduct && (
