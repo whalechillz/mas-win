@@ -14,6 +14,7 @@ import FolderSelector from '../../components/admin/FolderSelector';
 import { rotateImageWithCanvas, convertImageWithCanvas, getImageMetadata } from '../../lib/client/image-processor';
 import JSZip from 'jszip';
 import toast from 'react-hot-toast';
+import { ProductSelector } from '../../components/admin/ProductSelector';
 
 // 디바운스 훅 (PerformanceUtils에서 분리하여 직접 구현)
 function useDebounce<T>(value: T, delay: number): T {
@@ -969,8 +970,8 @@ export default function GalleryAdmin() {
 
   // 검색 및 필터 상태
   const [searchQuery, setSearchQuery] = useState('');
-  // 검색어 디바운싱 (500ms 지연)
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  // 검색어 디바운싱 (300ms 지연 - 개선: 500ms에서 단축)
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [filterType, setFilterType] = useState<'all' | 'unused' | 'duplicates'>('all');
   const [folderFilter, setFolderFilter] = useState<string>('all'); // 폴더 필터 추가
   const [includeChildren, setIncludeChildren] = useState<boolean>(true); // 하위 폴더 포함
@@ -1202,16 +1203,41 @@ export default function GalleryAdmin() {
 
   // 필터링된 이미지 계산 (성능 최적화)
   const filteredImages = useMemo(() => {
+    console.log('🔍 [검색 디버깅] filteredImages useMemo 시작:', {
+      imagesCount: images.length,
+      searchQuery: searchQuery.trim() || '(빈 검색어)',
+      folderFilter,
+      filterType,
+      sortBy,
+      sortOrder,
+      showLikedOnly,
+      timestamp: new Date().toISOString()
+    });
+    
     let filtered = images;
     
     // 검색 필터는 서버 사이드에서 처리하므로 클라이언트 사이드 검색 제거
     // (검색어가 있을 때는 서버에서 이미 필터링된 결과만 받음)
     
+    console.log('🔍 [검색 디버깅] 필터링 전 이미지 수:', filtered.length);
+    
     // 폴더 필터
     if (folderFilter !== 'all') {
+      const beforeFilterCount = filtered.length;
+      console.log('🔍 [검색 디버깅] 폴더 필터 적용:', {
+        folderFilter,
+        searchQuery: searchQuery.trim() || '(빈 검색어)',
+        beforeCount: beforeFilterCount,
+        includeChildren
+      });
+      
       if (folderFilter === 'root') {
         // 루트 폴더 (폴더 경로가 없는 이미지들)
         filtered = filtered.filter(img => !img.folder_path || img.folder_path === '');
+        console.log('🔍 [검색 디버깅] 루트 폴더 필터링 후:', {
+          afterCount: filtered.length,
+          removedCount: beforeFilterCount - filtered.length
+        });
       } else {
         // 특정 폴더
         const beforeCount = filtered.length;
@@ -1265,13 +1291,28 @@ export default function GalleryAdmin() {
           }
           return matches;
         });
+        console.log('🔍 [검색 디버깅] 특정 폴더 필터링 후:', {
+          afterCount: filtered.length,
+          beforeCount: beforeCount,
+          removedCount: beforeCount - filtered.length,
+          folderFilter,
+          searchQuery: searchQuery.trim() || '(빈 검색어)'
+        });
       }
+    } else {
+      console.log('🔍 [검색 디버깅] 폴더 필터 없음 (all)');
     }
     
     // 타입 필터
+    const beforeTypeFilterCount = filtered.length;
     switch (filterType) {
       case 'unused':
         filtered = filtered.filter(img => !img.usage_count || img.usage_count === 0);
+        console.log('🔍 [검색 디버깅] "사용 횟수 0" 필터 적용:', {
+          beforeCount: beforeTypeFilterCount,
+          afterCount: filtered.length,
+          removedCount: beforeTypeFilterCount - filtered.length
+        });
         break;
       case 'duplicates':
         // 중복 이미지 필터링 (같은 이름을 가진 이미지들)
@@ -1283,9 +1324,20 @@ export default function GalleryAdmin() {
           return acc;
         }, {} as Record<string, number>);
         
+        // ✅ 개선: 로그 추가로 디버깅 용이
+        const duplicateGroups = Object.keys(nameCounts).filter(name => nameCounts[name] > 1).length;
+        console.log('🔍 [검색 디버깅] "중복 이미지" 필터 적용:', {
+          duplicateGroups: duplicateGroups,
+          beforeCount: beforeTypeFilterCount
+        });
+        
         filtered = filtered.filter(img => {
           const fileName = img.name || img.url?.split('/').pop() || '';
           return nameCounts[fileName] > 1;
+        });
+        console.log('🔍 [검색 디버깅] 중복 이미지 필터링 후:', {
+          afterCount: filtered.length,
+          removedCount: beforeTypeFilterCount - filtered.length
         });
         break;
       case 'all':
@@ -1295,8 +1347,14 @@ export default function GalleryAdmin() {
     }
     
     // ✅ 좋아요 필터
+    const beforeLikedFilterCount = filtered.length;
     if (showLikedOnly) {
       filtered = filtered.filter(img => img.is_liked === true);
+      console.log('🔍 [검색 디버깅] "좋아요" 필터 적용:', {
+        beforeCount: beforeLikedFilterCount,
+        afterCount: filtered.length,
+        removedCount: beforeLikedFilterCount - filtered.length
+      });
     }
     
     // 정렬
@@ -1336,9 +1394,16 @@ export default function GalleryAdmin() {
       }
     });
     
+    console.log('🔍 [검색 디버깅] filteredImages useMemo 완료:', {
+      filteredCount: filtered.length,
+      originalCount: images.length,
+      removedCount: images.length - filtered.length,
+      timestamp: new Date().toISOString()
+    });
+    
     return filtered;
-  }, [images, filterType, folderFilter, sortBy, sortOrder, showLikedOnly]);
-  // searchQuery는 의존성에서 제거 (서버 사이드 검색 사용)
+  }, [images, filterType, folderFilter, sortBy, sortOrder, showLikedOnly, searchQuery]);
+  // searchQuery는 의존성에 추가 (디버깅용, 실제 필터링에는 사용하지 않음)
   
   // 복사/붙여넣기 상태
   const [copiedImages, setCopiedImages] = useState<ImageMetadata[]>([]);
@@ -1472,6 +1537,12 @@ export default function GalleryAdmin() {
   const [thumbnailSelectMode, setThumbnailSelectMode] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const thumbnailStripRef = useRef<HTMLDivElement>(null);
+
+  // 제품 합성 관련 상태
+  const [showProductCompositionModal, setShowProductCompositionModal] = useState(false);
+  const [isComposingProduct, setIsComposingProduct] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<string | undefined>(undefined);
+  const [compositionTarget, setCompositionTarget] = useState<'hands' | 'head' | 'body' | 'accessory'>('hands');
 
   // 이미지의 고유 식별자 생성 (id가 있으면 사용, 없으면 name만 사용)
   const getImageUniqueId = (image: ImageMetadata) => {
@@ -1799,8 +1870,8 @@ export default function GalleryAdmin() {
       // 캐시 무효화 파라미터 추가
       const refreshParam = forceRefresh ? `&forceRefresh=true` : '';
       
-      // 디버깅 로그
-      if (customFolderFilter !== undefined || customIncludeChildren !== undefined || customSearchQuery !== undefined || forceRefresh) {
+      // 디버깅 로그 (검색어가 있을 때는 항상 로그 출력)
+      if (effectiveSearchQuery.trim() || customFolderFilter !== undefined || customIncludeChildren !== undefined || customSearchQuery !== undefined || forceRefresh) {
         console.log('🔄 fetchImages 호출:', {
           customFolderFilter,
           effectiveFolderFilter,
@@ -1808,7 +1879,8 @@ export default function GalleryAdmin() {
           customIncludeChildren,
           effectiveIncludeChildren,
           customSearchQuery,
-          effectiveSearchQuery,
+          effectiveSearchQuery: effectiveSearchQuery.trim() || '(빈 검색어)',
+          searchParam: searchParam || '(검색어 없음)',
           forceRefresh
         });
       }
@@ -1951,10 +2023,28 @@ export default function GalleryAdmin() {
 
         const uniqueImages = deduplicateImages(imagesWithMetadata);
 
+        console.log('🔍 [검색 디버깅] fetchImages 응답 처리:', {
+          reset,
+          page,
+          uniqueImagesCount: uniqueImages.length,
+          searchQuery: effectiveSearchQuery.trim() || '(빈 검색어)',
+          timestamp: new Date().toISOString()
+        });
+
         if (reset || page === 1) {
+          console.log('🔍 [검색 디버깅] 이미지 상태 업데이트 (reset):', {
+            before: images.length,
+            after: uniqueImages.length,
+            searchQuery: effectiveSearchQuery.trim() || '(빈 검색어)'
+          });
           setImages(uniqueImages);
           setCurrentPage(1);
         } else {
+          console.log('🔍 [검색 디버깅] 이미지 상태 업데이트 (append):', {
+            before: images.length,
+            newImages: uniqueImages.length,
+            searchQuery: effectiveSearchQuery.trim() || '(빈 검색어)'
+          });
           setImages(prev => {
             // 기존 이미지와 새 이미지 합치기 (중복 제거)
             const existingKeys = new Set(
@@ -2743,6 +2833,72 @@ export default function GalleryAdmin() {
       alert('Nanobanana 변형 중 오류가 발생했습니다: ' + error.message);
     } finally {
       setIsGeneratingNanobananaVariation(false);
+      setTimeout(() => {
+        setShowGenerationProcess(false);
+        setImageGenerationStep('');
+      }, 2000);
+    }
+  };
+
+  // 제품 합성 함수
+  const handleProductComposition = async (imageUrl: string, productId: string, target: 'hands' | 'head' | 'body' | 'accessory' = 'hands') => {
+    if (!imageUrl || !productId) {
+      alert('이미지와 제품을 선택해주세요.');
+      return;
+    }
+
+    if (isComposingProduct) {
+      alert('이미 제품 합성 중입니다. 잠시만 기다려주세요.');
+      return;
+    }
+
+    setIsComposingProduct(true);
+    setImageGenerationStep('제품 합성 중...');
+    setImageGenerationModel('제품 합성');
+    setShowGenerationProcess(true);
+
+    try {
+      const response = await fetch('/api/compose-product-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: imageUrl,
+          productId: productId,
+          compositionTarget: target,
+          title: '갤러리 이미지 제품 합성',
+          excerpt: '갤러리에서 제품 합성된 이미지',
+          contentType: 'gallery',
+          brandStrategy: 'professional'
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || error.message || '제품 합성 실패');
+      }
+
+      const result = await response.json();
+      
+      if (result.imageUrl) {
+        setGeneratedImages(prev => [result.imageUrl, ...prev]);
+        setShowGeneratedImages(true);
+        
+        // 확대 모달 닫기
+        setSelectedImageForZoom(null);
+        setShowProductCompositionModal(false);
+        
+        // 이미지 목록 새로고침
+        fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+        
+        alert('✅ 제품 합성이 완료되었습니다!');
+      } else {
+        throw new Error('합성된 이미지가 생성되지 않았습니다.');
+      }
+    } catch (error: any) {
+      console.error('❌ 제품 합성 오류:', error);
+      alert(`제품 합성 실패: ${error.message}`);
+    } finally {
+      setIsComposingProduct(false);
       setTimeout(() => {
         setShowGenerationProcess(false);
         setImageGenerationStep('');
@@ -5428,13 +5584,6 @@ export default function GalleryAdmin() {
                           </div>
                         )}
                         
-                        {/* ✅ 좋아요 마크 (오른쪽 상단) */}
-                        {(image.is_liked || likedImages.has(image.url)) && (
-                          <div className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg z-10">
-                            <span className="text-lg">❤️</span>
-                          </div>
-                        )}
-                        
                         {/* 사용 횟수 배지 (왼쪽 하단, 1회 이상만 표시) */}
                         {!(image as any).is_linked && image.usage_count > 0 && (
                           <div className="absolute bottom-2 left-2 bg-green-500 text-white px-2 py-1 rounded-md shadow-lg text-xs font-semibold">
@@ -6725,6 +6874,25 @@ export default function GalleryAdmin() {
                   title={selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' ? '동영상은 업스케일할 수 없습니다' : '업스케일'}
                 >
                   {isUpscaling ? '업스케일링 중...' : '업스케일'}
+                </button>
+                
+                {/* 제품 합성 버튼 (별도 버튼으로 분리) */}
+                <button
+                  onClick={() => {
+                    if (!selectedImageForZoom) return;
+                    if (getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video') {
+                      alert('동영상은 제품 합성을 할 수 없습니다.');
+                      return;
+                    }
+                    setSelectedProductId(undefined);
+                    setCompositionTarget('hands');
+                    setShowProductCompositionModal(true);
+                  }}
+                  disabled={isComposingProduct || (selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video')}
+                  className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'video' ? '동영상은 제품 합성을 할 수 없습니다' : '제품 합성 활성화'}
+                >
+                  {isComposingProduct ? '합성 중...' : '제품 합성'}
                 </button>
             </div>
 
@@ -10051,6 +10219,114 @@ export default function GalleryAdmin() {
                 <li><strong>Shift + 드롭</strong>: 바로 링크 생성</li>
                 <li><strong>Ctrl/Cmd + 드롭</strong>: 바로 복사</li>
               </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 제품 합성 모달 */}
+      {showProductCompositionModal && selectedImageForZoom && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">제품 합성 활성화</h3>
+              <button
+                onClick={() => {
+                  setShowProductCompositionModal(false);
+                  setSelectedProductId(undefined);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">
+                이미지에 합성할 제품을 선택하세요.
+              </p>
+              <p className="text-xs text-gray-500 mb-4">
+                제품 합성 관리 페이지에서 제품을 추가하거나 수정할 수 있습니다.
+              </p>
+            </div>
+
+            {/* 합성 타겟 선택 */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                합성 타겟
+              </label>
+              <select
+                value={compositionTarget}
+                onChange={(e) => {
+                  setCompositionTarget(e.target.value as 'hands' | 'head' | 'body' | 'accessory');
+                  setSelectedProductId(undefined); // 타겟 변경 시 제품 선택 초기화
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              >
+                <option value="hands">손 (드라이버 등)</option>
+                <option value="head">머리 (모자 등)</option>
+                <option value="body">몸 (의류 등)</option>
+                <option value="accessory">액세서리</option>
+              </select>
+            </div>
+
+            {/* 제품 선택 */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                제품 선택 *
+              </label>
+              <ProductSelector
+                selectedProductId={selectedProductId}
+                onSelect={(productId) => setSelectedProductId(productId)}
+                compositionTarget={compositionTarget}
+                layout="list"
+                className="border border-gray-300 rounded-lg p-4"
+              />
+            </div>
+
+            {/* 제품 합성 관리 페이지 링크 */}
+            <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs text-blue-700 mb-2">
+                💡 제품 합성 관리 페이지에서 제품을 추가하거나 수정할 수 있습니다.
+              </p>
+              <Link href="/admin/product-composition">
+                <a
+                  target="_blank"
+                  className="text-xs text-blue-600 hover:text-blue-800 underline"
+                >
+                  제품 합성 관리 페이지 열기 →
+                </a>
+              </Link>
+            </div>
+
+            {/* 하단 버튼 */}
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowProductCompositionModal(false);
+                  setSelectedProductId(undefined);
+                }}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={async () => {
+                  if (!selectedProductId) {
+                    alert('제품을 선택해주세요.');
+                    return;
+                  }
+                  await handleProductComposition(
+                    selectedImageForZoom.url,
+                    selectedProductId,
+                    compositionTarget
+                  );
+                }}
+                disabled={!selectedProductId || isComposingProduct}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isComposingProduct ? '합성 중...' : '제품 합성 시작'}
+              </button>
             </div>
           </div>
         </div>
