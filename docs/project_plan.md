@@ -1,5 +1,37 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
+## ✅ 완료: 갤러리에서 고객 이미지 이동 시 메타데이터 손실 문제 수정 (2026-01-28)
+
+### 문제
+- 갤러리에서 고객 이미지를 드래그 앤 드롭으로 날짜 폴더 간 이동 시 메타데이터 손실
+- `file_path`, `cdn_url`, `ai_tags`의 `visit-{date}` 태그가 업데이트되지 않음
+- 고객 관리에서 "이미지 로드 실패" 표시 및 날짜 필터 문제
+
+### 작업 내용
+1. **`move-image-to-folder.js` API 개선** ✅
+   - `file_path` 업데이트 추가
+   - `cdn_url` 업데이트 추가
+   - 고객 이미지 감지 및 `ai_tags`의 `visit-{date}` 태그 자동 업데이트
+   - 날짜 폴더 변경 시 `visit-{oldDate}` 태그 제거 및 `visit-{newDate}` 태그 추가
+
+2. **이동된 이미지 메타데이터 복구** ✅
+   - 안희자 고객의 이동된 이미지 2개 메타데이터 복구
+   - 중복 메타데이터 삭제 (2개)
+   - `file_path`, `cdn_url`, `ai_tags` 정상화
+
+### 결과
+- 갤러리에서 고객 이미지 이동 시 메타데이터가 정상적으로 업데이트됨
+- 고객 관리에서 이미지가 정상 표시됨
+- 날짜 필터가 올바르게 작동함
+
+### 변경된 파일
+- `pages/api/admin/move-image-to-folder.js` (수정)
+- `scripts/fix-moved-ahnheeja-images.js` (신규)
+- `scripts/fix-moved-ahnheeja-images-v2.js` (신규)
+- `docs/gallery-move-customer-image-fix-plan.md` (신규)
+
+---
+
 ## ✅ 완료: 고객 이미지 목록 제거 기능 수정 - ai_tags 필터링 하위 호환성 추가 (2026-01-27)
 
 ### 작업 내용
