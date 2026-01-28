@@ -86,6 +86,12 @@ interface ImageMetadata {
   logo_color_variant?: string;
   // ✅ 좋아요 필드
   is_liked?: boolean;
+  // ✅ OCR 관련 필드
+  ocr_text?: string;
+  ocr_extracted?: boolean;
+  ocr_confidence?: number;
+  ocr_processed_at?: string;
+  ocr_fulltextannotation?: any;
 }
 
 export default function GalleryAdmin() {
@@ -1954,7 +1960,13 @@ export default function GalleryAdmin() {
             // 메타데이터 존재 여부 (API에서 제공되는 경우)
             has_metadata: img.has_metadata !== false,
             // ✅ 좋아요 상태 추가
-            is_liked: img.is_liked || false
+            is_liked: img.is_liked || false,
+            // ✅ OCR 관련 필드 추가
+            ocr_text: img.ocr_text || undefined,
+            ocr_extracted: img.ocr_extracted || false,
+            ocr_confidence: img.ocr_confidence || undefined,
+            ocr_processed_at: img.ocr_processed_at || undefined,
+            ocr_fulltextannotation: img.ocr_fulltextannotation || undefined
           };
         });
         
@@ -5825,7 +5837,19 @@ export default function GalleryAdmin() {
         image={(() => {
           if (!editingImage) return null;
           const found = images.find(img => img.name === editingImage) || null;
-          return found ? { ...found, category: String(found.category ?? '') } as any : null;
+          if (!found) return null;
+          
+          // ✅ OCR 필드 포함하여 전달 (고객 관리와 동일한 방식)
+          return {
+            ...found,
+            category: String(found.category ?? ''),
+            // OCR 필드 명시적으로 포함
+            ocr_text: found.ocr_text,
+            ocr_extracted: found.ocr_extracted,
+            ocr_confidence: found.ocr_confidence,
+            ocr_processed_at: found.ocr_processed_at,
+            ocr_fulltextannotation: found.ocr_fulltextannotation
+          } as any;
         })()}
         onClose={() => setEditingImage(null)}
         onSave={async (metadata, exifData) => {

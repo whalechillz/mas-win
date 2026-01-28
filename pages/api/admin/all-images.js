@@ -2077,6 +2077,12 @@ export default async function handler(req, res) {
           alt_text: metadata?.alt_text || asset?.alt_text || '',
           title: metadata?.title || asset?.title || '',
           description: metadata?.description || asset?.description || '',
+          // ✅ OCR 관련 필드 추가 (image_assets에서 가져오기)
+          ocr_text: asset?.ocr_text || undefined,
+          ocr_extracted: asset?.ocr_extracted || false,
+          ocr_confidence: asset?.ocr_confidence || undefined,
+          ocr_processed_at: asset?.ocr_processed_at || undefined,
+          ocr_fulltextannotation: asset?.ocr_fulltextannotation || undefined,
           // ✅ keywords: image_metadata.tags → image_assets.ai_tags 순서로 fallback
           keywords: (() => {
             // image_metadata의 tags 우선
