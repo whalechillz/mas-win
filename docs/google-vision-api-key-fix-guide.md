@@ -43,17 +43,30 @@ API 키에 **HTTP Referrer 제한**이 설정되어 있어서 서버 사이드(N
    - `.env.local` 파일의 `GOOGLE_VISION_API_KEY` 값 업데이트
    - Vercel 환경 변수도 업데이트
 
-### 방법 3: Vercel 배포 시 IP 주소 제한
+### 방법 3: Vercel 배포 시 설정 (권장)
 
-Vercel을 사용하는 경우:
+Vercel은 **동적 IP 주소**를 사용하므로 IP 제한은 권장하지 않습니다.
 
-1. **Vercel IP 범위 확인**
-   - Vercel의 IP 주소는 동적이므로 IP 제한 사용 시 문제 발생 가능
-   - 대신 **"None"** 또는 **서비스 계정** 사용 권장
+**Vercel + 로컬 개발 모두 지원하는 설정:**
 
-2. **서비스 계정 사용 (가장 안전)**
-   - 서버 사이드에서는 API 키 대신 서비스 계정 JSON 키 사용 권장
-   - 하지만 현재 구조에서는 API 키 사용이 더 간단
+1. **Application restrictions**: **"없음"** 선택
+2. **API restrictions**: **"키 제한"** > **"Cloud Vision API"**만 선택
+3. 환경 변수로 API 키 관리:
+   - 로컬: `.env.local` 파일
+   - Vercel: Environment Variables 설정
+
+**이렇게 하면:**
+- ✅ 로컬 개발 환경에서 작동
+- ✅ Vercel 프로덕션에서 작동
+- ✅ API 키가 노출되어도 Vision API만 사용 가능 (보안)
+
+**Vercel IP 주소 (참고용, 권장하지 않음):**
+```
+76.76.21.0/24
+76.76.22.0/24
+76.76.23.0/24
+```
+⚠️ Vercel의 IP는 동적이므로 IP 제한은 권장하지 않습니다.
 
 ## 테스트
 
