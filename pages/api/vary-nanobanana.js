@@ -256,22 +256,55 @@ export default async function handler(req, res) {
       let targetDateFolder = folderPath.split('/').pop() || new Date().toISOString().slice(0, 10);
       
       try {
-        const { data: metadata, error: metadataError } = await supabase
+        // cdn_url로 먼저 조회 시도
+        let { data: metadata, error: metadataError } = await supabase
           .from('image_assets')
           .select('*')
           .eq('cdn_url', imageUrl)
           .maybeSingle();
 
+        // cdn_url로 찾지 못한 경우 file_path로 조회 시도
+        if (metadataError || !metadata) {
+          const pathFromUrl = extractPathFromUrl(imageUrl);
+          if (pathFromUrl) {
+            const { data: metadataByPath, error: pathError } = await supabase
+              .from('image_assets')
+              .select('*')
+              .eq('file_path', pathFromUrl)
+              .maybeSingle();
+            
+            if (!pathError && metadataByPath) {
+              metadata = metadataByPath;
+              metadataError = null;
+            }
+          }
+        }
+
         if (!metadataError && metadata) {
           originalMetadata = metadata;
           
+          // ✅ 배경 변형 모드일 때도 현재 위치(고객 일자)에 생성
           // 원본이 고객 폴더인 경우 그대로 사용 (file_path 사용)
           if (metadata.file_path && metadata.file_path.includes('originals/customers/')) {
             targetFolderPath = metadata.file_path.substring(0, metadata.file_path.lastIndexOf('/'));
-            console.log('✅ 원본이 고객 폴더입니다. 같은 폴더에 저장:', targetFolderPath);
+            console.log('✅ 원본이 고객 폴더입니다. 같은 폴더에 저장:', {
+              targetFolderPath,
+              variationMode,
+              originalFilePath: metadata.file_path
+            });
           } else if (metadata.file_path) {
             // 원본 메타데이터에 file_path가 있으면 우선 사용
             targetFolderPath = metadata.file_path.substring(0, metadata.file_path.lastIndexOf('/'));
+            console.log('✅ 원본 메타데이터의 file_path 사용:', {
+              targetFolderPath,
+              variationMode,
+              originalFilePath: metadata.file_path
+            });
+          }
+          
+          // ✅ 배경 변형 모드일 때 명시적으로 현재 위치 사용 확인
+          if (variationMode === 'background-only' && targetFolderPath) {
+            console.log('✅ 배경 변형 모드: 현재 위치에 생성:', targetFolderPath);
           }
         }
       } catch (metadataError) {
@@ -397,12 +430,14 @@ export default async function handler(req, res) {
         };
       }
 
-      // 고객 이미지인 경우 고객 정보 조회 및 ai_tags에 추가
+      // ✅ 고객 이미지인 경우 고객 정보 조회 및 ai_tags에 추가
+      // 배경 변형 모드일 때도 고객 정보를 정확히 추출
       if (location === 'customers' && productName !== 'none') {
         try {
+          // 고객 이름 추출 (folder_name 형식: 영문이름-전화번호마지막4자리)
           const { data: customer, error: customerError } = await supabase
             .from('customers')
-            .select('id, folder_name')
+            .select('id, folder_name, name')
             .eq('folder_name', productName)
             .maybeSingle();
 
