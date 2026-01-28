@@ -338,18 +338,31 @@ function detectStorySceneFromImage(
   );
   
   // 문서 감지 조건: 키워드 또는 시각적 특징 또는 문서 구조
-  if (hasDocumentKeyword || (hasVisualDocumentIndicator && hasDocumentStructure)) {
+  // ✅ 강화: 시각적 특징만 있어도 문서로 감지 (흰색 배경 + 텍스트는 문서일 가능성이 매우 높음)
+  const isDocument = hasDocumentKeyword || 
+                     (hasVisualDocumentIndicator && hasDocumentStructure) ||
+                     (hasVisualDocumentIndicator && lowerAnalysis.includes('고객')) || // "고객 기본정보" 같은 패턴
+                     (hasVisualDocumentIndicator && lowerAnalysis.includes('정보')) || // "정보", "기본정보" 같은 패턴
+                     (hasVisualDocumentIndicator && lowerAnalysis.includes('데이터')) || // "피팅 데이터" 같은 패턴
+                     (hasVisualDocumentIndicator && lowerAnalysis.includes('check')) || // "Check-point" 같은 패턴
+                     (hasVisualDocumentIndicator && lowerAnalysis.includes('point')); // "Check-point" 같은 패턴
+  
+  if (isDocument) {
     console.log('✅ [스토리 감지] 문서 감지됨 (최우선 처리):', {
       hasDocumentKeyword,
       hasVisualDocumentIndicator,
       hasDocumentStructure,
       matchedKeywords: documentKeywords.filter(kw => lowerAnalysis.includes(kw.toLowerCase())),
-      matchedVisualIndicators: visualDocumentIndicators.filter(ind => lowerAnalysis.includes(ind.toLowerCase()))
+      matchedVisualIndicators: visualDocumentIndicators.filter(ind => lowerAnalysis.includes(ind.toLowerCase())),
+      hasCustomerInfo: lowerAnalysis.includes('고객'),
+      hasInfo: lowerAnalysis.includes('정보'),
+      hasData: lowerAnalysis.includes('데이터'),
+      hasCheck: lowerAnalysis.includes('check') || lowerAnalysis.includes('point')
     });
     return {
       scene: 0,
       type: 'docs',
-      confidence: hasDocumentKeyword ? 0.95 : 0.85, // 키워드 기반이 더 높은 신뢰도
+      confidence: hasDocumentKeyword ? 0.95 : (hasVisualDocumentIndicator ? 0.90 : 0.85), // 시각적 특징만 있어도 높은 신뢰도
       keywords: ['문서', '서류', 'document', 'form'],
       detectionMethod: 'story-scene'
     };
