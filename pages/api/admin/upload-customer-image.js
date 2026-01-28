@@ -356,16 +356,39 @@ export default async function handler(req, res) {
       });
 
       // Storage 파일 존재 여부 확인 함수
-      const verifyFileExists = async (filePath) => {
-        if (!filePath) return false;
+      const verifyFileExists = async (img) => {
+        if (!img) return false;
+        
+        // file_path가 없으면 false 반환
+        if (!img.file_path) {
+          return false;
+        }
+        
         try {
-          const pathParts = filePath.split('/');
-          const folderPath = pathParts.slice(0, -1).join('/');
-          const fileName = pathParts[pathParts.length - 1];
+          const pathParts = img.file_path.split('/');
+          const lastPart = pathParts[pathParts.length - 1];
+          const isDateFolder = /^\d{4}-\d{2}-\d{2}$/.test(lastPart);
           
-          // 파일명이 없거나 날짜 폴더만 있는 경우
-          if (!fileName || fileName.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            return false;
+          let actualFilePath = img.file_path;
+          let folderPath = pathParts.slice(0, -1).join('/');
+          let fileName = lastPart;
+          
+          // file_path에 파일명이 없는 경우 (날짜 폴더만 있는 경우)
+          if (isDateFolder || !lastPart.includes('.')) {
+            // filename 필드에서 파일명 추출
+            const fileNameFromField = img.filename || img.english_filename || img.original_filename;
+            if (fileNameFromField) {
+              actualFilePath = `${img.file_path}/${fileNameFromField}`;
+              folderPath = img.file_path;
+              fileName = fileNameFromField;
+            } else {
+              // filename도 없으면 false 반환
+              console.warn('⚠️ [파일 존재 확인] file_path와 filename 모두 없음:', {
+                imageId: img.id,
+                file_path: img.file_path
+              });
+              return false;
+            }
           }
           
           const { data: files, error } = await supabase.storage
@@ -378,7 +401,8 @@ export default async function handler(req, res) {
           const exists = !error && files && files.length > 0;
           if (!exists) {
             console.warn('⚠️ [파일 존재 확인] Storage에 존재하지 않음:', {
-              filePath: filePath.substring(0, 100),
+              imageId: img.id,
+              filePath: actualFilePath.substring(0, 100),
               folderPath,
               fileName
             });
@@ -452,6 +476,7 @@ export default async function handler(req, res) {
       }
       
       // 실제 Storage 파일 존재 여부 확인 (잔상 이미지 제거)
+      // ⚠️ file_path에 파일명이 없는 경우 filename을 사용하여 확인
       if (filteredMetadataImages.length > 0) {
         console.log('🔍 [파일 존재 확인] 시작:', {
           count: filteredMetadataImages.length
@@ -459,17 +484,36 @@ export default async function handler(req, res) {
         
         const verifiedImages = await Promise.all(
           filteredMetadataImages.map(async (img) => {
+            const exists = await verifyFileExists(img);
+            if (!exists) {
+              console.warn('⚠️ [잔상 이미지 제거] Storage에 존재하지 않는 이미지 메타데이터:', {
+                imageId: img.id,
+                file_path: img.file_path?.substring(0, 100),
+                filename: img.filename
+              });
+              return null; // 존재하지 않으면 제외
+            }
+            
+            // file_path에 파일명이 없는 경우 수정
             if (img.file_path) {
-              const exists = await verifyFileExists(img.file_path);
-              if (!exists) {
-                console.warn('⚠️ [잔상 이미지 제거] Storage에 존재하지 않는 이미지 메타데이터:', {
-                  imageId: img.id,
-                  file_path: img.file_path?.substring(0, 100),
-                  filename: img.filename
-                });
-                return null; // 존재하지 않으면 제외
+              const pathParts = img.file_path.split('/');
+              const lastPart = pathParts[pathParts.length - 1];
+              const isDateFolder = /^\d{4}-\d{2}-\d{2}$/.test(lastPart);
+              
+              if (isDateFolder || !lastPart.includes('.')) {
+                const fileName = img.filename || img.english_filename || img.original_filename;
+                if (fileName) {
+                  img.file_path = `${img.file_path}/${fileName}`;
+                  console.log('📝 [file_path 수정] 파일명 추가:', {
+                    imageId: img.id,
+                    originalFilePath: pathParts.join('/'),
+                    correctedFilePath: img.file_path.substring(0, 100),
+                    fileName
+                  });
+                }
               }
             }
+            
             return img;
           })
         );
