@@ -42,7 +42,7 @@ export default async function handler(
     // 1. 메타데이터에서 임시 파일 정보 가져오기
     const { data: metadata, error: fetchError } = await supabase
       .from('image_assets')
-      .select('cdn_url, file_path, filename')
+      .select('cdn_url, file_path, filename, mime_type')
       .eq('id', metadataId)
       .single();
 
@@ -78,7 +78,9 @@ export default async function handler(
 
     if (moveError) {
       // 이미 존재하는 파일인 경우 (중복)
-      if (moveError.message?.includes('already exists') || moveError.statusCode === '409') {
+      if (moveError.message?.includes('already exists') || 
+          (moveError as any).statusCode === '409' ||
+          moveError.message?.includes('409')) {
         console.log('⚠️ [move-customer-image-file] 파일이 이미 존재함, 메타데이터만 업데이트');
         // 메타데이터만 업데이트 (파일은 이미 존재)
       } else {
