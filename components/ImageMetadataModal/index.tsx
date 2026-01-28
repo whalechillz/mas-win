@@ -53,9 +53,9 @@ const FIELD_CONFIGS: Partial<Record<keyof MetadataForm, FieldConfig>> = {
   },
   description: {
     label: '설명',
-    placeholder: '이미지 설명',
+    placeholder: '이미지 설명 (OCR 텍스트 포함 가능)',
     type: 'textarea',
-    maxLength: 300,  // ✅ 설명 길이 제한 증가 (200 → 300자, 프롬프트: 100-200 words)
+    maxLength: 5000,  // ✅ OCR 텍스트 지원을 위해 최대 길이 증가 (300 → 5000자)
     aiEnabled: true,
     seoOptimized: true
   },
@@ -522,7 +522,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       }
       
       // ✅ 실시간 유효성 검사 (업데이트된 폼으로 검증)
-      const errors = validateForm(updated);
+      const errors = validateForm(updated, hasOCRText);
       setValidationErrors(errors);
       
       return updated;
@@ -792,7 +792,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       finalLength: updatedKeywords.length
     });
     
-    const errors = validateForm(formWithKeywords);
+    const errors = validateForm(formWithKeywords, hasOCRText);
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       console.error('❌ 검증 오류:', errors);

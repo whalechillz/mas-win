@@ -30,9 +30,9 @@ export const VALIDATION_RULES: ValidationRule[] = [
   },
   {
     field: 'description',
-    maxLength: 300,
+    maxLength: 5000,  // ✅ OCR 텍스트 지원을 위해 최대 길이 증가 (300 → 5000자)
     required: false,
-    message: '설명은 300자 이하로 입력해주세요'
+    message: '설명은 5000자 이하로 입력해주세요 (OCR 텍스트 포함 가능)'
   },
   {
     field: 'category',
@@ -42,7 +42,7 @@ export const VALIDATION_RULES: ValidationRule[] = [
 ];
 
 // 폼 유효성 검사
-export const validateForm = (form: MetadataForm): Record<string, string> => {
+export const validateForm = (form: MetadataForm, hasOCRText: boolean = false): Record<string, string> => {
   const errors: Record<string, string> = {};
 
   VALIDATION_RULES.forEach(rule => {
@@ -61,8 +61,14 @@ export const validateForm = (form: MetadataForm): Record<string, string> => {
       return;
     }
 
-    if (rule.maxLength && stringValue && stringValue.length > rule.maxLength) {
-      errors[rule.field] = rule.message || `${rule.field}는 ${rule.maxLength}자 이하로 입력해주세요`;
+    // ✅ OCR 텍스트가 있는 경우 description 필드의 최대 길이 제한 완화 (300자 → 5000자)
+    let maxLength = rule.maxLength;
+    if (rule.field === 'description' && hasOCRText) {
+      maxLength = 5000; // OCR 텍스트는 길 수 있으므로 제한 완화
+    }
+
+    if (maxLength && stringValue && stringValue.length > maxLength) {
+      errors[rule.field] = rule.message || `${rule.field}는 ${maxLength}자 이하로 입력해주세요`;
     }
   });
 
