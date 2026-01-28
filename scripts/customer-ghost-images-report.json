@@ -1,0 +1,168 @@
+{
+  "totalCustomers": 1000,
+  "customersWithIssues": [
+    {
+      "customerId": 1347,
+      "name": "이경희",
+      "folderName": "minhosik-5549",
+      "storageFiles": 21,
+      "dbImages": 42,
+      "validImages": 19,
+      "ghostImages": 21,
+      "duplicateImages": 2
+    },
+    {
+      "customerId": 13542,
+      "name": "김석구",
+      "folderName": "kimseokgu-6302",
+      "storageFiles": 9,
+      "dbImages": 18,
+      "validImages": 8,
+      "ghostImages": 9,
+      "duplicateImages": 1
+    },
+    {
+      "customerId": 335,
+      "name": "박승조",
+      "folderName": "kimbothyeon-4648",
+      "storageFiles": 9,
+      "dbImages": 18,
+      "validImages": 9,
+      "ghostImages": 9,
+      "duplicateImages": 0
+    },
+    {
+      "customerId": 1997,
+      "name": "김용석",
+      "folderName": "kimyotseok-4453",
+      "storageFiles": 9,
+      "dbImages": 17,
+      "validImages": 9,
+      "ghostImages": 8,
+      "duplicateImages": 0
+    },
+    {
+      "customerId": 2398,
+      "name": "박성우",
+      "folderName": "parksungwoo-6003",
+      "storageFiles": 16,
+      "dbImages": 20,
+      "validImages": 13,
+      "ghostImages": 4,
+      "duplicateImages": 3
+    },
+    {
+      "customerId": 13941,
+      "name": "김정석",
+      "folderName": "kimjeotseok-8351",
+      "storageFiles": 7,
+      "dbImages": 14,
+      "validImages": 7,
+      "ghostImages": 7,
+      "duplicateImages": 0
+    },
+    {
+      "customerId": 13748,
+      "name": "최승남",
+      "folderName": "choiseutnal-2216",
+      "storageFiles": 7,
+      "dbImages": 14,
+      "validImages": 7,
+      "ghostImages": 0,
+      "duplicateImages": 7
+    },
+    {
+      "customerId": 2383,
+      "name": "윤효영",
+      "folderName": "yunhyoyeot-6175",
+      "storageFiles": 5,
+      "dbImages": 10,
+      "validImages": 5,
+      "ghostImages": 0,
+      "duplicateImages": 5
+    },
+    {
+      "customerId": 1655,
+      "name": "채문석",
+      "folderName": "chaemunseok-7973",
+      "storageFiles": 5,
+      "dbImages": 10,
+      "validImages": 5,
+      "ghostImages": 5,
+      "duplicateImages": 0
+    },
+    {
+      "customerId": 1543,
+      "name": "김승훈",
+      "folderName": "kimseuthun-4375",
+      "storageFiles": 4,
+      "dbImages": 8,
+      "validImages": 4,
+      "ghostImages": 4,
+      "duplicateImages": 0
+    },
+    {
+      "customerId": 13719,
+      "name": "조보현",
+      "folderName": "jobohyeon-8857",
+      "storageFiles": 10,
+      "dbImages": 10,
+      "validImages": 8,
+      "ghostImages": 0,
+      "duplicateImages": 2
+    },
+    {
+      "customerId": 1298,
+      "name": "VIP3445",
+      "folderName": "kimhangu-3445",
+      "storageFiles": 5,
+      "dbImages": 7,
+      "validImages": 5,
+      "ghostImages": 2,
+      "duplicateImages": 0
+    },
+    {
+      "customerId": 372,
+      "name": "김영진",
+      "folderName": "kimyeotjin-4452",
+      "storageFiles": 6,
+      "dbImages": 7,
+      "validImages": 6,
+      "ghostImages": 1,
+      "duplicateImages": 0
+    },
+    {
+      "customerId": 2327,
+      "name": "이수원",
+      "folderName": "leesuwon-7146",
+      "storageFiles": 6,
+      "dbImages": 6,
+      "validImages": 5,
+      "ghostImages": 0,
+      "duplicateImages": 1
+    },
+    {
+      "customerId": 2190,
+      "name": "김영필",
+      "folderName": "kimyeotpit-7272",
+      "storageFiles": 4,
+      "dbImages": 5,
+      "validImages": 4,
+      "ghostImages": 1,
+      "duplicateImages": 0
+    },
+    {
+      "customerId": 13633,
+      "name": "채영태",
+      "folderName": "chaeyeottae-7508",
+      "storageFiles": 5,
+      "dbImages": 6,
+      "validImages": 5,
+      "ghostImages": 1,
+      "duplicateImages": 0
+    }
+  ],
+  "totalGhostImages": 72,
+  "totalDuplicateImages": 21,
+  "totalValidImages": 280
+}

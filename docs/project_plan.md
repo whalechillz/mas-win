@@ -8644,3 +8644,65 @@ WHERE
 ### 수정된 파일
 - `components/admin/customers/SceneDetailView.tsx` - 서류 분류 로직 개선
 - `pages/admin/customers/index.tsx` - 탭 형태로 변경 및 필터링 로직 개선 (추가 수정 필요)
+
+---
+
+## 날짜 형식 마이그레이션 계획 (2026-01-28)
+
+### 배경
+- 현재 `file_path`에 점 형식(YYYY.MM.DD)과 대시 형식(YYYY-MM-DD)이 혼재
+- 코드에서 두 형식을 모두 지원해야 해서 복잡도 증가
+- 이남구 고객 필터 문제의 원인 중 하나
+
+### 계획
+- 모든 날짜 형식을 `YYYY-MM-DD` (ISO 8601 표준)로 통일
+- Storage 폴더명, `file_path`, `cdn_url` 일괄 변경
+- 마이그레이션 스크립트 작성 완료
+
+### 마이그레이션 대상
+- **63개 이미지**, **7개 고유 날짜**
+- 주요 고객: 이남구, 박성우, 신재식, 김종철, 김조철, 윤효엿, 최승남
+
+### 스크립트
+- `scripts/check-date-formats.js` - 날짜 형식 확인
+- `scripts/migrate-date-format-dot-to-dash.js` - 마이그레이션 실행
+
+### 계획서
+- `docs/date-format-migration-plan.md` - 마이그레이션 계획서 작성 완료
+
+### 상태
+- ✅ DRY RUN 완료 (63개 이미지 확인)
+- ⏳ 실제 마이그레이션 대기 중 (사용자 승인 필요)
+
+---
+
+## 고객 이미지 Storage 동기화 계획 (2026-01-28)
+
+### 배경
+- 이남구 고객에서 발견된 문제: DB 24개 vs Storage 11개
+- 고스트 이미지 및 중복 이미지 문제
+- 다른 고객들도 같은 문제가 있을 가능성
+
+### 확인 결과
+- **총 고객 수**: 1,000명
+- **문제가 있는 고객**: 16명 (1.6%)
+- **고스트 이미지**: 72개
+- **중복 이미지**: 21개
+
+### 계획
+- 전체 고객 이미지 동기화 상태 확인
+- 고스트 이미지 및 중복 이미지 일괄 정리
+- Storage와 DB 메타데이터 일치시키기
+
+### 스크립트
+- `scripts/check-all-customers-ghost-images.js` - 전체 고객 확인 ✅
+- `scripts/sync-all-customers-images.js` - 일괄 동기화 ✅
+- `scripts/delete-leenamgu-duplicate-images.js` - 이남구 고객 정리 완료 ✅
+
+### 계획서
+- `docs/customer-image-sync-plan.md` - 동기화 계획서 작성 완료
+
+### 상태
+- ✅ 전체 현황 파악 완료 (16명 고객에 문제 발견)
+- ✅ 일괄 동기화 스크립트 작성 완료
+- ⏳ 소규모 테스트 대기 중
