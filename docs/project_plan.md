@@ -1,5 +1,38 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
+## ✅ 완료: 고객 이미지 조회 - 갤러리 폴더 기준 개선 (2026-01-28)
+
+### 문제
+- 1월 28일 이미지의 "이미지 로드 실패"가 사라지지 않음
+- `cdn_url`이 잘못된 경로를 가리키는 경우 이미지 로드 실패
+- 메타데이터와 실제 Storage 파일 위치 불일치
+
+### 사용자 제안
+**"고객 이미지 관리도도 - 갤러리 폴더 기준으로면 하면 문제가 안생기는거 아니야?"**
+
+### 작업 내용
+1. **API 개선: `file_path` 기반 URL 우선 사용** ✅
+   - `upload-customer-image.js` API에서 `file_path`를 우선 사용하여 URL 생성
+   - `cdn_url`이 있어도 `file_path` 기반 URL을 우선 사용 (갤러리 폴더 기준)
+   - 가장 안정적이고 정확한 방법
+
+2. **프론트엔드 개선: `file_path` 기반 URL 재생성** ✅
+   - `loadCustomerImages` 함수에서 `file_path` 기반 URL 재생성
+   - API에서 받은 이미지 데이터의 `image_url`을 `file_path` 기반으로 재생성
+   - 이중 보완으로 안정성 향상
+
+### 장점
+- ✅ 안정성 향상: `file_path`는 항상 실제 Storage 파일 위치를 반영
+- ✅ 갤러리와 일관성: 갤러리에서 보는 이미지와 고객 관리에서 보는 이미지가 동일
+- ✅ 방문일자 수정 후 자동 복구: `file_path`가 업데이트되면 자동으로 올바른 URL 생성
+
+### 변경된 파일
+- `pages/api/admin/upload-customer-image.js` (수정)
+- `pages/admin/customers/index.tsx` (수정)
+- `docs/customer-image-gallery-folder-based-improvement.md` (신규)
+
+---
+
 ## ✅ 완료: 방문일자 수정 시 Storage 파일 이동 기능 추가 (2026-01-28)
 
 ### 문제
