@@ -7,6 +7,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { uploadImageToSupabase } from '../../../lib/image-upload-utils';
 import { detectCustomerImageType } from '../../../lib/customer-image-type-detector';
+import { sanitizeKoreanFileName } from '../../../lib/filename-sanitizer';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -79,13 +80,17 @@ export default async function handler(
     });
 
     // 1. 임시 파일 업로드 (URL 확보)
-    const tempFileName = `temp_${Date.now()}_${file.originalFilename || file.newFilename}`;
+    // ✅ 한글 파일명 sanitization 적용 (Supabase Storage key는 한글을 지원하지 않음)
+    const originalFileName = file.originalFilename || file.newFilename;
+    const sanitizedFileName = sanitizeKoreanFileName(originalFileName);
+    const tempFileName = `temp_${Date.now()}_${sanitizedFileName}`;
     const tempFolderPath = `temp/customers/${customerId}`;
     
     console.log('📤 [create-customer-image-metadata] 임시 파일 업로드 시작:', {
+      originalFileName,
+      sanitizedFileName,
       tempFileName,
       tempFolderPath,
-      originalFilename: file.originalFilename,
       mimetype: file.mimetype
     });
 
