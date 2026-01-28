@@ -401,13 +401,29 @@ export default async function handler(req, res) {
         categoryId = categoryMap[firstCategory.toLowerCase()] || 5; // 기본값: '기타'
       }
 
+      // ✅ imageUrl이 없으면 에러 반환
+      if (!imageUrl) {
+        console.error('❌ 메타데이터 업데이트 오류: imageUrl이 없습니다');
+        return res.status(400).json({ error: 'imageUrl이 필요합니다.' });
+      }
+
+      // ✅ keywords 안전 처리
+      let safeKeywords = [];
+      if (keywords !== undefined && keywords !== null) {
+        if (Array.isArray(keywords)) {
+          safeKeywords = keywords.map(k => String(k || '').trim()).filter(k => k);
+        } else if (typeof keywords === 'string') {
+          safeKeywords = keywords.split(',').map(k => k.trim()).filter(k => k);
+        }
+      }
+
       // 데이터베이스에서 메타데이터 업데이트 (image_assets 사용)
       // ⚠️ image_assets에는 category_id가 없으므로 제거
       // ✅ description 필드 길이 제한 제거 (OCR 텍스트 지원을 위해 5000자까지 허용)
       const metadataData = {
         cdn_url: imageUrl,
         alt_text: alt_text || '',
-        ai_tags: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()) : []),
+        ai_tags: safeKeywords,
         title: title || '',
         description: description || '', // OCR 텍스트 포함 가능 (최대 5000자)
         updated_at: new Date().toISOString(),
@@ -428,6 +444,15 @@ export default async function handler(req, res) {
         metadataData.description = metadataData.description.substring(0, 5000);
       }
 
+      console.log('📝 메타데이터 업데이트 시도:', {
+        imageUrl: imageUrl.substring(0, 100),
+        alt_text_length: metadataData.alt_text?.length || 0,
+        title_length: metadataData.title?.length || 0,
+        description_length: metadataData.description?.length || 0,
+        keywords_count: safeKeywords.length,
+        has_ocr_text: !!metadataData.ocr_text
+      });
+
       const { data, error } = await supabase
         .from('image_assets')
         .update(metadataData)
@@ -436,8 +461,19 @@ export default async function handler(req, res) {
         .single();
       
       if (error) {
-        console.error('❌ 메타데이터 업데이트 오류:', error);
-        return res.status(500).json({ error: '메타데이터 업데이트 실패', details: error.message });
+        console.error('❌ 메타데이터 업데이트 오류:', {
+          error: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          imageUrl: imageUrl.substring(0, 100),
+          metadataDataKeys: Object.keys(metadataData)
+        });
+        return res.status(500).json({ 
+          error: '메타데이터 업데이트 실패', 
+          details: error.message || '알 수 없는 오류',
+          code: error.code
+        });
       }
 
       console.log('✅ 메타데이터 업데이트 완료');
