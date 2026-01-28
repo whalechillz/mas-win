@@ -425,10 +425,15 @@ GOOGLE_VISION_API_KEY=your_api_key_here
 ### 5. 비용 관리
 
 **가격 정보:**
-- 첫 1,000회/월: 무료
-- 이후: $1.50/1,000회 (약 ₩2,000/1,000회)
-- TEXT_DETECTION: $1.50/1,000회
-- DOCUMENT_TEXT_DETECTION: $1.50/1,000회 (더 정확)
+- **무료 티어**: 첫 1,000회/월 무료 (KRW 0.00 /1K count)
+- **등급 1 (Tier 1)**: KRW 2,151.49 /1K count (약 ₩2,150/1,000회)
+- **USD 기준**: $1.50/1,000회
+- **환율**: 1 USD = 약 1,434.32 KRW (2026년 1월 기준)
+
+**화면에서 확인할 수 있는 정보:**
+- ✅ "Document Text Detection Operations" ← 이것이 바로 DOCUMENT_TEXT_DETECTION!
+- 무료: KRW 0.00 /1K count (최저: 0 count/월)
+- 등급 1: KRW 2,151.49 /1K count (최저: 1K count/월)
 
 **⚠️ 중요: AutoML vs Vision API 구분**
 
