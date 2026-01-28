@@ -130,12 +130,12 @@ export default function WeaponBerylProduct() {
                   className={`flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-8 items-center ${index < hookContent.length - 1 ? 'mb-12 md:mb-16' : ''}`}
                 >
                   <div className={`relative w-full rounded-lg overflow-hidden ${index % 2 === 1 ? 'md:order-2' : ''}`}>
-                    <div className="relative w-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px]">
+                    <div className="relative w-full h-[400px] sm:h-[450px] md:h-[500px]">
                       <Image 
                         src={item.image} 
                         alt={item.title}
                         fill
-                        className="object-contain"
+                        className="object-cover md:object-contain"
                         sizes="(max-width: 768px) 100vw, 50vw"
                         priority={index < 2}
                         onError={(e) => {
@@ -146,7 +146,7 @@ export default function WeaponBerylProduct() {
                       />
                     </div>
                   </div>
-                  <div className={`text-left w-full ${index % 2 === 1 ? 'md:order-1' : ''}`}>
+                  <div className={`text-center md:text-left w-full ${index % 2 === 1 ? 'md:order-1' : ''}`}>
                     <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4 leading-tight">{item.title}</h2>
                     <p className="text-base sm:text-lg text-gray-300 leading-relaxed">{item.description}</p>
                   </div>
@@ -306,12 +306,12 @@ export default function WeaponBerylProduct() {
                     className={`flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-8 items-center`}
                   >
                     <div className={`relative w-full rounded-lg overflow-hidden ${index % 2 === 1 ? 'md:order-2' : ''}`}>
-                      <div className="relative w-full min-h-[280px] sm:min-h-[320px] md:min-h-[360px]">
+                      <div className="relative w-full h-[350px] sm:h-[380px] md:h-[400px]">
                         <Image 
                           src={item.image} 
                           alt={item.title}
                           fill
-                          className="object-contain"
+                          className="object-cover md:object-contain"
                           sizes="(max-width: 768px) 100vw, 50vw"
                           priority={index < 2}
                           onError={(e) => {
@@ -322,7 +322,7 @@ export default function WeaponBerylProduct() {
                         />
                       </div>
                     </div>
-                    <div className={`text-left w-full ${index % 2 === 1 ? 'md:order-1' : ''}`}>
+                    <div className={`text-center md:text-left w-full ${index % 2 === 1 ? 'md:order-1' : ''}`}>
                       <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 leading-tight">{item.title}</h3>
                       <p className="text-sm sm:text-base text-gray-300 leading-relaxed">{item.description}</p>
                     </div>
