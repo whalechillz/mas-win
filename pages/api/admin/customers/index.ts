@@ -231,9 +231,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const customerIdsFromPath = new Set<number>();
         if (!pathError && customerImagesByPath) {
           // 모든 고객 정보 조회 (folder_name -> customer_id 매핑)
-          const { data: allCustomers } = await supabase
+          // ⚠️ 제한 없이 모든 고객 조회 (필터링에 필요)
+          const { data: allCustomers, error: customersError } = await supabase
             .from('customers')
-            .select('id, folder_name');
+            .select('id, folder_name')
+            .limit(10000); // 충분히 큰 제한
+          
+          if (customersError) {
+            console.error('❌ [이미지 있는 고객 필터] 고객 조회 오류:', customersError);
+          }
           
           const folderNameToCustomerId = new Map<string, number>();
           if (allCustomers) {
@@ -243,6 +249,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               }
             });
           }
+          
+          console.log('🔍 [이미지 있는 고객 필터] 고객 매핑:', {
+            totalCustomers: allCustomers?.length || 0,
+            mappedFolders: folderNameToCustomerId.size
+          });
           
           // file_path에서 고객 폴더명 추출
           // ⚠️ 동영상 파일은 제외 (이미지만 있는 고객만 카운트)
@@ -262,8 +273,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             
             // 패턴 2: file_path가 날짜 폴더로 끝나는 경우 (파일명 없음)
             // 예: originals/customers/leenamgu-8768/2024.10.29
+            // 또는: originals/customers/leenamgu-8768/2024-10-29
             if (!match) {
-              match = filePath.match(/originals\/customers\/([^\/]+)$/);
+              // 날짜 폴더 패턴: YYYY-MM-DD 또는 YYYY.MM.DD
+              const dateFolderPattern = /\/(\d{4}[.-]\d{2}[.-]\d{2})$/;
+              if (dateFolderPattern.test(filePath)) {
+                // 날짜 폴더 앞의 고객 폴더명 추출
+                match = filePath.match(/originals\/customers\/([^\/]+)\/\d{4}[.-]\d{2}[.-]\d{2}$/);
+              } else {
+                // 날짜 폴더가 아닌 경우 마지막 경로 세그먼트 제거
+                match = filePath.match(/originals\/customers\/([^\/]+)$/);
+              }
             }
             
             if (match) {
