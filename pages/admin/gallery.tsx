@@ -8531,7 +8531,7 @@ export default function GalleryAdmin() {
                             
                             uploadedFiles.push(newImage);
                             successCount++;
-                            console.log(`✅ 파일 ${i + 1}/${files.length} 업로드 완료:`, fileName, isVideo ? '(동영상)' : enableOCR ? '(이미지 + OCR)' : '(이미지)');
+                            console.log(`✅ 파일 ${i + 1}/${files.length} 업로드 완료:`, fileName, isVideo ? '(동영상)' : metadataType === 'ocr' ? '(이미지 + OCR)' : `(이미지 + ${metadataType})`);
                           } catch (fileError: any) {
                             failCount++;
                             console.error(`❌ 파일 ${i + 1}/${files.length} 업로드 실패:`, file.name, fileError);

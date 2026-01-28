@@ -232,8 +232,9 @@ export default async function handler(req, res) {
         validationErrors.push(`제목이 너무 깁니다 (${title.length}자, 권장: 100자 이하)`);
       }
       
-      if (description && description.length > 300) {
-        validationErrors.push(`설명이 너무 깁니다 (${description.length}자, 권장: 300자 이하)`);
+      // ✅ OCR 텍스트 지원을 위해 description 길이 제한 완화 (300자 → 5000자)
+      if (description && description.length > 5000) {
+        validationErrors.push(`설명이 너무 깁니다 (${description.length}자, 최대: 5000자)`);
       }
       
       if (keywords && keywords.length > 50) {
