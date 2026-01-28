@@ -2322,106 +2322,6 @@ function CustomerImageModal({ customer, onClose }: {
     }
   };
 
-  // 고객 목록에서 제거 (Storage는 유지)
-  const handleRemoveFromCustomerList = async (imageId: number, imageUrl: string) => {
-    console.log('🔍 [목록 제거 시작]', {
-      imageId,
-      imageUrl: imageUrl?.substring(0, 100),
-      customerId: customer.id,
-      customerName: customer.name,
-      timestamp: new Date().toISOString()
-    });
-
-    if (!confirm('이 이미지를 고객 목록에서 제거하시겠습니까?\n\n(이미지는 Storage에 그대로 유지되며, 나중에 다시 추가할 수 있습니다.)')) {
-      console.log('❌ [목록 제거 취소] 사용자가 취소함');
-      return;
-    }
-
-    try {
-      const requestBody = {
-        imageId,
-        imageUrl,
-        customerId: customer.id,
-      };
-
-      console.log('📡 [목록 제거 API 호출]', {
-        method: 'POST',
-        endpoint: '/api/admin/remove-customer-image',
-        requestBody,
-        customerId: customer.id
-      });
-
-      const response = await fetch('/api/admin/remove-customer-image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      console.log('📥 [목록 제거 API 응답]', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries())
-      });
-
-      const result = await response.json();
-
-      console.log('📦 [목록 제거 API 결과]', {
-        success: result.success,
-        message: result.message,
-        error: result.error,
-        details: result.details,
-        image: result.image
-      });
-
-      if (result.success) {
-        console.log('✅ [목록 제거 성공]', {
-          message: result.message,
-          imageId: result.image?.id,
-          updatedTags: result.image?.ai_tags
-        });
-        alert('이미지가 고객 목록에서 제거되었습니다.\n(Storage 파일은 유지됩니다)');
-        
-        console.log('🔄 [목록 새로고침 시작]', {
-          selectedDateFilter,
-          customerId: customer.id
-        });
-        
-        // 이미지 목록 새로고침
-        await loadCustomerImages(selectedDateFilter);
-        
-        console.log('✅ [목록 새로고침 완료]');
-        
-        // 고객 리스트 썸네일 새로고침을 위한 이벤트 발생
-        window.dispatchEvent(new CustomEvent('customerImagesUpdated', { 
-          detail: { customerId: customer.id } 
-        }));
-        
-        console.log('📢 [고객 이미지 업데이트 이벤트 발생]', {
-          customerId: customer.id
-        });
-      } else {
-        console.error('❌ [목록 제거 실패]', {
-          error: result.error,
-          details: result.details,
-          response: result
-        });
-        alert('목록 제거에 실패했습니다: ' + (result.error || '알 수 없는 오류'));
-      }
-    } catch (error: any) {
-      console.error('❌ [목록 제거 오류 - 예외 발생]', {
-        error,
-        message: error.message,
-        stack: error.stack,
-        imageId,
-        imageUrl: imageUrl?.substring(0, 100),
-        customerId: customer.id
-      });
-      alert('목록 제거 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
-    }
-  };
 
   // 대표 이미지 설정 핸들러
   const handleSetSceneRepresentative = async (imageId: number, storyScene: number | null) => {
@@ -3487,17 +3387,6 @@ function CustomerImageModal({ customer, onClose }: {
                       
                       {/* 액션 버튼들 (호버 시 표시) */}
                       <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                        {/* 목록 제거 버튼 */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveFromCustomerList(img.id, img.image_url);
-                          }}
-                          className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-orange-600 text-xs"
-                          title="고객 목록에서 제거 (Storage 파일은 유지)"
-                        >
-                          ⊖
-                        </button>
                       </div>
                       </div>
                       
@@ -3681,17 +3570,6 @@ function CustomerImageModal({ customer, onClose }: {
                         
                       {/* 액션 버튼들 (호버 시 표시) */}
                       <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                        {/* 목록 제거 버튼 */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveFromCustomerList(img.id, img.image_url);
-                          }}
-                          className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-orange-600 text-xs"
-                          title="고객 목록에서 제거 (Storage 파일은 유지)"
-                        >
-                          ⊖
-                        </button>
                       </div>
                       </div>
                       
