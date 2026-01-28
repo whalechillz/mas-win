@@ -430,6 +430,32 @@ GOOGLE_VISION_API_KEY=your_api_key_here
 - TEXT_DETECTION: $1.50/1,000회
 - DOCUMENT_TEXT_DETECTION: $1.50/1,000회 (더 정확)
 
+**⚠️ 중요: AutoML vs Vision API 구분**
+
+화면에 보이는 "AutoML Human Labeled Images"는 **문서 OCR에 사용하지 않습니다!**
+
+| 서비스 | 용도 | 문서 OCR 적합성 |
+|--------|------|----------------|
+| **Google Vision API - DOCUMENT_TEXT_DETECTION** | ✅ 즉시 사용 가능한 OCR | ✅ 적합 (추천) |
+| **AutoML Human Labeled Images** | ❌ 커스텀 모델 학습용 데이터 라벨링 | ❌ 부적합 |
+| **AutoML Image Classification** | ❌ 이미지 분류 모델 학습 | ❌ 부적합 |
+
+**차이점:**
+- **Vision API DOCUMENT_TEXT_DETECTION**: 
+  - ✅ 즉시 사용 가능 (모델 학습 불필요)
+  - ✅ 한글 OCR 전용 기능
+  - ✅ $1.50/1,000회 (저렴)
+  
+- **AutoML 서비스들**:
+  - ❌ 커스텀 모델 학습 필요
+  - ❌ 데이터 라벨링 비용 추가 (KRW 50/count)
+  - ❌ 학습 시간 및 비용 소요
+  - ❌ 문서 OCR 전용 기능 아님
+
+**결론:**
+- ✅ **Google Vision API - DOCUMENT_TEXT_DETECTION** 사용
+- ❌ AutoML 서비스는 사용하지 않음
+
 **비용 절감 방법:**
 1. 문서가 아닌 이미지에는 OCR 사용 안 함
 2. 사용자가 명시적으로 선택한 경우에만 OCR 실행
