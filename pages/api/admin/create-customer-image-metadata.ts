@@ -145,17 +145,23 @@ export default async function handler(
         : '/api/analyze-image-general';
       
       // baseUrl 자동 감지 (프로덕션 환경 고려)
+      // 1. 환경 변수 우선 확인
       let baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
                     process.env.NEXT_PUBLIC_SITE_URL;
       
-      // 환경 변수가 없으면 요청 헤더에서 추출
+      // 2. Vercel 환경 변수 확인
+      if (!baseUrl && process.env.VERCEL_URL) {
+        baseUrl = `https://${process.env.VERCEL_URL}`;
+      }
+      
+      // 3. 요청 헤더에서 추출
       if (!baseUrl && req.headers.host) {
         const protocol = req.headers['x-forwarded-proto'] || 
                          (req.headers.referer?.startsWith('https://') ? 'https' : 'http');
         baseUrl = `${protocol}://${req.headers.host}`;
       }
       
-      // 최종 fallback
+      // 4. 최종 fallback (로컬 개발 환경)
       if (!baseUrl) {
         baseUrl = 'http://localhost:3000';
       }
@@ -218,22 +224,34 @@ export default async function handler(
     });
 
     // baseUrl 자동 감지 (프로덕션 환경 고려)
+    // 1. 환경 변수 우선 확인
     let baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
                   process.env.NEXT_PUBLIC_SITE_URL;
     
-    // 환경 변수가 없으면 요청 헤더에서 추출
+    // 2. Vercel 환경 변수 확인
+    if (!baseUrl && process.env.VERCEL_URL) {
+      baseUrl = `https://${process.env.VERCEL_URL}`;
+    }
+    
+    // 3. 요청 헤더에서 추출
     if (!baseUrl && req.headers.host) {
       const protocol = req.headers['x-forwarded-proto'] || 
                        (req.headers.referer?.startsWith('https://') ? 'https' : 'http');
       baseUrl = `${protocol}://${req.headers.host}`;
     }
     
-    // 최종 fallback
+    // 4. 최종 fallback (로컬 개발 환경)
     if (!baseUrl) {
       baseUrl = 'http://localhost:3000';
     }
 
-    console.log('🌐 [create-customer-image-metadata] baseUrl:', baseUrl);
+    console.log('🌐 [create-customer-image-metadata] baseUrl:', {
+      baseUrl,
+      VERCEL_URL: process.env.VERCEL_URL,
+      NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+      NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+      host: req.headers.host
+    });
 
     const metadataResponse = await fetch(`${baseUrl}${metadataEndpoint}`, {
       method: 'POST',
