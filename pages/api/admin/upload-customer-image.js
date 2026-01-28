@@ -720,33 +720,6 @@ export default async function handler(req, res) {
           }
         }
         
-        // ⚠️ cdn_url이 없고 file_path가 있으면 URL 생성 (기존 로직 유지 - 하위 호환성)
-        // 마이그레이션 과정에서 cdn_url이 누락되었지만 Storage에는 파일이 존재하는 경우
-        // 특히 비디오 파일의 경우 마이그레이션 과정에서 cdn_url이 누락된 경우가 많음
-        if (!imageUrl && img.file_path) {
-          // 비디오 파일인지 확인
-          const videoExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv'];
-          const isVideo = videoExtensions.some(ext => 
-            img.file_path.toLowerCase().includes(ext) || 
-            (img.cdn_url && img.cdn_url.toLowerCase().includes(ext))
-          );
-          
-          // 비디오 파일이거나, 이미지 파일인 경우 file_path로부터 URL 생성
-          // 마이그레이션 과정에서 cdn_url이 누락된 경우를 대비
-          try {
-            const { data: { publicUrl } } = supabase.storage
-              .from(bucketName)
-              .getPublicUrl(img.file_path);
-            
-            if (publicUrl) {
-              imageUrl = publicUrl;
-              console.log(`✅ [고객 ${isVideo ? '비디오' : '이미지'}] file_path로부터 URL 생성: ${img.file_path.substring(0, 100)}...`);
-            }
-          } catch (urlError) {
-            console.warn(`⚠️ [고객 ${isVideo ? '비디오' : '이미지'}] URL 생성 실패: ${img.file_path.substring(0, 100)}...`, urlError.message);
-            imageUrl = null;
-          }
-        }
         
         return {
           ...img,
