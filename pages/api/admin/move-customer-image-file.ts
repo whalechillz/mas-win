@@ -137,13 +137,36 @@ export default async function handler(
       publicUrl: publicUrl.substring(0, 100)
     });
 
-    // 4. 메타데이터 업데이트
+    // 4. 메타데이터 업데이트 (cdn_url 중복 처리)
+    // ✅ cdn_url unique constraint 위반 방지: 기존 cdn_url이 있으면 null로 설정
+    let finalPublicUrl = publicUrl;
+    
+    // cdn_url 중복 확인
+    const { data: existingImageWithUrl, error: checkUrlError } = await supabase
+      .from('image_assets')
+      .select('id, cdn_url')
+      .eq('cdn_url', publicUrl)
+      .neq('id', metadataId) // 현재 메타데이터 제외
+      .maybeSingle();
+
+    if (existingImageWithUrl) {
+      console.warn('⚠️ [move-customer-image-file] cdn_url 중복 발견, 기존 이미지의 cdn_url을 null로 설정');
+      
+      // 기존 이미지의 cdn_url을 null로 설정 (unique constraint 위반 방지)
+      await supabase
+        .from('image_assets')
+        .update({ cdn_url: null })
+        .eq('id', existingImageWithUrl.id);
+      
+      console.log('✅ [move-customer-image-file] 기존 이미지의 cdn_url 제거 완료');
+    }
+
     const { data: updatedMetadata, error: updateError } = await supabase
       .from('image_assets')
       .update({
         filename: finalFileName,
         file_path: finalFilePath,
-        cdn_url: publicUrl,
+        cdn_url: finalPublicUrl,
         status: 'active' // pending → active
       })
       .eq('id', metadataId)
@@ -152,6 +175,17 @@ export default async function handler(
 
     if (updateError) {
       console.error('❌ [move-customer-image-file] 메타데이터 업데이트 실패:', updateError);
+      
+      // cdn_url unique constraint 위반인 경우 더 자세한 에러 메시지
+      if (updateError.message?.includes('idx_image_assets_cdn_url_unique') || 
+          updateError.message?.includes('duplicate key')) {
+        return res.status(409).json({
+          error: '이미 같은 URL의 이미지가 존재합니다. 파일명 순번을 자동으로 증가시켜 다시 시도해주세요.',
+          details: updateError.message,
+          code: 'DUPLICATE_CDN_URL'
+        });
+      }
+      
       return res.status(500).json({
         error: '메타데이터 업데이트 실패: ' + updateError.message
       });

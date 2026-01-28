@@ -2901,24 +2901,51 @@ function CustomerImageModal({ customer, onClose }: {
         finalFileName = fileNameResult.fileName;
         finalFilePath = fileNameResult.filePath;
 
-        // 중복 파일 확인
+        // 중복 파일 확인 (Storage 파일 + DB cdn_url 모두 체크)
         const { data: { publicUrl } } = supabase.storage
           .from('blog-images')
           .getPublicUrl(finalFilePath);
 
-        // HEAD 요청으로 파일 존재 확인
+        let isDuplicate = false;
+
+        // 1. Storage 파일 존재 확인
         try {
           const headResponse = await fetch(publicUrl, { method: 'HEAD' });
           if (headResponse.ok) {
-            // 파일이 존재함, 순번 증가
-            sequence++;
-            if (sequence > 99) {
-              throw new Error('파일명 순번이 최대치에 도달했습니다.');
-            }
-            continue;
+            console.log(`⚠️ [중복 체크] Storage 파일 존재: ${finalFilePath}`);
+            isDuplicate = true;
           }
         } catch {
-          // 파일이 없음 (404 또는 네트워크 오류) - 사용 가능
+          // 파일이 없음 (404 또는 네트워크 오류)
+        }
+
+        // 2. DB cdn_url 중복 확인 (중요: unique constraint 위반 방지)
+        if (!isDuplicate) {
+          try {
+            const { data: existingImage, error: checkError } = await supabase
+              .from('image_assets')
+              .select('id, cdn_url')
+              .eq('cdn_url', publicUrl)
+              .maybeSingle();
+
+            if (existingImage) {
+              console.log(`⚠️ [중복 체크] DB cdn_url 중복: ${publicUrl.substring(0, 100)}`);
+              isDuplicate = true;
+            }
+          } catch (dbError) {
+            console.warn('⚠️ [중복 체크] DB 조회 오류 (계속 진행):', dbError);
+            // DB 조회 실패해도 계속 진행 (Storage 파일만 체크)
+          }
+        }
+
+        if (isDuplicate) {
+          // 중복 발견, 순번 증가
+          sequence++;
+          if (sequence > 99) {
+            throw new Error('파일명 순번이 최대치(99)에 도달했습니다. 다른 파일명을 사용해주세요.');
+          }
+          console.log(`🔄 [중복 체크] 순번 증가: ${sequence}`);
+          continue;
         }
 
         // 사용 가능한 파일명 찾음
