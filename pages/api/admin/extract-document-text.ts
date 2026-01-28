@@ -9,6 +9,19 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // 상세 로깅: 요청 정보
+  console.log('📥 [OCR] extract-document-text API 요청 수신:', {
+    method: req.method,
+    url: req.url,
+    hasCookies: !!req.headers.cookie,
+    cookieLength: req.headers.cookie?.length || 0,
+    cookiePreview: req.headers.cookie?.substring(0, 100) || '없음',
+    referer: req.headers.referer || 'N/A',
+    origin: req.headers.origin || 'N/A',
+    host: req.headers.host || 'N/A',
+    timestamp: new Date().toISOString()
+  });
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
