@@ -37,11 +37,13 @@ export default async function handler(req, res) {
     const totalCost = logs.reduce((sum, log) => sum + (log.cost || 0), 0);
     
     // 성공률 계산 (성공한 호출 / 전체 호출)
-    const successCalls = logs.filter(log => 
-      log.improvement_type.includes('success') || 
-      !log.improvement_type.includes('failed') && 
-      !log.improvement_type.includes('error')
-    ).length;
+    const successCalls = logs.filter(log => {
+      const improvementType = log.improvement_type || '';
+      return improvementType.includes('success') || 
+             (!improvementType.includes('failed') && 
+              !improvementType.includes('error') &&
+              improvementType.length > 0);
+    }).length;
     const successRate = totalCalls > 0 ? (successCalls / totalCalls) * 100 : 0;
     
     const avgTokensPerCall = totalCalls > 0 ? totalTokens / totalCalls : 0;
