@@ -61,14 +61,27 @@ export default function CustomerImageUploadModal({
   useEffect(() => {
     if (isOpen) {
       setSelectedVisitDate(visitDate);
-      // 문서인 경우 OCR을 기본값으로 설정
-      const isDoc = file ? (
-        file.name.toLowerCase().includes('doc') ||
-        file.name.toLowerCase().includes('사양서') ||
-        file.name.toLowerCase().includes('문서') ||
-        file.name.toLowerCase().includes('scan') ||
-        file.name.toLowerCase().includes('seukaen')
-      ) : false;
+      // 문서인 경우 OCR을 기본값으로 설정 (isDocument와 동일한 로직 사용)
+      const isDoc = file ? (() => {
+        const fileName = file.name.toLowerCase();
+        return 
+          fileName.includes('doc') ||
+          fileName.includes('사양서') ||
+          fileName.includes('문서') ||
+          fileName.includes('scan') ||
+          fileName.includes('seukaen') ||
+          fileName.includes('주문') ||
+          fileName.includes('order') ||
+          fileName.includes('spec') ||
+          fileName.includes('specification');
+      })() : false;
+      
+      console.log('🔍 [useEffect] 문서 감지:', {
+        fileName: file?.name,
+        isDoc,
+        willSetTo: isDoc ? 'ocr' : 'golf-ai'
+      });
+      
       setMetadataType(isDoc ? 'ocr' : 'golf-ai');
     }
   }, [isOpen, visitDate, file]);
@@ -161,7 +174,7 @@ export default function CustomerImageUploadModal({
                 <span className="text-xs text-gray-500">(범용 분석)</span>
               </label>
               {/* 문서인 경우 OCR 옵션 표시 */}
-              {isDocument && (
+              {isDocument ? (
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
                     type="radio"
@@ -174,6 +187,13 @@ export default function CustomerImageUploadModal({
                   <span className="text-sm text-gray-700">OCR (구글 비전)</span>
                   <span className="text-xs text-gray-500">(텍스트 추출)</span>
                 </label>
+              ) : (
+                // 디버깅: 문서가 감지되지 않은 경우
+                console.log('⚠️ [OCR 옵션] 문서 미감지:', {
+                  fileName: file?.name,
+                  isDocument,
+                  metadataType
+                }) || null
               )}
             </div>
             {isDocument && metadataType === 'ocr' && (
