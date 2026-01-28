@@ -2837,7 +2837,7 @@ function CustomerImageModal({ customer, onClose }: {
     customerId: number;
     customerName: string;
     visitDate: string;
-    metadataType: 'golf-ai' | 'general';
+    metadataType: 'golf-ai' | 'general' | 'ocr';
   }) => {
     try {
       setUploading(true);
