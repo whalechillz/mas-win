@@ -199,9 +199,11 @@ export default async function handler(
         const isDateFolder = /^\d{4}-\d{2}-\d{2}$/.test(lastPart);
         
         let actualFilePath = image.file_path;
+        let newCdnUrl: string | null = null;
         
         // file_path가 폴더 경로만 있으면 파일명 추가
         if (isDateFolder || !lastPart.includes('.')) {
+          // filename에서 파일명 추출
           const fileName = image.filename || image.english_filename || image.original_filename;
           if (fileName) {
             actualFilePath = `${image.file_path}/${fileName}`;
@@ -212,41 +214,53 @@ export default async function handler(
               fileName
             });
           } else {
-            console.warn('⚠️ [대표 이미지 설정 API] file_path에 파일명 없고 filename도 없음:', {
+            console.warn('⚠️ [대표 이미지 설정 API] file_path와 filename 모두 없음:', {
               imageId,
               file_path: image.file_path
             });
             // filename이 없으면 cdn_url 업데이트하지 않음 (기존 cdn_url 유지)
-            actualFilePath = null;
           }
         }
         
-        // cdn_url 생성 (file_path 기반)
-        if (actualFilePath) {
+        // cdn_url 생성 (수정된 file_path 기반)
+        if (actualFilePath !== image.file_path || !isDateFolder) {
           const { data: { publicUrl } } = supabase.storage
             .from('blog-images')
             .getPublicUrl(actualFilePath);
+          newCdnUrl = publicUrl;
           
-          // 새로 생성한 cdn_url이 이미 다른 이미지에 존재하는지 확인
-          const { data: existingImage, error: checkError } = await supabase
+          // 중복 확인: 같은 cdn_url을 가진 다른 이미지가 있는지 확인
+          const { data: duplicates, error: dupError } = await supabase
             .from('image_assets')
-            .select('id, filename')
+            .select('id, filename, file_path')
             .eq('cdn_url', publicUrl)
-            .neq('id', imageId)
-            .maybeSingle();
+            .neq('id', imageId);
           
-          if (existingImage) {
-            console.warn('⚠️ [대표 이미지 설정 API] cdn_url 중복 발견, 기존 이미지의 cdn_url 제거:', {
-              newImageId: imageId,
-              existingImageId: existingImage.id,
-              cdn_url: publicUrl.substring(0, 100)
+          if (dupError) {
+            console.error('❌ [대표 이미지 설정 API] 중복 확인 오류:', dupError);
+          } else if (duplicates && duplicates.length > 0) {
+            console.warn('⚠️ [대표 이미지 설정 API] 중복된 cdn_url 발견:', {
+              imageId,
+              newCdnUrl: publicUrl.substring(0, 100),
+              duplicates: duplicates.map(d => ({ id: d.id, filename: d.filename }))
             });
             
-            // 기존 이미지의 cdn_url을 null로 설정 (중복 제거)
-            await supabase
+            // 중복된 이미지의 cdn_url을 NULL로 설정 (UNIQUE 제약 조건 위반 방지)
+            const duplicateIds = duplicates.map(d => d.id);
+            const { error: nullifyError } = await supabase
               .from('image_assets')
-              .update({ cdn_url: null })
-              .eq('id', existingImage.id);
+              .update({ cdn_url: null, updated_at: new Date().toISOString() })
+              .in('id', duplicateIds);
+            
+            if (nullifyError) {
+              console.error('❌ [대표 이미지 설정 API] 중복 이미지 cdn_url NULL 설정 실패:', nullifyError);
+              // 중복 처리 실패 시에도 계속 진행 (나중에 수동 처리 가능)
+            } else {
+              console.log('✅ [대표 이미지 설정 API] 중복 이미지 cdn_url NULL 설정 완료:', {
+                duplicateIds,
+                count: duplicates.length
+              });
+            }
           }
           
           updateData.cdn_url = publicUrl;
@@ -256,6 +270,12 @@ export default async function handler(
             imageId,
             file_path: actualFilePath.substring(0, 100),
             cdn_url: publicUrl.substring(0, 100)
+          });
+        } else {
+          // file_path가 변경되지 않았고 filename도 없으면 cdn_url 업데이트하지 않음
+          console.log('📝 [대표 이미지 설정 API] file_path 변경 없음, cdn_url 업데이트 건너뜀:', {
+            imageId,
+            file_path: image.file_path
           });
         }
       }
