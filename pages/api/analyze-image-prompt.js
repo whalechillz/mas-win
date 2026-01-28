@@ -90,6 +90,7 @@ Guidelines:
 - Use descriptive adjectives and natural Korean expressions
 - Be rich, detailed, and vivid in your descriptions
 - **특히 사람의 표정(웃는 모습, 어두운 표정), 장소(골프장, 매장, 실내), 사람 수(단독, 여러명)를 정확히 파악하세요**
+- **문서/서류 감지: 흰색 배경에 텍스트, 양식, 표, 체크박스, 입력란 등이 있으면 반드시 "문서", "서류", "양식", "form", "document" 키워드를 포함하세요**
 - ALT text: 80-150 words, detailed and vivid description suitable for accessibility
 - Title: 25-60 characters, SEO-friendly and engaging
 - Description: 100-200 words, rich and detailed description with atmosphere and context

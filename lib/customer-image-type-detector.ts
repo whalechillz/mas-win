@@ -296,6 +296,7 @@ function detectStorySceneFromImage(
   console.log('🎬 [스토리 감지] 분석 텍스트 (처음 300자):', combinedText.substring(0, 300));
   
   // ✅ 최우선: 문서/서류 감지 (골프 사진으로 잘못 분류되는 것 방지)
+  // 1. 문서 키워드 감지
   const documentKeywords = [
     '문서', '주문서', '설문', '동의서', '양식', '표', '서류', 'scan', 'document', 'form',
     '사양서', 'specification', 'order spec', '주문 사양서', '피팅', 'fitting',
@@ -310,14 +311,45 @@ function detectStorySceneFromImage(
     lowerAnalysis.includes(keyword.toLowerCase())
   );
   
-  if (hasDocumentKeyword) {
+  // 2. 시각적 특징 감지 (흰색 배경 + 텍스트 형태)
+  const visualDocumentIndicators = [
+    '흰색 배경', 'white background', '흰 배경', 'white paper',
+    '텍스트', 'text', '글자', '문자', '글씨', 'handwriting', 'printed text',
+    '양식', 'form', '표', 'table', '체크박스', 'checkbox', '입력란', 'input field',
+    '라인', 'line', '선', '구분선', 'border', '테두리',
+    '인쇄', 'printed', '스캔', 'scanned', '문서', 'document',
+    '빈 칸', 'blank', '작성', 'fill', '기입', 'write'
+  ];
+  
+  const hasVisualDocumentIndicator = visualDocumentIndicators.some(indicator => 
+    lowerAnalysis.includes(indicator.toLowerCase())
+  );
+  
+  // 3. 문서 구조 키워드 (제목, 항목, 섹션 등)
+  const documentStructureKeywords = [
+    '제목', 'title', '항목', 'item', '섹션', 'section',
+    '날짜', 'date', '이름', 'name', '주소', 'address',
+    '정보', 'information', '기본정보', 'basic info',
+    '체크', 'check', '선택', 'select', '옵션', 'option'
+  ];
+  
+  const hasDocumentStructure = documentStructureKeywords.some(keyword => 
+    lowerAnalysis.includes(keyword.toLowerCase())
+  );
+  
+  // 문서 감지 조건: 키워드 또는 시각적 특징 또는 문서 구조
+  if (hasDocumentKeyword || (hasVisualDocumentIndicator && hasDocumentStructure)) {
     console.log('✅ [스토리 감지] 문서 감지됨 (최우선 처리):', {
-      matchedKeywords: documentKeywords.filter(kw => lowerAnalysis.includes(kw.toLowerCase()))
+      hasDocumentKeyword,
+      hasVisualDocumentIndicator,
+      hasDocumentStructure,
+      matchedKeywords: documentKeywords.filter(kw => lowerAnalysis.includes(kw.toLowerCase())),
+      matchedVisualIndicators: visualDocumentIndicators.filter(ind => lowerAnalysis.includes(ind.toLowerCase()))
     });
     return {
       scene: 0,
       type: 'docs',
-      confidence: 0.95,
+      confidence: hasDocumentKeyword ? 0.95 : 0.85, // 키워드 기반이 더 높은 신뢰도
       keywords: ['문서', '서류', 'document', 'form'],
       detectionMethod: 'story-scene'
     };
