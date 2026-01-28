@@ -62,7 +62,7 @@ export default async function handler(
     const customerId = parseInt(fields.customerId?.[0] || '0', 10);
     const customerName = fields.customerName?.[0] || '';
     const visitDate = fields.visitDate?.[0] || '';
-    const metadataType = (fields.metadataType?.[0] || 'golf-ai') as 'golf-ai' | 'general';
+    const metadataType = (fields.metadataType?.[0] || 'golf-ai') as 'golf-ai' | 'general' | 'ocr';
 
     if (!customerId || !customerName || !visitDate) {
       return res.status(400).json({
@@ -216,17 +216,9 @@ export default async function handler(
       keywords: typeDetection.keywords
     });
 
-    // 3. 메타데이터 생성 (타입 감지 결과를 반영하여 더 정확한 메타데이터 생성)
-    const metadataEndpoint = metadataType === 'golf-ai'
-      ? '/api/analyze-image-prompt'
-      : '/api/analyze-image-general';
-    
-    console.log('📡 [create-customer-image-metadata] 메타데이터 생성 API 호출:', {
-      endpoint: metadataEndpoint,
-      imageUrl: tempUploadResult.url?.substring(0, 100),
-      detectedScene: typeDetection.scene,
-      detectedType: typeDetection.type
-    });
+    // 3. 메타데이터 생성 (OCR 또는 일반 메타데이터)
+    let metadata: any = {};
+    let ocrText: string | null = null;
 
     // baseUrl 자동 감지 (프로덕션 환경 고려)
     // 1. 환경 변수 우선 확인
@@ -252,41 +244,89 @@ export default async function handler(
 
     console.log('🌐 [create-customer-image-metadata] baseUrl:', {
       baseUrl,
-      VERCEL_URL: process.env.VERCEL_URL,
-      NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
-      NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
-      host: req.headers.host
+      metadataType
     });
 
-    const metadataResponse = await fetch(`${baseUrl}${metadataEndpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        imageUrl: tempUploadResult.url,
-        title: `${customerName} - ${visitDate}`,
-        excerpt: '',
-        // 타입 감지 결과를 프롬프트에 포함하여 더 정확한 메타데이터 생성
-        sceneContext: {
-          scene: typeDetection.scene,
-          type: typeDetection.type,
-          keywords: typeDetection.keywords
-        }
-      })
-    });
-
-    if (!metadataResponse.ok) {
-      const errorText = await metadataResponse.text().catch(() => '');
-      console.error('❌ [create-customer-image-metadata] 메타데이터 생성 API 오류:', {
-        status: metadataResponse.status,
-        statusText: metadataResponse.statusText,
-        endpoint: `${baseUrl}${metadataEndpoint}`,
-        errorText: errorText.substring(0, 200)
+    // OCR인 경우 텍스트 추출
+    if (metadataType === 'ocr') {
+      console.log('📄 [create-customer-image-metadata] OCR 모드: 텍스트 추출 시작');
+      
+      const ocrResponse = await fetch(`${baseUrl}/api/admin/extract-document-text`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: tempUploadResult.url
+        })
       });
-      throw new Error(`메타데이터 생성 API 오류 (${metadataResponse.status}): ${metadataResponse.statusText}`);
-    }
 
-    const metadata = await metadataResponse.json();
-    console.log('✅ [create-customer-image-metadata] 메타데이터 생성 완료');
+      if (!ocrResponse.ok) {
+        const errorText = await ocrResponse.text().catch(() => '');
+        console.error('❌ [create-customer-image-metadata] OCR API 오류:', {
+          status: ocrResponse.status,
+          statusText: ocrResponse.statusText,
+          errorText: errorText.substring(0, 200)
+        });
+        throw new Error(`OCR API 오류 (${ocrResponse.status}): ${ocrResponse.statusText}`);
+      }
+
+      const ocrResult = await ocrResponse.json();
+      ocrText = ocrResult.text || '';
+      
+      console.log('✅ [create-customer-image-metadata] OCR 텍스트 추출 완료:', {
+        textLength: ocrText.length,
+        preview: ocrText.substring(0, 100)
+      });
+
+      // OCR 결과를 기반으로 기본 메타데이터 생성
+      metadata = {
+        alt_text: `문서 이미지: ${ocrText.substring(0, 150)}...`,
+        title: `${customerName} - ${visitDate} 문서`,
+        description: ocrText.substring(0, 500) || '문서 이미지',
+        keywords: '문서, 서류, document, form'
+      };
+    } else {
+      // 일반 메타데이터 생성 (골프 AI 또는 일반)
+      const metadataEndpoint = metadataType === 'golf-ai'
+        ? '/api/analyze-image-prompt'
+        : '/api/analyze-image-general';
+      
+      console.log('📡 [create-customer-image-metadata] 메타데이터 생성 API 호출:', {
+        endpoint: metadataEndpoint,
+        imageUrl: tempUploadResult.url?.substring(0, 100),
+        detectedScene: typeDetection.scene,
+        detectedType: typeDetection.type
+      });
+
+      const metadataResponse = await fetch(`${baseUrl}${metadataEndpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: tempUploadResult.url,
+          title: `${customerName} - ${visitDate}`,
+          excerpt: '',
+          // 타입 감지 결과를 프롬프트에 포함하여 더 정확한 메타데이터 생성
+          sceneContext: {
+            scene: typeDetection.scene,
+            type: typeDetection.type,
+            keywords: typeDetection.keywords
+          }
+        })
+      });
+
+      if (!metadataResponse.ok) {
+        const errorText = await metadataResponse.text().catch(() => '');
+        console.error('❌ [create-customer-image-metadata] 메타데이터 생성 API 오류:', {
+          status: metadataResponse.status,
+          statusText: metadataResponse.statusText,
+          endpoint: `${baseUrl}${metadataEndpoint}`,
+          errorText: errorText.substring(0, 200)
+        });
+        throw new Error(`메타데이터 생성 API 오류 (${metadataResponse.status}): ${metadataResponse.statusText}`);
+      }
+
+      metadata = await metadataResponse.json();
+      console.log('✅ [create-customer-image-metadata] 메타데이터 생성 완료');
+    }
 
     // 4. 메타데이터 저장 (image_assets 테이블)
     const filePathFromUrl = tempFilePath;
@@ -323,7 +363,7 @@ export default async function handler(
       aiTags
     });
 
-    const metadataPayload = {
+    const metadataPayload: any = {
       // 필수 필드
       filename: fileNameFromPath,
       original_filename: fileName,
@@ -344,6 +384,18 @@ export default async function handler(
       status: 'pending',
       updated_at: new Date().toISOString()
     };
+
+    // OCR 결과가 있으면 추가
+    if (ocrText) {
+      metadataPayload.ocr_text = ocrText;
+      metadataPayload.ocr_extracted = true;
+      // OCR 텍스트를 description에도 포함 (검색 가능하도록)
+      if (metadataPayload.description) {
+        metadataPayload.description = `${metadataPayload.description}\n\n[OCR 추출 텍스트]\n${ocrText.substring(0, 1000)}`;
+      } else {
+        metadataPayload.description = `[OCR 추출 텍스트]\n${ocrText.substring(0, 1000)}`;
+      }
+    }
 
     console.log('📝 [create-customer-image-metadata] 메타데이터 저장 시도:', {
       filename: metadataPayload.filename,

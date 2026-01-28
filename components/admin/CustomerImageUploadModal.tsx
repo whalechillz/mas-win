@@ -20,7 +20,7 @@ interface CustomerImageUploadModalProps {
     customerId: number;
     customerName: string;
     visitDate: string;
-    metadataType: 'golf-ai' | 'general';
+    metadataType: 'golf-ai' | 'general' | 'ocr';
   }) => Promise<void>;
 }
 
@@ -32,16 +32,33 @@ export default function CustomerImageUploadModal({
   file,
   onConfirm
 }: CustomerImageUploadModalProps) {
-  const [metadataType, setMetadataType] = useState<'golf-ai' | 'general'>('golf-ai');
+  const [metadataType, setMetadataType] = useState<'golf-ai' | 'general' | 'ocr'>('golf-ai');
+  
+  // 문서 감지 (파일명 기반)
+  const isDocument = file ? (
+    file.name.toLowerCase().includes('doc') ||
+    file.name.toLowerCase().includes('사양서') ||
+    file.name.toLowerCase().includes('문서') ||
+    file.name.toLowerCase().includes('scan') ||
+    file.name.toLowerCase().includes('seukaen')
+  ) : false;
   const [selectedVisitDate, setSelectedVisitDate] = useState(visitDate);
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setSelectedVisitDate(visitDate);
-      setMetadataType('golf-ai');
+      // 문서인 경우 OCR을 기본값으로 설정
+      const isDoc = file ? (
+        file.name.toLowerCase().includes('doc') ||
+        file.name.toLowerCase().includes('사양서') ||
+        file.name.toLowerCase().includes('문서') ||
+        file.name.toLowerCase().includes('scan') ||
+        file.name.toLowerCase().includes('seukaen')
+      ) : false;
+      setMetadataType(isDoc ? 'ocr' : 'golf-ai');
     }
-  }, [isOpen, visitDate]);
+  }, [isOpen, visitDate, file]);
 
   if (!isOpen || !file) return null;
 
@@ -130,7 +147,27 @@ export default function CustomerImageUploadModal({
                 <span className="text-sm text-gray-700">일반 메타 생성</span>
                 <span className="text-xs text-gray-500">(범용 분석)</span>
               </label>
+              {/* 문서인 경우 OCR 옵션 표시 */}
+              {isDocument && (
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="metadataType"
+                    value="ocr"
+                    checked={metadataType === 'ocr'}
+                    onChange={(e) => setMetadataType(e.target.value as 'ocr')}
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span className="text-sm text-gray-700">OCR (구글 비전)</span>
+                  <span className="text-xs text-gray-500">(텍스트 추출)</span>
+                </label>
+              )}
             </div>
+            {isDocument && metadataType === 'ocr' && (
+              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                📄 문서에서 텍스트를 추출하여 메타데이터에 포함합니다.
+              </div>
+            )}
           </div>
 
           {/* 방문일자 */}
