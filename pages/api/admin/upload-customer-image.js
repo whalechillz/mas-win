@@ -313,43 +313,35 @@ export default async function handler(req, res) {
         const tags = Array.isArray(img.ai_tags) ? img.ai_tags : [];
         const hasCustomerTag = tags.includes(customerTag);
         
-        // ai_tags에 customer-{id} 태그가 있으면 포함
+        // 1. ai_tags에 customer-{id} 태그가 있으면 포함
         if (hasCustomerTag) {
           return true;
         }
         
-        // ⚠️ file_path 기반 필터링은 제거
-        // 이유: 목록에서 제거한 이미지는 ai_tags에서 태그가 제거되지만
-        // file_path는 그대로 남아있어서 file_path 기반 필터링을 사용하면
-        // 제거한 이미지가 다시 표시되는 문제가 발생함
-        // 
-        // 하위 호환성: ai_tags가 완전히 없거나 null인 경우에만 file_path로 확인
-        // (이미 ai_tags가 있는데 customer-{id} 태그가 없는 경우는 제외해야 함)
-        const hasAnyTags = tags && tags.length > 0;
-        if (!hasAnyTags && exactFolderPath && img.file_path) {
-          // ai_tags가 완전히 없는 경우에만 file_path로 확인 (하위 호환성)
+        // 2. file_path가 고객 폴더에 있으면 포함
+        // (갤러리와 동일하게 동작: customers/이름/ 경로의 모든 이미지 표시)
+        if (exactFolderPath && img.file_path) {
           const isInCustomerFolder = img.file_path.startsWith(exactFolderPath);
           if (isInCustomerFolder) {
-            console.log('🔍 [고객 이미지 필터링] ai_tags 없지만 file_path로 포함 (하위 호환성):', {
+            console.log('🔍 [고객 이미지 필터링] file_path로 포함:', {
               imageId: img.id,
               filePath: img.file_path?.substring(0, 100),
               tags,
               customerTag,
-              customerId
+              customerId,
+              hasCustomerTag: false
             });
             return true;
           }
         }
         
-        // ai_tags가 있지만 customer-{id} 태그가 없는 경우는 제외
-        // (목록에서 제거된 이미지)
-        console.log('🔍 [고객 이미지 필터링] ai_tags에 customer 태그 없음 - 제외:', {
+        // 3. 둘 다 해당 안되면 제외
+        console.log('🔍 [고객 이미지 필터링] ai_tags와 file_path 모두 불일치 - 제외:', {
           imageId: img.id,
           filePath: img.file_path?.substring(0, 100),
           tags,
           customerTag,
-          customerId,
-          hasAnyTags
+          customerId
         });
         
         return false;
