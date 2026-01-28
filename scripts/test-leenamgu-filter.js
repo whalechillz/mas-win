@@ -58,7 +58,8 @@ async function testLeenamguFilter() {
     // 2. 고객 폴더명 매핑 생성
     const { data: allCustomers } = await supabase
       .from('customers')
-      .select('id, folder_name');
+      .select('id, folder_name')
+      .limit(10000); // 충분히 큰 제한
     
     const folderNameToCustomerId = new Map();
     if (allCustomers) {

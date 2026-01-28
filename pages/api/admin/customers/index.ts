@@ -231,28 +231,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const customerIdsFromPath = new Set<number>();
         if (!pathError && customerImagesByPath) {
           // 모든 고객 정보 조회 (folder_name -> customer_id 매핑)
-          // ⚠️ 제한 없이 모든 고객 조회 (필터링에 필요)
-          const { data: allCustomers, error: customersError } = await supabase
-            .from('customers')
-            .select('id, folder_name')
-            .limit(10000); // 충분히 큰 제한
-          
-          if (customersError) {
-            console.error('❌ [이미지 있는 고객 필터] 고객 조회 오류:', customersError);
-          }
-          
+          // ⚠️ 페이지네이션으로 모든 고객 조회 (Supabase 기본 제한 1000개 초과 대응)
           const folderNameToCustomerId = new Map<string, number>();
-          if (allCustomers) {
-            allCustomers.forEach(c => {
-              if (c.folder_name) {
-                folderNameToCustomerId.set(c.folder_name, c.id);
-              }
-            });
+          let offset = 0;
+          const limit = 1000;
+          let hasMore = true;
+          
+          while (hasMore) {
+            const { data: batchCustomers, error: customersError } = await supabase
+              .from('customers')
+              .select('id, folder_name')
+              .range(offset, offset + limit - 1);
+            
+            if (customersError) {
+              console.error('❌ [이미지 있는 고객 필터] 고객 조회 오류:', customersError);
+              break;
+            }
+            
+            if (batchCustomers && batchCustomers.length > 0) {
+              batchCustomers.forEach(c => {
+                if (c.folder_name) {
+                  folderNameToCustomerId.set(c.folder_name, c.id);
+                }
+              });
+              
+              offset += limit;
+              hasMore = batchCustomers.length === limit;
+            } else {
+              hasMore = false;
+            }
           }
           
           console.log('🔍 [이미지 있는 고객 필터] 고객 매핑:', {
-            totalCustomers: allCustomers?.length || 0,
-            mappedFolders: folderNameToCustomerId.size
+            mappedFolders: folderNameToCustomerId.size,
+            offset
           });
           
           // file_path에서 고객 폴더명 추출
