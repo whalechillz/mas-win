@@ -63,6 +63,15 @@ export async function detectCustomerImageType(
       keywords: storySceneDetection.keywords
     });
     
+    // ✅ 문서 감지 결과는 최우선 적용 (신뢰도 무관)
+    if (storySceneDetection.scene === 0 && storySceneDetection.type === 'docs') {
+      console.log('✅ [3단계] 문서 감지 결과 사용 (최우선)');
+      return {
+        ...storySceneDetection,
+        detectionMethod: 'story-scene'
+      };
+    }
+    
     // 스토리 기반 감지 결과가 높은 신뢰도면 우선 사용
     if (storySceneDetection.confidence >= 0.7) {
       console.log('✅ [3단계] 스토리 기반 감지 결과 사용 (신뢰도 >= 0.7)');
@@ -285,6 +294,34 @@ function detectStorySceneFromImage(
   const lowerAnalysis = combinedText.toLowerCase();
   
   console.log('🎬 [스토리 감지] 분석 텍스트 (처음 300자):', combinedText.substring(0, 300));
+  
+  // ✅ 최우선: 문서/서류 감지 (골프 사진으로 잘못 분류되는 것 방지)
+  const documentKeywords = [
+    '문서', '주문서', '설문', '동의서', '양식', '표', '서류', 'scan', 'document', 'form',
+    '사양서', 'specification', 'order spec', '주문 사양서', '피팅', 'fitting',
+    'questionnaire', '질문', '조사', 'consent', '동의', '승인', 'approval',
+    'form', 'table', 'chart', 'graph', '데이터', 'data', '입력', 'input',
+    '필드', 'field', '항목', 'item', '체크', 'check', '선택', 'select',
+    'vip', '클럽', '분석', 'analysis', '고객기본정보', '고객신체정보',
+    '정적', 'static', '점검', 'inspection'
+  ];
+  
+  const hasDocumentKeyword = documentKeywords.some(keyword => 
+    lowerAnalysis.includes(keyword.toLowerCase())
+  );
+  
+  if (hasDocumentKeyword) {
+    console.log('✅ [스토리 감지] 문서 감지됨 (최우선 처리):', {
+      matchedKeywords: documentKeywords.filter(kw => lowerAnalysis.includes(kw.toLowerCase()))
+    });
+    return {
+      scene: 0,
+      type: 'docs',
+      confidence: 0.95,
+      keywords: ['문서', '서류', 'document', 'form'],
+      detectionMethod: 'story-scene'
+    };
+  }
   
   // 장면1 (S1): 행복한 주인공 - 골프장 단독샷
   // 특징: 골프장 + 단독샷 + 웃는 모습/밝은 표정 + 여유롭고 평화로운 골프 순간
