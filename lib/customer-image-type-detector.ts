@@ -339,19 +339,33 @@ function detectStorySceneFromImage(
   
   // 문서 감지 조건: 키워드 또는 시각적 특징 또는 문서 구조
   // ✅ 강화: 시각적 특징만 있어도 문서로 감지 (흰색 배경 + 텍스트는 문서일 가능성이 매우 높음)
+  // ✅ 추가: "클럽 분석", "주문 사양서", "VIP 클럽" 같은 패턴도 문서로 감지
+  const hasClubAnalysis = lowerAnalysis.includes('클럽') && lowerAnalysis.includes('분석');
+  const hasOrderSpec = lowerAnalysis.includes('주문') && (lowerAnalysis.includes('사양서') || lowerAnalysis.includes('spec'));
+  const hasVipClub = lowerAnalysis.includes('vip') && lowerAnalysis.includes('클럽');
+  const hasFittingData = lowerAnalysis.includes('피팅') && (lowerAnalysis.includes('데이터') || lowerAnalysis.includes('data'));
+  
   const isDocument = hasDocumentKeyword || 
                      (hasVisualDocumentIndicator && hasDocumentStructure) ||
                      (hasVisualDocumentIndicator && lowerAnalysis.includes('고객')) || // "고객 기본정보" 같은 패턴
                      (hasVisualDocumentIndicator && lowerAnalysis.includes('정보')) || // "정보", "기본정보" 같은 패턴
                      (hasVisualDocumentIndicator && lowerAnalysis.includes('데이터')) || // "피팅 데이터" 같은 패턴
                      (hasVisualDocumentIndicator && lowerAnalysis.includes('check')) || // "Check-point" 같은 패턴
-                     (hasVisualDocumentIndicator && lowerAnalysis.includes('point')); // "Check-point" 같은 패턴
+                     (hasVisualDocumentIndicator && lowerAnalysis.includes('point')) || // "Check-point" 같은 패턴
+                     hasClubAnalysis || // "클럽 분석" 패턴
+                     hasOrderSpec || // "주문 사양서" 패턴
+                     hasVipClub || // "VIP 클럽" 패턴
+                     hasFittingData; // "피팅 데이터" 패턴
   
   if (isDocument) {
     console.log('✅ [스토리 감지] 문서 감지됨 (최우선 처리):', {
       hasDocumentKeyword,
       hasVisualDocumentIndicator,
       hasDocumentStructure,
+      hasClubAnalysis,
+      hasOrderSpec,
+      hasVipClub,
+      hasFittingData,
       matchedKeywords: documentKeywords.filter(kw => lowerAnalysis.includes(kw.toLowerCase())),
       matchedVisualIndicators: visualDocumentIndicators.filter(ind => lowerAnalysis.includes(ind.toLowerCase())),
       hasCustomerInfo: lowerAnalysis.includes('고객'),
@@ -362,8 +376,8 @@ function detectStorySceneFromImage(
     return {
       scene: 0,
       type: 'docs',
-      confidence: hasDocumentKeyword ? 0.95 : (hasVisualDocumentIndicator ? 0.90 : 0.85), // 시각적 특징만 있어도 높은 신뢰도
-      keywords: ['문서', '서류', 'document', 'form'],
+      confidence: hasDocumentKeyword || hasClubAnalysis || hasOrderSpec || hasVipClub ? 0.98 : (hasVisualDocumentIndicator ? 0.90 : 0.85), // 특정 패턴은 매우 높은 신뢰도
+      keywords: ['문서', '서류', 'document', 'form'], // ✅ 골프 관련 키워드 제외
       detectionMethod: 'story-scene'
     };
   }

@@ -312,7 +312,9 @@ export async function generateFinalCustomerImageFileName(
   const dateStr = visitDate.replace(/-/g, '');
   
   // 장면 코드: S1, S2, S3, S4, S5, S6, S7 (서류는 S0 또는 docs)
-  const sceneCode = typeDetection.scene > 0 ? `S${typeDetection.scene}` : 'S0';
+  // ✅ 문서인 경우: S0-doc 형식으로 파일명 생성
+  const isDocument = typeDetection.type === 'docs' || typeDetection.scene === 0;
+  const sceneCode = isDocument ? 'S0-doc' : (typeDetection.scene > 0 ? `S${typeDetection.scene}` : 'S0');
   
   // 순번 생성
   const sequenceStr = String(index).padStart(2, '0');
@@ -323,6 +325,7 @@ export async function generateFinalCustomerImageFileName(
   const extension = isVideo ? originalExt : '.webp';
   
   // 파일명 생성: {고객명}-S{장면코드}-{YYYYMMDD}-{순번}.{확장자}
+  // 문서인 경우: {고객명}-S0-doc-{YYYYMMDD}-{순번}.{확장자}
   const fileName = `${nameEn}-${sceneCode}-${dateStr}-${sequenceStr}${extension}`;
   
   // 고객 폴더명 생성
