@@ -8,9 +8,12 @@ interface FieldGroupProps {
   value: string | string[];  // 체크박스는 배열
   onChange: (value: string | string[]) => void;
   onAIGenerate?: (field: keyof MetadataForm, language: 'korean' | 'english') => Promise<void>;
+  onCorrectOCR?: () => Promise<void>;
   error?: string;
   seoScore?: number;
   isGenerating?: boolean;
+  isCorrectingOCR?: boolean;
+  hasOCRText?: boolean;
   categories?: Array<{ id: number; name: string }>;
 }
 
