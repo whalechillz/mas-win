@@ -22,6 +22,7 @@ import { extractImageNameFromUrl } from '../../../lib/image-url-to-name-converte
 import { extractProvince, extractCity } from '../../../lib/address-utils';
 import CustomerImageUploadModal from '../../../components/admin/CustomerImageUploadModal';
 import ImageMetadataOverlay from '../../../components/admin/ImageMetadataOverlay';
+import { ImageMetadataModal } from '../../../components/ImageMetadataModal';
 
 type Customer = {
   id: number;
@@ -2148,6 +2149,7 @@ function CustomerImageModal({ customer, onClose }: {
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [selectedImageFileName, setSelectedImageFileName] = useState<string | null>(null);
   const [selectedImageMetadata, setSelectedImageMetadata] = useState<any | null>(null);
+  const [editingImageMetadata, setEditingImageMetadata] = useState<any | null>(null);
   const [selectedDateFilter, setSelectedDateFilter] = useState<string | null>(null);
   const [slug, setSlug] = useState<string>('');
   const [isSlugMode, setIsSlugMode] = useState(false);
@@ -3937,6 +3939,22 @@ function CustomerImageModal({ customer, onClose }: {
                 >
                   ×
                 </button>
+                
+                {/* 메타데이터 편집 버튼 */}
+                {selectedImageMetadata && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingImageMetadata(selectedImageMetadata);
+                    }}
+                    className="absolute top-4 right-20 z-20 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 shadow-lg"
+                    title="메타데이터 편집 (OCR 텍스트 확인 및 수정)"
+                  >
+                    <span>✏️</span>
+                    <span className="text-sm">편집</span>
+                  </button>
+                )}
+                
                 <div className="relative flex-1 flex items-center justify-center w-full max-w-6xl">
                   <img
                     src={selectedImageUrl}
@@ -4118,6 +4136,74 @@ function CustomerImageModal({ customer, onClose }: {
           await handleUploadWithMetadata(config);
         }}
       />
+
+      {/* 이미지 메타데이터 편집 모달 */}
+      {editingImageMetadata && (
+        <ImageMetadataModal
+          isOpen={!!editingImageMetadata}
+          image={{
+            name: editingImageMetadata.filename || editingImageMetadata.original_filename || selectedImageFileName || '',
+            url: editingImageMetadata.cdn_url || editingImageMetadata.image_url || selectedImageUrl || '',
+            alt_text: editingImageMetadata.alt_text || '',
+            keywords: Array.isArray(editingImageMetadata.ai_tags) 
+              ? editingImageMetadata.ai_tags 
+              : (editingImageMetadata.keywords ? editingImageMetadata.keywords.split(',').map((k: string) => k.trim()) : []),
+            title: editingImageMetadata.title || '',
+            description: editingImageMetadata.description || editingImageMetadata.ocr_text || '',
+            category: '',
+            category_id: undefined
+          }}
+          onClose={() => {
+            setEditingImageMetadata(null);
+          }}
+          onSave={async (metadata, exifData) => {
+            try {
+              // 메타데이터 업데이트 API 호출
+              const response = await fetch('/api/admin/upload-customer-image', {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  imageId: editingImageMetadata.id,
+                  metadata: {
+                    alt_text: metadata.alt_text,
+                    keywords: Array.isArray(metadata.keywords) ? metadata.keywords : metadata.keywords.split(',').map((k: string) => k.trim()),
+                    title: metadata.title,
+                    description: metadata.description,
+                    // OCR 텍스트도 함께 업데이트
+                    ocr_text: metadata.description.includes('[OCR') ? metadata.description : editingImageMetadata.ocr_text
+                  }
+                })
+              });
+
+              if (!response.ok) {
+                throw new Error('메타데이터 업데이트 실패');
+              }
+
+              const result = await response.json();
+              
+              // 로컬 상태 업데이트
+              if (result.success && result.image) {
+                setSelectedImageMetadata(result.image);
+                setEditingImageMetadata(result.image);
+                
+                // 이미지 목록도 업데이트
+                setUploadedImages(prev => 
+                  prev.map(img => 
+                    img.id === result.image.id ? result.image : img
+                  )
+                );
+              }
+
+              alert('메타데이터가 저장되었습니다.');
+            } catch (error: any) {
+              console.error('메타데이터 저장 오류:', error);
+              alert(`메타데이터 저장 실패: ${error.message}`);
+            }
+          }}
+        />
+      )}
     </>
   );
 }
