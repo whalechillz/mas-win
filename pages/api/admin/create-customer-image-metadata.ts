@@ -144,9 +144,21 @@ export default async function handler(
         ? '/api/analyze-image-prompt'
         : '/api/analyze-image-general';
       
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
-                      process.env.NEXT_PUBLIC_SITE_URL || 
-                      'http://localhost:3000';
+      // baseUrl 자동 감지 (프로덕션 환경 고려)
+      let baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                    process.env.NEXT_PUBLIC_SITE_URL;
+      
+      // 환경 변수가 없으면 요청 헤더에서 추출
+      if (!baseUrl && req.headers.host) {
+        const protocol = req.headers['x-forwarded-proto'] || 
+                         (req.headers.referer?.startsWith('https://') ? 'https' : 'http');
+        baseUrl = `${protocol}://${req.headers.host}`;
+      }
+      
+      // 최종 fallback
+      if (!baseUrl) {
+        baseUrl = 'http://localhost:3000';
+      }
       
       const quickAnalysisResponse = await fetch(`${baseUrl}${quickAnalysisEndpoint}`, {
         method: 'POST',
@@ -205,9 +217,23 @@ export default async function handler(
       detectedType: typeDetection.type
     });
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
-                    process.env.NEXT_PUBLIC_SITE_URL || 
-                    'http://localhost:3000';
+    // baseUrl 자동 감지 (프로덕션 환경 고려)
+    let baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                  process.env.NEXT_PUBLIC_SITE_URL;
+    
+    // 환경 변수가 없으면 요청 헤더에서 추출
+    if (!baseUrl && req.headers.host) {
+      const protocol = req.headers['x-forwarded-proto'] || 
+                       (req.headers.referer?.startsWith('https://') ? 'https' : 'http');
+      baseUrl = `${protocol}://${req.headers.host}`;
+    }
+    
+    // 최종 fallback
+    if (!baseUrl) {
+      baseUrl = 'http://localhost:3000';
+    }
+
+    console.log('🌐 [create-customer-image-metadata] baseUrl:', baseUrl);
 
     const metadataResponse = await fetch(`${baseUrl}${metadataEndpoint}`, {
       method: 'POST',
@@ -226,7 +252,14 @@ export default async function handler(
     });
 
     if (!metadataResponse.ok) {
-      throw new Error(`메타데이터 생성 API 오류: ${metadataResponse.statusText}`);
+      const errorText = await metadataResponse.text().catch(() => '');
+      console.error('❌ [create-customer-image-metadata] 메타데이터 생성 API 오류:', {
+        status: metadataResponse.status,
+        statusText: metadataResponse.statusText,
+        endpoint: `${baseUrl}${metadataEndpoint}`,
+        errorText: errorText.substring(0, 200)
+      });
+      throw new Error(`메타데이터 생성 API 오류 (${metadataResponse.status}): ${metadataResponse.statusText}`);
     }
 
     const metadata = await metadataResponse.json();
@@ -322,10 +355,38 @@ export default async function handler(
     });
 
   } catch (error: any) {
-    console.error('❌ [create-customer-image-metadata] 오류:', error);
+    console.error('❌ [create-customer-image-metadata] 오류:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code
+    });
+    
+    // OpenAI 크레딧 부족 오류 감지
+    const errorCode = error.code || '';
+    const errorMessage = error.message || '';
+    const isCreditError = 
+      errorCode === 'insufficient_quota' ||
+      errorCode === 'billing_not_active' ||
+      errorMessage.includes('insufficient_quota') ||
+      errorMessage.includes('billing') ||
+      errorMessage.includes('credit') ||
+      errorMessage.includes('payment') ||
+      errorMessage.includes('quota');
+    
+    if (isCreditError) {
+      return res.status(402).json({
+        success: false,
+        error: '💰 OpenAI 계정에 크레딧이 부족합니다',
+        details: 'OpenAI 계정에 크레딧을 충전해주세요.',
+        type: 'insufficient_credit'
+      });
+    }
+    
     return res.status(500).json({
       success: false,
-      error: error.message || '메타데이터 생성 중 오류가 발생했습니다.'
+      error: error.message || '메타데이터 생성 중 오류가 발생했습니다.',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }
