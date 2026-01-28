@@ -408,7 +408,13 @@ export default async function handler(req, res) {
         ai_tags: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()) : []),
         title: title || '',
         description: description || '',
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        // OCR 필드도 업데이트 가능하도록 추가
+        ...(req.body.ocr_text !== undefined && { ocr_text: req.body.ocr_text }),
+        ...(req.body.ocr_extracted !== undefined && { ocr_extracted: req.body.ocr_extracted }),
+        ...(req.body.ocr_confidence !== undefined && { ocr_confidence: req.body.ocr_confidence }),
+        ...(req.body.ocr_processed_at !== undefined && { ocr_processed_at: req.body.ocr_processed_at }),
+        ...(req.body.ocr_fulltextannotation !== undefined && { ocr_fulltextannotation: req.body.ocr_fulltextannotation })
       };
 
       const { data, error } = await supabase

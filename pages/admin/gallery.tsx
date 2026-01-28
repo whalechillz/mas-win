@@ -1423,6 +1423,7 @@ export default function GalleryAdmin() {
   const [selectedUploadFolder, setSelectedUploadFolder] = useState<string>('');
   const [uploadMode, setUploadMode] = useState<'optimize-filename' | 'preserve-filename'>('optimize-filename'); // 업로드 모드
   const [aiBrandTone, setAiBrandTone] = useState<'senior_emotional' | 'high_tech_innovative'>('senior_emotional');
+  const [enableOCR, setEnableOCR] = useState(false); // OCR 처리 옵션
   
   // 모달 열 때 현재 폴더 자동 설정
   const handleOpenAddModal = () => {
@@ -8264,6 +8265,24 @@ export default function GalleryAdmin() {
                       </div>
                     </label>
                   </div>
+                  
+                  {/* OCR 처리 옵션 */}
+                  <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={enableOCR}
+                        onChange={(e) => setEnableOCR(e.target.checked)}
+                        className="mr-2 w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm text-gray-700 font-medium">📄 OCR 텍스트 추출</span>
+                        <p className="text-xs text-gray-600 mt-1">
+                          문서 이미지에서 텍스트를 자동으로 추출합니다 (주문사양서, 서류 등)
+                        </p>
+                      </div>
+                    </label>
+                  </div>
                   </div>
                   
                   {/* 오른쪽: 드래그 앤 드롭 업로드 영역 (컴팩트) */}
@@ -8344,9 +8363,51 @@ export default function GalleryAdmin() {
                               usage_count: 0,
                             };
                             
+                            // OCR 처리 (이미지이고 OCR 옵션이 활성화된 경우)
+                            if (enableOCR && !isVideo && uploadResult.url) {
+                              try {
+                                console.log('📄 OCR 처리 시작:', fileName);
+                                const ocrResponse = await fetch('/api/admin/extract-document-text', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ imageUrl: uploadResult.url })
+                                });
+                                
+                                if (ocrResponse.ok) {
+                                  const ocrResult = await ocrResponse.json();
+                                  if (ocrResult.text) {
+                                    // 이미지 메타데이터에 OCR 결과 저장
+                                    const metadataUpdateResponse = await fetch('/api/admin/update-image-metadata', {
+                                      method: 'PUT',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({
+                                        imageUrl: uploadResult.url,
+                                        ocr_text: ocrResult.text,
+                                        ocr_extracted: true,
+                                        ocr_confidence: ocrResult.confidence || null,
+                                        ocr_processed_at: new Date().toISOString(),
+                                        ocr_fulltextannotation: ocrResult.fullTextAnnotation || null
+                                      })
+                                    });
+                                    
+                                    if (metadataUpdateResponse.ok) {
+                                      console.log('✅ OCR 결과 저장 완료:', fileName);
+                                    } else {
+                                      console.warn('⚠️ OCR 결과 저장 실패:', fileName);
+                                    }
+                                  }
+                                } else {
+                                  console.warn('⚠️ OCR 처리 실패:', fileName);
+                                }
+                              } catch (ocrError) {
+                                console.error('❌ OCR 처리 오류:', ocrError);
+                                // OCR 실패해도 업로드는 성공으로 처리
+                              }
+                            }
+                            
                             uploadedFiles.push(newImage);
                             successCount++;
-                            console.log(`✅ 파일 ${i + 1}/${files.length} 업로드 완료:`, fileName, isVideo ? '(동영상)' : '(이미지)');
+                            console.log(`✅ 파일 ${i + 1}/${files.length} 업로드 완료:`, fileName, isVideo ? '(동영상)' : enableOCR ? '(이미지 + OCR)' : '(이미지)');
                           } catch (fileError: any) {
                             failCount++;
                             console.error(`❌ 파일 ${i + 1}/${files.length} 업로드 실패:`, file.name, fileError);
@@ -8459,6 +8520,49 @@ export default function GalleryAdmin() {
                                   // 파일명에서 확장자 추출
                                   const fileName = uploadResult.fileName || file.name;
                                   
+                                  // OCR 처리 (이미지이고 OCR 옵션이 활성화된 경우)
+                                  if (enableOCR && !isVideo && uploadResult.url) {
+                                    try {
+                                      console.log('📄 OCR 처리 시작:', fileName);
+                                      const ocrResponse = await fetch('/api/admin/extract-document-text', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ imageUrl: uploadResult.url })
+                                      });
+                                      
+                                      if (ocrResponse.ok) {
+                                        const ocrResult = await ocrResponse.json();
+                                        if (ocrResult.text) {
+                                          // 이미지 메타데이터에 OCR 결과 저장
+                                          const metadataUpdateResponse = await fetch('/api/admin/image-metadata', {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                              imageUrl: uploadResult.url,
+                                              ocr_text: ocrResult.text,
+                                              ocr_extracted: true,
+                                              ocr_confidence: ocrResult.confidence || null,
+                                              ocr_processed_at: new Date().toISOString(),
+                                              ocr_fulltextannotation: ocrResult.fullTextAnnotation || null,
+                                              description: `[OCR 추출 텍스트]\n${ocrResult.text.substring(0, 1000)}`
+                                            })
+                                          });
+                                          
+                                          if (metadataUpdateResponse.ok) {
+                                            console.log('✅ OCR 결과 저장 완료:', fileName);
+                                          } else {
+                                            console.warn('⚠️ OCR 결과 저장 실패:', fileName);
+                                          }
+                                        }
+                                      } else {
+                                        console.warn('⚠️ OCR 처리 실패:', fileName);
+                                      }
+                                    } catch (ocrError) {
+                                      console.error('❌ OCR 처리 오류:', ocrError);
+                                      // OCR 실패해도 업로드는 성공으로 처리
+                                    }
+                                  }
+                                  
                                   // 즉시 로컬 상태에 추가할 이미지 정보
                                   const newImage: ImageMetadata = {
                                     name: fileName,
@@ -8478,7 +8582,7 @@ export default function GalleryAdmin() {
                                   
                                   uploadedFiles.push(newImage);
                                   successCount++;
-                                  console.log(`✅ 파일 ${i + 1}/${files.length} 업로드 완료:`, fileName, isVideo ? '(동영상)' : '(이미지)');
+                                  console.log(`✅ 파일 ${i + 1}/${files.length} 업로드 완료:`, fileName, isVideo ? '(동영상)' : enableOCR ? '(이미지 + OCR)' : '(이미지)');
                                 } catch (fileError: any) {
                                   failCount++;
                                   console.error(`❌ 파일 ${i + 1}/${files.length} 업로드 실패:`, file.name, fileError);
