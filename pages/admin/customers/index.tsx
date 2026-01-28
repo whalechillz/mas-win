@@ -2159,6 +2159,9 @@ function CustomerImageModal({ customer, onClose }: {
   // 업로드 전 설정 모달 상태
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedFileForUpload, setSelectedFileForUpload] = useState<File | null>(null);
+  // 방문일자 수정 상태
+  const [editingVisitDate, setEditingVisitDate] = useState<string | null>(null);
+  const [updatingVisitDate, setUpdatingVisitDate] = useState(false);
 
   // ESC 키로 이미지 확대 모달 닫기
   useEffect(() => {
@@ -2493,6 +2496,64 @@ function CustomerImageModal({ customer, onClose }: {
     } catch (error) {
       console.error('대표 이미지 취소 오류:', error);
       alert('대표 이미지 취소에 실패했습니다.');
+    }
+  };
+
+  // 방문일자 수정 핸들러
+  const handleUpdateVisitDate = async (imageId: string, newVisitDate: string) => {
+    if (!newVisitDate) {
+      alert('방문일자를 입력해주세요.');
+      return;
+    }
+
+    // 날짜 형식 검증
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(newVisitDate)) {
+      alert('날짜 형식이 올바르지 않습니다. (YYYY-MM-DD 형식 필요)');
+      return;
+    }
+
+    setUpdatingVisitDate(true);
+    try {
+      const response = await fetch('/api/admin/update-customer-image-visit-date', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageId,
+          newVisitDate,
+          customerId: customer.id
+        })
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || '방문일자 수정 실패');
+      }
+
+      console.log('✅ [방문일자 수정 완료]', {
+        imageId,
+        oldDate: result.oldDate,
+        newDate: result.newDate
+      });
+
+      // 이미지 목록 새로고침
+      await loadCustomerImages(selectedDateFilter);
+      
+      // 선택된 이미지 메타데이터 업데이트
+      if (selectedImageMetadata && selectedImageMetadata.id === imageId) {
+        setSelectedImageMetadata(result.image);
+      }
+
+      // 방문일자 수정 모드 종료
+      setEditingVisitDate(null);
+
+      alert(`방문일자가 ${result.newDate}로 변경되었습니다.`);
+    } catch (error: any) {
+      console.error('❌ [방문일자 수정 오류]', error);
+      alert('방문일자 수정에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
+    } finally {
+      setUpdatingVisitDate(false);
     }
   };
 
@@ -3751,6 +3812,72 @@ function CustomerImageModal({ customer, onClose }: {
                     <ImageMetadataOverlay metadata={selectedImageMetadata} />
                   )}
                 </div>
+
+                {/* 방문일자 수정 섹션 */}
+                {selectedImageMetadata && (
+                  <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg p-4 shadow-lg max-w-md mx-auto">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      방문일자
+                    </label>
+                    <div className="flex gap-2 items-center">
+                      {editingVisitDate === null ? (
+                        <>
+                          <input
+                            type="date"
+                            value={
+                              selectedImageMetadata.ai_tags
+                                ?.find((tag: string) => tag.startsWith('visit-'))
+                                ?.replace('visit-', '') || ''
+                            }
+                            readOnly
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 cursor-not-allowed"
+                          />
+                          <button
+                            onClick={() => {
+                              const currentVisitDate = selectedImageMetadata.ai_tags
+                                ?.find((tag: string) => tag.startsWith('visit-'))
+                                ?.replace('visit-', '') || new Date().toISOString().slice(0, 10);
+                              setEditingVisitDate(currentVisitDate);
+                            }}
+                            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                          >
+                            수정
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <input
+                            type="date"
+                            value={editingVisitDate}
+                            onChange={(e) => setEditingVisitDate(e.target.value)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            disabled={updatingVisitDate}
+                          />
+                          <button
+                            onClick={() => {
+                              if (selectedImageMetadata.id && editingVisitDate) {
+                                handleUpdateVisitDate(selectedImageMetadata.id, editingVisitDate);
+                              }
+                            }}
+                            disabled={updatingVisitDate}
+                            className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {updatingVisitDate ? '저장 중...' : '저장'}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingVisitDate(null);
+                            }}
+                            disabled={updatingVisitDate}
+                            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            취소
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
