@@ -68,7 +68,7 @@ async function fixAllCustomersImages() {
 
       for (const img of images) {
         let needsUpdate = false;
-        const updateData: any = {};
+        const updateData = {};
 
         // 1. file_path에 파일명이 없는 경우 수정
         if (img.file_path) {

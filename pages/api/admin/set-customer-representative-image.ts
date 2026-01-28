@@ -97,7 +97,7 @@ export default async function handler(
     console.log('🔍 [대표 이미지 설정 API] 이미지 정보 조회 시작:', { imageId });
     const { data: image, error: imageError } = await supabase
       .from('image_assets')
-      .select('id, file_path, ai_tags, is_customer_representative, filename, cdn_url, english_filename, original_filename')
+      .select('id, file_path, ai_tags, is_customer_representative, filename, cdn_url')
       .eq('id', imageId)
       .maybeSingle();
 
@@ -203,8 +203,8 @@ export default async function handler(
         
         // file_path가 폴더 경로만 있으면 파일명 추가
         if (isDateFolder || !lastPart.includes('.')) {
-          // filename에서 파일명 추출
-          const fileName = image.filename || image.english_filename || image.original_filename;
+            // filename에서 파일명 추출
+            const fileName = image.filename;
           if (fileName) {
             actualFilePath = `${image.file_path}/${fileName}`;
             console.log('📝 [대표 이미지 설정 API] file_path에 파일명 추가:', {
