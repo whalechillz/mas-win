@@ -693,11 +693,34 @@ export default async function handler(req, res) {
           fileName = extractFileName(img.image_url);
         }
         
-        // ⚠️ cdn_url이 있는 경우 우선 사용
-        // cdn_url이 없으면 file_path로부터 URL 생성 (마이그레이션 과정에서 cdn_url이 누락된 경우 대비)
-        let imageUrl = img.cdn_url || img.image_url;
+        // ⚠️ 갤러리 폴더 기준: file_path를 우선 사용하여 URL 생성 (가장 안정적)
+        // file_path가 있으면 항상 file_path 기반 URL 사용 (갤러리 폴더 기준)
+        let imageUrl = null;
         
-        // ⚠️ cdn_url이 없고 file_path가 있으면 URL 생성
+        if (img.file_path) {
+          // file_path 기반으로 URL 생성 (갤러리 폴더 기준 - 가장 안정적)
+          const { data: { publicUrl } } = supabase.storage
+            .from(bucketName)
+            .getPublicUrl(img.file_path);
+          imageUrl = publicUrl;
+          console.log('📝 [고객 이미지 조회] file_path 기반 URL 사용 (갤러리 폴더 기준):', {
+            imageId: img.id,
+            file_path: img.file_path?.substring(0, 100),
+            generatedUrl: publicUrl.substring(0, 100),
+            oldCdnUrl: img.cdn_url?.substring(0, 100)
+          });
+        } else {
+          // file_path가 없으면 기존 cdn_url 또는 image_url 사용 (하위 호환성)
+          imageUrl = img.cdn_url || img.image_url;
+          if (!imageUrl) {
+            console.warn('⚠️ [고객 이미지 조회] file_path와 cdn_url 모두 없음:', {
+              imageId: img.id,
+              filename: img.filename
+            });
+          }
+        }
+        
+        // ⚠️ cdn_url이 없고 file_path가 있으면 URL 생성 (기존 로직 유지 - 하위 호환성)
         // 마이그레이션 과정에서 cdn_url이 누락되었지만 Storage에는 파일이 존재하는 경우
         // 특히 비디오 파일의 경우 마이그레이션 과정에서 cdn_url이 누락된 경우가 많음
         if (!imageUrl && img.file_path) {

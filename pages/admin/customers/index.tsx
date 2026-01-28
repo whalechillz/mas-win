@@ -2678,7 +2678,31 @@ function CustomerImageModal({ customer, onClose }: {
       
       if (result.success) {
         // date_folder가 없는 이미지에 대해 폴더 경로에서 날짜 추출
+        // file_path 기반으로 image_url 재생성 (갤러리 폴더 기준 - 가장 안정적)
         const processedImages = (result.images || []).map((img: any) => {
+          // ⚠️ image_url이 없거나 잘못된 경우 file_path로부터 URL 재생성
+          // 갤러리 폴더 기준으로 항상 file_path를 우선 사용 (가장 안정적)
+          if (img.file_path) {
+            const { data: { publicUrl } } = supabase.storage
+              .from('blog-images')
+              .getPublicUrl(img.file_path);
+            // file_path 기반 URL을 우선 사용 (갤러리 폴더 기준)
+            img.image_url = publicUrl;
+            img.cdn_url = publicUrl;
+            console.log('📝 [고객 이미지 처리] file_path 기반 URL 사용 (갤러리 폴더 기준):', {
+              imageId: img.id,
+              file_path: img.file_path?.substring(0, 100),
+              generatedUrl: publicUrl.substring(0, 100),
+              oldImageUrl: img.image_url?.substring(0, 100)
+            });
+          } else if (!img.image_url || !img.image_url.includes('storage')) {
+            // file_path가 없고 image_url도 잘못된 경우
+            console.warn('⚠️ [고객 이미지 처리] file_path와 image_url 모두 없음:', {
+              imageId: img.id,
+              filename: img.filename
+            });
+          }
+          
           if (!img.date_folder) {
             // 1. folder_path에서 날짜 추출
             if (img.folder_path) {
