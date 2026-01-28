@@ -249,7 +249,19 @@ export default async function handler(
 
     // OCR인 경우 텍스트 추출
     if (metadataType === 'ocr') {
-      console.log('📄 [create-customer-image-metadata] OCR 모드: 텍스트 추출 시작');
+      console.log('📄 [create-customer-image-metadata] OCR 모드: 텍스트 추출 시작', {
+        imageUrl: tempUploadResult.url?.substring(0, 100),
+        baseUrl: baseUrl,
+        timestamp: new Date().toISOString()
+      });
+      
+      // API 키 확인 (디버깅용)
+      const apiKeyCheck = process.env.GOOGLE_VISION_API_KEY;
+      console.log('🔑 [create-customer-image-metadata] API 키 확인:', {
+        exists: !!apiKeyCheck,
+        keyPrefix: apiKeyCheck ? apiKeyCheck.substring(0, 20) + '...' : '없음',
+        keyLength: apiKeyCheck?.length || 0
+      });
       
       const ocrResponse = await fetch(`${baseUrl}/api/admin/extract-document-text`, {
         method: 'POST',
@@ -257,6 +269,13 @@ export default async function handler(
         body: JSON.stringify({
           imageUrl: tempUploadResult.url
         })
+      });
+      
+      console.log('📥 [create-customer-image-metadata] OCR API 응답 수신:', {
+        status: ocrResponse.status,
+        statusText: ocrResponse.statusText,
+        ok: ocrResponse.ok,
+        url: `${baseUrl}/api/admin/extract-document-text`
       });
 
       if (!ocrResponse.ok) {

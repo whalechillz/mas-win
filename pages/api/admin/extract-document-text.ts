@@ -22,10 +22,25 @@ export default async function handler(
 
     const googleApiKey = process.env.GOOGLE_VISION_API_KEY;
     
+    // 상세 로깅: API 키 확인
+    console.log('🔑 [OCR] API 키 확인:', {
+      exists: !!googleApiKey,
+      keyPrefix: googleApiKey ? googleApiKey.substring(0, 20) + '...' : '없음',
+      keyLength: googleApiKey?.length || 0,
+      envVarName: 'GOOGLE_VISION_API_KEY',
+      allEnvKeys: Object.keys(process.env).filter(k => k.includes('GOOGLE') || k.includes('VISION')).join(', ')
+    });
+    
     if (!googleApiKey) {
-      console.error('❌ Google Vision API 키가 설정되지 않았습니다');
+      console.error('❌ [OCR] Google Vision API 키가 설정되지 않았습니다');
+      console.error('📋 [OCR] 환경 변수 확인:', {
+        nodeEnv: process.env.NODE_ENV,
+        hasEnvLocal: require('fs').existsSync('.env.local'),
+        envKeys: Object.keys(process.env).filter(k => k.includes('GOOGLE')).join(', ')
+      });
       return res.status(500).json({ 
-        error: 'Google Vision API 키가 설정되지 않았습니다. 환경 변수를 확인하세요.' 
+        error: 'Google Vision API 키가 설정되지 않았습니다. 환경 변수를 확인하세요.',
+        details: 'GOOGLE_VISION_API_KEY 환경 변수가 없습니다.'
       });
     }
 
