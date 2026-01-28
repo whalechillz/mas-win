@@ -355,23 +355,132 @@ export default async function handler(req, res) {
         folderPath: exactFolderPath
       });
 
-      // 날짜 필터 적용 (file_path에서 날짜 추출)
+      // Storage 파일 존재 여부 확인 함수
+      const verifyFileExists = async (filePath) => {
+        if (!filePath) return false;
+        try {
+          const pathParts = filePath.split('/');
+          const folderPath = pathParts.slice(0, -1).join('/');
+          const fileName = pathParts[pathParts.length - 1];
+          
+          // 파일명이 없거나 날짜 폴더만 있는 경우
+          if (!fileName || fileName.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            return false;
+          }
+          
+          const { data: files, error } = await supabase.storage
+            .from(bucketName)
+            .list(folderPath, { 
+              search: fileName,
+              limit: 1
+            });
+          
+          const exists = !error && files && files.length > 0;
+          if (!exists) {
+            console.warn('⚠️ [파일 존재 확인] Storage에 존재하지 않음:', {
+              filePath: filePath.substring(0, 100),
+              folderPath,
+              fileName
+            });
+          }
+          return exists;
+        } catch (error) {
+          console.error('❌ [파일 존재 확인] 오류:', error);
+          return false;
+        }
+      };
+
+      // 날짜 필터 적용 (ai_tags의 visit-{date} 태그 우선, file_path에서 날짜 추출)
       if (dateFilter && filteredMetadataImages.length > 0) {
         filteredMetadataImages = filteredMetadataImages.filter(img => {
-          // file_path에서 날짜 추출
+          // 1. ai_tags의 visit-{date} 태그 확인 (최우선)
+          const tags = Array.isArray(img.ai_tags) ? img.ai_tags : [];
+          const visitTag = tags.find((tag) => tag.startsWith('visit-'));
+          const visitDate = visitTag ? visitTag.replace('visit-', '') : null;
+          
+          // visit-{date} 태그가 있으면 우선 사용
+          if (visitDate) {
+            const matches = visitDate === dateFilter;
+            if (!matches) {
+              console.log('🔍 [날짜 필터링] visit-{date} 태그 불일치:', {
+                imageId: img.id,
+                visitDate,
+                dateFilter,
+                file_path: img.file_path?.substring(0, 100)
+              });
+            }
+            return matches;
+          }
+          
+          // 2. file_path에서 날짜 추출
           const pathToCheck = img.file_path || img.folder_path || '';
           const dateMatch = pathToCheck.match(/(\d{4}-\d{2}-\d{2})/);
           const extractedDate = dateMatch ? dateMatch[1] : null;
           
-          // cdn_url에서도 날짜 추출 시도
+          // 3. cdn_url에서도 날짜 추출 시도
+          let urlDate = null;
           if (!extractedDate && img.cdn_url) {
             const urlDateMatch = img.cdn_url.match(/(\d{4}-\d{2}-\d{2})/);
             if (urlDateMatch) {
-              return urlDateMatch[1] === dateFilter;
+              urlDate = urlDateMatch[1];
             }
           }
           
-          return extractedDate === dateFilter;
+          const finalDate = visitDate || extractedDate || urlDate;
+          const matches = finalDate === dateFilter;
+          
+          if (!matches) {
+            console.log('🔍 [날짜 필터링] 날짜 불일치:', {
+              imageId: img.id,
+              visitDate,
+              extractedDate,
+              urlDate,
+              finalDate,
+              dateFilter,
+              file_path: img.file_path?.substring(0, 100)
+            });
+          }
+          
+          return matches;
+        });
+        
+        console.log('📅 [날짜 필터링] 결과:', {
+          dateFilter,
+          before: filteredMetadataImages.length,
+          after: filteredMetadataImages.length
+        });
+      }
+      
+      // 실제 Storage 파일 존재 여부 확인 (잔상 이미지 제거)
+      if (filteredMetadataImages.length > 0) {
+        console.log('🔍 [파일 존재 확인] 시작:', {
+          count: filteredMetadataImages.length
+        });
+        
+        const verifiedImages = await Promise.all(
+          filteredMetadataImages.map(async (img) => {
+            if (img.file_path) {
+              const exists = await verifyFileExists(img.file_path);
+              if (!exists) {
+                console.warn('⚠️ [잔상 이미지 제거] Storage에 존재하지 않는 이미지 메타데이터:', {
+                  imageId: img.id,
+                  file_path: img.file_path?.substring(0, 100),
+                  filename: img.filename
+                });
+                return null; // 존재하지 않으면 제외
+              }
+            }
+            return img;
+          })
+        );
+        
+        // null 제거
+        filteredMetadataImages = verifiedImages.filter(img => img !== null);
+        
+        console.log('✅ [파일 존재 확인] 완료:', {
+          before: verifiedImages.length,
+          after: filteredMetadataImages.length,
+          removed: verifiedImages.length - filteredMetadataImages.length
         });
       }
 

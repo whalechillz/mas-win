@@ -97,7 +97,7 @@ export default async function handler(
     console.log('🔍 [대표 이미지 설정 API] 이미지 정보 조회 시작:', { imageId });
     const { data: image, error: imageError } = await supabase
       .from('image_assets')
-      .select('id, file_path, ai_tags, is_customer_representative')
+      .select('id, file_path, ai_tags, is_customer_representative, filename, cdn_url')
       .eq('id', imageId)
       .maybeSingle();
 
@@ -185,14 +185,49 @@ export default async function handler(
       });
 
       // 선택한 이미지를 대표 이미지로 설정
+      // file_path가 올바른지 확인하고 cdn_url도 함께 업데이트
+      let updateData: any = {
+        is_customer_representative: true,
+        updated_at: new Date().toISOString()
+      };
+      
+      // file_path가 올바른지 확인하고 cdn_url 생성
+      if (image.file_path) {
+        // file_path에 파일명이 있는지 확인
+        const pathParts = image.file_path.split('/');
+        const lastPart = pathParts[pathParts.length - 1];
+        const isDateFolder = /^\d{4}-\d{2}-\d{2}$/.test(lastPart);
+        
+        // file_path가 폴더 경로만 있으면 파일명 추가 (이미지 조회 시 filename 사용)
+        if (isDateFolder || !lastPart.includes('.')) {
+          // filename에서 파일명 추출 (이미지 조회 시 가져온 정보 사용)
+          // 여기서는 image 객체에 filename이 없을 수 있으므로, file_path를 그대로 사용
+          console.warn('⚠️ [대표 이미지 설정 API] file_path에 파일명 없음:', {
+            imageId,
+            file_path: image.file_path
+          });
+        }
+        
+        // cdn_url 생성 (file_path 기반)
+        const { data: { publicUrl } } = supabase.storage
+          .from('blog-images')
+          .getPublicUrl(image.file_path);
+        
+        updateData.cdn_url = publicUrl;
+        updateData.file_path = image.file_path; // file_path도 명시적으로 업데이트
+        
+        console.log('📝 [대표 이미지 설정 API] file_path와 cdn_url 업데이트:', {
+          imageId,
+          file_path: image.file_path.substring(0, 100),
+          cdn_url: publicUrl.substring(0, 100)
+        });
+      }
+      
       const { data: setData, error: setError } = await supabase
         .from('image_assets')
-        .update({ 
-          is_customer_representative: true,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', imageId)
-        .select('id, is_customer_representative');
+        .select('id, is_customer_representative, file_path, cdn_url');
 
       if (setError) {
         console.error('❌ [대표 이미지 설정 API] 대표 이미지 설정 오류:', setError);
