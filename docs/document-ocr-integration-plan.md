@@ -412,16 +412,16 @@ if (typeDetection.type === 'docs') {
    - "Cloud Vision API" 선택
    - "저장" 클릭
 
-**✅ 올바른 설정 확인:**
+**✅ 완벽한 설정 예시:**
+- ✅ API 키 이름: "Vision API - Document OCR" (명확한 이름)
 - ✅ 애플리케이션 제한사항: "웹사이트" 선택
-- ✅ 웹사이트 제한사항: `https://www.masgolf.co.kr/` 추가됨
+- ✅ 웹사이트 제한사항:
+  - `http://localhost:3000/*` (로컬 개발 환경)
+  - `https://www.masgolf.co.kr/*` (프로덕션 환경)
 - ✅ API 제한사항: "키 제한" 선택
 - ✅ 선택한 API: "Cloud Vision API"
 
-**⚠️ 개선 사항 (선택사항):**
-- 웹사이트 제한사항에 `https://win.masgolf.co.kr/*`도 추가 고려 (프로젝트에서 사용 중인 도메인)
-- 로컬 개발을 위해 `http://localhost:3000/*` 추가 고려 (개발 환경)
-- API 키 이름을 더 명확하게 변경 (예: "Vision API - Document OCR")
+**이 설정으로 "만들기" 버튼을 클릭하면 완료됩니다!**
 
 ### 4. 환경 변수 설정
 
