@@ -35,13 +35,26 @@ export default function CustomerImageUploadModal({
   const [metadataType, setMetadataType] = useState<'golf-ai' | 'general' | 'ocr'>('golf-ai');
   
   // 문서 감지 (파일명 기반)
-  const isDocument = file ? (
-    file.name.toLowerCase().includes('doc') ||
-    file.name.toLowerCase().includes('사양서') ||
-    file.name.toLowerCase().includes('문서') ||
-    file.name.toLowerCase().includes('scan') ||
-    file.name.toLowerCase().includes('seukaen')
-  ) : false;
+  const isDocument = file ? (() => {
+    const fileName = file.name.toLowerCase();
+    const detected = 
+      fileName.includes('doc') ||
+      fileName.includes('사양서') ||
+      fileName.includes('문서') ||
+      fileName.includes('scan') ||
+      fileName.includes('seukaen') ||
+      fileName.includes('주문') ||
+      fileName.includes('order') ||
+      fileName.includes('spec') ||
+      fileName.includes('specification');
+    
+    // 디버깅 로그
+    if (detected) {
+      console.log('📄 [문서 감지] 파일명:', file.name, '→ 문서로 감지됨');
+    }
+    
+    return detected;
+  })() : false;
   const [selectedVisitDate, setSelectedVisitDate] = useState(visitDate);
   const [isProcessing, setIsProcessing] = useState(false);
 
