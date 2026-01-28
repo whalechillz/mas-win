@@ -260,12 +260,34 @@ export default async function handler(
       });
 
       if (!ocrResponse.ok) {
-        const errorText = await ocrResponse.text().catch(() => '');
-        console.error('❌ [create-customer-image-metadata] OCR API 오류:', {
+        let errorText = '';
+        let errorJson: any = null;
+        
+        try {
+          errorText = await ocrResponse.text();
+          try {
+            errorJson = JSON.parse(errorText);
+          } catch {
+            // JSON 파싱 실패 시 텍스트 그대로 사용
+          }
+        } catch (e) {
+          errorText = '응답 본문을 읽을 수 없습니다';
+        }
+        
+        console.error('❌ [create-customer-image-metadata] OCR API 오류 상세:', {
           status: ocrResponse.status,
           statusText: ocrResponse.statusText,
-          errorText: errorText.substring(0, 200)
+          errorText: errorText.substring(0, 500),
+          errorJson: errorJson,
+          imageUrl: tempUploadResult.url?.substring(0, 100),
+          baseUrl: baseUrl
         });
+        
+        // 401 오류인 경우 더 자세한 정보 제공
+        if (ocrResponse.status === 401) {
+          throw new Error(`OCR API 오류 (401): Unauthorized - Google Vision API 인증 실패. API 키와 Vision API 활성화 상태를 확인하세요.`);
+        }
+        
         throw new Error(`OCR API 오류 (${ocrResponse.status}): ${ocrResponse.statusText}`);
       }
 
