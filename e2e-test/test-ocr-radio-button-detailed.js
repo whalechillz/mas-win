@@ -5,6 +5,9 @@
 
 const { chromium } = require('playwright');
 
+const ADMIN_LOGIN = process.env.ADMIN_LOGIN || '010-6669-9000';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
+
 (async () => {
   const browser = await chromium.launch({ 
     headless: false,
@@ -28,16 +31,133 @@ const { chromium } = require('playwright');
   try {
     console.log('🚀 OCR 라디오 버튼 상세 테스트 시작\n');
 
-    // 1. 고객 관리 페이지로 이동
-    console.log('1️⃣ 고객 관리 페이지로 이동...');
+    // 1. 로그인 페이지로 이동
+    console.log('1️⃣ 로그인 페이지로 이동...');
+    await page.goto('http://localhost:3000/admin/login', { 
+      waitUntil: 'networkidle',
+      timeout: 30000 
+    });
+    await page.waitForTimeout(2000);
+
+    // 2. 로그인 수행
+    console.log('2️⃣ 로그인 수행...');
+    console.log(`   아이디: ${ADMIN_LOGIN}`);
+    
+    // 로그인 입력 필드 찾기
+    const loginInputSelectors = [
+      'input[name="login"]',
+      'input[type="text"]',
+      'input[placeholder*="아이디"]',
+      'input[placeholder*="전화번호"]'
+    ];
+
+    let loginInput = null;
+    for (const selector of loginInputSelectors) {
+      try {
+        const element = page.locator(selector).first();
+        if (await element.count() > 0) {
+          loginInput = element;
+          console.log(`✅ 로그인 입력 필드 발견: ${selector}`);
+          break;
+        }
+      } catch (e) {
+        // 계속 시도
+      }
+    }
+
+    if (!loginInput) {
+      throw new Error('로그인 입력 필드를 찾을 수 없습니다');
+    }
+
+    // 아이디 입력
+    await loginInput.fill(ADMIN_LOGIN);
+    await page.waitForTimeout(500);
+
+    // 비밀번호 입력 필드 찾기
+    const passwordInputSelectors = [
+      'input[name="password"]',
+      'input[type="password"]',
+      'input[placeholder*="비밀번호"]'
+    ];
+
+    let passwordInput = null;
+    for (const selector of passwordInputSelectors) {
+      try {
+        const element = page.locator(selector).first();
+        if (await element.count() > 0) {
+          passwordInput = element;
+          console.log(`✅ 비밀번호 입력 필드 발견: ${selector}`);
+          break;
+        }
+      } catch (e) {
+        // 계속 시도
+      }
+    }
+
+    if (!passwordInput) {
+      throw new Error('비밀번호 입력 필드를 찾을 수 없습니다');
+    }
+
+    // 비밀번호 입력
+    await passwordInput.fill(ADMIN_PASSWORD);
+    await page.waitForTimeout(500);
+
+    // 로그인 버튼 클릭
+    const loginButtonSelectors = [
+      'button[type="submit"]',
+      'button:has-text("로그인")',
+      'button:has-text("Login")',
+      'form button'
+    ];
+
+    let loginButton = null;
+    for (const selector of loginButtonSelectors) {
+      try {
+        const element = page.locator(selector).first();
+        if (await element.count() > 0) {
+          loginButton = element;
+          console.log(`✅ 로그인 버튼 발견: ${selector}`);
+          break;
+        }
+      } catch (e) {
+        // 계속 시도
+      }
+    }
+
+    if (!loginButton) {
+      throw new Error('로그인 버튼을 찾을 수 없습니다');
+    }
+
+    await loginButton.click();
+    console.log('✅ 로그인 버튼 클릭 완료');
+    await page.waitForTimeout(3000);
+
+    // 로그인 성공 확인 (URL이 변경되었는지 확인)
+    const currentUrl = page.url();
+    console.log(`📍 현재 URL: ${currentUrl}`);
+    
+    if (currentUrl.includes('/login')) {
+      console.log('⚠️ 아직 로그인 페이지에 있습니다. 로그인 실패 가능성');
+      // 에러 메시지 확인
+      const errorMessage = page.locator('text=/.*오류.*/, text=/.*실패.*/, text=/.*잘못.*/').first();
+      if (await errorMessage.count() > 0) {
+        const errorText = await errorMessage.textContent();
+        console.log(`❌ 로그인 오류: ${errorText}`);
+      }
+    } else {
+      console.log('✅ 로그인 성공 (페이지 이동됨)');
+    }
+
+    // 3. 고객 관리 페이지로 이동
+    console.log('3️⃣ 고객 관리 페이지로 이동...');
     await page.goto('http://localhost:3000/admin/customers', { 
       waitUntil: 'networkidle',
       timeout: 30000 
     });
     await page.waitForTimeout(3000);
 
-    // 2. 고객 찾기 및 클릭
-    console.log('2️⃣ 고객 찾기...');
+    // 4. 고객 찾기 및 클릭
+    console.log('4️⃣ 고객 찾기...');
     const customerName = '최태섭';
     
     // 고객 이름으로 검색 또는 직접 클릭
@@ -56,8 +176,8 @@ const { chromium } = require('playwright');
       console.log('⚠️ 고객 직접 클릭 실패, 이미지 업로드 버튼 직접 찾기');
     }
 
-    // 3. 이미지 업로드 영역 찾기
-    console.log('3️⃣ 이미지 업로드 영역 찾기...');
+    // 5. 이미지 업로드 영역 찾기
+    console.log('5️⃣ 이미지 업로드 영역 찾기...');
     await page.waitForTimeout(2000);
 
     // 여러 가능한 업로드 버튼/영역 찾기
@@ -95,8 +215,8 @@ const { chromium } = require('playwright');
       }
     }
 
-    // 4. 테스트용 더미 파일 생성 (주문사양서.png)
-    console.log('4️⃣ 테스트 파일 준비 (주문사양서.png)...');
+    // 6. 테스트용 더미 파일 생성 (주문사양서.png)
+    console.log('6️⃣ 테스트 파일 준비 (주문사양서.png)...');
     
     // 파일 입력에 파일 설정 (더미 파일)
     const testFilePath = '/tmp/test-주문사양서.png';
@@ -119,8 +239,8 @@ const { chromium } = require('playwright');
 
     console.log('✅ 파일 선택 완료');
 
-    // 5. 업로드 설정 모달 확인
-    console.log('5️⃣ 업로드 설정 모달 확인...');
+    // 7. 업로드 설정 모달 확인
+    console.log('7️⃣ 업로드 설정 모달 확인...');
     await page.waitForTimeout(3000);
 
     // 모달이 열렸는지 확인
@@ -156,8 +276,8 @@ const { chromium } = require('playwright');
       throw new Error('업로드 설정 모달이 열리지 않음');
     }
 
-    // 6. 파일명 확인
-    console.log('6️⃣ 선택된 파일명 확인...');
+    // 8. 파일명 확인
+    console.log('8️⃣ 선택된 파일명 확인...');
     const fileNameSelectors = [
       'text=주문사양서',
       'text=사양서',
@@ -185,8 +305,8 @@ const { chromium } = require('playwright');
       console.log('⚠️ 파일명이 표시되지 않음 (계속 진행)');
     }
 
-    // 7. 메타데이터 생성 방식 섹션 확인
-    console.log('7️⃣ 메타데이터 생성 방식 섹션 확인...');
+    // 9. 메타데이터 생성 방식 섹션 확인
+    console.log('9️⃣ 메타데이터 생성 방식 섹션 확인...');
     
     // 섹션 제목 확인
     const sectionTitle = page.locator('text=메타데이터 생성 방식').first();
@@ -196,8 +316,8 @@ const { chromium } = require('playwright');
       console.log('❌ "메타데이터 생성 방식" 섹션을 찾을 수 없음');
     }
 
-    // 8. 모든 라디오 버튼 확인
-    console.log('8️⃣ 라디오 버튼 확인...');
+    // 10. 모든 라디오 버튼 확인
+    console.log('🔟 라디오 버튼 확인...');
     
     // metadataType 라디오 버튼 찾기
     const radioButtons = page.locator('input[type="radio"][name="metadataType"]');
@@ -249,8 +369,8 @@ const { chromium } = require('playwright');
       console.log(`    - label: "${labelText?.trim()}"`);
     }
 
-    // 9. OCR 옵션 특별 확인
-    console.log('9️⃣ OCR 옵션 특별 확인...');
+    // 11. OCR 옵션 특별 확인
+    console.log('1️⃣1️⃣ OCR 옵션 특별 확인...');
     
     // value="ocr" 라디오 버튼 찾기
     const ocrRadio = page.locator('input[type="radio"][value="ocr"]').first();
@@ -302,8 +422,8 @@ const { chromium } = require('playwright');
       }
     }
 
-    // 10. 문서 감지 로직 테스트 (JavaScript 실행)
-    console.log('🔟 문서 감지 로직 테스트 (브라우저에서 실행)...');
+    // 12. 문서 감지 로직 테스트 (JavaScript 실행)
+    console.log('1️⃣2️⃣ 문서 감지 로직 테스트 (브라우저에서 실행)...');
     
     const detectionTest = await page.evaluate(() => {
       const testFileNames = [
@@ -339,8 +459,8 @@ const { chromium } = require('playwright');
       console.log(`  - "${fileName}": ${isDoc ? '✅ 문서' : '❌ 일반'}`);
     });
 
-    // 11. 현재 선택된 파일명으로 문서 감지 확인
-    console.log('1️⃣1️⃣ 현재 선택된 파일로 문서 감지 확인...');
+    // 13. 현재 선택된 파일명으로 문서 감지 확인
+    console.log('1️⃣3️⃣ 현재 선택된 파일로 문서 감지 확인...');
     
     const currentFileDetection = await page.evaluate(() => {
       // React 컴포넌트의 상태를 직접 접근할 수는 없지만,
@@ -373,14 +493,14 @@ const { chromium } = require('playwright');
     console.log(`현재 파일: "${currentFileDetection.fileText}"`);
     console.log(`문서 감지 결과: ${currentFileDetection.isDoc ? '✅ 문서' : '❌ 일반'}`);
 
-    // 12. 스크린샷 저장
-    console.log('1️⃣2️⃣ 스크린샷 저장...');
+    // 14. 스크린샷 저장
+    console.log('1️⃣4️⃣ 스크린샷 저장...');
     await page.screenshot({ 
       path: 'e2e-test/ocr-radio-button-detailed-test.png', 
       fullPage: true 
     });
 
-    // 13. 콘솔 로그 요약
+    // 15. 콘솔 로그 요약
     console.log('\n📋 콘솔 로그 요약:');
     if (consoleLogs.length > 0) {
       consoleLogs.forEach((log, i) => {
