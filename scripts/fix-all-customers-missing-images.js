@@ -56,7 +56,7 @@ async function fixAllCustomersImages() {
       // 해당 고객의 이미지 조회
       const { data: images, error: imagesError } = await supabase
         .from('image_assets')
-        .select('id, filename, file_path, cdn_url, ai_tags, english_filename, original_filename')
+        .select('id, filename, file_path, cdn_url, ai_tags')
         .ilike('file_path', `${exactFolderPath}/%`)
         .limit(500);
 
@@ -78,7 +78,7 @@ async function fixAllCustomersImages() {
           
           if (isDateFolder || !lastPart.includes('.')) {
             // filename에서 파일명 추출
-            const fileName = img.filename || img.english_filename || img.original_filename;
+            const fileName = img.filename;
             if (fileName) {
               const correctedFilePath = `${img.file_path}/${fileName}`;
               updateData.file_path = correctedFilePath;
