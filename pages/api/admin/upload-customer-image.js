@@ -387,7 +387,11 @@ export default async function handler(req, res) {
       let storageImages = [];
 
       // 3. Storage에서 실제 파일 조회 (폴더명이 있는 경우)
-      if (customerData?.folder_name) {
+      // ⚠️ 성능 최적화: 메타데이터 조회 결과가 충분하면 Storage 조회 건너뛰기
+      // Storage 조회는 느리고, 메타데이터에 없는 파일은 보통 다른 고객의 파일이거나 삭제된 파일
+      const shouldQueryStorage = filteredMetadataImages.length === 0;
+      
+      if (customerData?.folder_name && shouldQueryStorage) {
         const baseFolderPath = `originals/customers/${customerData.folder_name}`;
         
         // 날짜 필터가 있으면 해당 날짜 폴더만, 없으면 모든 하위 폴더 조회
@@ -414,40 +418,11 @@ export default async function handler(req, res) {
               storageFiles = files.filter(file => !file.name.endsWith('/'));
             }
           } else {
-            // 모든 날짜 폴더 조회 (재귀적)
-            const { data: dateFolders, error: foldersError } = await supabase.storage
-              .from(bucketName)
-              .list(baseFolderPath, {
-                limit: 1000,
-                offset: 0
-              });
-            
-            if (!foldersError && dateFolders) {
-              // 날짜 형식 폴더만 필터링 (YYYY-MM-DD)
-              const dateFolderPattern = /^\d{4}-\d{2}-\d{2}$/;
-              const validDateFolders = dateFolders.filter(folder => 
-                !folder.name.endsWith('/') && dateFolderPattern.test(folder.name)
-              );
-              
-              // 각 날짜 폴더의 파일 조회
-              for (const dateFolder of validDateFolders) {
-                const dateFolderPath = `${baseFolderPath}/${dateFolder.name}`;
-                const { data: files, error: filesError } = await supabase.storage
-                  .from(bucketName)
-                  .list(dateFolderPath, {
-                    limit: 1000,
-                    offset: 0,
-                    sortBy: { column: 'name', order: 'asc' }
-                  });
-                
-                if (!filesError && files) {
-                  const filesWithDate = files
-                    .filter(file => !file.name.endsWith('/'))
-                    .map(file => ({ ...file, dateFolder: dateFolder.name }));
-                  storageFiles = [...storageFiles, ...filesWithDate];
-                }
-              }
-            }
+            // ⚠️ 성능 최적화: 날짜 필터가 없을 때는 Storage 조회 제한
+            // 모든 날짜 폴더를 재귀 조회하면 너무 느려질 수 있음
+            // 메타데이터 조회 결과가 있으면 Storage 조회 건너뛰기
+            console.log('⚠️ [Storage 조회] 날짜 필터가 없어 Storage 조회를 건너뜁니다. (성능 최적화)');
+            // Storage 조회 건너뛰기
           }
 
           if (storageFiles.length > 0) {
