@@ -8347,22 +8347,52 @@ export default function GalleryAdmin() {
                     </label>
                   </div>
                   
-                  {/* OCR 처리 옵션 */}
-                  <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <label className="flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={enableOCR}
-                        onChange={(e) => setEnableOCR(e.target.checked)}
-                        className="mr-2 w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                      />
-                      <div className="flex-1">
-                        <span className="text-sm text-gray-700 font-medium">📄 OCR 텍스트 추출</span>
-                        <p className="text-xs text-gray-600 mt-1">
-                          문서 이미지에서 텍스트를 자동으로 추출합니다 (주문사양서, 서류 등)
-                        </p>
-                      </div>
+                  {/* 메타데이터 생성 방식 선택 (고객 이미지 업로드와 동일한 UI) */}
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <label className="text-xs font-medium text-gray-600 mb-2 block">
+                      메타데이터 생성 방식
                     </label>
+                    <div className="space-y-2">
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="galleryMetadataType"
+                          value="golf-ai"
+                          checked={!enableOCR}
+                          onChange={(e) => setEnableOCR(false)}
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-sm text-gray-700">골프 AI 생성</span>
+                        <span className="text-xs text-gray-500">(골프 특화 분석)</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="galleryMetadataType"
+                          value="general"
+                          checked={!enableOCR}
+                          onChange={(e) => setEnableOCR(false)}
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-sm text-gray-700">일반 메타 생성</span>
+                        <span className="text-xs text-gray-500">(범용 분석)</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="galleryMetadataType"
+                          value="ocr"
+                          checked={enableOCR}
+                          onChange={(e) => setEnableOCR(true)}
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-sm text-gray-700">📄 OCR 텍스트 추출</span>
+                        <span className="text-xs text-gray-500">(문서 이미지용)</span>
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      문서 이미지(주문사양서, 서류 등)는 OCR 옵션을 선택하세요
+                    </p>
                   </div>
                   </div>
                   
