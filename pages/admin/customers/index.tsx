@@ -3348,6 +3348,11 @@ function CustomerImageModal({ customer, onClose }: {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
+                            console.log('🖼️ [대표 이미지 배지 클릭]', {
+                              imageId: img.id,
+                              is_customer_representative: img.is_customer_representative,
+                              story_scene: img.story_scene
+                            });
                             if (img.is_customer_representative) {
                               handleUnsetCustomerRepresentative(img.id);
                             } else {
@@ -3478,6 +3483,11 @@ function CustomerImageModal({ customer, onClose }: {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
+                              console.log('🖼️ [대표 이미지 배지 클릭]', {
+                                imageId: img.id,
+                                is_customer_representative: img.is_customer_representative,
+                                story_scene: img.story_scene
+                              });
                               if (img.is_customer_representative) {
                                 handleUnsetCustomerRepresentative(img.id);
                               } else {
