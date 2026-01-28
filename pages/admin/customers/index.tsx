@@ -3321,29 +3321,8 @@ function CustomerImageModal({ customer, onClose }: {
                         </span>
                       )}
                       
-                      {/* 장면별 대표 이미지 배지 (클릭 가능) - 동영상 제외 */}
-                      {img.story_scene && !isVideo(img.image_url) && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (img.is_scene_representative) {
-                              handleUnsetSceneRepresentative(img.id);
-                            } else {
-                              handleSetSceneRepresentative(img.id, img.story_scene);
-                            }
-                          }}
-                          className={`absolute top-2 left-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
-                            img.is_scene_representative
-                              ? 'bg-yellow-500 text-white hover:bg-yellow-600'
-                              : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100'
-                          }`}
-                          title={img.is_scene_representative ? '장면 대표 이미지 취소 (클릭)' : '장면 대표 이미지로 설정 (클릭)'}
-                        >
-                          {img.is_scene_representative ? '⭐ 대표' : '○ 일반'}
-                        </button>
-                      )}
-                      
                       {/* 고객 대표 이미지 배지 (클릭 가능) - 동영상 제외 */}
+                      {/* ⚠️ 장면 배지는 스토리보드 모달에서만 사용, 고객 이미지 관리 모달에서는 고객 대표 이미지 배지만 표시 */}
                       {!isVideo(img.image_url) && (
                         <button
                           onClick={(e) => {
@@ -3352,8 +3331,7 @@ function CustomerImageModal({ customer, onClose }: {
                             console.log('🖼️ [대표 이미지 배지 클릭]', {
                               imageId: img.id,
                               is_customer_representative: img.is_customer_representative,
-                              story_scene: img.story_scene,
-                              position: img.story_scene ? 'top-10' : 'top-2'
+                              story_scene: img.story_scene
                             });
                             if (img.is_customer_representative) {
                               handleUnsetCustomerRepresentative(img.id);
@@ -3361,7 +3339,7 @@ function CustomerImageModal({ customer, onClose }: {
                               handleSetCustomerRepresentative(img.id);
                             }
                           }}
-                          className={`absolute ${img.story_scene ? 'top-10 left-2' : 'top-2 left-2'} z-20 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
+                          className={`absolute top-2 left-2 z-20 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
                             img.is_customer_representative
                               ? 'bg-blue-500 text-white hover:bg-blue-600' // 대표 이미지로 설정된 경우 항상 표시
                               : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100' // 일반 상태는 호버 시에만 표시
