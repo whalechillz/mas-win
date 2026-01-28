@@ -465,12 +465,20 @@ export default async function handler(
     if (ocrText) {
       metadataPayload.ocr_text = ocrText;
       metadataPayload.ocr_extracted = true;
+      metadataPayload.ocr_processed_at = new Date().toISOString();
       // OCR 텍스트를 description에도 포함 (검색 가능하도록)
       if (metadataPayload.description) {
         metadataPayload.description = `${metadataPayload.description}\n\n[OCR 추출 텍스트]\n${ocrText.substring(0, 1000)}`;
       } else {
         metadataPayload.description = `[OCR 추출 텍스트]\n${ocrText.substring(0, 1000)}`;
       }
+      
+      console.log('✅ [create-customer-image-metadata] OCR 결과 추가:', {
+        textLength: ocrText.length,
+        preview: ocrText.substring(0, 100),
+        ocrExtracted: metadataPayload.ocr_extracted,
+        ocrProcessedAt: metadataPayload.ocr_processed_at
+      });
     }
 
     console.log('📝 [create-customer-image-metadata] 메타데이터 저장 시도:', {
