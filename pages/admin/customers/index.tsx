@@ -2586,22 +2586,27 @@ function CustomerImageModal({ customer, onClose }: {
             // file_path에 파일명이 있는지 확인
             const pathParts = img.file_path.split('/');
             const lastPart = pathParts[pathParts.length - 1];
-            const isDateFolder = /^\d{4}-\d{2}-\d{2}$/.test(lastPart);
+            // 날짜 폴더 패턴: YYYY-MM-DD 또는 YYYY.MM.DD 형식
+            const isDateFolder = /^\d{4}[.-]\d{2}[.-]\d{2}$/.test(lastPart);
+            // 파일명이 있는지 확인 (확장자가 있는지 체크)
+            const hasFilename = lastPart.includes('.') && !isDateFolder;
             
             let actualFilePath = img.file_path;
             
             // file_path가 폴더 경로만 있고 파일명이 없는 경우
-            if (isDateFolder || !lastPart.includes('.')) {
+            if (isDateFolder || (!hasFilename && !lastPart.includes('.'))) {
               // filename에서 파일명 추출
-              const fileName = img.filename || img.english_filename || img.original_filename || 'unknown';
-              actualFilePath = `${img.file_path}/${fileName}`;
-              
-              console.warn('⚠️ [고객 이미지 처리] file_path에 파일명 없음, 파일명 추가:', {
-                imageId: img.id,
-                originalFilePath: img.file_path,
-                correctedFilePath: actualFilePath.substring(0, 100),
-                fileName
-              });
+              const fileName = img.filename;
+              if (fileName) {
+                actualFilePath = `${img.file_path}/${fileName}`;
+                
+                console.warn('⚠️ [고객 이미지 처리] file_path에 파일명 없음, 파일명 추가:', {
+                  imageId: img.id,
+                  originalFilePath: img.file_path,
+                  correctedFilePath: actualFilePath.substring(0, 100),
+                  fileName
+                });
+              }
             }
             
             const { data: { publicUrl } } = supabase.storage
