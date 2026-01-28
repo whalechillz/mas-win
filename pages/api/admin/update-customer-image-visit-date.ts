@@ -118,7 +118,64 @@ export default async function handler(
       newFilePath: newFilePath?.substring(0, 100)
     });
 
-    // 4. cdn_url 업데이트 (file_path 변경 시)
+    // 4. 실제 Storage 파일 이동 (file_path가 변경된 경우)
+    if (newFilePath && newFilePath !== image.file_path && image.file_path) {
+      try {
+        // 목표 폴더 존재 확인 및 생성
+        const targetFolderParts = newFilePath.split('/').slice(0, -1).join('/');
+        if (targetFolderParts) {
+          // 폴더 존재 확인 (빈 배열로 list 시도)
+          const { error: listError } = await supabase.storage
+            .from('blog-images')
+            .list(targetFolderParts);
+          
+          // 폴더가 없으면 생성 (마커 파일 업로드)
+          if (listError) {
+            const markerPath = `${targetFolderParts}/.folder`;
+            await supabase.storage
+              .from('blog-images')
+              .upload(markerPath, new Blob(['folder marker'], { type: 'text/plain' }), {
+                upsert: true,
+                contentType: 'text/plain'
+              });
+            console.log(`✅ [방문일자 수정 API] 폴더 생성: ${targetFolderParts}`);
+          }
+        }
+
+        // Storage에서 파일 이동
+        console.log('📁 [방문일자 수정 API] Storage 파일 이동 시작:', {
+          from: image.file_path.substring(0, 100),
+          to: newFilePath.substring(0, 100)
+        });
+
+        const { data: moveData, error: moveError } = await supabase.storage
+          .from('blog-images')
+          .move(image.file_path, newFilePath);
+
+        if (moveError) {
+          // 이미 대상 폴더에 파일이 있을 수 있음 (중복)
+          if (moveError.message?.includes('duplicate') || moveError.message?.includes('already exists') || moveError.statusCode === '409') {
+            console.warn('⚠️ [방문일자 수정 API] 파일이 이미 존재함, 메타데이터만 업데이트:', {
+              newFilePath: newFilePath.substring(0, 100),
+              error: moveError.message
+            });
+            // 메타데이터만 업데이트 (파일은 이미 존재)
+          } else {
+            console.error('❌ [방문일자 수정 API] Storage 파일 이동 실패:', moveError);
+            // 파일 이동 실패 시에도 메타데이터는 업데이트 (나중에 수동으로 이동 가능)
+            console.warn('⚠️ [방문일자 수정 API] 파일 이동 실패했지만 메타데이터는 업데이트합니다.');
+          }
+        } else {
+          console.log('✅ [방문일자 수정 API] Storage 파일 이동 완료');
+        }
+      } catch (storageError: any) {
+        console.error('❌ [방문일자 수정 API] Storage 파일 이동 중 예외:', storageError);
+        // 파일 이동 실패 시에도 메타데이터는 업데이트
+        console.warn('⚠️ [방문일자 수정 API] 파일 이동 실패했지만 메타데이터는 업데이트합니다.');
+      }
+    }
+
+    // 5. cdn_url 업데이트 (file_path 변경 시)
     let newCdnUrl = null;
     if (newFilePath && newFilePath !== image.file_path) {
       const { data: { publicUrl } } = supabase.storage
@@ -127,7 +184,7 @@ export default async function handler(
       newCdnUrl = publicUrl;
     }
 
-    // 5. DB 업데이트
+    // 6. DB 업데이트
     const updateData: any = {
       ai_tags: updatedTags,
       file_path: newFilePath,
