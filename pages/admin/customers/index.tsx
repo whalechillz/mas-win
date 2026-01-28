@@ -3348,10 +3348,12 @@ function CustomerImageModal({ customer, onClose }: {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
+                            e.preventDefault();
                             console.log('🖼️ [대표 이미지 배지 클릭]', {
                               imageId: img.id,
                               is_customer_representative: img.is_customer_representative,
-                              story_scene: img.story_scene
+                              story_scene: img.story_scene,
+                              position: img.story_scene ? 'top-10' : 'top-2'
                             });
                             if (img.is_customer_representative) {
                               handleUnsetCustomerRepresentative(img.id);
@@ -3359,7 +3361,7 @@ function CustomerImageModal({ customer, onClose }: {
                               handleSetCustomerRepresentative(img.id);
                             }
                           }}
-                          className={`absolute ${img.story_scene ? 'top-10 left-2' : 'top-2 left-2'} z-10 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
+                          className={`absolute ${img.story_scene ? 'top-10 left-2' : 'top-2 left-2'} z-20 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
                             img.is_customer_representative
                               ? 'bg-blue-500 text-white hover:bg-blue-600' // 대표 이미지로 설정된 경우 항상 표시
                               : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100' // 일반 상태는 호버 시에만 표시
@@ -3483,10 +3485,12 @@ function CustomerImageModal({ customer, onClose }: {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
+                              e.preventDefault();
                               console.log('🖼️ [대표 이미지 배지 클릭]', {
                                 imageId: img.id,
                                 is_customer_representative: img.is_customer_representative,
-                                story_scene: img.story_scene
+                                story_scene: img.story_scene,
+                                position: img.story_scene ? 'top-10' : 'top-2'
                               });
                               if (img.is_customer_representative) {
                                 handleUnsetCustomerRepresentative(img.id);
@@ -3494,7 +3498,7 @@ function CustomerImageModal({ customer, onClose }: {
                                 handleSetCustomerRepresentative(img.id);
                               }
                             }}
-                            className={`absolute ${img.story_scene ? 'top-10 left-2' : 'top-2 left-2'} z-10 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
+                            className={`absolute ${img.story_scene ? 'top-10 left-2' : 'top-2 left-2'} z-20 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
                               img.is_customer_representative
                                 ? 'bg-blue-500 text-white hover:bg-blue-600'
                                 : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100'
@@ -3648,13 +3652,18 @@ function CustomerImageModal({ customer, onClose }: {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  e.preventDefault();
+                                  console.log('🖼️ [대표 이미지 배지 클릭 - 서류]', {
+                                    imageId: doc.id,
+                                    is_customer_representative: doc.is_customer_representative
+                                  });
                                   if (doc.is_customer_representative) {
                                     handleUnsetCustomerRepresentative(doc.id);
                                   } else {
                                     handleSetCustomerRepresentative(doc.id);
                                   }
                                 }}
-                                className={`absolute top-2 left-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
+                                className={`absolute top-2 left-2 z-20 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
                                   doc.is_customer_representative
                                     ? 'bg-blue-500 text-white hover:bg-blue-600'
                                     : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100'
