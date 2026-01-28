@@ -1,5 +1,45 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
+## ✅ 완료: 전유근 고객 비디오 로드 실패 파일 정리 (2026-01-28)
+
+### 문제
+- 전유근 고객의 비디오 로드 실패 파일들이 실제로 Storage에 존재하지 않음
+- 데이터베이스에 비디오 메타데이터 6개 존재하나 실제 파일은 없거나 잘못된 버킷을 가리킴
+- 사용자 확인: 실제 파일은 동영상 1개, 이미지 12개, 서류 1개
+
+### 작업 내용
+1. **존재하지 않는 비디오 메타데이터 5개 삭제** ✅
+   - `jeonyugeun_s1_video_01(2).mov`
+   - `jeonyugeun_s1_video_01(1).mov`
+   - `sita.mov`
+   - `jeonyugeun_s1_sita_01.mov`
+   - `jeonyugeun_s1_image_01.mov`
+
+2. **실제 존재하는 파일 확인 및 검증** ✅
+   - 동영상: 1개 (`jeonyugeun_s1_video_01.mov`) - cdn_url 접근 가능
+   - 이미지: 12개 - 모두 유효
+   - 서류: 1개 - 유효
+
+3. **정리 스크립트 작성** ✅
+   - `scripts/check-jeonyugun-videos.js`: 비디오 파일 존재 여부 확인
+   - `scripts/cleanup-jeonyugun-videos.js`: 존재하지 않는 메타데이터 삭제
+   - `scripts/verify-jeonyugun-media-count.js`: 전체 미디어 파일 개수 확인 및 검증
+
+### 결과
+- 최종 동영상: 1개 ✅
+- 최종 이미지: 12개 ✅
+- 최종 서류: 1개 ✅
+- 삭제된 메타데이터: 5개
+- 모든 파일이 실제로 존재하며 접근 가능
+
+### 변경된 파일
+- `scripts/check-jeonyugun-videos.js` (신규)
+- `scripts/cleanup-jeonyugun-videos.js` (신규)
+- `scripts/find-jeonyugun-files.js` (신규)
+- `scripts/verify-jeonyugun-media-count.js` (신규)
+
+---
+
 ## ✅ 완료: 스토리 기반 장면(S1-S7) 자동 감지 및 메타데이터 개선 (2026-01-28)
 
 ### 구현 완료 사항
