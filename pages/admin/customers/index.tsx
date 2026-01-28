@@ -2683,15 +2683,39 @@ function CustomerImageModal({ customer, onClose }: {
           // ⚠️ image_url이 없거나 잘못된 경우 file_path로부터 URL 재생성
           // 갤러리 폴더 기준으로 항상 file_path를 우선 사용 (가장 안정적)
           if (img.file_path) {
+            // file_path에 파일명이 있는지 확인
+            const pathParts = img.file_path.split('/');
+            const lastPart = pathParts[pathParts.length - 1];
+            const isDateFolder = /^\d{4}-\d{2}-\d{2}$/.test(lastPart);
+            
+            let actualFilePath = img.file_path;
+            
+            // file_path가 폴더 경로만 있고 파일명이 없는 경우
+            if (isDateFolder || !lastPart.includes('.')) {
+              // filename에서 파일명 추출
+              const fileName = img.filename || img.english_filename || img.original_filename || 'unknown';
+              actualFilePath = `${img.file_path}/${fileName}`;
+              
+              console.warn('⚠️ [고객 이미지 처리] file_path에 파일명 없음, 파일명 추가:', {
+                imageId: img.id,
+                originalFilePath: img.file_path,
+                correctedFilePath: actualFilePath.substring(0, 100),
+                fileName
+              });
+            }
+            
             const { data: { publicUrl } } = supabase.storage
               .from('blog-images')
-              .getPublicUrl(img.file_path);
+              .getPublicUrl(actualFilePath);
+            
             // file_path 기반 URL을 우선 사용 (갤러리 폴더 기준)
             img.image_url = publicUrl;
             img.cdn_url = publicUrl;
+            img.file_path = actualFilePath; // 수정된 file_path도 반영
+            
             console.log('📝 [고객 이미지 처리] file_path 기반 URL 사용 (갤러리 폴더 기준):', {
               imageId: img.id,
-              file_path: img.file_path?.substring(0, 100),
+              file_path: actualFilePath?.substring(0, 100),
               generatedUrl: publicUrl.substring(0, 100),
               oldImageUrl: img.image_url?.substring(0, 100)
             });
