@@ -253,101 +253,74 @@ export default async function handler(req, res) {
         // 에러로 처리하지 않고 경고만 로그에 남김
       }
 
-      // 기존 레코드 확인 (업데이트인지 생성인지 판단)
-      const { data: existingRecord } = await supabase
+      // 데이터베이스에 메타데이터 저장/업데이트 (image_assets 사용)
+      // ⚠️ image_assets에는 category_id가 없으므로 제거
+      const metadataData = {
+        cdn_url: imageUrl,
+        alt_text: alt_text || '',
+        ai_tags: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()).filter(k => k) : []),
+        title: title || '',
+        description: description || '',
+        updated_at: new Date().toISOString()
+      };
+      
+      // EXIF 정보 추가 (있는 경우)
+      if (exifData) {
+        if (exifData.gps_lat !== undefined && exifData.gps_lat !== null) {
+          metadataData.gps_lat = exifData.gps_lat;
+        }
+        if (exifData.gps_lng !== undefined && exifData.gps_lng !== null) {
+          metadataData.gps_lng = exifData.gps_lng;
+        }
+        if (exifData.taken_at) {
+          metadataData.taken_at = exifData.taken_at;
+        }
+        if (exifData.width !== undefined && exifData.width !== null) {
+          metadataData.width = exifData.width;
+        }
+        if (exifData.height !== undefined && exifData.height !== null) {
+          metadataData.height = exifData.height;
+        }
+      }
+      
+      console.log('📊 최종 저장 데이터:', {
+        alt_text_length: metadataData.alt_text.length,
+        title_length: metadataData.title.length,
+        description_length: metadataData.description.length,
+        tags_count: metadataData.tags.length,
+        category_id: metadataData.category_id
+      });
+
+      // cdn_url이 UNIQUE이므로 upsert 사용 (중복 방지 및 안전한 저장)
+      console.log('🔍 메타데이터 upsert 시작:', imageUrl);
+      
+      const insertData = {
+        ...metadataData,
+        created_at: new Date().toISOString()
+      };
+      
+      // 기존 레코드 확인 (로깅용)
+      const { data: existingCheck } = await supabase
         .from('image_assets')
-        .select('*')
+        .select('id')
         .eq('cdn_url', imageUrl)
         .single();
       
-      if (existingRecord) {
-        // 기존 레코드 업데이트
-        console.log('🔄 기존 메타데이터 발견, 업데이트 예정:', existingRecord.id);
-        
-        const updateData = {
-          alt_text: alt_text || '',
-          ai_tags: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()).filter(k => k) : []),
-          title: title || '',
-          description: description || '',
-          updated_at: new Date().toISOString()
-        };
-        
-        // EXIF 정보 추가 (있는 경우)
-        if (exifData) {
-          if (exifData.gps_lat !== undefined && exifData.gps_lat !== null) {
-            updateData.gps_lat = exifData.gps_lat;
-          }
-          if (exifData.gps_lng !== undefined && exifData.gps_lng !== null) {
-            updateData.gps_lng = exifData.gps_lng;
-          }
-          if (exifData.taken_at) {
-            updateData.taken_at = exifData.taken_at;
-          }
-          if (exifData.width !== undefined && exifData.width !== null) {
-            updateData.width = exifData.width;
-          }
-          if (exifData.height !== undefined && exifData.height !== null) {
-            updateData.height = exifData.height;
-          }
-        }
-        
-        // OCR 필드 업데이트 (있는 경우)
-        if (req.body.ocr_text !== undefined) {
-          updateData.ocr_text = req.body.ocr_text;
-        }
-        if (req.body.ocr_extracted !== undefined) {
-          updateData.ocr_extracted = req.body.ocr_extracted;
-        }
-        if (req.body.ocr_confidence !== undefined) {
-          updateData.ocr_confidence = req.body.ocr_confidence;
-        }
-        if (req.body.ocr_processed_at !== undefined) {
-          updateData.ocr_processed_at = req.body.ocr_processed_at;
-        }
-        if (req.body.ocr_fulltextannotation !== undefined) {
-          updateData.ocr_fulltextannotation = req.body.ocr_fulltextannotation;
-        }
-        
-        console.log('📊 업데이트 데이터:', {
-          alt_text_length: updateData.alt_text.length,
-          title_length: updateData.title.length,
-          description_length: updateData.description.length,
-          tags_count: updateData.ai_tags?.length || 0
-        });
-        
-        const { data: result, error: updateError } = await supabase
-          .from('image_assets')
-          .update(updateData)
-          .eq('cdn_url', imageUrl)
-          .select()
-          .single();
-        
-        if (updateError) {
-          console.error('❌ 메타데이터 업데이트 오류:', updateError);
-          return res.status(500).json({ 
-            error: '메타데이터 업데이트 실패', 
-            details: updateError.message || '알 수 없는 오류',
-            code: updateError.code,
-            hint: updateError.hint
-          });
-        }
-        
-        console.log('✅ 메타데이터 업데이트 완료:', result);
-        return res.status(200).json({ 
-          success: true,
-          metadata: result
-        });
+      if (existingCheck) {
+        console.log('🔄 기존 메타데이터 발견, 업데이트 예정:', existingCheck.id);
       } else {
-        // 새 레코드 생성 (필수 필드가 없으면 생성 불가)
-        console.log('⚠️ 기존 레코드가 없습니다. cdn_url만으로는 새 레코드를 생성할 수 없습니다.');
-        console.log('💡 이미지가 먼저 업로드되어 image_assets에 등록되어야 합니다.');
-        
-        return res.status(400).json({ 
-          error: '이미지가 등록되지 않았습니다',
-          details: '이미지를 먼저 업로드한 후 메타데이터를 저장할 수 있습니다.',
-          suggestion: '갤러리 관리에서 이미지를 업로드하거나, 이미지 상세 정보에서 메타데이터를 편집하세요.'
-        });
+        console.log('➕ 새 메타데이터 생성 예정');
       }
+      
+      // upsert 사용: cdn_url이 있으면 업데이트, 없으면 생성
+      const { data: result, error: upsertError } = await supabase
+        .from('image_assets')
+        .upsert(insertData, {
+          onConflict: 'cdn_url',
+          ignoreDuplicates: false
+        })
+        .select()
+        .single();
       
       if (upsertError) {
         console.error('❌ 메타데이터 upsert 오류:', upsertError);
@@ -429,12 +402,13 @@ export default async function handler(req, res) {
 
       // 데이터베이스에서 메타데이터 업데이트 (image_assets 사용)
       // ⚠️ image_assets에는 category_id가 없으므로 제거
+      // ✅ description 필드 길이 제한 제거 (OCR 텍스트 지원을 위해 5000자까지 허용)
       const metadataData = {
         cdn_url: imageUrl,
         alt_text: alt_text || '',
         ai_tags: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()) : []),
         title: title || '',
-        description: description || '',
+        description: description || '', // OCR 텍스트 포함 가능 (최대 5000자)
         updated_at: new Date().toISOString(),
         // OCR 필드도 업데이트 가능하도록 추가
         ...(req.body.ocr_text !== undefined && { ocr_text: req.body.ocr_text }),
@@ -443,6 +417,15 @@ export default async function handler(req, res) {
         ...(req.body.ocr_processed_at !== undefined && { ocr_processed_at: req.body.ocr_processed_at }),
         ...(req.body.ocr_fulltextannotation !== undefined && { ocr_fulltextannotation: req.body.ocr_fulltextannotation })
       };
+      
+      // ✅ description 필드 길이 검증 (5000자 제한)
+      if (metadataData.description && metadataData.description.length > 5000) {
+        console.warn('⚠️ description 필드가 5000자를 초과합니다. 자동으로 잘라냅니다:', {
+          originalLength: metadataData.description.length,
+          truncatedLength: 5000
+        });
+        metadataData.description = metadataData.description.substring(0, 5000);
+      }
 
       const { data, error } = await supabase
         .from('image_assets')

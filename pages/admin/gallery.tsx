@@ -1423,7 +1423,7 @@ export default function GalleryAdmin() {
   const [selectedUploadFolder, setSelectedUploadFolder] = useState<string>('');
   const [uploadMode, setUploadMode] = useState<'optimize-filename' | 'preserve-filename'>('optimize-filename'); // 업로드 모드
   const [aiBrandTone, setAiBrandTone] = useState<'senior_emotional' | 'high_tech_innovative'>('senior_emotional');
-  const [enableOCR, setEnableOCR] = useState(false); // OCR 처리 옵션
+  const [metadataType, setMetadataType] = useState<'golf-ai' | 'general' | 'ocr'>('golf-ai'); // 메타데이터 생성 타입 (고객 이미지 업로드와 동일)
   
   // 모달 열 때 현재 폴더 자동 설정
   const handleOpenAddModal = () => {
@@ -8347,52 +8347,65 @@ export default function GalleryAdmin() {
                     </label>
                   </div>
                   
-                  {/* 메타데이터 생성 방식 선택 (고객 이미지 업로드와 동일한 UI) */}
-                  <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  {/* 메타데이터 생성 타입 선택 (고객 이미지 업로드와 동일한 방식) */}
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
                     <label className="text-xs font-medium text-gray-600 mb-2 block">
-                      메타데이터 생성 방식
+                      메타데이터 생성 타입
                     </label>
-                    <div className="space-y-2">
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="galleryMetadataType"
-                          value="golf-ai"
-                          checked={!enableOCR}
-                          onChange={(e) => setEnableOCR(false)}
-                          className="w-4 h-4 text-blue-600"
-                        />
-                        <span className="text-sm text-gray-700">골프 AI 생성</span>
-                        <span className="text-xs text-gray-500">(골프 특화 분석)</span>
-                      </label>
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="galleryMetadataType"
-                          value="general"
-                          checked={!enableOCR}
-                          onChange={(e) => setEnableOCR(false)}
-                          className="w-4 h-4 text-blue-600"
-                        />
-                        <span className="text-sm text-gray-700">일반 메타 생성</span>
-                        <span className="text-xs text-gray-500">(범용 분석)</span>
-                      </label>
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="galleryMetadataType"
-                          value="ocr"
-                          checked={enableOCR}
-                          onChange={(e) => setEnableOCR(true)}
-                          className="w-4 h-4 text-blue-600"
-                        />
-                        <span className="text-sm text-gray-700">📄 OCR 텍스트 추출</span>
-                        <span className="text-xs text-gray-500">(문서 이미지용)</span>
-                      </label>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      문서 이미지(주문사양서, 서류 등)는 OCR 옵션을 선택하세요
-                    </p>
+                    
+                    {/* 골프 AI 생성 */}
+                    <label className="flex items-start cursor-pointer">
+                      <input
+                        type="radio"
+                        name="metadataType"
+                        value="golf-ai"
+                        checked={metadataType === 'golf-ai'}
+                        onChange={(e) => setMetadataType('golf-ai')}
+                        className="mt-1 mr-2 w-4 h-4 text-blue-600"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm text-gray-700 font-medium">⛳ 골프 AI 생성</span>
+                        <p className="text-xs text-gray-500 mt-1">
+                          골프 관련 이미지에 최적화된 메타데이터 자동 생성
+                        </p>
+                      </div>
+                    </label>
+                    
+                    {/* 일반 메타 생성 */}
+                    <label className="flex items-start cursor-pointer">
+                      <input
+                        type="radio"
+                        name="metadataType"
+                        value="general"
+                        checked={metadataType === 'general'}
+                        onChange={(e) => setMetadataType('general')}
+                        className="mt-1 mr-2 w-4 h-4 text-blue-600"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm text-gray-700 font-medium">🌐 일반 메타 생성</span>
+                        <p className="text-xs text-gray-500 mt-1">
+                          일반적인 이미지 메타데이터 자동 생성
+                        </p>
+                      </div>
+                    </label>
+                    
+                    {/* OCR 텍스트 추출 */}
+                    <label className="flex items-start cursor-pointer">
+                      <input
+                        type="radio"
+                        name="metadataType"
+                        value="ocr"
+                        checked={metadataType === 'ocr'}
+                        onChange={(e) => setMetadataType('ocr')}
+                        className="mt-1 mr-2 w-4 h-4 text-blue-600"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm text-gray-700 font-medium">📄 OCR (구글 비전)</span>
+                        <p className="text-xs text-gray-500 mt-1">
+                          문서 이미지에서 텍스트를 자동으로 추출합니다 (주문사양서, 서류 등)
+                        </p>
+                      </div>
+                    </label>
                   </div>
                   </div>
                   
@@ -8474,8 +8487,8 @@ export default function GalleryAdmin() {
                               usage_count: 0,
                             };
                             
-                            // OCR 처리 (이미지이고 OCR 옵션이 활성화된 경우)
-                            if (enableOCR && !isVideo && uploadResult.url) {
+                            // OCR 처리 (이미지이고 OCR 타입이 선택된 경우)
+                            if (metadataType === 'ocr' && !isVideo && uploadResult.url) {
                               try {
                                 console.log('📄 OCR 처리 시작:', fileName);
                                 const ocrResponse = await fetch('/api/admin/extract-document-text', {
@@ -8631,8 +8644,8 @@ export default function GalleryAdmin() {
                                   // 파일명에서 확장자 추출
                                   const fileName = uploadResult.fileName || file.name;
                                   
-                                  // OCR 처리 (이미지이고 OCR 옵션이 활성화된 경우)
-                                  if (enableOCR && !isVideo && uploadResult.url) {
+                                  // OCR 처리 (이미지이고 OCR 타입이 선택된 경우)
+                                  if (metadataType === 'ocr' && !isVideo && uploadResult.url) {
                                     try {
                                       console.log('📄 OCR 처리 시작:', fileName);
                                       const ocrResponse = await fetch('/api/admin/extract-document-text', {
@@ -8693,7 +8706,7 @@ export default function GalleryAdmin() {
                                   
                                   uploadedFiles.push(newImage);
                                   successCount++;
-                                  console.log(`✅ 파일 ${i + 1}/${files.length} 업로드 완료:`, fileName, isVideo ? '(동영상)' : enableOCR ? '(이미지 + OCR)' : '(이미지)');
+                                  console.log(`✅ 파일 ${i + 1}/${files.length} 업로드 완료:`, fileName, isVideo ? '(동영상)' : metadataType === 'ocr' ? '(이미지 + OCR)' : `(이미지 + ${metadataType})`);
                                 } catch (fileError: any) {
                                   failCount++;
                                   console.error(`❌ 파일 ${i + 1}/${files.length} 업로드 실패:`, file.name, fileError);
