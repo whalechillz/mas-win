@@ -256,7 +256,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               return; // 동영상은 건너뜀
             }
             
-            const match = filePath.match(/originals\/customers\/([^\/]+)\//);
+            // file_path에서 고객 폴더명 추출
+            // 패턴 1: originals/customers/폴더명/... (일반적인 경우)
+            let match = filePath.match(/originals\/customers\/([^\/]+)\//);
+            
+            // 패턴 2: file_path가 날짜 폴더로 끝나는 경우 (파일명 없음)
+            // 예: originals/customers/leenamgu-8768/2024.10.29
+            if (!match) {
+              match = filePath.match(/originals\/customers\/([^\/]+)$/);
+            }
+            
             if (match) {
               const folderName = match[1];
               const customerId = folderNameToCustomerId.get(folderName);
@@ -418,8 +427,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           
           // 대표 이미지가 있고 유효한 URL이면 사용
-          if (representativeImage?.cdn_url) {
-            const url = representativeImage.cdn_url;
+          if (representativeImage) {
+            let url = representativeImage.cdn_url;
+            
+            // cdn_url이 없으면 file_path로부터 URL 생성
+            if (!url && representativeImage.file_path) {
+              let actualFilePath = representativeImage.file_path;
+              
+              // file_path에 파일명이 없는 경우 처리
+              const pathParts = actualFilePath.split('/');
+              const lastPart = pathParts[pathParts.length - 1];
+              // 날짜 폴더 패턴: YYYY-MM-DD 또는 YYYY.MM.DD 형식
+              const isDateFolder = /^\d{4}[.-]\d{2}[.-]\d{2}$/.test(lastPart);
+              
+              if (!isDateFolder) {
+                // file_path로부터 URL 생성
+                const { data: { publicUrl } } = supabase.storage
+                  .from('blog-images')
+                  .getPublicUrl(actualFilePath);
+                url = publicUrl;
+              }
+            }
+            
             if (url && 
                 typeof url === 'string' && 
                 url.trim() !== '' && 
@@ -471,19 +500,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             });
             
             if (imageOnly.length > 0) {
-              // ⚠️ cdn_url이 있는 경우만 썸네일 제공
-              // cdn_url이 NULL이면 실제 파일이 Storage에 없거나 접근할 수 없다는 의미
-              // file_path로부터 URL을 생성하면 실제 파일이 없어도 URL이 생성되어 깨진 이미지로 표시됨
               let thumbnailUrl = imageOnly[0].cdn_url;
               
-              // ⚠️ cdn_url이 없으면 썸네일을 제공하지 않음
-              // file_path로부터 URL을 생성하지 않음 (실제 파일 존재 여부 확인 불가)
-              if (!thumbnailUrl) {
-                // cdn_url이 없으면 썸네일 없음
-                return {
-                  customerId,
-                  thumbnailUrl: null
-                };
+              // cdn_url이 없으면 file_path로부터 URL 생성
+              if (!thumbnailUrl && imageOnly[0].file_path) {
+                let actualFilePath = imageOnly[0].file_path;
+                
+                // file_path에 파일명이 없는 경우 처리
+                const pathParts = actualFilePath.split('/');
+                const lastPart = pathParts[pathParts.length - 1];
+                // 날짜 폴더 패턴: YYYY-MM-DD 또는 YYYY.MM.DD 형식
+                const isDateFolder = /^\d{4}[.-]\d{2}[.-]\d{2}$/.test(lastPart);
+                
+                if (isDateFolder) {
+                  // file_path가 날짜 폴더로 끝나는 경우, filename을 사용할 수 없으므로
+                  // cdn_url이 없으면 썸네일을 제공하지 않음
+                  // (실제 파일 존재 여부 확인 불가)
+                  return {
+                    customerId,
+                    thumbnailUrl: null
+                  };
+                }
+                
+                // file_path로부터 URL 생성
+                const { data: { publicUrl } } = supabase.storage
+                  .from('blog-images')
+                  .getPublicUrl(actualFilePath);
+                thumbnailUrl = publicUrl;
               }
               
               // ⚠️ thumbnailUrl이 유효한 URL인지 검증
