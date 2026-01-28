@@ -425,17 +425,26 @@ if (typeDetection.type === 'docs') {
 
 ### 4. 환경 변수 설정
 
-`.env.local` 또는 Vercel 환경 변수에 추가:
-
+#### 로컬 개발 환경 (`.env.local`)
 ```bash
 # Google Cloud Vision API
 GOOGLE_VISION_API_KEY=your_api_key_here
 ```
 
+#### Vercel 프로덕션 환경
+1. Vercel 대시보드 → 프로젝트 → Settings → Environment Variables
+2. `GOOGLE_VISION_API_KEY` 추가
+3. **중요**: "Redeploy" 버튼 클릭하여 재배포 필요!
+
+**✅ 설정 완료 확인:**
+- ✅ 로컬: `.env.local`에 추가됨
+- ✅ Vercel: 환경 변수 추가됨
+- ⚠️ **재배포 필요**: Vercel에서 "Redeploy" 버튼 클릭
+
 **보안 주의사항:**
 - API 키는 절대 Git에 커밋하지 마세요
 - `.env.local`은 `.gitignore`에 포함되어 있어야 합니다
-- Vercel에서는 환경 변수로 설정하세요
+- Vercel에서는 환경 변수로만 설정하세요
 
 ### 5. 비용 관리
 
