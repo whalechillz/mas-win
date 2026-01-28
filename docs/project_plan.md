@@ -1,5 +1,30 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
+## ✅ 완료: 방문일자 수정 시 Storage 파일 이동 기능 추가 (2026-01-28)
+
+### 문제
+- 방문일자 수정 시 `file_path`와 `cdn_url`만 업데이트되고 실제 Storage 파일이 이동되지 않음
+- 이미지 로드 실패 (404 에러) 발생
+- 메타데이터와 실제 파일 위치 불일치
+
+### 작업 내용
+1. **API 개선** ✅
+   - `update-customer-image-visit-date.ts`에 실제 Storage 파일 이동 로직 추가
+   - 목표 폴더 자동 생성
+   - 파일 이동 실패 시에도 메타데이터는 업데이트 (나중에 수동 이동 가능)
+
+2. **이미 수정된 이미지 복구** ✅
+   - 전유근 고객의 `jeonyugeun-S1-20260128-01.webp` 이미지 파일 위치 수정
+   - `2026-01-28` 폴더에서 `2026-01-21` 폴더로 이동 완료
+
+### 변경된 파일
+- `pages/api/admin/update-customer-image-visit-date.ts` (수정)
+- `scripts/fix-jeonyugeun-20260128-image.js` (신규)
+- `scripts/fix-moved-visit-date-images.js` (신규)
+- `scripts/check-jeonyugeun-20260128-image-status.js` (신규)
+
+---
+
 ## ✅ 완료: 고객 이미지 방문일자 수정 기능 추가 (2026-01-28)
 
 ### 작업 내용
