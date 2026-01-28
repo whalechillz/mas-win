@@ -36,31 +36,69 @@ export default function CustomerImageUploadModal({
   
   // 문서 감지 (파일명 기반)
   const isDocument = file ? (() => {
-    const fileName = file.name.toLowerCase();
-    const detected = 
-      fileName.includes('doc') ||
-      fileName.includes('사양서') ||
-      fileName.includes('문서') ||
-      fileName.includes('scan') ||
-      fileName.includes('seukaen') ||
-      fileName.includes('주문') ||
-      fileName.includes('order') ||
-      fileName.includes('spec') ||
-      fileName.includes('specification');
+    const originalFileName = file.name;
+    const fileName = originalFileName.toLowerCase();
     
-    // 디버깅 로그
-    console.log('📄 [isDocument 계산]', {
-      fileName: file.name,
-      fileNameLower: fileName,
-      detected,
-      checks: {
-        hasDoc: fileName.includes('doc'),
-        has사양서: fileName.includes('사양서'),
-        has문서: fileName.includes('문서'),
-        has주문: fileName.includes('주문'),
-        hasOrder: fileName.includes('order'),
-        hasSpec: fileName.includes('spec')
-      }
+    // 각 키워드별 검사 결과
+    const checks = {
+      hasDoc: fileName.includes('doc'),
+      has사양서: fileName.includes('사양서'),
+      has문서: fileName.includes('문서'),
+      hasScan: fileName.includes('scan'),
+      hasSeukaen: fileName.includes('seukaen'),
+      has주문: fileName.includes('주문'),
+      hasOrder: fileName.includes('order'),
+      hasSpec: fileName.includes('spec'),
+      hasSpecification: fileName.includes('specification')
+    };
+    
+    // 각 키워드별 상세 검사 (문자열 위치까지 확인)
+    const detailedChecks: any = {};
+    Object.keys(checks).forEach(key => {
+      const keyword = key.replace('has', '').toLowerCase();
+      const searchTerms: { [key: string]: string } = {
+        'doc': 'doc',
+        '사양서': '사양서',
+        '문서': '문서',
+        'scan': 'scan',
+        'seukaen': 'seukaen',
+        '주문': '주문',
+        'order': 'order',
+        'spec': 'spec',
+        'specification': 'specification'
+      };
+      
+      const term = searchTerms[keyword] || keyword;
+      const index = fileName.indexOf(term);
+      detailedChecks[key] = {
+        found: checks[key as keyof typeof checks],
+        index: index >= 0 ? index : -1,
+        term: term
+      };
+    });
+    
+    const detected = 
+      checks.hasDoc ||
+      checks.has사양서 ||
+      checks.has문서 ||
+      checks.hasScan ||
+      checks.hasSeukaen ||
+      checks.has주문 ||
+      checks.hasOrder ||
+      checks.hasSpec ||
+      checks.hasSpecification;
+    
+    // 상세 디버깅 로그
+    console.log('📄 [isDocument 계산] 상세 분석:', {
+      '원본 파일명': originalFileName,
+      '원본 파일명 길이': originalFileName.length,
+      '원본 파일명 문자 코드': Array.from(originalFileName).map(c => `${c}(${c.charCodeAt(0)})`).join(', '),
+      '소문자 변환 후': fileName,
+      '소문자 변환 후 길이': fileName.length,
+      '소문자 변환 후 문자 코드': Array.from(fileName).map(c => `${c}(${c.charCodeAt(0)})`).join(', '),
+      '최종 감지 결과': detected,
+      '키워드 검사 상세': detailedChecks,
+      '검사 요약': checks
     });
     
     return detected;
@@ -72,31 +110,57 @@ export default function CustomerImageUploadModal({
     if (isOpen && file) {
       setSelectedVisitDate(visitDate);
       // 문서인 경우 OCR을 기본값으로 설정 (isDocument와 동일한 로직 사용)
-      const fileName = file.name.toLowerCase();
-      const isDoc = 
-        fileName.includes('doc') ||
-        fileName.includes('사양서') ||
-        fileName.includes('문서') ||
-        fileName.includes('scan') ||
-        fileName.includes('seukaen') ||
-        fileName.includes('주문') ||
-        fileName.includes('order') ||
-        fileName.includes('spec') ||
-        fileName.includes('specification');
+      const originalFileName = file.name;
+      const fileName = originalFileName.toLowerCase();
       
-      console.log('🔍 [useEffect] 문서 감지:', {
-        fileName: file.name,
-        fileNameLower: fileName,
-        isDoc,
-        willSetTo: isDoc ? 'ocr' : 'golf-ai',
-        checks: {
-          hasDoc: fileName.includes('doc'),
-          has사양서: fileName.includes('사양서'),
-          has문서: fileName.includes('문서'),
-          has주문: fileName.includes('주문'),
-          hasOrder: fileName.includes('order'),
-          hasSpec: fileName.includes('spec')
-        }
+      // 각 키워드별 검사
+      const checks = {
+        hasDoc: fileName.includes('doc'),
+        has사양서: fileName.includes('사양서'),
+        has문서: fileName.includes('문서'),
+        hasScan: fileName.includes('scan'),
+        hasSeukaen: fileName.includes('seukaen'),
+        has주문: fileName.includes('주문'),
+        hasOrder: fileName.includes('order'),
+        hasSpec: fileName.includes('spec'),
+        hasSpecification: fileName.includes('specification')
+      };
+      
+      const isDoc = 
+        checks.hasDoc ||
+        checks.has사양서 ||
+        checks.has문서 ||
+        checks.hasScan ||
+        checks.hasSeukaen ||
+        checks.has주문 ||
+        checks.hasOrder ||
+        checks.hasSpec ||
+        checks.hasSpecification;
+      
+      // 각 키워드별 상세 검사
+      const detailedChecks: any = {};
+      ['doc', '사양서', '문서', 'scan', 'seukaen', '주문', 'order', 'spec', 'specification'].forEach(term => {
+        const index = fileName.indexOf(term);
+        detailedChecks[term] = {
+          found: index >= 0,
+          index: index >= 0 ? index : -1,
+          substring: index >= 0 ? fileName.substring(Math.max(0, index - 5), index + term.length + 5) : null
+        };
+      });
+      
+      console.log('🔍 [useEffect] 문서 감지 상세:', {
+        '원본 파일명': originalFileName,
+        '소문자 변환 후': fileName,
+        '최종 감지 결과': isDoc,
+        '설정될 metadataType': isDoc ? 'ocr' : 'golf-ai',
+        '키워드 검사 상세': detailedChecks,
+        '검사 요약': checks,
+        '파일명 유니코드': Array.from(originalFileName).map((c, i) => ({
+          char: c,
+          code: c.charCodeAt(0),
+          hex: c.charCodeAt(0).toString(16),
+          position: i
+        }))
       });
       
       setMetadataType(isDoc ? 'ocr' : 'golf-ai');
