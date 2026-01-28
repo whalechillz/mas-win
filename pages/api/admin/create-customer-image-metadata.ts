@@ -241,6 +241,24 @@ export default async function handler(
     if (!baseUrl) {
       baseUrl = 'http://localhost:3000';
     }
+    
+    // 로컬 개발 환경 강제 확인
+    const isLocalDev = process.env.NODE_ENV === 'development' || 
+                       !process.env.VERCEL || 
+                       baseUrl.includes('localhost');
+    
+    if (isLocalDev) {
+      baseUrl = 'http://localhost:3000';
+      console.log('🔧 [create-customer-image-metadata] 로컬 개발 환경 감지, baseUrl 강제 설정:', baseUrl);
+    }
+    
+    console.log('🌐 [create-customer-image-metadata] baseUrl 최종 결정:', {
+      baseUrl,
+      nodeEnv: process.env.NODE_ENV,
+      vercel: process.env.VERCEL,
+      siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+      isLocalDev
+    });
 
     console.log('🌐 [create-customer-image-metadata] baseUrl:', {
       baseUrl,
