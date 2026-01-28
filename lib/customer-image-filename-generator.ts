@@ -151,7 +151,7 @@ export function extractNumber(fileName: string): number {
 }
 
 /**
- * 고객 이미지 파일명 생성
+ * 고객 이미지 파일명 생성 (기존 방식 - 하위 호환성)
  * 형식: {영문이름}_s{장면코드}_{타입}_{번호}.webp
  * 예: joseotdae_s6_signature_01.webp
  */
@@ -170,6 +170,39 @@ export function generateCustomerImageFileName(
     .replace(/[^a-z0-9]/g, '') // 특수문자 제거
     .replace(/-+/g, '') // 하이픈 제거
     || (customer.initials || getCustomerInitials(customer.name));
+  
+  // 스캔 문서 감지
+  const { detectScannedDocument } = require('./scanned-document-detector');
+  const documentDetection = detectScannedDocument(originalFileName);
+  const isScannedDocument = documentDetection.isDocument;
+  
+  // 스캔 문서인 경우 s0_docs 형식으로 파일명 생성
+  if (isScannedDocument) {
+    const originalExt = originalFileName.match(/\.[^/.]+$/)?.[0] || '.webp';
+    
+    // 기존 파일명에서 날짜와 번호 추출 시도
+    // 예: ahnhuija_s1_seukaen-20260126-2_01.webp -> 날짜: 20260126, 번호: 2, 순번: 01
+    const dateMatch = originalFileName.match(/(\d{8})/); // YYYYMMDD 형식
+    const dateStr = dateMatch ? dateMatch[1] : new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    
+    // 번호 추출 (하이픈 뒤의 숫자, 예: -2_)
+    const numberMatch = originalFileName.match(/-(\d+)_/);
+    const docNumber = numberMatch ? numberMatch[1] : (index !== undefined ? String(index) : '1');
+    
+    // 순번 추출 (마지막 _ 뒤의 숫자, 예: _01)
+    const sequenceMatch = originalFileName.match(/_(\d{2})\./);
+    const sequence = sequenceMatch ? sequenceMatch[1] : String(index !== undefined ? index : 1).padStart(2, '0');
+    
+    // 형식: {영문이름}_s0_docs-{날짜}-{번호}_{순번}.{확장자}
+    // 예: ahnhuija_s0_docs-20260126-2_01.webp
+    const fileName = `${nameEn}_s0_docs-${dateStr}-${docNumber}_${sequence}${originalExt}`;
+    
+    return {
+      fileName,
+      scene: 0, // 문서는 장면 0
+      type: 'docs'
+    };
+  }
   
   const scene = classifyStoryScene(originalFileName);
   let type = extractImageType(originalFileName);
@@ -247,5 +280,65 @@ export function generateCustomerImageFileName(
     fileName,
     scene,
     type
+  };
+}
+
+/**
+ * 최종 파일명 생성 (스토리 기반 장면 형식)
+ * 형식: {고객명}-S{장면코드}-{YYYYMMDD}-{순번}.{확장자}
+ * 예: ahnhuija-S1-20260127-01.webp (장면1: 행복한 주인공 - 골프장 단독샷)
+ * 예: ahnhuija-S6-20260127-01.webp (장면6: 골프장 단독사진, 여러명 등장, 웃는 모습)
+ */
+export async function generateFinalCustomerImageFileName(
+  customer: { 
+    name: string; 
+    name_en?: string;
+    folder_name?: string;
+    phone?: string;
+  },
+  visitDate: string, // YYYY-MM-DD 형식
+  typeDetection: {
+    scene: number;
+    type: string;
+  },
+  originalFileName: string,
+  index: number = 1
+): Promise<{ fileName: string; filePath: string; scene: number; type: string }> {
+  // 고객 영문 이름
+  const customerNameEn = customer.name_en || translateKoreanToEnglish(customer.name);
+  const nameEn = customerNameEn.toLowerCase().replace(/[^a-z0-9]/g, '');
+  
+  // 날짜 형식: YYYY-MM-DD → YYYYMMDD
+  const dateStr = visitDate.replace(/-/g, '');
+  
+  // 장면 코드: S1, S2, S3, S4, S5, S6, S7 (서류는 S0 또는 docs)
+  const sceneCode = typeDetection.scene > 0 ? `S${typeDetection.scene}` : 'S0';
+  
+  // 순번 생성
+  const sequenceStr = String(index).padStart(2, '0');
+  
+  // 확장자 (동영상은 원본 확장자 유지, 이미지는 webp)
+  const isVideo = /\.(mp4|mov|avi|webm|mkv)$/i.test(originalFileName);
+  const originalExt = originalFileName.match(/\.[^/.]+$/)?.[0] || '.webp';
+  const extension = isVideo ? originalExt : '.webp';
+  
+  // 파일명 생성: {고객명}-S{장면코드}-{YYYYMMDD}-{순번}.{확장자}
+  const fileName = `${nameEn}-${sceneCode}-${dateStr}-${sequenceStr}${extension}`;
+  
+  // 고객 폴더명 생성
+  const { generateCustomerFolderName } = require('./customer-folder-name-generator');
+  const customerFolderName = customer.folder_name || generateCustomerFolderName({
+    name: customer.name,
+    phone: customer.phone || ''
+  });
+  
+  // 파일 경로
+  const filePath = `originals/customers/${customerFolderName}/${visitDate}/${fileName}`;
+  
+  return {
+    fileName,
+    filePath,
+    scene: typeDetection.scene,
+    type: typeDetection.type
   };
 }

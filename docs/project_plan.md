@@ -1,5 +1,877 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
+## ✅ 완료: 스토리 기반 장면(S1-S7) 자동 감지 및 메타데이터 개선 (2026-01-28)
+
+### 구현 완료 사항
+1. **장면 감지 로직 개선** ✅
+   - `lib/customer-image-type-detector.ts`에 `detectStorySceneFromImage` 함수 추가
+   - 프리셋 기반 S1-S7 자동 분류
+   - 표정, 사람 수, 장소 감지 로직 추가
+
+2. **파일명 형식 변경** ✅
+   - `lib/customer-image-filename-generator.ts` 수정
+   - 형식: `{고객명}-S{장면코드}-{YYYYMMDD}-{순번}.{확장자}`
+   - 예: `ahnhuija-S1-20260127-01.webp`
+
+3. **메타데이터 키워드 자동 수정** ✅
+   - `pages/api/admin/create-customer-image-metadata.ts` 수정
+   - 정확한 `scene-{번호}`, `type-{타입}` 키워드 설정
+   - ALT 텍스트와 설명에서 감정/장소 추출
+
+4. **AI 분석 프롬프트 개선** ✅
+   - `pages/api/analyze-image-prompt.js` 수정
+   - 프리셋 기반 장면 분류 규칙 추가
+   - 표정, 장소, 사람 수 파악 강조
+
+### 변경된 파일
+- `lib/customer-image-type-detector.ts` (수정)
+- `lib/customer-image-filename-generator.ts` (수정)
+- `pages/api/admin/create-customer-image-metadata.ts` (수정)
+- `pages/api/analyze-image-prompt.js` (수정)
+
+---
+
+## 📋 예정: 스토리 기반 장면(S1-S7) 자동 감지 및 메타데이터 개선 (2026-01-28)
+
+### 개요
+고객 이미지를 스토리 기반 장면(S1-S7)으로 자동 분류하고, 파일명과 메타데이터를 정확하게 생성하는 시스템을 구축합니다.
+
+### 작업 내용
+- 파일명 형식 변경: `고객명-S{장면코드}-날짜-고유번호.확장자`
+- 장면 자동 감지 로직 개선 (프리셋 기반)
+- 메타데이터 키워드 자동 수정 (`scene-3, type-sita` → `scene-1, type-happy`)
+- AI 분석 프롬프트에 프리셋 규칙 추가
+
+### 장면 분류 규칙
+- **S1**: 행복한 주인공 - 골프장 단독샷
+- **S2**: 여러 사람 등장
+- **S3**: 문제 발생 (어두운 표정, 오류 등)
+- **S4**: 가이드 만남 (상담, 피팅)
+- **S5**: 피팅 매장 / 스크린 골프
+- **S6**: 골프장 고객 단독사진 (여러명 등장, 웃는 모습)
+- **S7**: 제품 클로즈업
+
+### 변경 파일
+- `lib/customer-image-type-detector.ts` (수정)
+- `lib/customer-image-filename-generator.ts` (수정)
+- `pages/api/admin/create-customer-image-metadata.ts` (수정)
+- `pages/api/analyze-image-prompt.js` (수정)
+
+### 상세 계획
+- 📄 `docs/story-scene-detection-improvement-plan.md` 참고
+
+---
+
+## ✅ 완료: 이미지 메타데이터 오버레이 표시 기능 (2026-01-27)
+
+### 구현 완료 사항
+1. **ImageMetadataOverlay 컴포넌트 생성** ✅
+   - `components/admin/ImageMetadataOverlay.tsx` 생성
+   - 이미지 하단에 메타데이터 오버레이 표시
+   - 그라데이션 배경 + 반투명 박스 + 텍스트 그림자로 가독성 향상
+
+2. **CustomerImageModal 통합** ✅
+   - `selectedImageMetadata` 상태 추가
+   - 이미지 클릭 시 메타데이터 객체 저장
+   - 확대 모달에 오버레이 컴포넌트 통합
+   - ESC 키로 모달 닫기 기능 추가
+
+3. **표시 메타데이터**
+   - 제목 (title)
+   - ALT 텍스트 (100자 제한)
+   - 키워드 태그 (주요 태그만)
+   - 파일명 및 방문일자
+
+### 변경된 파일
+- `components/admin/ImageMetadataOverlay.tsx` (신규)
+- `pages/admin/customers/index.tsx` (수정)
+
+---
+
+## 📋 예정: 이미지 메타데이터 오버레이 표시 기능 (2026-01-27)
+
+### 개요
+이미지 클릭 시 해당 이미지의 메타데이터를 이미지 위에 배경처럼 오버레이하여 표시하고, 가독성을 높이기 위한 명암 처리를 적용합니다.
+
+### 작업 내용
+- 이미지 클릭 시 확대 보기 모달에 메타데이터 오버레이 추가
+- 핵심 메타데이터만 간결하게 표시 (제목, ALT, 키워드, 파일명, 방문일자)
+- 텍스트 가독성 향상 (반투명 배경 + 텍스트 그림자)
+
+### 변경 파일
+- `components/admin/ImageMetadataOverlay.tsx` (신규)
+- `pages/admin/customers/index.tsx` (수정)
+
+### 상세 계획
+- 📄 `docs/image-metadata-overlay-plan.md` 참고
+
+---
+
+## ✅ 완료: 고객 이미지 관리 - 업로드 전 메타데이터 생성 및 파일명 자동 생성 (2026-01-27)
+
+### 구현 완료 사항
+
+1. **Phase 1: 업로드 전 설정 모달 생성** ✅
+   - `components/admin/CustomerImageUploadModal.tsx` 생성
+   - 고객명 자동 설정, 메타데이터 생성 방식 선택, 방문일자 선택
+
+2. **Phase 2: 이미지 타입 감지 함수 구현** ✅
+   - `lib/customer-image-type-detector.ts` 생성
+   - OpenAI Vision API 통합, 장면 코드 감지 (s1~s7), 타입 감지 (artwall, sita, guide 등)
+
+3. **Phase 3: 메타데이터 생성 및 저장 API** ✅
+   - `pages/api/admin/create-customer-image-metadata.ts` 생성
+   - 임시 파일 업로드, 이미지 타입 감지, 메타데이터 생성 및 저장
+
+4. **Phase 4: 파일명 생성 및 최종 업로드** 🔄
+   - `lib/customer-image-filename-generator.ts`에 `generateFinalCustomerImageFileName` 함수 추가
+   - `pages/api/admin/move-customer-image-file.ts` 생성 (임시 파일을 최종 파일명으로 이동)
+
+5. **Phase 5: UI 통합** 🔄
+   - `pages/admin/customers/index.tsx` 수정 중
+   - "이미지 업로드" 버튼 추가
+   - 업로드 모드 섹션 제거
+   - 하단 버튼 변경 (취소, 저장)
+   - 갤러리 모달에서 업로드 기능 제거
+
+### 변경된 파일
+- `components/admin/CustomerImageUploadModal.tsx` (신규)
+- `lib/customer-image-type-detector.ts` (신규)
+- `pages/api/admin/create-customer-image-metadata.ts` (신규)
+- `pages/api/admin/move-customer-image-file.ts` (신규)
+- `lib/customer-image-filename-generator.ts` (수정)
+- `pages/admin/customers/index.tsx` (수정 중)
+
+---
+
+## 📋 예정: 고객 이미지 관리 - 업로드 전 메타데이터 생성 및 파일명 자동 생성 (2026-01-27)
+
+### 적용 위치
+- **페이지**: 고객 관리 → 고객 이미지 관리
+- **파일**: `pages/admin/customers/index.tsx`
+- **컴포넌트**: `CustomerImageModal` 내부
+
+### 작업 내용
+- 업로드 전에 메타데이터를 먼저 생성하고 파일명을 자동 생성하는 플로우로 개선
+- 골프 AI 생성 / 일반 메타 생성 선택 기능
+- 파일명에 s1~s7, artwall, sita, guide 등 포함
+
+### 요구사항
+1. **UI 개선**:
+   - "갤러리에서 선택" 옆에 "이미지 업로드" 버튼 추가
+   - 드래그앤드롭 영역 유지
+   - 하단 버튼 변경: "닫기" → "취소", "저장"
+   - 업로드 모드 섹션 제거 ("파일명 최적화" / "파일명 유지" 삭제)
+
+2. **업로드 전 설정 모달**:
+   - 고객명 자동 설정 (현재 선택된 고객)
+   - 메타데이터 생성 방식 선택 (골프 AI 생성 / 일반 메타 생성)
+   - 방문일자 선택 (기존 방문일자 필드와 연동)
+
+3. **이미지 내용 분석**:
+   - OpenAI Vision API로 이미지 분석
+   - 장면 코드 감지 (s1~s7)
+   - 타입 감지 (artwall, sita, guide, swing, signature, golf-course, docs)
+
+4. **메타데이터 먼저 저장**:
+   - 이미지 타입 감지 후 메타데이터 생성
+   - `image_assets` 테이블에 먼저 저장 (임시 파일명)
+
+5. **파일명 자동 생성**:
+   - 형식: `{고객명}_s{장면코드}_{타입}_{YYYYMMDD}_{순번}.webp`
+   - 예: `ahnhuija_s1_golf-course_20260127_01.webp` (골프장)
+   - 예: `ahnhuija_s5_artwall_20260127_01.webp` (아트월)
+   - 예: `ahnhuija_s3_sita_20260127_01.webp` (시타장)
+   - 예: `ahnhuija_s4_guide_20260127_01.webp` (가이드/상담)
+   - 예: `ahnhuija_docs_20260127_01.webp` (서류)
+
+### 상세 계획
+- 📄 `docs/customer-image-upload-pre-metadata-plan.md` 참고
+
+---
+
+## 📋 예정: 고객 이미지 업로드 UI 및 파일명 규칙 개선 (2026-01-27)
+
+### 작업 내용
+- 고객 이미지 관리 UI 개선 (버튼 추가, 업로드 모드 제거)
+- 이미지 타입 자동 감지 및 파일명 규칙 적용
+- 갤러리 모달 UI 간소화
+
+### 요구사항
+1. **UI 개선**:
+   - "갤러리에서 선택" 옆에 "이미지 업로드" 버튼 추가
+   - 하단 드래그앤드롭 영역 유지
+   - 하단 버튼: "닫기" → "취소", "저장"
+   - 갤러리 모달: "업로드", "업로드모드" 제거, "선택"과 "삭제"만 유지
+
+2. **파일명 자동 감지 규칙**:
+   - 골프장 이미지: `{고객명}_s1_{YYYYMMDD}_01.webp`
+   - 마스골프 이미지: `{고객명}_s3_{YYYYMMDD}_01.webp`
+   - 서류 이미지: `{고객명}_docs_{YYYYMMDD}_01.webp`
+   - 중복 파일: 자동 순번 추가 (`01`, `02`, `03`)
+   - 한글 파일명: 필수 영문 변환
+   - 업로드 모드 구분 삭제
+   - 동영상: 파일명 최적화, 확장자 유지, 한글→영문, 순번 추가
+
+### 상세 계획
+- 📄 `docs/customer-image-upload-ui-improvement-plan.md` 참고
+
+---
+
+## ✅ 완료: 이미지 등록 실패 원인 수정 - image_assets 필수 필드 추가 (2026-01-27)
+
+### 문제 원인
+- `image_metadata` → `image_assets` 마이그레이션으로 필수 필드가 추가되었지만 API 코드가 반영하지 않음
+- `image_assets` 테이블의 필수 필드: `filename`, `original_filename`, `file_path`, `file_size`, `mime_type`, `format`
+- API에서 이 필드들을 제공하지 않아 데이터베이스 INSERT 실패
+
+### 구현 완료 사항
+
+1. **필수 필드 추가**:
+   - ✅ `filename`: `filePath`에서 파일명 추출
+   - ✅ `original_filename`: `originalFileName` 또는 `fileName` 사용
+   - ✅ `mime_type`: 파일 확장자에서 자동 감지 (jpg, png, webp, mp4, mov 등)
+   - ✅ `format`: 확장자 기반 (jpg → jpeg 변환 포함)
+   - ✅ `file_size`: 기존 값 유지 (0 기본값)
+
+2. **MIME 타입 매핑**:
+   - ✅ 이미지: jpg, jpeg, png, gif, webp, heic
+   - ✅ 동영상: mp4, mov, avi, webm
+   - ✅ 기본값: image/webp
+
+3. **로깅 강화**:
+   - ✅ 메타데이터 페이로드 구성 과정 상세 로그 추가
+
+### 변경된 파일
+- `pages/api/admin/upload-customer-image.js` (수정)
+
+---
+
+## 🔄 진행 중: 이미지 등록 실패 원인 파악 - 상세 로그 추가 (2026-01-27)
+
+### 작업 내용
+- 갤러리에서 업로드 시 "메타데이터 저장 실패" 오류 원인 파악
+- 썸네일 "선택" 클릭 시 "이미지 등록에 실패했습니다" 오류 원인 파악
+- API와 클라이언트에 상세 디버깅 로그 추가
+
+### 문제 상황
+1. **갤러리에서 업로드**: 실제 업로드는 성공하지만 "메타데이터 저장 실패" 오류 발생
+2. **썸네일 "선택" 클릭**: "이미지 등록에 실패했습니다" 메시지 표시
+3. 콘솔에 `500 Internal Server Error` 및 `TypeError: Cannot read properties of undefined (reading 'originalname')` 오류
+
+### 구현 완료 사항
+
+1. **API 로그 강화**:
+   - ✅ 요청 수신 시 Content-Type, body 키 목록 로그
+   - ✅ 요청 본문 파싱 결과 상세 로그
+   - ✅ 필수 파라미터 검증 로그
+   - ✅ 메타데이터 저장 시도/결과 상세 로그
+   - ✅ 예외 발생 시 상세 스택 트레이스 로그
+
+2. **클라이언트 로그 강화**:
+   - ✅ 갤러리 이미지 선택 시작/경로 추출/날짜 추출 로그
+   - ✅ API 호출/응답/결과 상세 로그
+   - ✅ 갤러리 업로드 시 메타데이터 저장 API 호출/응답/결과 로그
+   - ✅ 예외 발생 시 상세 스택 트레이스 로그
+
+### 변경된 파일
+- `pages/api/admin/upload-customer-image.js` (수정)
+- `pages/admin/customers/index.tsx` (수정)
+
+---
+
+## ✅ 완료: 고객 이미지 목록 제거 기능 수정 - ai_tags 필터링 하위 호환성 추가 (2026-01-27)
+
+### 작업 내용
+- "목록 제거" 후에도 이미지가 목록에 나타나는 문제 해결
+- `upload-customer-image` API가 `file_path`만으로 필터링하던 것을 `ai_tags` 필터링 추가
+- 기존 이미지 하위 호환성: `ai_tags`가 없어도 `file_path`로 확인하여 포함
+
+### 문제 원인
+- `upload-customer-image` API가 `file_path`로만 필터링하여, `ai_tags`에서 `customer-{customerId}` 태그가 제거되어도 `file_path`에 고객 폴더 경로가 있으면 여전히 목록에 표시됨
+- Storage에서 직접 조회한 이미지도 `ai_tags` 확인 없이 포함됨
+- **추가 문제**: `ai_tags` 필터링을 추가했지만, 기존 이미지 중 `ai_tags`가 없는 이미지들이 모두 제외되어 "미디어 (0개)"로 표시됨
+
+### 구현 완료 사항
+
+1. **메타데이터 이미지 필터링 개선**:
+   - ✅ `ai_tags`에 `customer-{customerId}` 태그가 있는 이미지 포함
+   - ✅ `ai_tags`가 없거나 태그가 없는 경우, `file_path`로 확인하여 포함 (하위 호환성)
+   - ✅ 둘 다 해당 안되면 제외
+   - ✅ 필터링 전후 개수 및 상세 로그 추가
+
+2. **Storage 이미지 필터링 개선**:
+   - ✅ Storage에서 가져온 이미지 중 metadata에 매칭된 것만 포함
+   - ✅ metadata에 매칭되지 않은 Storage 이미지는 제외 (ai_tags가 없음)
+   - ✅ 필터링 결과 로그 추가
+
+3. **클라이언트 디버깅 로그 강화**:
+   - ✅ `uploadedImages` 상태 업데이트 전후 로그 추가
+   - ✅ 미디어 분류 시작 시 `uploadedImages` 내용 로그 추가
+   - ✅ 목록 제거 API에 상세 로그 추가
+   - ✅ 클라이언트 핸들러에 상세 로그 추가
+
+### 변경된 파일
+- `pages/api/admin/upload-customer-image.js` (수정)
+- `pages/api/admin/remove-customer-image.ts` (수정)
+- `pages/admin/customers/index.tsx` (수정)
+
+---
+
+## ✅ 완료: 고객 이미지 목록 제거 기능 수정 - ai_tags 필터링 적용 (2026-01-27)
+
+### 작업 내용
+- "목록 제거" 후에도 이미지가 목록에 나타나는 문제 해결
+- `upload-customer-image` API가 `file_path`만으로 필터링하던 것을 `ai_tags` 필터링 추가
+
+### 문제 원인
+- `upload-customer-image` API가 `file_path`로만 필터링하여, `ai_tags`에서 `customer-{customerId}` 태그가 제거되어도 `file_path`에 고객 폴더 경로가 있으면 여전히 목록에 표시됨
+- Storage에서 직접 조회한 이미지도 `ai_tags` 확인 없이 포함됨
+
+### 구현 완료 사항
+
+1. **메타데이터 이미지 필터링 개선**:
+   - ✅ `ai_tags`에 `customer-{customerId}` 태그가 있는 이미지만 필터링
+   - ✅ 태그가 없는 이미지는 제외하고 로그 출력
+   - ✅ 필터링 전후 개수 로그 추가
+
+2. **Storage 이미지 필터링 개선**:
+   - ✅ Storage에서 가져온 이미지 중 metadata에 매칭된 것만 포함
+   - ✅ metadata에 매칭되지 않은 Storage 이미지는 제외 (ai_tags가 없음)
+   - ✅ 필터링 결과 로그 추가
+
+3. **디버깅 로그 강화**:
+   - ✅ 목록 제거 API에 상세 로그 추가
+   - ✅ 클라이언트 핸들러에 상세 로그 추가
+   - ✅ 이미지 조회 및 필터링 과정 로그 추가
+
+### 변경된 파일
+- `pages/api/admin/upload-customer-image.js` (수정)
+- `pages/api/admin/remove-customer-image.ts` (수정)
+- `pages/admin/customers/index.tsx` (수정)
+
+---
+
+## 🔄 진행 중: 시크리트웨폰 블랙 MUZIIK 상세페이지 적용 및 최종 검증 (2026-01-27)
+
+### 작업 내용
+- 이미지 정리 완료 후 상세페이지에 적용되지 않는 문제 해결
+- Hook/Detail 콘텐츠 입력 가이드 작성
+- CTA 버튼 처리 방안 정리
+- 최종 구현 계획서 작성
+
+### 문제 분석
+
+1. **Hook 섹션이 표시되지 않는 이유**:
+   - `hookContent.length > 0` 조건을 만족하지 않음
+   - Hook 이미지는 등록되었지만 제목/설명이 비어있음
+   - **해결**: 관리 페이지에서 Hook 탭에서 제목/설명 입력 필요
+
+2. **Detail 섹션이 표시되지 않는 이유**:
+   - `detailContent.length > 0` 조건을 만족하지 않음
+   - Detail 이미지는 추가되었지만 `detailContent`에 연결되지 않음
+   - **해결**: 관리 페이지에서 Detail 탭에서 이미지 추가 후 제목/설명 입력 필요
+
+3. **Hero 섹션 이미지 문제**:
+   - `heroImages`가 비어있을 수 있음
+   - 마이그레이션 스크립트 실행 필요
+
+### CTA 처리 방안
+
+**현재 정책**: 텍스트 기반 CTA 버튼만 사용 (이미지 기반 CTA는 사용하지 않음)
+
+**이유**:
+- 접근성 향상 (스크린 리더 지원)
+- 반응형 디자인 일관성
+- 성능 최적화 (이미지 로딩 없음)
+- 유지보수 용이성
+
+**구현 상태**:
+- ✅ 첫 번째 CTA 섹션 (Hook 섹션 아래)
+- ✅ 두 번째 CTA 섹션 (스펙표 아래)
+- ✅ 텍스트 기반 버튼만 사용
+
+### 구현 완료 사항
+
+1. **최종 구현 계획서 작성** ✅
+   - ✅ `docs/secret-weapon-black-muziik-final-implementation-plan.md` 생성
+   - ✅ 문제 해결 가이드 포함
+   - ✅ 작업 체크리스트 작성
+   - ✅ CTA 처리 방안 정리
+
+2. **콘텐츠 입력 가이드** ✅
+   - ✅ `docs/detail-image-content-guide.md` 생성
+   - ✅ Hook/Detail 콘텐츠 입력 방법 상세 설명
+
+### 다음 단계
+- [ ] 마이그레이션 스크립트 실행
+- [ ] Hook 콘텐츠 제목/설명 입력
+- [ ] Detail 이미지 추가 및 콘텐츠 입력
+- [ ] 페이지 검증 및 최적화
+
+### 변경된 파일
+- `docs/secret-weapon-black-muziik-final-implementation-plan.md` (신규)
+- `docs/detail-image-content-guide.md` (신규)
+
+---
+
+## ✅ 완료: 고객 이미지 관리에 "목록 제거" 기능 추가 (2026-01-27)
+
+### 작업 내용
+- 제품 합성 관리와 동일한 패턴으로 "목록 제거" 기능 추가
+- Storage 파일은 유지하고, 고객 목록에서만 제거
+- 나중에 다시 추가 가능하도록 구현
+
+### 구현 완료 사항
+
+1. **API 엔드포인트 생성**:
+   - ✅ `/api/admin/remove-customer-image.ts` 생성
+   - ✅ `image_assets`의 `ai_tags`에서 `customer-{customerId}` 태그 제거
+   - ✅ Storage 파일은 유지 (제거하지 않음)
+
+2. **클라이언트 UI 개선**:
+   - ✅ 각 이미지에 "목록 제거" 버튼 추가 (⊖ 아이콘)
+   - ✅ 호버 시 표시되는 액션 버튼 영역에 추가
+   - ✅ 날짜별 보기와 일반 보기 모두에 적용
+   - ✅ 확인 메시지 표시 ("Storage 파일은 유지됩니다")
+
+3. **핸들러 함수 구현**:
+   - ✅ `handleRemoveFromCustomerList` 함수 추가
+   - ✅ 목록 제거 후 자동 새로고침
+   - ✅ 고객 리스트 썸네일 업데이트 이벤트 발생
+
+### 변경된 파일
+- `pages/api/admin/remove-customer-image.ts` (신규)
+- `pages/admin/customers/index.tsx` (수정)
+
+---
+
+## ✅ 완료: 동영상 썸네일 및 이미지 등록 메시지 개선 (2026-01-27)
+
+### 작업 내용
+- 동영상 썸네일이 깨지는 문제 해결
+- 이미지 등록 시 "메타데이터 저장 실패" 오류 대신 "이미 등록된 이미지입니다" 메시지 표시
+
+### 구현 완료 사항
+
+1. **FolderImagePicker 동영상 썸네일 수정**:
+   - ✅ `<img>` 태그 대신 `MediaRenderer` 컴포넌트 사용
+   - ✅ 동영상 파일 자동 감지 및 `<video>` 태그로 렌더링
+   - ✅ 동영상 배지 추가 (파일명으로 동영상 감지)
+   - ✅ 동영상 클릭 시 전체 화면 재생 이벤트 연결
+
+2. **이미지 등록 중복 체크 개선**:
+   - ✅ API에서 이미 등록된 이미지인지 먼저 확인
+   - ✅ 이미 등록된 경우 `alreadyRegistered: true` 플래그와 함께 성공 응답 반환
+   - ✅ 클라이언트에서 "이미 등록된 이미지입니다" 메시지 표시
+   - ✅ 중복 체크 실패 시에만 "메타데이터 저장 실패" 오류 표시
+
+### 변경된 파일
+- `components/admin/FolderImagePicker.tsx` (수정)
+- `pages/api/admin/upload-customer-image.js` (수정)
+- `pages/admin/customers/index.tsx` (수정)
+
+---
+
+## ✅ 완료: 시크리트웨폰 블랙 MUZIIK 제품 페이지 개선 구현 (2026-01-27)
+
+### 작업 내용
+- `mas9golf.com/secret-weapon-black-muz`의 효과적인 레이아웃 구조를 `masgolf.co.kr/products/secret-weapon-black-muziik`에 적용
+- 상단 후킹 이미지, CTA 최적화, 8컷 상세 이미지 섹션 추가
+- 이미지 관리 구조 개선 (hero/hook/detail 폴더 분리)
+- 이미지별 텍스트 콘텐츠 관리 기능 추가 (DB 기반 편집 가능)
+
+### 구현 완료 사항
+
+1. **데이터베이스 스키마 확장** ✅
+   - ✅ `database/extend-products-table-for-page-content.sql` 생성
+   - ✅ `hero_images`, `hook_images`, `hook_content`, `detail_content` 필드 추가
+   - ✅ 인덱스 생성
+
+2. **API 수정** ✅
+   - ✅ `pages/api/admin/products.ts` 수정
+   - ✅ `PRODUCT_SELECT_COLUMNS`에 새 필드 추가
+   - ✅ `handlePost`, `handlePut`에 새 필드 저장 로직 추가
+
+3. **useProductData 훅 수정** ✅
+   - ✅ `lib/use-product-data.ts` 수정
+   - ✅ `heroImages`, `hookImages`, `hookContent`, `detailImages`, `detailContent` 반환 추가
+
+4. **제품 페이지 수정** ✅
+   - ✅ `pages/products/secret-weapon-black-muziik.tsx` 수정
+   - ✅ 2컷 후킹 이미지 섹션 추가 (HookImagesSection)
+   - ✅ 첫 번째 CTA 버튼 섹션 추가 (FirstCTASection)
+   - ✅ 8컷 상세 이미지 섹션 추가 (DetailImagesSection)
+   - ✅ 두 번째 CTA 버튼 섹션 추가 (SecondCTASection)
+   - ✅ 제품 히어로 섹션 유지 (heroImages 사용)
+
+5. **관리 페이지 개발** ✅
+   - ✅ `pages/admin/products.tsx` 타입 정의에 새 필드 추가
+   - ✅ 상태 변수 추가 (heroImages, hookImages, hookContent, detailContent, activeTab)
+   - ✅ 탭 UI 추가 (Detail, Hero, Hook, Performance)
+   - ✅ Hero 이미지 관리 기능 추가
+   - ✅ Hook 이미지 관리 + 텍스트 편집 기능 추가
+   - ✅ Detail 콘텐츠 편집 기능 추가
+   - ✅ 갤러리 선택 핸들러 수정 (hero, hook 모드 지원)
+   - ✅ 폴더 경로 함수 추가 (getHeroFolderPath, getHookFolderPath)
+   - ✅ Detail 탭에서 이미지 추가 시 detailContent 자동 생성 로직 추가
+   - ✅ 이미지 삭제 시 hookContent, detailContent에서도 제거 로직 추가
+   - ✅ handleOpenEdit에서 detailContent 자동 생성 로직 추가
+
+### 변경된 파일
+- `database/extend-products-table-for-page-content.sql` (신규)
+- `pages/api/admin/products.ts` (수정)
+- `lib/use-product-data.ts` (수정)
+- `pages/products/secret-weapon-black-muziik.tsx` (수정)
+- `pages/admin/products.tsx` (수정)
+
+### 다음 단계
+- [ ] Phase 2: 이미지 준비 및 폴더 구조 생성 (hero/, hook/, detail/ 폴더 생성 및 이미지 분류)
+- [ ] Phase 5: 콘텐츠 작성 및 입력 (초기 텍스트 데이터 입력)
+- [ ] Phase 6: 테스트 및 최적화 (반응형, 성능, 기능 테스트)
+- [ ] Supabase에서 SQL 실행 필요: `database/extend-products-table-for-page-content.sql`
+
+---
+
+## ✅ 완료: 이미지 삭제 - 하위 폴더 경로 처리 수정 (2026-01-27)
+
+### 작업 내용
+- 하위 폴더에 있는 이미지 삭제 시 "파일이 존재하지 않습니다" 오류 해결
+- `folder-images.js` API가 반환하는 하위 폴더 정보(`folder`) 활용
+- 삭제 API의 파일 검색 로직 개선
+
+### 구현 완료 사항
+
+1. **FolderImagePicker 수정**:
+   - ✅ `ImageItem` 타입에 `folder` 필드 추가
+   - ✅ 삭제 시 하위 폴더 정보를 포함한 전체 경로 구성
+   - ✅ `currentFolderPath` + `img.folder` + `img.name` 조합
+
+2. **삭제 API 파일 검색 개선**:
+   - ✅ 하위 폴더 목록을 가져와서 각 하위 폴더에서 파일 검색
+   - ✅ 루트에서 파일명으로 검색하는 로직 개선
+   - ✅ 더 정확한 파일 경로 매칭
+
+### 변경된 파일
+- `components/admin/FolderImagePicker.tsx` (수정)
+- `pages/api/admin/delete-image.js` (수정)
+
+---
+
+## 🔄 진행 중: 이미지 삭제 디버깅 로그 추가 (2026-01-27)
+
+### 작업 내용
+- 삭제 완료 메시지가 나오지만 이미지가 다시 나타나는 문제 디버깅
+- 삭제 API 및 클라이언트에 상세 로그 추가
+- 파일이 존재하지 않을 때 `success: false` 반환하도록 수정
+
+### 구현 완료 사항
+
+1. **삭제 API 로그 강화**:
+   - ✅ 요청 수신 시 상세 로그 추가
+   - ✅ 요청 본문 파싱 로그 추가
+   - ✅ 정규화된 삭제 대상 로그 추가
+   - ✅ 파일 존재 확인 결과 로그 추가
+   - ✅ 스토리지 삭제 시도/성공 로그 추가
+   - ✅ 메타데이터 삭제 완료 로그 추가
+   - ✅ 최종 응답 로그 추가
+
+2. **파일 미존재 처리 개선**:
+   - ✅ 파일이 존재하지 않을 때 `success: false` 반환
+   - ✅ 클라이언트에서 `deletedImages.length === 0` 체크 추가
+   - ✅ 에러 메시지 개선
+
+3. **클라이언트 로그 강화**:
+   - ✅ 삭제 시작/경로 구성/API 호출/응답/결과 로그 추가
+   - ✅ 목록 새로고침 로그 추가
+   - ✅ 폴더 이미지 조회 로그 추가
+
+### 변경된 파일
+- `pages/api/admin/delete-image.js` (수정)
+- `pages/admin/customers/index.tsx` (수정)
+- `components/admin/FolderImagePicker.tsx` (수정)
+
+---
+
+## ✅ 완료: 이미지 삭제 - DB 삭제 및 성공 메시지 수정 (2026-01-27)
+
+### 작업 내용
+- DB에서 실제로 삭제가 안되는 문제 해결
+- 삭제 성공 메시지가 안나오는 문제 해결
+
+### 구현 완료 사항
+
+1. **API 응답 처리 개선**:
+   - ✅ `result.success` 확인 추가
+   - ✅ 성공 메시지 표시 추가 (갤러리 관리와 동일)
+   - ✅ 삭제된 파일 수 및 DB 메타데이터 삭제 수 표시
+
+2. **DB 삭제 로직 개선**:
+   - ✅ `file_path` 기반 삭제 추가 (가장 정확)
+   - ✅ `cdn_url` 기반 삭제 유지 (fallback)
+   - ✅ 두 방법 모두 시도하여 삭제 성공률 향상
+
+### 변경된 파일
+- `pages/api/admin/delete-image.js` (수정)
+- `pages/admin/customers/index.tsx` (수정)
+- `pages/admin/products.tsx` (수정)
+- `docs/image-delete-db-fix-plan.md` (신규)
+
+---
+
+## ✅ 완료: 이미지 삭제 - 갤러리 관리 패턴 적용 (2026-01-27)
+
+### 작업 내용
+- "파일을 찾을 수 없습니다" 오류 해결
+- 갤러리 관리 일괄 삭제 패턴을 다른 삭제 기능에 적용
+
+### 구현 완료 사항
+
+1. **FolderImagePicker 컴포넌트 수정**:
+   - ✅ `onDelete` 콜백에 `imageInfo` (name, folderPath) 추가 전달
+   - ✅ `currentFolderPath`와 `img.name`을 조합하여 전달
+
+2. **고객 이미지 관리 수정**:
+   - ✅ `folderPath`와 `name`을 조합하여 `imageName` 생성
+   - ✅ 갤러리 관리와 동일하게 `POST` 메서드 사용
+
+3. **제품 이미지 관리 수정**:
+   - ✅ `FolderImagePicker`의 `onDelete` 핸들러 수정
+   - ✅ `handleDeletePerformanceImage` 함수 수정
+   - ✅ `POST` 메서드로 변경
+
+### 변경된 파일
+- `components/admin/FolderImagePicker.tsx` (수정)
+- `pages/admin/customers/index.tsx` (수정)
+- `pages/admin/products.tsx` (수정)
+- `docs/image-delete-gallery-pattern-fix.md` (신규)
+
+---
+
+## ✅ 완료: 이미지 삭제 imageName 파라미터 오류 수정 (2026-01-27)
+
+### 작업 내용
+- `image_metadata` → `image_assets` DB 마이그레이션 이후 발생한 삭제 오류 수정
+- 여러 곳에서 "imageName 파라미터가 필요합니다" 오류 해결
+
+### 구현 완료 사항
+
+1. **공통 유틸리티 함수 생성**:
+   - ✅ `lib/image-url-to-name-converter.ts` 생성
+   - ✅ `extractImageNameFromUrl` 함수 구현
+   - ✅ 다양한 Supabase Storage URL 형식 지원
+
+2. **고객 이미지 관리 수정**:
+   - ✅ `pages/admin/customers/index.tsx` 수정
+   - ✅ `onDelete` 핸들러에서 `imageUrl` → `imageName` 변환
+
+3. **제품 이미지 관리 수정**:
+   - ✅ `pages/admin/products.tsx` 수정 (2곳)
+   - ✅ `handleDeletePerformanceImage` 함수 수정
+   - ✅ `FolderImagePicker`의 `onDelete` 핸들러 수정
+
+### 변경된 파일
+- `lib/image-url-to-name-converter.ts` (신규)
+- `pages/admin/customers/index.tsx` (수정)
+- `pages/admin/products.tsx` (수정)
+- `docs/image-delete-imagename-fix-plan.md` (계획서)
+
+---
+
+## 📋 계획: 시크리트웨폰 블랙 MUZIIK 제품 페이지 개선 (2026-01-27)
+
+### 작업 내용
+- `mas9golf.com/secret-weapon-black-muz`의 효과적인 레이아웃 구조를 `masgolf.co.kr/products/secret-weapon-black-muziik`에 적용
+- 상단 후킹 이미지, CTA 최적화, 8컷 상세 이미지 섹션 추가
+- 이미지 관리 구조 개선 (hero/hook/detail 폴더 분리)
+- 이미지별 텍스트 콘텐츠 관리 기능 추가 (DB 기반 편집 가능)
+
+### 계획 문서
+- 📄 `docs/secret-weapon-black-muziik-page-improvement-plan.md` 작성 완료 (수정됨)
+
+### 주요 개선 사항
+1. **2컷 후킹 이미지 섹션 추가**: 티타늄 파이버 샤프트, FULL 티타늄 설계
+2. **CTA 버튼 섹션 강화**: 전략적 위치에 2개 CTA 섹션 배치
+3. **8컷 상세 이미지 섹션 추가**: 기술 특징을 이미지와 함께 시각화
+4. **이미지 관리 구조화**: `hero/`, `hook/`, `detail/` 폴더로 분리
+5. **텍스트 콘텐츠 관리 기능**: hook/detail 이미지 하단 텍스트를 관리 페이지에서 편집 가능
+6. **이미지 중복 사용 지원**: 같은 이미지를 hero/detail에 참조 방식으로 사용 가능
+
+### 데이터베이스 변경사항
+- `products` 테이블에 필드 추가:
+  - `hero_images` JSONB: 상단 슬라이더용 이미지 경로 배열
+  - `hook_images` JSONB: 후킹 이미지 경로 배열
+  - `hook_content` JSONB: 후킹 이미지별 제목/설명
+  - `detail_content` JSONB: 상세 이미지별 제목/설명
+
+### 예상 일정
+- Phase 1: 데이터베이스 스키마 확장 (0.5일)
+- Phase 2: 이미지 준비 및 구조 설정 (1일)
+- Phase 3: 관리 페이지 개발 (2일)
+- Phase 4: 제품 페이지 코드 수정 (1.5일)
+- Phase 5: 콘텐츠 작성 및 입력 (0.5일)
+- Phase 6: 테스트 및 최적화 (1일)
+- **총 예상 기간**: 6.5일
+
+---
+
+## ✅ 완료: 스캔 서류 분류 시스템 1차 개발 (2026-01-27)
+
+### 작업 내용
+- 스캔 서류 자동 감지 및 분류 시스템 구현 (OCR 제외)
+- 기존 스캔 이미지 문서 분류 기능 포함
+
+### 구현 완료 사항
+
+1. **데이터베이스 스키마**:
+   - ✅ `image_assets` 테이블에 `is_scanned_document`, `document_type` 필드 추가
+   - ✅ `scanned_documents` 테이블 생성 (기본 구조만, OCR 필드는 2차에서 추가)
+   - ✅ 인덱스 생성
+   - 📝 SQL 실행 필요: `database/create-scanned-documents-schema.sql`
+
+2. **문서 감지 유틸리티**:
+   - ✅ `lib/scanned-document-detector.ts` 구현
+   - ✅ 파일명 패턴 기반 자동 감지 (`seukaen` 포함 여부)
+   - ✅ 문서 타입 자동 분류 (주문사양서, 설문조사, 동의서, 기타)
+
+3. **API 구현**:
+   - ✅ `POST /api/admin/classify-document` - 문서 분류 API
+   - ✅ `GET /api/admin/scanned-documents` - 문서 목록 조회 API
+   - ✅ `upload-customer-image.js`에 `is_scanned_document`, `document_type` 필드 추가
+
+4. **UI 구현**:
+   - ✅ 고객 이미지 모달에 "스캔 서류만 보기" 체크박스 추가
+   - ✅ 문서 타입별 필터 드롭다운 추가 (전체, 주문사양서, 설문조사, 동의서, 기타)
+   - ✅ 이미지 카드에 문서 타입 배지 표시 (색상별 구분)
+
+5. **기존 데이터 분류**:
+   - ✅ `scripts/classify-existing-scanned-documents.js` 작성
+   - ⏳ SQL 실행 후 실행 필요
+
+### 변경된 파일
+- `database/create-scanned-documents-schema.sql` (신규)
+- `lib/scanned-document-detector.ts` (신규)
+- `pages/api/admin/classify-document.ts` (신규)
+- `pages/api/admin/scanned-documents.ts` (신규)
+- `pages/api/admin/upload-customer-image.js` (수정)
+- `pages/admin/customers/index.tsx` (수정)
+- `scripts/classify-existing-scanned-documents.js` (신규)
+- `scripts/execute-scanned-documents-schema.js` (신규)
+
+### 완료된 단계
+1. ✅ **Supabase 대시보드에서 SQL 실행 완료**
+2. ✅ **기존 데이터 분류 실행 완료**: 10개 스캔 서류 분류됨
+3. ✅ **Playwright 테스트 작성 완료**: `e2e-test/playwright-scanned-documents-test.js`
+4. ✅ **고객 대표 이미지 설정 기능 개발 완료**
+
+### 스캔 서류 분류 시스템 테스트 결과
+- 총 1149개 고객 이미지 조회
+- 10개 스캔 서류 분류 완료
+- 스캔 서류가 있는 고객: 안희자, 차재욱, 전유근, 김성수, 김진권
+
+### 고객 대표 이미지 설정 기능 개발 완료
+- ✅ 데이터베이스 스키마 수정 (`is_customer_representative` 필드 추가)
+- ✅ API 엔드포인트 구현 (`/api/admin/set-customer-representative-image`)
+- ✅ 고객 목록 API 수정 (대표 이미지 우선 조회)
+- ✅ 고객 이미지 모달 UI에 "🏠 썸네일" 배지 추가
+- ✅ 대표 이미지 설정/해제 핸들러 구현
+- ✅ 날짜별/타입별/전체 보기 모두에 배지 추가
+
+### 고객 이미지 분류 시스템 개선 완료
+- ✅ 이미지와 서류 섹션 분리 (📷 업로드된 이미지 / 📄 업로드된 서류)
+- ✅ "스캔 서류만 보기" 필터 제거 (서류 섹션으로 대체)
+- ✅ 각 섹션별 독립적인 필터링 및 보기 모드
+- ✅ 시각적 구분 강화 (배경색, 아이콘, 테두리)
+- ✅ 빈 상태 처리 개선
+- ✅ 반응형 디자인 적용
+
+### 합성 고객 이미지 표시 문제 수정 완료
+- ✅ Nanobanana API 수정 - 고객 정보 자동 감지 및 ai_tags 추가
+- ✅ FAL API 수정 - 고객 정보 자동 감지 및 ai_tags 추가
+- ✅ Replicate API 수정 (save-generated-image.js) - 고객 정보 자동 감지 및 ai_tags 추가
+- ✅ 제품 합성 API 수정 - 원본이 고객 이미지인 경우 고객 정보 추가
+- ✅ 고객 이미지 조회 API 개선 - file_path 필터링 로직 개선 (주석 추가)
+- ✅ 기존 합성 이미지 마이그레이션 스크립트 작성 및 실행 완료 (5개 합성 이미지 업데이트)
+
+---
+
+## ✅ 완료: 고객 이미지 관리 UI 필터 개선 (2026-01-27)
+
+### 작업 내용
+- 방문일자 필터 버튼 동작 확인 (이미 구현되어 있음)
+- "날짜별", "타입별", "전체" 버튼 제거 및 관련 로직 정리
+
+### 구현 완료 사항
+
+1. **viewMode 상태 변경**:
+   - ✅ `viewMode` 상태를 상수로 변경 (`'date'` 고정)
+   - ✅ 항상 날짜별 그룹화로 표시
+
+2. **버튼 제거**:
+   - ✅ "날짜별", "타입별", "전체" 버튼 제거 (3026-3059줄)
+   - ✅ 버튼 렌더링 코드 완전 제거
+
+3. **로직 정리**:
+   - ✅ 타입별 보기 로직 제거 (3205-3345줄)
+   - ✅ 전체 보기 로직 수정 (방문일자 필터 선택 시 표시)
+   - ✅ 날짜별 보기 로직 수정 (방문일자 필터가 없을 때만 그룹화)
+
+4. **동작 방식**:
+   - 방문일자 필터가 없을 때: 날짜별로 그룹화하여 표시
+   - 방문일자 필터가 있을 때: 선택된 날짜의 이미지만 표시 (그룹화 없이)
+
+### 변경된 파일
+- `pages/admin/customers/index.tsx` (수정)
+- `docs/customer-image-filter-ui-improvement-plan.md` (신규)
+
+---
+
+## 📋 계획: 스캔 서류 관리 및 OCR 활용 개발 계획서 작성 (2026-01-27)
+
+### 작업 내용
+- 주문사양서, 설문조사 등 스캔 서류의 분리 관리 및 OCR 활용 방안 수립
+- 개발 계획서 작성 완료 (1차/2차 분리)
+
+### 계획서
+- `docs/scanned-documents-management-plan.md`: 스캔 서류 관리 및 OCR 활용 전체 개발 계획서 (2차 포함)
+- `docs/scanned-documents-phase1-plan.md`: **1차 계획서 - 문서 분류만 (OCR 제외)**
+
+### 주요 내용
+
+1. **현재 상태 분석**:
+   - 스캔 서류가 일반 이미지와 함께 `originals/customers/{고객폴더명}/{날짜}/` 폴더에 저장
+   - 파일명 패턴: `{고객명}_s{장면번호}_seukaen-{날짜}-{번호}.webp`
+   - 일반 이미지와 구분되지 않음
+
+2. **문제점**:
+   - 검색 불가능: 텍스트 내용으로 검색 불가
+   - 데이터 활용 불가: 후기 타임라인 등에 자동 반영 불가
+   - 구분 어려움: 일반 이미지와 구분이 어려움
+
+3. **솔루션**:
+   - OCR을 통한 텍스트 추출 (Google Cloud Vision API 추천)
+   - 구조화된 데이터 저장 (`scanned_documents` 테이블 신규 생성)
+   - 문서 타입별 파싱 (주문사양서, 설문조사 등)
+   - 후기 타임라인 자동 연동
+
+4. **구현 계획 (4단계, 각 1주)**:
+   - Phase 1: 기반 구축 (데이터베이스, 문서 감지, OCR API 연동)
+   - Phase 2: OCR 처리 (비동기 처리, 문서 파싱)
+   - Phase 3: 데이터 활용 (후기 타임라인, 검색 기능)
+   - Phase 4: 기존 데이터 마이그레이션
+
+5. **예상 효과**:
+   - 업무 효율성 80% 향상 (수동 입력 작업 감소)
+   - 검색 시간 90% 단축 (텍스트 기반 검색)
+   - 데이터 활용도 향상 (후기 타임라인 자동 반영)
+
+### 다음 단계
+1. 승인 및 리소스 할당
+2. Google Cloud Vision API 계정 설정
+3. Phase 1 시작: 데이터베이스 스키마 생성
+
+---
+
 ## ✅ 완료: 성능 데이터 이미지 관리 개선 (2026-01-27)
 
 ### 작업 내용
@@ -7741,3 +8613,187 @@ WHERE
 - ✅ "혁신적인 테크놀로지" 섹션 추가 완료
 - ✅ 페이지 섹션 순서 최적화 완료
 
+---
+
+## 고객 스토리 관리 UI 재구성 계획
+
+### 요구사항
+1. 장면별 상세에 미할당 이미지 추가 및 이동 기능 (이미지, 동영상, 서류 포함)
+2. 장면별 상세에 "장면설정" 기능 통합 및 "후기" 탭 삭제
+3. 스토리보드 "목록보기"를 장면별 상세로 이동
+4. 스토리보드 메뉴 삭제 및 통합
+5. 동영상 및 서류 처리 결정: **별도 메뉴 구성 불필요** (기존 이미지 목록에 포함, 타입별 배지로 구분)
+
+### 계획서
+- `docs/customer-story-ui-reorganization-plan.md` - 상세 개발 계획서 작성 완료
+
+### 구현 완료
+- ✅ Phase 1: SceneDetailView에 미할당 미디어 섹션 추가 및 드래그 앤 드롭 기능 구현
+- ✅ Phase 2: 장면설정 기능 통합 및 후기 탭 삭제
+- ✅ Phase 3: 스토리보드 목록보기를 SceneDetailView로 이동
+- ✅ Phase 4: CustomerStoryModal에서 스토리보드 탭 제거 및 통합
+
+### 주요 변경사항
+- 스토리보드 탭 제거, 모든 기능을 "장면별 상세"로 통합
+- 이미지, 동영상, 서류를 동일한 방식으로 처리
+- 타입별 배지 표시 (동영상: 파란색, 서류: 보라색)
+- 드래그 앤 드롭으로 모든 미디어 타입 장면 할당 가능
+- 미할당 미디어 섹션 추가 (이미지, 동영상, 서류 모두 포함)
+- 목록보기 탭에 타입별 필터링 옵션 추가 (전체, 이미지, 동영상, 서류)
+- 장면 설명 탭 개선 (스토리보드 스타일 적용, 저장/취소 버튼)
+
+### 수정된 파일
+- `components/admin/customers/SceneDetailView.tsx` - 완전 재작성
+- `components/admin/CustomerStoryModal.tsx` - 스토리보드 탭 제거, SceneDetailView에 props 전달
+
+---
+
+## 미할당 이미지 드래그 앤 드롭 실패 수정
+
+### 문제
+- 미할당 이미지를 "사진(0)" 영역으로 드래그 앤 드롭했지만 이미지가 추가되지 않음
+- 드래그 시작 이벤트는 정상 작동하지만 드롭 후 이미지가 장면에 할당되지 않음
+
+### 원인
+1. **데이터 전달 방식 불일치**: `SceneDetailView`와 `CustomerStoryModal`의 드래그 앤 드롭 데이터 전달 방식이 일치하지 않음
+2. **빈 영역 드롭 핸들러 누락**: 이미지가 0개인 경우 드롭 대상 영역이 제대로 설정되지 않음
+3. **이벤트 처리 문제**: `onDragOver`에서 `e.preventDefault()` 호출 누락 가능성
+
+### 해결 방안
+- ✅ `handleDragStart`: 개별 키(`imageId`, `imageUrl`)와 `text/plain` JSON 모두 저장하도록 수정
+- ✅ `handleDrop`: 개별 키 우선 읽기, 실패 시 `text/plain` JSON 파싱 시도
+- ✅ 빈 영역에도 드롭 가능하도록 외부 div에 드롭 핸들러 추가
+- ✅ `onDragOver`에서 `e.preventDefault()`, `e.stopPropagation()` 호출 추가
+
+### 수정된 파일
+- `components/admin/customers/SceneDetailView.tsx` - 드래그 앤 드롭 로직 수정
+- `components/admin/CustomerStoryModal.tsx` - `handleDragStart`에 하위 호환성 추가
+- `docs/drag-drop-fix-plan.md` - 상세 수정 계획서 작성
+
+---
+
+## 장면별 상세 UI 개선 계획
+
+### 요구사항
+1. 미할당 이미지 드래그 드롭시 "장면1"로 돌아가는 현상 수정
+2. 장면 하단 이미지 -> 좌측 장면 목록의 특정 장면으로 직접 이동 가능하게
+3. 미할당 미디어 섹션을 "장면3:문제발생" 제목 위로(맨 위) 이동
+4. 목록보기 필터 위치 개선 (옵션 1: 필터 상단 이동 / 옵션 2: 탭 5개 구성)
+
+### 계획서
+- `docs/scene-detail-ui-improvement-plan.md` - 상세 개선 계획서 작성 완료
+
+### 주요 개선 사항
+- 드래그 앤 드롭 버그 수정 (이벤트 버블링 방지, 명시적 null 처리)
+- 좌측 장면 목록에 드롭 핸들러 추가 (장면 하단 이미지를 장면 목록 버튼으로 직접 드롭 가능)
+- UI 구조 재배치 (미할당 미디어 섹션을 장면 제목 위로 이동)
+- 필터 위치 개선 (옵션 1 권장: 필터를 미할당 미디어 위로 이동)
+
+### 구현 완료
+- ✅ Phase 1: 드래그 앤 드롭 버그 수정 및 좌측 장면 목록 드롭 기능 추가
+- ✅ Phase 2: UI 구조 재배치 (미할당 미디어 섹션을 장면 제목 위로 이동)
+- ✅ Phase 3: 필터 위치 개선 (필터를 미할당 미디어 위로 이동)
+
+### 예상 작업 시간
+- Phase 1 (드래그 앤 드롭 버그 수정 및 좌측 장면 목록 드롭 기능 추가): 2-3시간
+- Phase 2 (UI 구조 재배치): 1시간
+- Phase 3 (필터 위치 개선): 1-2시간
+- 테스트 및 디버깅: 1시간
+- **총 예상 시간: 5-7시간**
+
+---
+
+## 장면별 상세 필터 기능 수정
+
+### 문제
+- 전체 클릭 시 전체 미디어가 표시되지 않음
+- 동영상 클릭 시 동영상만 표시되지 않음
+- 서류 클릭 시 서류만 표시되지 않음
+- 미할당/할당 구분이 시각적으로 명확하지 않음
+
+### 요구사항
+- 필터는 미할당 미디어 섹션과 목록보기 탭 모두에 적용
+- 전체, 이미지, 동영상, 서류 필터가 정상 작동
+- 미할당/할당 상태를 배지로 명확히 표시
+
+### 계획서
+- `docs/scene-detail-filter-fix-plan.md` - 상세 수정 계획서 작성 완료
+
+### 구현 완료
+- ✅ 필터 로직 수정 (is_scanned_document 명시적 체크)
+- ✅ 서류 필터 개선 (document_type도 서류로 판단하는 대안 로직 추가)
+- ✅ 미할당 미디어 섹션에 "미할당" 배지 추가
+- ✅ 목록보기 탭에 할당 상태 배지 추가 (장면 X / 미할당)
+- ✅ 필터링된 미할당 미디어 개수 표시 수정
+- ✅ 디버깅 로그 추가 (서류 필터 문제 진단용)
+- ✅ 미할당 미디어 박스 조건부 렌더링 수정 (필터에 따라 올바르게 표시되도록 개선)
+- ✅ 필터별 미할당 미디어 개수 표시 개선 (필터링된 개수 또는 전체 개수 표시)
+
+### 수정된 파일
+- `components/admin/customers/SceneDetailView.tsx` - 필터 로직 수정 및 배지 추가
+
+---
+
+## 이미지 장면 업데이트 오류 수정
+
+### 문제
+- 고객 스토리보드에서 이미지를 드래그 앤 드롭하여 장면을 변경할 때 오류 발생
+- 오류 메시지: `Could not find the 'story_scene' column of 'image_assets' in the schema cache`
+- 원인: `image_assets` 테이블에 `story_scene` 컬럼이 없음
+
+### 해결 방안
+- `image_assets` 테이블에 `story_scene` 컬럼 추가
+- `display_order` 컬럼 추가 (같은 장면 내 이미지 순서)
+- 인덱스 추가 (조회 성능 최적화)
+
+### 구현 내용
+- ✅ SQL 스크립트 작성: `database/add-story-scene-to-image-assets.sql`
+- ✅ API 에러 처리 개선: `pages/api/admin/update-image-scene.ts`
+- ⚠️ Supabase에서 SQL 스크립트 실행 필요
+
+### 파일 변경
+- `database/add-story-scene-to-image-assets.sql` (신규)
+- `pages/api/admin/update-image-scene.ts` (에러 처리 개선)
+- `docs/image-scene-update-error-fix-plan.md` (계획서)
+
+---
+
+## 고객 스토리 관리 서류 분류 및 고객 이미지 관리 탭 개선
+
+### 문제점
+1. **고객 스토리 관리 - 우측 이미지 탭에 서류가 분류되지 않음**
+   - "이미지" 필터에서 서류가 표시되고 "서류" 배지가 없음
+   - "서류" 필터 클릭 시 미할당 박스가 사라지고 서류가 표시되지 않음
+   - 서류 분류 로직이 `is_scanned_document`만 체크하여 `document_type`을 고려하지 않음
+
+2. **고객 이미지 관리 - 탭 형태로 변경 요청**
+   - 현재: "업로드된 미디어(12개)" / "업로드된 이미지 (9개)" / "업로드된 동영상(1개)" / "업로드된 서류(2개)"를 섹션으로 표시
+   - 요청: 탭 형태로 변경하고 "업로드된" 단어 삭제
+
+### 계획서
+- `docs/customer-story-document-classification-fix-plan.md` - 상세 수정 계획서 작성 완료
+
+### 구현 완료
+- ✅ 서류 분류 로직 개선 (SceneDetailView.tsx)
+  - `is_scanned_document === true` 또는 `document_type`이 있는 경우 서류로 판단
+  - 미할당 미디어 섹션, 장면 이미지 탭, 목록보기 탭 모두에 적용
+- ✅ 고객 이미지 관리 탭 형태로 변경
+  - "업로드된" 단어 삭제
+  - "미디어", "이미지", "동영상", "서류" 탭으로 변경
+  - 탭별 필터링 로직 구현
+  - 서류 탭에서 문서 타입 필터 적용
+
+### 추가 수정 필요
+- ⚠️ 서류가 이미지 탭에 여전히 표시되는 문제
+  - 이미지/서류 분류 로직이 제대로 작동하지 않음
+  - 서류 마이그레이션이 완료되지 않음
+- ⚠️ "날짜별", "타입별", "전체" 필터 버튼 제거 필요
+  - 탭 구조로 변경했으므로 불필요함
+  - 사용자 혼란 방지를 위해 완전 제거 필요
+
+### 계획서
+- `docs/customer-image-tab-final-fix-plan.md` - 최종 수정 계획서 작성 완료
+
+### 수정된 파일
+- `components/admin/customers/SceneDetailView.tsx` - 서류 분류 로직 개선
+- `pages/admin/customers/index.tsx` - 탭 형태로 변경 및 필터링 로직 개선 (추가 수정 필요)
