@@ -20,9 +20,12 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
   value,
   onChange,
   onAIGenerate,
+  onCorrectOCR,
   error,
   seoScore,
   isGenerating = false,
+  isCorrectingOCR = false,
+  hasOCRText = false,
   categories = []
 }) => {
   const [showAIOptions, setShowAIOptions] = useState(false);
@@ -160,11 +163,33 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
       <div className="flex gap-2">
         {renderInput()}
         
+        {/* OCR 교정 버튼 (description 필드에 OCR 텍스트가 있을 때만 표시) */}
+        {field === 'description' && hasOCRText && onCorrectOCR && (
+          <button
+            onClick={onCorrectOCR}
+            disabled={isCorrectingOCR || isGenerating}
+            className="px-3 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+            title="GPT-4로 OCR 텍스트 교정"
+          >
+            {isCorrectingOCR ? (
+              <>
+                <span className="animate-spin">⏳</span>
+                <span className="text-xs">교정 중...</span>
+              </>
+            ) : (
+              <>
+                <span>✨</span>
+                <span className="text-xs">OCR 교정</span>
+              </>
+            )}
+          </button>
+        )}
+        
         {config.aiEnabled && onAIGenerate && (
           <div className="relative">
             <button
               onClick={() => setShowAIOptions(!showAIOptions)}
-              disabled={isGenerating}
+              disabled={isGenerating || isCorrectingOCR}
               className="px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               title="AI 생성"
             >

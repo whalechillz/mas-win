@@ -117,6 +117,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isExtractingEXIF, setIsExtractingEXIF] = useState(false);
+  const [isCorrectingOCR, setIsCorrectingOCR] = useState(false);
   const [exifData, setExifData] = useState<{
     taken_at?: string;
     gps_lat?: number;
@@ -136,6 +137,73 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
   
   // 파일 타입 확인
   const fileType = image ? getFileType(image.name, image.url) : 'image';
+
+  // OCR 텍스트 교정 함수
+  const handleCorrectOCR = useCallback(async () => {
+    if (!form.description || form.description.trim().length === 0) {
+      alert('교정할 OCR 텍스트가 없습니다.');
+      return;
+    }
+
+    setIsCorrectingOCR(true);
+    try {
+      console.log('🤖 [OCR 교정] 시작:', {
+        textLength: form.description.length,
+        filename: image?.name
+      });
+
+      const response = await fetch('/api/admin/correct-ocr-text', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ocrText: form.description,
+          documentType: image?.name?.includes('주문') || image?.name?.includes('사양서') ? 'order_spec' : 'general',
+          originalFilename: image?.name || ''
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success && result.correctedText) {
+        console.log('✅ [OCR 교정] 완료:', {
+          originalLength: result.changes.originalLength,
+          correctedLength: result.changes.correctedLength,
+          estimatedCost: `$${result.usage.estimatedCost.toFixed(4)}`
+        });
+
+        // 교정된 텍스트를 description 필드에 적용
+        setForm(prev => ({
+          ...prev,
+          description: result.correctedText
+        }));
+        setHasChanges(true);
+
+        // 성공 메시지
+        alert(`OCR 텍스트 교정이 완료되었습니다.\n\n변경 사항:\n- 원본: ${result.changes.originalLength}자\n- 교정: ${result.changes.correctedLength}자\n\n예상 비용: $${result.usage.estimatedCost.toFixed(4)}`);
+      } else {
+        throw new Error(result.error || '교정에 실패했습니다.');
+      }
+    } catch (error: any) {
+      console.error('❌ [OCR 교정] 오류:', error);
+      alert(`OCR 텍스트 교정에 실패했습니다: ${error.message}`);
+    } finally {
+      setIsCorrectingOCR(false);
+    }
+  }, [form.description, image]);
+
+  // OCR 텍스트가 있는지 확인 (description에 OCR 텍스트가 포함되어 있는지)
+  const hasOCRText = useMemo(() => {
+    if (!form.description) return false;
+    // OCR 텍스트는 보통 "[OCR 추출 텍스트]" 같은 마커가 있거나, description에 긴 텍스트가 포함됨
+    return form.description.length > 100 || form.description.includes('[OCR') || form.description.includes('OCR');
+  }, [form.description]);
 
   // SEO 파일명 자동 생성 (하이브리드: 규칙 기반 + AI)
   const handleGenerateSEOFileName = useCallback(async () => {
@@ -805,9 +873,12 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
                       handleFormChange(field as keyof MetadataForm, value);
                     }}
                     onAIGenerate={config.aiEnabled ? handleGenerateField : undefined}
+                    onCorrectOCR={field === 'description' ? handleCorrectOCR : undefined}
                     error={validationErrors[field]}
                     seoScore={config.seoOptimized ? seoScore : undefined}
                     isGenerating={isGenerating}
+                    isCorrectingOCR={isCorrectingOCR}
+                    hasOCRText={field === 'description' ? hasOCRText : false}
                     categories={categories}
                   />
                 );
