@@ -4,20 +4,15 @@
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '../../../lib/supabase-server';
 import { uploadImageToSupabase } from '../../../lib/image-upload-utils';
 import { detectCustomerImageType } from '../../../lib/customer-image-type-detector';
 import { sanitizeKoreanFileName } from '../../../lib/filename-sanitizer';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const bucketName = 'blog-images';
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Supabase 환경 변수가 설정되지 않았습니다');
-}
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// 싱글톤 클라이언트 사용 (연결 풀 고갈 방지)
+const supabase = getSupabaseClient();
 
 export const config = {
   api: {

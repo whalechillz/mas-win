@@ -2908,15 +2908,32 @@ function CustomerImageModal({ customer, onClose }: {
 
         let isDuplicate = false;
 
-        // 1. Storage 파일 존재 확인
+        // 1. Storage 파일 존재 확인 (타임아웃 및 에러 처리 개선)
         try {
-          const headResponse = await fetch(publicUrl, { method: 'HEAD' });
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 2000); // 2초 타임아웃
+          
+          const headResponse = await fetch(publicUrl, { 
+            method: 'HEAD',
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
+          
           if (headResponse.ok) {
             console.log(`⚠️ [중복 체크] Storage 파일 존재: ${finalFilePath}`);
             isDuplicate = true;
+          } else if (headResponse.status === 400) {
+            // 400 Bad Request는 파일이 없는 것으로 간주 (잘못된 경로 등)
+            console.log(`ℹ️ [중복 체크] Storage 파일 없음 (400): ${finalFilePath}`);
           }
-        } catch {
-          // 파일이 없음 (404 또는 네트워크 오류)
+        } catch (error: any) {
+          // 타임아웃 또는 네트워크 오류는 파일이 없는 것으로 간주
+          if (error.name === 'AbortError') {
+            console.log(`ℹ️ [중복 체크] Storage 파일 확인 타임아웃: ${finalFilePath}`);
+          } else {
+            console.log(`ℹ️ [중복 체크] Storage 파일 확인 실패 (계속 진행): ${error.message}`);
+          }
         }
 
         // 2. DB cdn_url 중복 확인 (중요: unique constraint 위반 방지)
