@@ -2159,8 +2159,8 @@ function CustomerImageModal({ customer, onClose }: {
   // 업로드 전 설정 모달 상태
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedFileForUpload, setSelectedFileForUpload] = useState<File | null>(null);
-  // 방문일자 수정 상태
-  const [editingVisitDate, setEditingVisitDate] = useState<string | null>(null);
+  // 방문일자 수정 상태 (이미지 ID별로 관리)
+  const [editingVisitDateMap, setEditingVisitDateMap] = useState<Record<string, string>>({});
   const [updatingVisitDate, setUpdatingVisitDate] = useState(false);
 
   // ESC 키로 이미지 확대 모달 닫기
@@ -2546,9 +2546,13 @@ function CustomerImageModal({ customer, onClose }: {
       }
 
       // 방문일자 수정 모드 종료
-      setEditingVisitDate(null);
+      setEditingVisitDateMap(prev => {
+        const newMap = { ...prev };
+        delete newMap[imageId];
+        return newMap;
+      });
 
-      alert(`방문일자가 ${result.newDate}로 변경되었습니다.`);
+      // 성공 메시지는 표시하지 않음 (빠른 수정을 위해)
     } catch (error: any) {
       console.error('❌ [방문일자 수정 오류]', error);
       alert('방문일자 수정에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
@@ -3447,13 +3451,92 @@ function CustomerImageModal({ customer, onClose }: {
                           ⊖
                         </button>
                       </div>
-                    </div>
-                                <div 
-                                  className="mt-1 text-xs text-gray-600 truncate" 
-                                  title={`${fileName} | ${img.date_folder || '날짜 없음'} | 장면 ${img.story_scene || '?'}${img.metadataMissing ? ' | (Storage에서 가져옴)' : ''}${img.is_scene_representative ? ' | ⭐ 대표' : ''}`}
-                                >
-                                  {fileName}
-                                </div>
+                      </div>
+                      
+                      {/* 파일명 및 방문일자 */}
+                      <div className="mt-1">
+                        <div 
+                          className="text-xs text-gray-600 truncate" 
+                          title={`${fileName} | ${img.date_folder || '날짜 없음'} | 장면 ${img.story_scene || '?'}${img.metadataMissing ? ' | (Storage에서 가져옴)' : ''}${img.is_scene_representative ? ' | ⭐ 대표' : ''}`}
+                        >
+                          {fileName}
+                        </div>
+                        
+                        {/* 방문일자 표시 및 수정 */}
+                        <div className="mt-1 flex items-center gap-1">
+                          {editingVisitDateMap[img.id] !== undefined ? (
+                            // 수정 모드
+                            <div className="flex items-center gap-1 flex-1">
+                              <input
+                                type="date"
+                                value={editingVisitDateMap[img.id]}
+                                onChange={(e) => {
+                                  setEditingVisitDateMap(prev => ({
+                                    ...prev,
+                                    [img.id]: e.target.value
+                                  }));
+                                }}
+                                className="flex-1 text-[10px] px-1 py-0.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                disabled={updatingVisitDate}
+                                autoFocus
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  if (editingVisitDateMap[img.id]) {
+                                    handleUpdateVisitDate(img.id, editingVisitDateMap[img.id]);
+                                  }
+                                }}
+                                disabled={updatingVisitDate}
+                                className="px-1.5 py-0.5 text-[10px] bg-green-500 text-white rounded hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="저장"
+                              >
+                                ✓
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  setEditingVisitDateMap(prev => {
+                                    const newMap = { ...prev };
+                                    delete newMap[img.id];
+                                    return newMap;
+                                  });
+                                }}
+                                disabled={updatingVisitDate}
+                                className="px-1.5 py-0.5 text-[10px] bg-gray-400 text-white rounded hover:bg-gray-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="취소"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            // 표시 모드
+                            <div className="flex items-center gap-1 flex-1 group/date">
+                              <span className="text-[10px] text-gray-500 flex-1 truncate">
+                                {img.ai_tags?.find((tag: string) => tag.startsWith('visit-'))?.replace('visit-', '') || img.date_folder || '날짜 없음'}
+                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  const currentVisitDate = img.ai_tags?.find((tag: string) => tag.startsWith('visit-'))?.replace('visit-', '') || img.date_folder || new Date().toISOString().slice(0, 10);
+                                  setEditingVisitDateMap(prev => ({
+                                    ...prev,
+                                    [img.id]: currentVisitDate
+                                  }));
+                                }}
+                                className="opacity-0 group-hover/date:opacity-100 px-1.5 py-0.5 text-[10px] bg-blue-500 text-white rounded hover:bg-blue-600 transition-all"
+                                title="방문일자 수정"
+                              >
+                                수정
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                               </div>
                               );
                             })}
@@ -3563,11 +3646,90 @@ function CustomerImageModal({ customer, onClose }: {
                         </button>
                       </div>
                       </div>
-                      <div 
-                        className="mt-1 text-xs text-gray-600 truncate" 
-                        title={`${fileName} | ${img.date_folder || '날짜 없음'} | 장면 ${img.story_scene || '?'}${img.is_scene_representative ? ' | ⭐ 대표' : ''}`}
-                      >
-                        {fileName}
+                      
+                      {/* 파일명 및 방문일자 */}
+                      <div className="mt-1">
+                        <div 
+                          className="text-xs text-gray-600 truncate" 
+                          title={`${fileName} | ${img.date_folder || '날짜 없음'} | 장면 ${img.story_scene || '?'}${img.is_scene_representative ? ' | ⭐ 대표' : ''}`}
+                        >
+                          {fileName}
+                        </div>
+                        
+                        {/* 방문일자 표시 및 수정 */}
+                        <div className="mt-1 flex items-center gap-1">
+                          {editingVisitDateMap[img.id] !== undefined ? (
+                            // 수정 모드
+                            <div className="flex items-center gap-1 flex-1">
+                              <input
+                                type="date"
+                                value={editingVisitDateMap[img.id]}
+                                onChange={(e) => {
+                                  setEditingVisitDateMap(prev => ({
+                                    ...prev,
+                                    [img.id]: e.target.value
+                                  }));
+                                }}
+                                className="flex-1 text-[10px] px-1 py-0.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                disabled={updatingVisitDate}
+                                autoFocus
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  if (editingVisitDateMap[img.id]) {
+                                    handleUpdateVisitDate(img.id, editingVisitDateMap[img.id]);
+                                  }
+                                }}
+                                disabled={updatingVisitDate}
+                                className="px-1.5 py-0.5 text-[10px] bg-green-500 text-white rounded hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="저장"
+                              >
+                                ✓
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  setEditingVisitDateMap(prev => {
+                                    const newMap = { ...prev };
+                                    delete newMap[img.id];
+                                    return newMap;
+                                  });
+                                }}
+                                disabled={updatingVisitDate}
+                                className="px-1.5 py-0.5 text-[10px] bg-gray-400 text-white rounded hover:bg-gray-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="취소"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            // 표시 모드
+                            <div className="flex items-center gap-1 flex-1 group/date">
+                              <span className="text-[10px] text-gray-500 flex-1 truncate">
+                                {img.ai_tags?.find((tag: string) => tag.startsWith('visit-'))?.replace('visit-', '') || img.date_folder || '날짜 없음'}
+                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  const currentVisitDate = img.ai_tags?.find((tag: string) => tag.startsWith('visit-'))?.replace('visit-', '') || img.date_folder || new Date().toISOString().slice(0, 10);
+                                  setEditingVisitDateMap(prev => ({
+                                    ...prev,
+                                    [img.id]: currentVisitDate
+                                  }));
+                                }}
+                                className="opacity-0 group-hover/date:opacity-100 px-1.5 py-0.5 text-[10px] bg-blue-500 text-white rounded hover:bg-blue-600 transition-all"
+                                title="방문일자 수정"
+                              >
+                                수정
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -3813,14 +3975,14 @@ function CustomerImageModal({ customer, onClose }: {
                   )}
                 </div>
 
-                {/* 방문일자 수정 섹션 */}
+                {/* 방문일자 수정 섹션 (확대 모달에서도 수정 가능) */}
                 {selectedImageMetadata && (
                   <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg p-4 shadow-lg max-w-md mx-auto">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       방문일자
                     </label>
                     <div className="flex gap-2 items-center">
-                      {editingVisitDate === null ? (
+                      {editingVisitDateMap[selectedImageMetadata.id] === undefined ? (
                         <>
                           <input
                             type="date"
@@ -3837,7 +3999,10 @@ function CustomerImageModal({ customer, onClose }: {
                               const currentVisitDate = selectedImageMetadata.ai_tags
                                 ?.find((tag: string) => tag.startsWith('visit-'))
                                 ?.replace('visit-', '') || new Date().toISOString().slice(0, 10);
-                              setEditingVisitDate(currentVisitDate);
+                              setEditingVisitDateMap(prev => ({
+                                ...prev,
+                                [selectedImageMetadata.id]: currentVisitDate
+                              }));
                             }}
                             className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
                           >
@@ -3848,15 +4013,20 @@ function CustomerImageModal({ customer, onClose }: {
                         <>
                           <input
                             type="date"
-                            value={editingVisitDate}
-                            onChange={(e) => setEditingVisitDate(e.target.value)}
+                            value={editingVisitDateMap[selectedImageMetadata.id]}
+                            onChange={(e) => {
+                              setEditingVisitDateMap(prev => ({
+                                ...prev,
+                                [selectedImageMetadata.id]: e.target.value
+                              }));
+                            }}
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             disabled={updatingVisitDate}
                           />
                           <button
                             onClick={() => {
-                              if (selectedImageMetadata.id && editingVisitDate) {
-                                handleUpdateVisitDate(selectedImageMetadata.id, editingVisitDate);
+                              if (selectedImageMetadata.id && editingVisitDateMap[selectedImageMetadata.id]) {
+                                handleUpdateVisitDate(selectedImageMetadata.id, editingVisitDateMap[selectedImageMetadata.id]);
                               }
                             }}
                             disabled={updatingVisitDate}
@@ -3866,7 +4036,11 @@ function CustomerImageModal({ customer, onClose }: {
                           </button>
                           <button
                             onClick={() => {
-                              setEditingVisitDate(null);
+                              setEditingVisitDateMap(prev => {
+                                const newMap = { ...prev };
+                                delete newMap[selectedImageMetadata.id];
+                                return newMap;
+                              });
                             }}
                             disabled={updatingVisitDate}
                             className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -3876,6 +4050,9 @@ function CustomerImageModal({ customer, onClose }: {
                         </>
                       )}
                     </div>
+                    <p className="mt-2 text-xs text-gray-500">
+                      💡 썸네일에서도 빠르게 수정할 수 있습니다
+                    </p>
                   </div>
                 )}
               </div>
