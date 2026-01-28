@@ -31,7 +31,60 @@ export default async function handler(
 
     console.log('🔍 [OCR] Google Vision API 호출 시작:', imageUrl.substring(0, 100));
 
+    // 이미지 URL에서 이미지 데이터 가져오기
+    let imageData: string;
+    
+    // Google Cloud Storage URI (gs://)인 경우
+    if (imageUrl.startsWith('gs://')) {
+      // imageUri 방식 사용
+      imageData = imageUrl;
+    } else {
+      // HTTP/HTTPS URL인 경우 이미지를 다운로드하여 Base64로 변환
+      console.log('📥 [OCR] 이미지 다운로드 중:', imageUrl);
+      const imageResponse = await fetch(imageUrl);
+      
+      if (!imageResponse.ok) {
+        console.error('❌ [OCR] 이미지 다운로드 실패:', {
+          status: imageResponse.status,
+          statusText: imageResponse.statusText,
+          url: imageUrl
+        });
+        return res.status(500).json({
+          error: `이미지 다운로드 실패: ${imageResponse.status} ${imageResponse.statusText}`
+        });
+      }
+      
+      const imageBuffer = await imageResponse.arrayBuffer();
+      const base64Image = Buffer.from(imageBuffer).toString('base64');
+      imageData = base64Image;
+      console.log('✅ [OCR] 이미지 Base64 변환 완료:', {
+        size: base64Image.length,
+        originalUrl: imageUrl.substring(0, 100)
+      });
+    }
+
     // Google Vision API DOCUMENT_TEXT_DETECTION 호출
+    const requestBody: any = {
+      requests: [
+        {
+          image: imageUrl.startsWith('gs://') 
+            ? { source: { imageUri: imageUrl } }
+            : { content: imageData },
+          features: [
+            {
+              type: 'DOCUMENT_TEXT_DETECTION',
+              maxResults: 1
+            }
+          ]
+        }
+      ]
+    };
+
+    console.log('📤 [OCR] Google Vision API 요청:', {
+      method: imageUrl.startsWith('gs://') ? 'imageUri' : 'content (base64)',
+      url: imageUrl.substring(0, 100)
+    });
+
     const response = await fetch(
       `https://vision.googleapis.com/v1/images:annotate?key=${googleApiKey}`,
       {
@@ -39,23 +92,7 @@ export default async function handler(
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          requests: [
-            {
-              image: {
-                source: {
-                  imageUri: imageUrl
-                }
-              },
-              features: [
-                {
-                  type: 'DOCUMENT_TEXT_DETECTION',
-                  maxResults: 1
-                }
-              ]
-            }
-          ]
-        })
+        body: JSON.stringify(requestBody)
       }
     );
 
