@@ -1,5 +1,58 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
+## ✅ 완료: 고객 이미지 관리 개선 및 최적화 (2026-01-28)
+
+### 구현 완료 사항
+1. **고객 이미지 관리 모달 UI 개선** ✅
+   - 장면 배지 제거 (고객 대표 이미지 배지만 표시)
+   - 대표 이미지 배지 위치 통일 (`top-2 left-2`)
+   - z-index 및 클릭 이벤트 개선
+
+2. **고객 목록에서 제거 기능 수정** ✅
+   - `file_path` 기반 필터링 조건부 적용
+   - 목록 제거 기능과의 충돌 해결
+   - 제거된 이미지가 다시 표시되지 않도록 개선
+
+3. **전유근 고객 비디오 로드 실패 파일 정리** ✅
+   - 존재하지 않는 비디오 메타데이터 5개 삭제
+   - 실제 파일 확인 및 검증 (동영상 1개, 이미지 12개, 서류 1개)
+   - 정리 스크립트 작성
+
+4. **이미지 날짜 필터 및 표시 문제 수정** ✅
+   - `customer-{id}` 태그 없는 이미지에 태그 추가
+   - `date_folder` 추출 로직 개선 (file_path, filename에서도 추출)
+   - 날짜 필터 정상 작동
+
+5. **Storage 조회 성능 최적화** ✅
+   - 메타데이터 조회 결과가 있으면 Storage 조회 건너뛰기
+   - 날짜 필터가 없을 때 Storage 조회 제한
+   - 응답 시간 단축 및 서버 부하 감소
+
+6. **file_path 기반 필터링 활성화** ✅
+   - `customers/이름/` 경로의 모든 이미지 표시
+   - 갤러리와 고객 관리의 일관성 향상
+   - 태그 없이도 이미지 표시 가능
+
+### 변경된 파일
+- `pages/admin/customers/index.tsx` (수정)
+- `pages/api/admin/upload-customer-image.js` (수정)
+- `pages/api/admin/remove-customer-image.ts` (수정)
+- `scripts/check-jeonyugun-videos.js` (신규)
+- `scripts/cleanup-jeonyugun-videos.js` (신규)
+- `scripts/verify-jeonyugun-media-count.js` (신규)
+- `scripts/check-jeonyugeun-20260128-image.js` (신규)
+- `scripts/add-customer-tag-to-jeonyugeun-20260128.js` (신규)
+- `scripts/check-ahnheeja-20260128-images.js` (신규)
+- `scripts/add-customer-tag-to-ahnheeja-20260128.js` (신규)
+- `docs/customer-representative-button-duplicate-fix-plan.md` (신규)
+- `docs/customer-list-remove-fix-plan.md` (신규)
+- `docs/customer-image-date-filter-fix-plan.md` (신규)
+- `docs/storage-performance-and-customer-tag-fix-plan.md` (신규)
+- `docs/customer-image-filepath-filtering-improvement-plan.md` (신규)
+- `docs/customer-image-visit-date-edit-plan.md` (신규)
+
+---
+
 ## ✅ 완료: 전유근 고객 비디오 로드 실패 파일 정리 (2026-01-28)
 
 ### 문제
