@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ImageMetadata, MetadataForm, FieldConfig } from './types/metadata.types';
 import { FieldGroup } from './components/FieldGroup';
 import { SEOScore } from './components/SEOScore';
