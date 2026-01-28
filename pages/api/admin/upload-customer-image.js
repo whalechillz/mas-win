@@ -475,56 +475,46 @@ export default async function handler(req, res) {
         });
       }
       
-      // 실제 Storage 파일 존재 여부 확인 (잔상 이미지 제거)
-      // ⚠️ file_path에 파일명이 없는 경우 filename을 사용하여 확인
+      // file_path에 파일명이 없는 경우 수정 (파일 존재 확인 전에 수정)
+      // ⚠️ 파일 존재 확인을 건너뛰고 모든 이미지를 포함 (더 관대한 접근)
+      // 실제 Storage에 파일이 없어도 메타데이터가 있으면 표시 (나중에 수동으로 처리 가능)
       if (filteredMetadataImages.length > 0) {
-        console.log('🔍 [파일 존재 확인] 시작:', {
+        console.log('📝 [file_path 수정] 시작:', {
           count: filteredMetadataImages.length
         });
         
-        const verifiedImages = await Promise.all(
-          filteredMetadataImages.map(async (img) => {
-            const exists = await verifyFileExists(img);
-            if (!exists) {
-              console.warn('⚠️ [잔상 이미지 제거] Storage에 존재하지 않는 이미지 메타데이터:', {
-                imageId: img.id,
-                file_path: img.file_path?.substring(0, 100),
-                filename: img.filename
-              });
-              return null; // 존재하지 않으면 제외
-            }
+        filteredMetadataImages = filteredMetadataImages.map((img) => {
+          // file_path에 파일명이 없는 경우 수정
+          if (img.file_path) {
+            const pathParts = img.file_path.split('/');
+            const lastPart = pathParts[pathParts.length - 1];
+            const isDateFolder = /^\d{4}-\d{2}-\d{2}$/.test(lastPart);
             
-            // file_path에 파일명이 없는 경우 수정
-            if (img.file_path) {
-              const pathParts = img.file_path.split('/');
-              const lastPart = pathParts[pathParts.length - 1];
-              const isDateFolder = /^\d{4}-\d{2}-\d{2}$/.test(lastPart);
-              
-              if (isDateFolder || !lastPart.includes('.')) {
-                const fileName = img.filename || img.english_filename || img.original_filename;
-                if (fileName) {
-                  img.file_path = `${img.file_path}/${fileName}`;
-                  console.log('📝 [file_path 수정] 파일명 추가:', {
-                    imageId: img.id,
-                    originalFilePath: pathParts.join('/'),
-                    correctedFilePath: img.file_path.substring(0, 100),
-                    fileName
-                  });
-                }
+            if (isDateFolder || !lastPart.includes('.')) {
+              const fileName = img.filename || img.english_filename || img.original_filename;
+              if (fileName) {
+                img.file_path = `${img.file_path}/${fileName}`;
+                console.log('📝 [file_path 수정] 파일명 추가:', {
+                  imageId: img.id,
+                  originalFilePath: pathParts.join('/'),
+                  correctedFilePath: img.file_path.substring(0, 100),
+                  fileName
+                });
+              } else {
+                console.warn('⚠️ [file_path 수정] filename 없음:', {
+                  imageId: img.id,
+                  file_path: img.file_path
+                });
+                // filename이 없어도 포함 (나중에 수동 처리 가능)
               }
             }
-            
-            return img;
-          })
-        );
+          }
+          
+          return img;
+        });
         
-        // null 제거
-        filteredMetadataImages = verifiedImages.filter(img => img !== null);
-        
-        console.log('✅ [파일 존재 확인] 완료:', {
-          before: verifiedImages.length,
-          after: filteredMetadataImages.length,
-          removed: verifiedImages.length - filteredMetadataImages.length
+        console.log('✅ [file_path 수정] 완료:', {
+          count: filteredMetadataImages.length
         });
       }
 
