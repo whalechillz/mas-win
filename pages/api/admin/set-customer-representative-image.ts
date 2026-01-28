@@ -97,7 +97,7 @@ export default async function handler(
     console.log('🔍 [대표 이미지 설정 API] 이미지 정보 조회 시작:', { imageId });
     const { data: image, error: imageError } = await supabase
       .from('image_assets')
-      .select('id, file_path, ai_tags, is_customer_representative, filename, cdn_url')
+      .select('id, file_path, ai_tags, is_customer_representative, filename, cdn_url, english_filename, original_filename')
       .eq('id', imageId)
       .maybeSingle();
 
@@ -198,29 +198,66 @@ export default async function handler(
         const lastPart = pathParts[pathParts.length - 1];
         const isDateFolder = /^\d{4}-\d{2}-\d{2}$/.test(lastPart);
         
-        // file_path가 폴더 경로만 있으면 파일명 추가 (이미지 조회 시 filename 사용)
+        let actualFilePath = image.file_path;
+        
+        // file_path가 폴더 경로만 있으면 파일명 추가
         if (isDateFolder || !lastPart.includes('.')) {
-          // filename에서 파일명 추출 (이미지 조회 시 가져온 정보 사용)
-          // 여기서는 image 객체에 filename이 없을 수 있으므로, file_path를 그대로 사용
-          console.warn('⚠️ [대표 이미지 설정 API] file_path에 파일명 없음:', {
-            imageId,
-            file_path: image.file_path
-          });
+          const fileName = image.filename || image.english_filename || image.original_filename;
+          if (fileName) {
+            actualFilePath = `${image.file_path}/${fileName}`;
+            console.log('📝 [대표 이미지 설정 API] file_path에 파일명 추가:', {
+              imageId,
+              originalFilePath: image.file_path,
+              correctedFilePath: actualFilePath.substring(0, 100),
+              fileName
+            });
+          } else {
+            console.warn('⚠️ [대표 이미지 설정 API] file_path에 파일명 없고 filename도 없음:', {
+              imageId,
+              file_path: image.file_path
+            });
+            // filename이 없으면 cdn_url 업데이트하지 않음 (기존 cdn_url 유지)
+            actualFilePath = null;
+          }
         }
         
         // cdn_url 생성 (file_path 기반)
-        const { data: { publicUrl } } = supabase.storage
-          .from('blog-images')
-          .getPublicUrl(image.file_path);
-        
-        updateData.cdn_url = publicUrl;
-        updateData.file_path = image.file_path; // file_path도 명시적으로 업데이트
-        
-        console.log('📝 [대표 이미지 설정 API] file_path와 cdn_url 업데이트:', {
-          imageId,
-          file_path: image.file_path.substring(0, 100),
-          cdn_url: publicUrl.substring(0, 100)
-        });
+        if (actualFilePath) {
+          const { data: { publicUrl } } = supabase.storage
+            .from('blog-images')
+            .getPublicUrl(actualFilePath);
+          
+          // 새로 생성한 cdn_url이 이미 다른 이미지에 존재하는지 확인
+          const { data: existingImage, error: checkError } = await supabase
+            .from('image_assets')
+            .select('id, filename')
+            .eq('cdn_url', publicUrl)
+            .neq('id', imageId)
+            .maybeSingle();
+          
+          if (existingImage) {
+            console.warn('⚠️ [대표 이미지 설정 API] cdn_url 중복 발견, 기존 이미지의 cdn_url 제거:', {
+              newImageId: imageId,
+              existingImageId: existingImage.id,
+              cdn_url: publicUrl.substring(0, 100)
+            });
+            
+            // 기존 이미지의 cdn_url을 null로 설정 (중복 제거)
+            await supabase
+              .from('image_assets')
+              .update({ cdn_url: null })
+              .eq('id', existingImage.id);
+          }
+          
+          updateData.cdn_url = publicUrl;
+          updateData.file_path = actualFilePath; // 수정된 file_path도 업데이트
+          
+          console.log('📝 [대표 이미지 설정 API] file_path와 cdn_url 업데이트:', {
+            imageId,
+            file_path: actualFilePath.substring(0, 100),
+            cdn_url: publicUrl.substring(0, 100)
+          });
+        }
       }
       
       const { data: setData, error: setError } = await supabase
