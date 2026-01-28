@@ -24,21 +24,48 @@ export async function detectCustomerImageType(
   altText?: string | null,
   description?: string | null
 ): Promise<ImageTypeDetectionResult> {
+  console.log('🔍 [장면 감지 시작] detectCustomerImageType 호출:', {
+    fileName,
+    filePath,
+    metadataType,
+    altText: altText?.substring(0, 50),
+    description: description?.substring(0, 50)
+  });
+  
   // 1. 파일명/경로 기반 빠른 감지 (비용 절약)
+  console.log('📝 [1단계] 파일명 기반 감지 시작');
   const filenameDetection = detectFromFilename(fileName, filePath);
+  console.log('📝 [1단계] 파일명 기반 감지 결과:', {
+    scene: filenameDetection.scene,
+    type: filenameDetection.type,
+    confidence: filenameDetection.confidence,
+    detectionMethod: filenameDetection.detectionMethod
+  });
+  
   if (filenameDetection.confidence >= 0.9) {
+    console.log('✅ [1단계] 파일명 기반 감지 결과 사용 (신뢰도 >= 0.9)');
     return filenameDetection;
   }
   
   // 2. 이미지 내용 분석 (OpenAI Vision API)
+  console.log('📡 [2단계] AI 이미지 내용 분석 시작');
   try {
     const aiAnalysis = await analyzeImageContent(imageUrl, metadataType);
+    console.log('📡 [2단계] AI 분석 결과 (처음 200자):', aiAnalysis.substring(0, 200));
     
-    // 3. 스토리 기반 장면 감지 (프리셋 기반)
+    // 3. 스토리 기반 장면 감지 (프리셋 기반) - 최우선 적용
+    console.log('🎬 [3단계] 스토리 기반 장면 감지 시작');
     const storySceneDetection = detectStorySceneFromImage(aiAnalysis, altText, description);
+    console.log('🎬 [3단계] 스토리 기반 감지 결과:', {
+      scene: storySceneDetection.scene,
+      type: storySceneDetection.type,
+      confidence: storySceneDetection.confidence,
+      keywords: storySceneDetection.keywords
+    });
     
-    // 스토리 기반 감지 결과가 높은 신뢰도면 사용
-    if (storySceneDetection.confidence >= 0.8) {
+    // 스토리 기반 감지 결과가 높은 신뢰도면 우선 사용
+    if (storySceneDetection.confidence >= 0.7) {
+      console.log('✅ [3단계] 스토리 기반 감지 결과 사용 (신뢰도 >= 0.7)');
       return {
         ...storySceneDetection,
         detectionMethod: 'story-scene'
@@ -46,24 +73,50 @@ export async function detectCustomerImageType(
     }
     
     // 기존 AI 분석 결과
+    console.log('🤖 [4단계] 기존 AI 분석 결과 생성');
     const aiDetection = detectFromAIAnalysis(aiAnalysis);
+    console.log('🤖 [4단계] 기존 AI 분석 결과:', {
+      scene: aiDetection.scene,
+      type: aiDetection.type,
+      confidence: aiDetection.confidence
+    });
     
     // AI 분석 결과가 높은 신뢰도면 사용
     if (aiDetection.confidence >= 0.8) {
+      console.log('✅ [4단계] 기존 AI 분석 결과 사용 (신뢰도 >= 0.8)');
       return {
         ...aiDetection,
         detectionMethod: 'ai-analysis'
       };
     }
     
-    // 파일명 감지와 AI 분석 결과 결합
-    if (filenameDetection.confidence >= 0.7) {
+    // 파일명 감지와 AI 분석 결과 결합 (단, 기본값 S3은 피함)
+    if (filenameDetection.confidence >= 0.7 && filenameDetection.scene !== 3) {
+      console.log('✅ [5단계] 파일명 기반 감지 결과 사용 (신뢰도 >= 0.7, S3 아님)');
       return filenameDetection;
     }
     
+    // 기본값 S3 대신 스토리 기반 감지 결과 사용 (신뢰도가 낮아도)
+    if (storySceneDetection.confidence >= 0.5) {
+      console.log('⚠️ [5단계] 낮은 신뢰도지만 스토리 기반 감지 결과 사용 (S3 피하기):', {
+        scene: storySceneDetection.scene,
+        type: storySceneDetection.type,
+        confidence: storySceneDetection.confidence
+      });
+      return {
+        ...storySceneDetection,
+        detectionMethod: 'story-scene'
+      };
+    }
+    
+    console.log('⚠️ [최종] 기존 AI 분석 결과 반환 (신뢰도 낮음):', {
+      scene: aiDetection.scene,
+      type: aiDetection.type,
+      confidence: aiDetection.confidence
+    });
     return aiDetection;
   } catch (error) {
-    console.error('이미지 분석 실패, 파일명 기반 감지 사용:', error);
+    console.error('❌ [에러] 이미지 분석 실패, 파일명 기반 감지 사용:', error);
     return filenameDetection;
   }
 }
@@ -171,12 +224,14 @@ function detectFromFilename(fileName: string, filePath?: string): ImageTypeDetec
     };
   }
   
-  // 기본값: 마스골프 매장 (s3)
+  // 기본값: 골프장 이미지로 가정하고 S1로 분류 (S3 기본값 제거)
+  // 골프 관련 키워드가 전혀 없어도 기본값으로 S1 사용
+  console.log('⚠️ [파일명 감지] 기본값: S1 분류 (S3 기본값 제거)');
   return {
-    scene: 3,
-    type: 'sita',
-    confidence: 0.5,
-    keywords: ['매장', 'store'],
+    scene: 1,
+    type: 'happy',
+    confidence: 0.4,
+    keywords: ['golf-course', 'solo-shot'],
     detectionMethod: 'default'
   };
 }
@@ -226,27 +281,47 @@ function detectStorySceneFromImage(
   altText?: string | null,
   description?: string | null
 ): ImageTypeDetectionResult {
-  const lowerAnalysis = (aiAnalysis + ' ' + (altText || '') + ' ' + (description || '')).toLowerCase();
+  const combinedText = aiAnalysis + ' ' + (altText || '') + ' ' + (description || '');
+  const lowerAnalysis = combinedText.toLowerCase();
+  
+  console.log('🎬 [스토리 감지] 분석 텍스트 (처음 300자):', combinedText.substring(0, 300));
   
   // 장면1 (S1): 행복한 주인공 - 골프장 단독샷
   // 특징: 골프장 + 단독샷 + 웃는 모습/밝은 표정 + 여유롭고 평화로운 골프 순간
-  if (
-    (lowerAnalysis.includes('골프장') || lowerAnalysis.includes('golf course') || 
-     lowerAnalysis.includes('golf course') || lowerAnalysis.includes('코스') ||
-     lowerAnalysis.includes('그린') || lowerAnalysis.includes('green') ||
-     lowerAnalysis.includes('페어웨이') || lowerAnalysis.includes('fairway')) &&
-    (lowerAnalysis.includes('단독') || lowerAnalysis.includes('혼자') || 
-     lowerAnalysis.includes('solo') || lowerAnalysis.includes('alone') ||
-     (!lowerAnalysis.includes('여러') && !lowerAnalysis.includes('그룹') && !lowerAnalysis.includes('group'))) &&
-    (lowerAnalysis.includes('웃') || lowerAnalysis.includes('행복') || 
-     lowerAnalysis.includes('밝') || lowerAnalysis.includes('미소') ||
-     lowerAnalysis.includes('smile') || lowerAnalysis.includes('happy') || 
-     lowerAnalysis.includes('bright') || lowerAnalysis.includes('cheerful') ||
-     lowerAnalysis.includes('여유') || lowerAnalysis.includes('평화'))
-  ) {
+  // 골프장 키워드가 있으면 우선적으로 S1/S6으로 분류 (S3 기본값 피함)
+  const hasGolfCourse = lowerAnalysis.includes('골프장') || lowerAnalysis.includes('golf course') || 
+                        lowerAnalysis.includes('코스') || lowerAnalysis.includes('course') ||
+                        lowerAnalysis.includes('그린') || lowerAnalysis.includes('green') ||
+                        lowerAnalysis.includes('페어웨이') || lowerAnalysis.includes('fairway') ||
+                        lowerAnalysis.includes('골프') || lowerAnalysis.includes('golf') ||
+                        lowerAnalysis.includes('fairway') || lowerAnalysis.includes('tee') ||
+                        lowerAnalysis.includes('티샷') || lowerAnalysis.includes('tee shot');
+  
+  const hasHappyExpression = lowerAnalysis.includes('웃') || lowerAnalysis.includes('행복') || 
+                             lowerAnalysis.includes('밝') || lowerAnalysis.includes('미소') ||
+                             lowerAnalysis.includes('smile') || lowerAnalysis.includes('happy') || 
+                             lowerAnalysis.includes('bright') || lowerAnalysis.includes('cheerful') ||
+                             lowerAnalysis.includes('여유') || lowerAnalysis.includes('평화') ||
+                             lowerAnalysis.includes('즐거') || lowerAnalysis.includes('만족');
+  
+  const isSolo = !lowerAnalysis.includes('여러 사람') && !lowerAnalysis.includes('여러명') &&
+                 !lowerAnalysis.includes('그룹') && !lowerAnalysis.includes('group') &&
+                 !lowerAnalysis.includes('multiple people') && !lowerAnalysis.includes('함께');
+  
+  const hasMultiplePeople = lowerAnalysis.includes('여러') || lowerAnalysis.includes('많은 사람') || 
+                            lowerAnalysis.includes('multiple people') || lowerAnalysis.includes('배경에 사람') ||
+                            lowerAnalysis.includes('다른 사람') || lowerAnalysis.includes('other people');
+  
+  // 골프장 + 행복한 표정이면 S1 또는 S6으로 분류
+  if (hasGolfCourse && hasHappyExpression) {
+    console.log('🎬 [스토리 감지] 골프장 + 행복한 표정 감지됨', {
+      hasGolfCourse,
+      hasHappyExpression,
+      hasMultiplePeople
+    });
     // 배경에 여러 사람이 있으면 S6, 없으면 S1
-    if (lowerAnalysis.includes('여러') || lowerAnalysis.includes('많은 사람') || 
-        lowerAnalysis.includes('multiple people') || lowerAnalysis.includes('배경에 사람')) {
+    if (hasMultiplePeople) {
+      console.log('✅ [스토리 감지] S6 분류 (골프장 + 행복 + 여러 사람)');
       return {
         scene: 6,
         type: 'happy',
@@ -255,6 +330,7 @@ function detectStorySceneFromImage(
         detectionMethod: 'story-scene'
       };
     }
+    console.log('✅ [스토리 감지] S1 분류 (골프장 + 행복 + 단독샷)');
     return {
       scene: 1,
       type: 'happy',
@@ -263,6 +339,24 @@ function detectStorySceneFromImage(
       detectionMethod: 'story-scene'
     };
   }
+  
+  // 골프장이 있지만 표정 정보가 없으면 기본적으로 S1로 분류 (S3 피함)
+  if (hasGolfCourse && !hasHappyExpression && !lowerAnalysis.includes('어둡') && !lowerAnalysis.includes('dark')) {
+    console.log('✅ [스토리 감지] S1 분류 (골프장 있음, 표정 정보 없음, S3 피함)');
+    return {
+      scene: 1,
+      type: 'happy',
+      confidence: 0.7,
+      keywords: ['golf-course', 'solo-shot', 'golf'],
+      detectionMethod: 'story-scene'
+    };
+  }
+  
+  console.log('🎬 [스토리 감지] 골프장/행복 조건 불일치:', {
+    hasGolfCourse,
+    hasHappyExpression,
+    hasMultiplePeople
+  });
   
   // 장면2 (S2): 여러 사람 등장
   // 특징: 골프장 + 여러 사람 + 그룹 사진
@@ -381,11 +475,29 @@ function detectStorySceneFromImage(
     };
   }
   
-  // 기본값: 장면1 (골프장 단독샷)
+  // 기본값: 장면1 (골프장 단독샷) - S3 기본값 피함
+  // 골프장 관련 키워드가 조금이라도 있으면 S1로 분류
+  const hasAnyGolfKeyword = lowerAnalysis.includes('골프') || lowerAnalysis.includes('golf') || 
+                            lowerAnalysis.includes('코스') || lowerAnalysis.includes('course') ||
+                            lowerAnalysis.includes('그린') || lowerAnalysis.includes('green');
+  
+  if (hasAnyGolfKeyword) {
+    console.log('✅ [스토리 감지] 기본값: S1 분류 (골프 키워드 발견, S3 피함)');
+    return {
+      scene: 1,
+      type: 'happy',
+      confidence: 0.6,
+      keywords: ['golf-course', 'solo-shot'],
+      detectionMethod: 'story-scene'
+    };
+  }
+  
+  // 골프 관련 키워드가 전혀 없어도 기본값으로 S1 사용 (S3 기본값 완전 제거)
+  console.log('⚠️ [스토리 감지] 기본값: S1 분류 (골프 키워드 없음, S3 기본값 제거)');
   return {
     scene: 1,
     type: 'happy',
-    confidence: 0.5,
+    confidence: 0.4,
     keywords: ['golf-course', 'solo-shot'],
     detectionMethod: 'story-scene'
   };
@@ -481,12 +593,13 @@ function detectFromAIAnalysis(aiKeywords: string): ImageTypeDetectionResult {
     };
   }
   
-  // 기본값: 마스골프 매장 (s3)
+  // 기본값: 골프장 이미지로 가정하고 S1로 분류 (S3 기본값 제거)
+  console.log('⚠️ [AI 분석] 기본값: S1 분류 (S3 기본값 제거)');
   return {
-    scene: 3,
-    type: 'sita',
-    confidence: 0.6,
-    keywords: ['매장', 'store'],
+    scene: 1,
+    type: 'happy',
+    confidence: 0.5,
+    keywords: ['golf-course', 'solo-shot'],
     detectionMethod: 'ai-analysis'
   };
 }

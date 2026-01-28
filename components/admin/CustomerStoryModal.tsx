@@ -26,6 +26,8 @@ interface ImageMetadata {
   english_filename?: string;
   original_filename?: string;
   date_folder?: string;
+  is_scanned_document?: boolean;
+  document_type?: string;
 }
 
 interface SceneDescription {
@@ -56,12 +58,9 @@ const normalizeDisplayFileName = (name: string | null | undefined): string => {
 };
 
 export default function CustomerStoryModal({ customer, onClose }: CustomerStoryModalProps) {
-  const [activeTab, setActiveTab] = useState<'storyboard' | 'scene-detail' | 'reviews'>('storyboard');
-  const [viewMode, setViewMode] = useState<'storyboard' | 'list'>('storyboard');
+  const [activeTab, setActiveTab] = useState<'scene-detail' | 'reviews'>('scene-detail');
   const [images, setImages] = useState<ImageMetadata[]>([]);
   const [sceneDescriptions, setSceneDescriptions] = useState<Record<number, string>>({});
-  const [editingScene, setEditingScene] = useState<number | null>(null);
-  const [editingDescription, setEditingDescription] = useState<Record<number, string>>({});
   const [draggedImage, setDraggedImage] = useState<number | string | null>(null);
   const [dragOverScene, setDragOverScene] = useState<number | null>(null);
   const [dragOverUnassigned, setDragOverUnassigned] = useState(false);
@@ -250,13 +249,19 @@ export default function CustomerStoryModal({ customer, onClose }: CustomerStoryM
   const handleDragStart = (e: React.DragEvent, imageId: number | null, imageUrl?: string) => {
     // 고유 식별자 생성: imageId가 있으면 id, 없으면 imageUrl 사용
     const identifier = imageId !== null ? imageId : (imageUrl || 'unknown');
-    console.log('🔍 드래그 시작:', { imageId, imageUrl, identifier });
+    console.log('🔍 [CustomerStoryModal] 드래그 시작:', { imageId, imageUrl, identifier });
     setDraggedImage(identifier);
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('imageId', String(imageId || ''));
+    
+    // 개별 키로 데이터 저장
+    if (imageId !== null) {
+      e.dataTransfer.setData('imageId', imageId.toString());
+    }
     if (imageUrl) {
       e.dataTransfer.setData('imageUrl', imageUrl);
     }
+    // 추가: text/plain에도 JSON으로 저장 (하위 호환성)
+    e.dataTransfer.setData('text/plain', JSON.stringify({ imageId, imageUrl }));
   };
 
   // 드래그 종료 핸들러
@@ -421,9 +426,10 @@ export default function CustomerStoryModal({ customer, onClose }: CustomerStoryM
         if (image && image.id) {
           console.log('✅ [드롭 처리] image.id가 있음, updateImageScene 호출:', {
             imageId: image.id,
+            imageUrl: image.image_url,
             targetScene
           });
-          await updateImageScene(image.id, targetScene);
+          await updateImageScene(image.id, targetScene, image.image_url);
           console.log('✅ [드롭 처리] updateImageScene 완료, 이미지 재로드 시작');
           await loadCustomerImages();
           console.log('✅ [드롭 처리] 완료 - image.id로 업데이트 성공');
@@ -485,8 +491,8 @@ export default function CustomerStoryModal({ customer, onClose }: CustomerStoryM
         }
       } else if (imageId && !isNaN(imageId)) {
         // targetScene이 null이면 미할당 영역으로 이동
-        console.log('✅ [드롭 처리] imageId로 업데이트:', { imageId, targetScene });
-        await updateImageScene(imageId, targetScene);
+        console.log('✅ [드롭 처리] imageId로 업데이트:', { imageId, imageUrl, targetScene });
+        await updateImageScene(imageId, targetScene, imageUrl);
         await loadCustomerImages();
         console.log('✅ [드롭 처리] 완료 - imageId로 업데이트 성공');
       } else {
@@ -706,63 +712,53 @@ export default function CustomerStoryModal({ customer, onClose }: CustomerStoryM
     }
   };
 
-  const updateImageScene = async (imageId: number, scene: number | null) => {
+  const updateImageScene = async (imageId: number | string | null, scene: number | null, imageUrl?: string) => {
     try {
+      const requestBody: any = { storyScene: scene };
+      
+      // imageId가 UUID 형식인지 확인
+      if (imageId && typeof imageId === 'string' && imageId.length === 36 && imageId.includes('-')) {
+        requestBody.imageId = imageId;
+      } else if (imageId) {
+        // 숫자 ID이거나 다른 형식인 경우 imageUrl 우선 사용
+        if (imageUrl) {
+          requestBody.imageUrl = imageUrl;
+        } else if (imageId) {
+          requestBody.imageId = imageId;
+        }
+      } else if (imageUrl) {
+        requestBody.imageUrl = imageUrl;
+      } else {
+        throw new Error('imageId 또는 imageUrl이 필요합니다.');
+      }
+      
+      console.log('📤 [API 요청] update-image-scene:', requestBody);
+      
       const response = await fetch('/api/admin/update-image-scene', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageId, storyScene: scene })
+        body: JSON.stringify(requestBody)
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `업데이트 실패 (${response.status})`);
+      }
       
       const result = await response.json();
       if (!result.success) {
         throw new Error(result.error || '업데이트 실패');
       }
-    } catch (error) {
-      console.error('이미지 장면 업데이트 오류:', error);
-      alert('이미지 장면 업데이트에 실패했습니다.');
-    }
-  };
-
-  const saveSceneDescription = async (sceneNumber: number, description: string) => {
-    try {
-      const response = await fetch('/api/admin/customer-story-scenes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerId: customer.id,
-          sceneNumber,
-          description
-        })
-      });
       
-      const result = await response.json();
-      if (result.success) {
-        setSceneDescriptions(prev => ({
-          ...prev,
-          [sceneNumber]: description
-        }));
-      } else {
-        throw new Error(result.error || '저장 실패');
-      }
+      console.log('✅ [API 성공] 이미지 장면 업데이트 완료:', result);
     } catch (error) {
-      console.error('장면 설명 저장 오류:', error);
-      alert('장면 설명 저장에 실패했습니다.');
+      console.error('❌ [API 에러] 이미지 장면 업데이트 오류:', error);
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      alert(`이미지 장면 업데이트에 실패했습니다: ${errorMessage}`);
+      throw error;
     }
   };
 
-  const handleDescriptionChange = (sceneNumber: number, value: string) => {
-    setEditingDescription(prev => ({
-      ...prev,
-      [sceneNumber]: value
-    }));
-  };
-
-  const handleDescriptionSave = async (sceneNumber: number) => {
-    const description = editingDescription[sceneNumber] || '';
-    await saveSceneDescription(sceneNumber, description);
-    setEditingScene(null);
-  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -782,16 +778,6 @@ export default function CustomerStoryModal({ customer, onClose }: CustomerStoryM
         <div className="border-b border-gray-200">
           <nav className="flex space-x-4 px-4 items-center justify-between">
             <div className="flex space-x-4">
-              <button
-                onClick={() => setActiveTab('storyboard')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'storyboard'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                스토리보드
-              </button>
               <button
                 onClick={() => setActiveTab('scene-detail')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -841,62 +827,21 @@ export default function CustomerStoryModal({ customer, onClose }: CustomerStoryM
         <div className="flex-1 overflow-y-auto p-4">
           {loading ? (
             <div className="text-center py-8 text-gray-500">로딩 중...</div>
-          ) : activeTab === 'storyboard' ? (
-            <>
-              {/* 스토리보드 상단: 블로그 생성 버튼 */}
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setViewMode('storyboard')}
-                    className={`px-4 py-2 rounded ${
-                      viewMode === 'storyboard' 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-gray-200 hover:bg-gray-300'
-                  }`}
-                >
-                  스토리보드
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`px-4 py-2 rounded ${
-                    viewMode === 'list' 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-gray-200 hover:bg-gray-300'
-                  }`}
-                >
-                  목록보기
-                </button>
-                </div>
-              </div>
-              {viewMode === 'storyboard' ? (
-                <StoryboardView
-                  unassignedImages={unassignedImages}
-                  imagesByScene={imagesByScene}
-                  sceneDescriptions={sceneDescriptions}
-                  editingScene={editingScene}
-                  editingDescription={editingDescription}
-                  onDescriptionChange={handleDescriptionChange}
-                  onEditClick={setEditingScene}
-                  onSave={handleDescriptionSave}
-                  onDragStart={handleDragStart}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  onRemoveFromScene={handleRemoveFromScene}
-                  onSetSceneRepresentative={handleSetSceneRepresentative}
-                  onUnsetSceneRepresentative={handleUnsetSceneRepresentative}
-                  onDragEnd={handleDragEnd}
-                  draggedImage={draggedImage}
-                  dragOverScene={dragOverScene}
-                  dragOverUnassigned={dragOverUnassigned}
-                  setDragOverUnassigned={setDragOverUnassigned}
-                />
-              ) : (
-                <ListView images={images} />
-              )}
-            </>
           ) : activeTab === 'scene-detail' ? (
-            <SceneDetailView customerId={customer.id} />
+            <SceneDetailView 
+              customerId={customer.id}
+              images={images}
+              onImagesChange={loadCustomerImages}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onRemoveFromScene={handleRemoveFromScene}
+              draggedImage={draggedImage}
+              dragOverScene={dragOverScene}
+              dragOverUnassigned={dragOverUnassigned}
+              setDragOverUnassigned={setDragOverUnassigned}
+            />
           ) : activeTab === 'reviews' ? (
             <ReviewTabView customerId={customer.id} />
           ) : null}
@@ -1416,7 +1361,7 @@ function StoryboardView({
                         window.dispatchEvent(event);
                       } : undefined}
                       onClick={!isVideoFile ? () => {
-                        const normalizedFileName = normalizeDisplayFileName(image.english_filename || image.original_filename);
+                        const normalizedFileName = normalizeDisplayFileName(image.filename || image.english_filename || image.original_filename);
                         const event = new CustomEvent('openImageModal', { detail: { url: image.image_url, fileName: normalizedFileName } });
                         window.dispatchEvent(event);
                       } : undefined}
@@ -1477,7 +1422,7 @@ function StoryboardView({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          onRemoveFromScene(image.id);
+                          onRemoveFromScene(image.id, image.image_url);
                         }}
                         className="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
                         title="장면에서 제거"

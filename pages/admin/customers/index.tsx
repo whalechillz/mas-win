@@ -7,12 +7,21 @@ import CustomerMessageHistoryModal from '../../../components/admin/CustomerMessa
 import CustomerStoryModal from '../../../components/admin/CustomerStoryModal';
 import MediaRenderer from '../../../components/admin/MediaRenderer';
 import ReviewTimelineView from '../../../components/admin/customers/ReviewTimelineView';
+import FolderImagePicker from '../../../components/admin/FolderImagePicker';
 import { useRouter } from 'next/router';
 import { createClient } from '@supabase/supabase-js';
+
+// Supabase 클라이언트 (파일 존재 확인용)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 import { uploadImageToSupabase } from '../../../lib/image-upload-utils';
-import { generateCustomerImageFileName, getCustomerInitials } from '../../../lib/customer-image-filename-generator';
+import { generateCustomerImageFileName, getCustomerInitials, generateFinalCustomerImageFileName } from '../../../lib/customer-image-filename-generator';
 import { generateCustomerFolderName, getCustomerNameEn } from '../../../lib/customer-folder-name-generator';
+import { extractImageNameFromUrl } from '../../../lib/image-url-to-name-converter';
 import { extractProvince, extractCity } from '../../../lib/address-utils';
+import CustomerImageUploadModal from '../../../components/admin/CustomerImageUploadModal';
+import ImageMetadataOverlay from '../../../components/admin/ImageMetadataOverlay';
 
 type Customer = {
   id: number;
@@ -50,6 +59,8 @@ type Customer = {
   last_service_date?: string | null;
   // 썸네일 이미지
   thumbnailUrl?: string | null;
+  // 폴더명
+  folder_name?: string | null;
 };
 
 export default function CustomersPage() {
@@ -966,14 +977,26 @@ export default function CustomersPage() {
                   <tr key={c.id} className="border-t">
                     <td className="p-2">
                       {c.thumbnailUrl ? (
-                        <img
-                          src={c.thumbnailUrl}
-                          alt={c.name}
-                          className="w-12 h-12 object-cover rounded"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
+                        <div className="relative w-12 h-12">
+                          <img
+                            src={c.thumbnailUrl}
+                            alt={c.name}
+                            className="w-12 h-12 object-cover rounded"
+                            onError={(e) => {
+                              // 이미지 로드 실패 시 placeholder로 대체
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              // 부모 요소에 placeholder 추가 (이미 없으면)
+                              const parent = target.parentElement;
+                              if (parent && !parent.querySelector('.thumbnail-placeholder')) {
+                                const placeholder = document.createElement('div');
+                                placeholder.className = 'w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs thumbnail-placeholder absolute top-0 left-0';
+                                placeholder.textContent = '없음';
+                                parent.appendChild(placeholder);
+                              }
+                            }}
+                          />
+                        </div>
                       ) : (
                         <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
                           없음
@@ -2116,16 +2139,41 @@ function CustomerImageModal({ customer, onClose }: {
   const [visitDate, setVisitDate] = useState(new Date().toISOString().slice(0, 10));
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadMode, setUploadMode] = useState<'optimize-filename' | 'preserve-filename'>('optimize-filename');
+  // 업로드 모드 제거 (항상 자동 감지된 파일명 규칙 사용)
   const [uploadedImages, setUploadedImages] = useState<any[]>([]);
   const [loadingImages, setLoadingImages] = useState(false);
-  const [viewMode, setViewMode] = useState<'all' | 'date' | 'type'>('date');
+  // viewMode를 상수로 변경 (항상 날짜별 그룹화)
+  const viewMode = 'date' as const;
   const [selectedVideoUrl, setSelectedVideoUrl] = useState<string | null>(null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [selectedImageFileName, setSelectedImageFileName] = useState<string | null>(null);
+  const [selectedImageMetadata, setSelectedImageMetadata] = useState<any | null>(null);
   const [selectedDateFilter, setSelectedDateFilter] = useState<string | null>(null);
   const [slug, setSlug] = useState<string>('');
   const [isSlugMode, setIsSlugMode] = useState(false);
+  const [showGalleryPicker, setShowGalleryPicker] = useState(false);
+  // 이미지와 서류 분리된 상태 (showScannedDocumentsOnly 제거)
+  const [documentTypeFilter, setDocumentTypeFilter] = useState<string>('all');
+  // 미디어 탭 상태 추가
+  const [activeMediaTab, setActiveMediaTab] = useState<'all' | 'image' | 'video' | 'document'>('all');
+  // 업로드 전 설정 모달 상태
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedFileForUpload, setSelectedFileForUpload] = useState<File | null>(null);
+
+  // ESC 키로 이미지 확대 모달 닫기
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && selectedImageUrl) {
+        setSelectedImageUrl(null);
+        setSelectedImageFileName(null);
+        setSelectedImageMetadata(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedImageUrl]);
 
   // 동영상 체크 함수
   const isVideo = (imageUrl: string | null): boolean => {
@@ -2135,16 +2183,241 @@ function CustomerImageModal({ customer, onClose }: {
     return videoExtensions.some(ext => lowerUrl.includes(ext));
   };
 
-  // 갤러리 관리 페이지로 이동 (새 창)
-  const handleOpenGallery = () => {
-    // 고객 폴더명 가져오기 (folder_name이 있으면 사용, 없으면 생성)
+  // 고객 폴더 경로 가져오기
+  const getCustomerFolderPath = () => {
     const customerFolderName = customer.folder_name || (customer.phone 
       ? generateCustomerFolderName({ name: customer.name, phone: customer.phone })
       : `customer-${String(customer.id).padStart(3, '0')}`);
     
-    const folderPath = `originals/customers/${customerFolderName}`;
-    const galleryUrl = `/admin/gallery?folder=${encodeURIComponent(folderPath)}`;
-    window.open(galleryUrl, '_blank');
+    return `originals/customers/${customerFolderName}`;
+  };
+
+  // 갤러리에서 이미지 선택 핸들러
+  const handleGalleryImageSelect = async (imageUrl: string) => {
+    console.log('🔍 [갤러리 이미지 선택 시작]', {
+      imageUrl: imageUrl.substring(0, 100),
+      customerId: customer.id,
+      customerName: customer.name,
+      visitDate,
+      timestamp: new Date().toISOString()
+    });
+
+    try {
+      // 이미지 URL에서 파일 경로 추출
+      const urlMatch = imageUrl.match(/\/storage\/v1\/object\/public\/[^/]+\/(.+)$/);
+      if (!urlMatch) {
+        console.error('❌ [갤러리 이미지 선택] URL에서 경로 추출 실패:', imageUrl);
+        alert('이미지 URL 형식이 올바르지 않습니다.');
+        return;
+      }
+      
+      const filePath = decodeURIComponent(urlMatch[1]);
+      const fileName = filePath.split('/').pop() || '';
+      
+      console.log('📝 [갤러리 이미지 선택] 경로 추출 결과:', {
+        filePath: filePath.substring(0, 100),
+        fileName
+      });
+      
+      // 날짜 추출 (file_path에서)
+      const dateMatch = filePath.match(/(\d{4}-\d{2}-\d{2})/);
+      const imageDate = dateMatch ? dateMatch[1] : visitDate;
+      
+      console.log('📅 [갤러리 이미지 선택] 날짜 추출:', {
+        extractedDate: dateMatch ? dateMatch[1] : null,
+        usingVisitDate: !dateMatch,
+        finalDate: imageDate
+      });
+      
+      const requestBody = {
+        customerId: customer.id,
+        customerName: customer.name,
+        visitDate: imageDate,
+        imageUrl: imageUrl,
+        filePath: filePath,
+        fileName: fileName,
+        originalFileName: fileName,
+        folderName: customer.folder_name,
+      };
+
+      console.log('📡 [갤러리 이미지 선택] API 호출:', {
+        method: 'POST',
+        endpoint: '/api/admin/upload-customer-image',
+        requestBody: {
+          ...requestBody,
+          imageUrl: imageUrl.substring(0, 100),
+          filePath: filePath.substring(0, 100)
+        }
+      });
+      
+      // 고객 이미지로 등록
+      const response = await fetch('/api/admin/upload-customer-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+      
+      console.log('📥 [갤러리 이미지 선택] API 응답:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        contentType: response.headers.get('content-type')
+      });
+      
+      const result = await response.json();
+      
+      console.log('📦 [갤러리 이미지 선택] API 결과:', {
+        success: result.success,
+        alreadyRegistered: result.alreadyRegistered,
+        message: result.message,
+        error: result.error,
+        details: result.details,
+        errorCode: result.errorCode,
+        image: result.image ? {
+          id: result.image.id,
+          cdn_url: result.image.cdn_url?.substring(0, 100)
+        } : null
+      });
+      
+      if (result.success) {
+        // ✅ 이미 등록된 이미지인 경우
+        if (result.alreadyRegistered) {
+          console.log('ℹ️ [갤러리 이미지 선택] 이미 등록된 이미지:', result.message);
+          alert('이미 등록된 이미지입니다.');
+          // 목록 새로고침 (이미지가 목록에 표시되도록)
+          await loadCustomerImages(selectedDateFilter);
+          return;
+        }
+        
+        console.log('✅ [갤러리 이미지 선택] 이미지 등록 성공');
+        // 이미지 목록 새로고침
+        await loadCustomerImages(selectedDateFilter);
+        
+        // 고객 리스트 썸네일 새로고침을 위한 이벤트 발생
+        window.dispatchEvent(new CustomEvent('customerImagesUpdated', { 
+          detail: { customerId: customer.id } 
+        }));
+      } else {
+        console.error('❌ [갤러리 이미지 선택] 이미지 등록 실패:', {
+          error: result.error,
+          details: result.details,
+          errorCode: result.errorCode,
+          result
+        });
+        alert('이미지 등록에 실패했습니다: ' + (result.error || result.details || '알 수 없는 오류'));
+      }
+    } catch (error: any) {
+      console.error('❌ [갤러리 이미지 선택] 예외 발생:', {
+        error,
+        errorMessage: error.message,
+        errorStack: error.stack,
+        imageUrl: imageUrl.substring(0, 100)
+      });
+      alert('이미지 등록 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
+    }
+  };
+
+  // 고객 목록에서 제거 (Storage는 유지)
+  const handleRemoveFromCustomerList = async (imageId: number, imageUrl: string) => {
+    console.log('🔍 [목록 제거 시작]', {
+      imageId,
+      imageUrl: imageUrl?.substring(0, 100),
+      customerId: customer.id,
+      customerName: customer.name,
+      timestamp: new Date().toISOString()
+    });
+
+    if (!confirm('이 이미지를 고객 목록에서 제거하시겠습니까?\n\n(이미지는 Storage에 그대로 유지되며, 나중에 다시 추가할 수 있습니다.)')) {
+      console.log('❌ [목록 제거 취소] 사용자가 취소함');
+      return;
+    }
+
+    try {
+      const requestBody = {
+        imageId,
+        imageUrl,
+        customerId: customer.id,
+      };
+
+      console.log('📡 [목록 제거 API 호출]', {
+        method: 'POST',
+        endpoint: '/api/admin/remove-customer-image',
+        requestBody,
+        customerId: customer.id
+      });
+
+      const response = await fetch('/api/admin/remove-customer-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('📥 [목록 제거 API 응답]', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+
+      const result = await response.json();
+
+      console.log('📦 [목록 제거 API 결과]', {
+        success: result.success,
+        message: result.message,
+        error: result.error,
+        details: result.details,
+        image: result.image
+      });
+
+      if (result.success) {
+        console.log('✅ [목록 제거 성공]', {
+          message: result.message,
+          imageId: result.image?.id,
+          updatedTags: result.image?.ai_tags
+        });
+        alert('이미지가 고객 목록에서 제거되었습니다.\n(Storage 파일은 유지됩니다)');
+        
+        console.log('🔄 [목록 새로고침 시작]', {
+          selectedDateFilter,
+          customerId: customer.id
+        });
+        
+        // 이미지 목록 새로고침
+        await loadCustomerImages(selectedDateFilter);
+        
+        console.log('✅ [목록 새로고침 완료]');
+        
+        // 고객 리스트 썸네일 새로고침을 위한 이벤트 발생
+        window.dispatchEvent(new CustomEvent('customerImagesUpdated', { 
+          detail: { customerId: customer.id } 
+        }));
+        
+        console.log('📢 [고객 이미지 업데이트 이벤트 발생]', {
+          customerId: customer.id
+        });
+      } else {
+        console.error('❌ [목록 제거 실패]', {
+          error: result.error,
+          details: result.details,
+          response: result
+        });
+        alert('목록 제거에 실패했습니다: ' + (result.error || '알 수 없는 오류'));
+      }
+    } catch (error: any) {
+      console.error('❌ [목록 제거 오류 - 예외 발생]', {
+        error,
+        message: error.message,
+        stack: error.stack,
+        imageId,
+        imageUrl: imageUrl?.substring(0, 100),
+        customerId: customer.id
+      });
+      alert('목록 제거 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
+    }
   };
 
   // 대표 이미지 설정 핸들러
@@ -2223,6 +2496,78 @@ function CustomerImageModal({ customer, onClose }: {
     }
   };
 
+  // 고객 썸네일 대표 이미지 설정 핸들러
+  const handleSetCustomerRepresentative = async (imageId: string) => {
+    try {
+      const response = await fetch('/api/admin/set-customer-representative-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageId,
+          customerId: customer.id,
+          isRepresentative: true
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || '대표 이미지 설정 실패');
+      }
+
+      // 이미지 목록 새로고침
+      await loadCustomerImages(selectedDateFilter);
+      
+      // 고객 리스트 썸네일 새로고침을 위한 이벤트 발생
+      window.dispatchEvent(new CustomEvent('customerImagesUpdated', { 
+        detail: { customerId: customer.id } 
+      }));
+      
+      console.log('✅ 고객 썸네일 대표 이미지 설정 완료:', { imageId });
+    } catch (error: any) {
+      console.error('고객 썸네일 대표 이미지 설정 오류:', error);
+      alert('대표 이미지 설정에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
+    }
+  };
+
+  // 고객 썸네일 대표 이미지 해제 핸들러
+  const handleUnsetCustomerRepresentative = async (imageId: string) => {
+    if (!confirm('썸네일 대표 이미지를 해제하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/set-customer-representative-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageId,
+          customerId: customer.id,
+          isRepresentative: false
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || '대표 이미지 해제 실패');
+      }
+
+      // 이미지 목록 새로고침
+      await loadCustomerImages(selectedDateFilter);
+      
+      // 고객 리스트 썸네일 새로고침을 위한 이벤트 발생
+      window.dispatchEvent(new CustomEvent('customerImagesUpdated', { 
+        detail: { customerId: customer.id } 
+      }));
+      
+      console.log('✅ 고객 썸네일 대표 이미지 해제 완료:', { imageId });
+    } catch (error: any) {
+      console.error('고객 썸네일 대표 이미지 해제 오류:', error);
+      alert('대표 이미지 해제에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
+    }
+  };
+
   // 고객 이미지 목록 로드
   const loadCustomerImages = async (dateFilter?: string | null) => {
     setLoadingImages(true);
@@ -2234,8 +2579,24 @@ function CustomerImageModal({ customer, onClose }: {
       // 캐시 무효화를 위한 타임스탬프 추가
       url += `&_t=${Date.now()}`;
       
+      console.log('📡 [고객 이미지 로드 API 호출]', {
+        url: url.substring(0, 200),
+        selectedDateFilter,
+        customerId: customer.id,
+        customerName: customer.name
+      });
+      
       const response = await fetch(url);
       const result = await response.json();
+      
+      console.log('📥 [고객 이미지 로드 API 응답]', {
+        status: response.status,
+        success: result.success,
+        imagesCount: result.images?.length || 0,
+        metadataCount: result.metadataCount || 0,
+        storageCount: result.storageCount || 0
+      });
+      
       if (result.success) {
         // date_folder가 없는 이미지에 대해 폴더 경로에서 날짜 추출
         const processedImages = (result.images || []).map((img: any) => {
@@ -2253,8 +2614,29 @@ function CustomerImageModal({ customer, onClose }: {
           }
           return img;
         });
+        
+        console.log('📦 [고객 이미지 처리 완료]', {
+          processedImagesCount: processedImages.length,
+          images: processedImages.map((img: any) => ({
+            id: img.id,
+            filename: img.filename || img.english_filename || img.original_filename,
+            file_path: img.file_path,
+            cdn_url: img.cdn_url?.substring(0, 100)
+          }))
+        });
+        
+        console.log('📊 [uploadedImages 상태 업데이트]', {
+          beforeCount: uploadedImages.length,
+          afterCount: processedImages.length,
+          processedImages: processedImages.map((img: any) => ({
+            id: img.id,
+            filename: img.filename || img.english_filename || img.original_filename,
+            hasImageUrl: !!img.image_url
+          }))
+        });
+        
         setUploadedImages(processedImages);
-        console.log(`✅ 이미지 로드 완료: metadata ${result.metadataCount || 0}개, Storage ${result.storageCount || 0}개`);
+        console.log(`✅ [고객 이미지 로드 완료] metadata ${result.metadataCount || 0}개, Storage ${result.storageCount || 0}개, 처리된 이미지 ${processedImages.length}개`);
         
         // 고객 스토리 관리 모달이 열려있으면 새로고침 이벤트 전송
         window.dispatchEvent(new CustomEvent('customerImagesUpdated', { 
@@ -2280,14 +2662,85 @@ function CustomerImageModal({ customer, onClose }: {
     return dates;
   }, [uploadedImages]);
 
-  // 필터링된 이미지
-  const filteredImages = useMemo(() => {
-    let filtered = uploadedImages;
+  // 이미지와 서류 분리
+  const { images, videos, documents, allMedia } = useMemo(() => {
+    console.log('🔍 [미디어 분류 시작]', {
+      uploadedImagesCount: uploadedImages.length,
+      uploadedImages: uploadedImages.map((img: any) => ({
+        id: img.id,
+        filename: img.english_filename || img.original_filename,
+        image_url: img.image_url?.substring(0, 50),
+        is_scanned_document: img.is_scanned_document,
+        document_type: img.document_type
+      }))
+    });
+    
+    const all = uploadedImages;
+    const imgs = all.filter(img => {
+      const isVideoFile = isVideo(img.image_url);
+      const isDoc = img.is_scanned_document === true || 
+                    (img.document_type !== null && 
+                     img.document_type !== undefined && 
+                     img.document_type !== '');
+      return !isVideoFile && !isDoc;
+    });
+    const vids = all.filter(img => isVideo(img.image_url));
+    const docs = all.filter(img => {
+      const isDoc = img.is_scanned_document === true;
+      const hasDocumentType = img.document_type !== null && 
+                              img.document_type !== undefined && 
+                              img.document_type !== '';
+      return isDoc || hasDocumentType;
+    });
+    
+    // 디버깅 로그
+    console.log('🔍 [미디어 분류] 결과:', {
+      total: all.length,
+      images: imgs.length,
+      videos: vids.length,
+      documents: docs.length,
+      documentsDetails: docs.map(doc => ({
+        id: doc.id,
+        filename: doc.english_filename || doc.original_filename,
+        is_scanned_document: doc.is_scanned_document,
+        document_type: doc.document_type
+      }))
+    });
+    
+    return { images: imgs, videos: vids, documents: docs, allMedia: all };
+  }, [uploadedImages]);
+  
+  // 탭별 필터링된 미디어
+  const filteredMediaByTab = useMemo(() => {
+    if (activeMediaTab === 'all') {
+      return allMedia;
+    } else if (activeMediaTab === 'image') {
+      return images;
+    } else if (activeMediaTab === 'video') {
+      return videos;
+    } else if (activeMediaTab === 'document') {
+      return documents;
+    }
+    return allMedia;
+  }, [allMedia, images, videos, documents, activeMediaTab]);
+  
+  // 개수 계산
+  const totalMediaCount = allMedia.length;
+  const imageCount = images.length;
+  const videoCount = videos.length;
+  const documentCount = documents.length;
+
+  // 탭별 필터링된 미디어 (날짜 필터 적용)
+  const filteredMediaByTabWithDate = useMemo(() => {
+    let filtered = filteredMediaByTab;
+    
+    // 날짜 필터
     if (selectedDateFilter) {
       filtered = filtered.filter(img => img.date_folder === selectedDateFilter);
     }
+    
     return filtered;
-  }, [uploadedImages, selectedDateFilter]);
+  }, [filteredMediaByTab, selectedDateFilter]);
 
   // Slug로 이미지 로드 함수
   const loadImagesBySlug = async (slugPath: string) => {
@@ -2324,6 +2777,187 @@ function CustomerImageModal({ customer, onClose }: {
     }
   };
 
+  // 업로드 전 설정 모달을 통한 업로드 핸들러
+  const handleUploadWithMetadata = async (config: {
+    file: File;
+    customerId: number;
+    customerName: string;
+    visitDate: string;
+    metadataType: 'golf-ai' | 'general';
+  }) => {
+    try {
+      setUploading(true);
+      setUploadProgress(0);
+
+      console.log('📤 [업로드 시작]', {
+        fileName: config.file.name,
+        customerId: config.customerId,
+        customerName: config.customerName,
+        visitDate: config.visitDate,
+        metadataType: config.metadataType
+      });
+
+      // 1. 메타데이터 생성 및 저장
+      const formData = new FormData();
+      formData.append('file', config.file);
+      formData.append('customerId', config.customerId.toString());
+      formData.append('customerName', config.customerName);
+      formData.append('visitDate', config.visitDate);
+      formData.append('metadataType', config.metadataType);
+
+      setUploadProgress(10);
+
+      const metadataResponse = await fetch('/api/admin/create-customer-image-metadata', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!metadataResponse.ok) {
+        const errorData = await metadataResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || '메타데이터 생성 실패');
+      }
+
+      const metadataResult = await metadataResponse.json();
+      
+      if (!metadataResult.success) {
+        throw new Error(metadataResult.error || '메타데이터 생성 실패');
+      }
+
+      console.log('✅ [메타데이터 생성 완료]', {
+        metadataId: metadataResult.metadataId,
+        typeDetection: metadataResult.typeDetection
+      });
+
+      setUploadProgress(30);
+
+      // 2. 파일명 생성 (중복 확인 및 순번 조정)
+      let finalFileName: string;
+      let finalFilePath: string;
+      let sequence = 1;
+
+      while (true) {
+        const fileNameResult = await generateFinalCustomerImageFileName(
+          customer,
+          config.visitDate,
+          metadataResult.typeDetection,
+          config.file.name,
+          sequence
+        );
+
+        finalFileName = fileNameResult.fileName;
+        finalFilePath = fileNameResult.filePath;
+
+        // 중복 파일 확인
+        const { data: { publicUrl } } = supabase.storage
+          .from('blog-images')
+          .getPublicUrl(finalFilePath);
+
+        // HEAD 요청으로 파일 존재 확인
+        try {
+          const headResponse = await fetch(publicUrl, { method: 'HEAD' });
+          if (headResponse.ok) {
+            // 파일이 존재함, 순번 증가
+            sequence++;
+            if (sequence > 99) {
+              throw new Error('파일명 순번이 최대치에 도달했습니다.');
+            }
+            continue;
+          }
+        } catch {
+          // 파일이 없음 (404 또는 네트워크 오류) - 사용 가능
+        }
+
+        // 사용 가능한 파일명 찾음
+        break;
+      }
+
+      console.log('✅ [파일명 생성 완료]', {
+        finalFileName,
+        finalFilePath: finalFilePath.substring(0, 100),
+        sequence
+      });
+
+      setUploadProgress(50);
+
+      // 3. 임시 파일을 최종 파일명으로 이동
+      const moveResponse = await fetch('/api/admin/move-customer-image-file', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          metadataId: metadataResult.metadataId,
+          finalFileName,
+          finalFilePath
+        })
+      });
+
+      if (!moveResponse.ok) {
+        const errorData = await moveResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || '파일 이동 실패');
+      }
+
+      const moveResult = await moveResponse.json();
+
+      if (!moveResult.success) {
+        throw new Error(moveResult.error || '파일 이동 실패');
+      }
+
+      console.log('✅ [파일 이동 완료]', {
+        finalFilePath: moveResult.finalFilePath?.substring(0, 100),
+        updatedMetadata: moveResult.metadata ? {
+          id: moveResult.metadata.id,
+          filename: moveResult.metadata.filename,
+          file_path: moveResult.metadata.file_path?.substring(0, 100)
+        } : null
+      });
+
+      setUploadProgress(100);
+
+      // 4. 업데이트된 메타데이터로 UI 상태 즉시 업데이트 (DB 새로고침 전)
+      if (moveResult.metadata) {
+        console.log('🔄 [UI 상태 즉시 업데이트] 업데이트된 메타데이터 사용:', {
+          id: moveResult.metadata.id,
+          filename: moveResult.metadata.filename,
+          original_filename: moveResult.metadata.original_filename
+        });
+        
+        // uploadedImages 상태에서 해당 이미지 찾아서 filename 업데이트
+        setUploadedImages(prevImages => {
+          return prevImages.map(img => {
+            if (img.id === moveResult.metadata.id) {
+              return {
+                ...img,
+                filename: moveResult.metadata.filename, // 업데이트된 filename 사용
+                file_path: moveResult.metadata.file_path,
+                cdn_url: moveResult.metadata.cdn_url || moveResult.finalUrl
+              };
+            }
+            return img;
+          });
+        });
+      }
+
+      // 5. DB 업데이트 반영을 위해 짧은 지연 후 이미지 목록 새로고침
+      await new Promise(resolve => setTimeout(resolve, 500)); // 500ms 지연
+      await loadCustomerImages(selectedDateFilter);
+
+      // 5. 고객 리스트 썸네일 새로고침을 위한 이벤트 발생
+      window.dispatchEvent(new CustomEvent('customerImagesUpdated', {
+        detail: { customerId: customer.id }
+      }));
+
+      alert('이미지 업로드가 완료되었습니다.');
+
+    } catch (error: any) {
+      console.error('❌ [업로드 실패]', error);
+      alert('이미지 업로드에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
+      throw error;
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  // 기존 handleFileUpload (하위 호환성 - 드래그앤드롭에서 여러 파일 선택 시 첫 번째 파일만 새 플로우 사용)
   const handleFileUpload = async (files: File[]) => {
     if (files.length === 0) return;
     
@@ -2332,193 +2966,13 @@ function CustomerImageModal({ customer, onClose }: {
       return;
     }
 
-    setUploading(true);
-    setUploadProgress(0);
-
-    try {
-      // 고객 폴더명 생성 (영문 이름 + 전화번호 마지막 4자리)
-      const customerFolderName = customer.phone 
-        ? generateCustomerFolderName({ name: customer.name, phone: customer.phone })
-        : `customer-${String(customer.id).padStart(3, '0')}`;
-      const targetFolder = `originals/customers/${customerFolderName}/${visitDate}`;
-      
-      let successCount = 0;
-      let failCount = 0;
-
-      // 고객 이니셜 및 이름 영문 변환
-      const customerInitials = getCustomerInitials(customer.name);
-      const customerNameEn = getCustomerNameEn(customer.name);
-
-      // 모든 파일을 순차적으로 업로드
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        try {
-          // 고객 이미지 파일명 생성 (커스텀 규칙)
-          let customFileName: string | undefined;
-          let storyScene: number | undefined;
-          let imageType: string | undefined;
-          
-          // 동영상 파일인지 확인 (더 안전한 방법)
-          const isVideo = (file.type?.startsWith('video/') || false) || 
-                          /\.(mp4|avi|mov|webm|mkv|flv|m4v|3gp|wmv)$/i.test(file.name);
-          
-          // 대용량 파일인지 확인 (10MB 이상)
-          const isLargeFile = file.size > 10 * 1024 * 1024;
-          
-          // 디버깅 로그 추가
-          console.log('🔍 파일 정보:', {
-            name: file.name,
-            type: file.type || 'unknown',
-            size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-            isVideo,
-            isLargeFile,
-            shouldUseDirectUpload: isLargeFile || isVideo
-          });
-          
-          // 1단계: 파일명 최적화/한글→영문 변환 (업로드 전에 먼저 수행)
-          if (uploadMode === 'optimize-filename') {
-            // 파일명 최적화 모드: 고객 이미지 파일명 규칙 적용
-            const fileNameInfo = generateCustomerImageFileName(
-              { name: customer.name, initials: customerInitials, name_en: customerNameEn },
-              file.name,
-              i + 1
-            );
-            customFileName = fileNameInfo.fileName;
-            storyScene = fileNameInfo.scene;
-            imageType = fileNameInfo.type;
-          } else if (uploadMode === 'preserve-filename') {
-            // 파일명 유지 모드: 한글 파일명만 영문으로 변환
-            if (isVideo) {
-              // 동영상: 한글 파일명만 영문으로 전환
-              if (/[가-힣]/.test(file.name)) {
-                const { translateKoreanToEnglish } = require('../../../lib/korean-to-english-translator');
-                const baseName = file.name.replace(/\.[^/.]+$/, '');
-                const ext = file.name.match(/\.[^/.]+$/)?.[0] || '';
-                const translatedBase = translateKoreanToEnglish(baseName);
-                customFileName = `${translatedBase}${ext}`;
-              } else {
-                // 영문 파일명은 그대로 유지
-                customFileName = file.name;
-              }
-            } else {
-              // 이미지: 한글 파일명 영문 변환 (API에서 처리하지 않고 클라이언트에서 먼저 처리)
-              if (/[가-힣]/.test(file.name)) {
-                const { translateKoreanToEnglish } = require('../../../lib/korean-to-english-translator');
-                const baseName = file.name.replace(/\.[^/.]+$/, '');
-                const ext = file.name.match(/\.[^/.]+$/)?.[0] || '';
-                const translatedBase = translateKoreanToEnglish(baseName);
-                customFileName = `${translatedBase}${ext}`;
-              } else {
-                customFileName = file.name;
-              }
-            }
-          }
-          
-          console.log('📝 파일명 최적화 완료:', {
-            original: file.name,
-            optimized: customFileName
-          });
-
-          // 대용량 파일 또는 동영상은 클라이언트에서 직접 업로드 (Vercel 4.5MB 제한 우회)
-          // 동영상은 무조건 직접 업로드 (크기와 무관)
-          let uploadResult: any;
-          if (isVideo || isLargeFile) {
-            console.log(`📤 대용량 파일/동영상 직접 업로드: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
-            const { uploadLargeFileDirectlyToSupabase } = await import('../../../lib/image-upload-utils');
-            uploadResult = await uploadLargeFileDirectlyToSupabase(
-              file,
-              targetFolder,
-              customFileName, // 이미 최적화된 파일명 사용
-              (progress) => {
-                // 전체 진행률 계산 (각 파일의 평균)
-                const totalProgress = ((i * 100) + progress) / files.length;
-                setUploadProgress(Math.round(totalProgress));
-              },
-              true // showWarning = true (경고창 표시)
-            );
-          } else {
-            // 소용량 파일은 기존 API 경로 사용
-            console.log(`📤 소용량 파일 API 업로드: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
-            uploadResult = await uploadImageToSupabase(file, {
-              targetFolder: targetFolder,
-              enableHEICConversion: true,
-              enableEXIFBackfill: true,
-              uploadMode: uploadMode,
-              customFileName: customFileName,
-              onProgress: (progress) => {
-                // 전체 진행률 계산 (각 파일의 평균)
-                const totalProgress = ((i * 100) + progress) / files.length;
-                setUploadProgress(Math.round(totalProgress));
-              },
-            });
-          }
-
-          // 업로드된 URL에서 파일 경로 추출
-          const urlObj = new URL(uploadResult.url);
-          const filePath = urlObj.pathname.replace('/storage/v1/object/public/blog-images/', '');
-
-          // 고객 이미지 메타데이터 저장
-          const saveResponse = await fetch('/api/admin/upload-customer-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              customerId: customer.id,
-              customerName: customer.name,
-              customerNameEn: customerNameEn,
-              customerInitials: customerInitials,
-              visitDate: visitDate,
-              imageUrl: uploadResult.url,
-              filePath: filePath,
-              fileName: uploadResult.fileName || file.name,
-              originalFileName: file.name,
-              fileSize: uploadResult.metadata?.file_size || file.size,
-              storyScene: storyScene,
-              imageType: imageType,
-              folderName: customerFolderName
-            })
-          });
-
-          if (!saveResponse.ok) {
-            const errorData = await saveResponse.json().catch(() => ({}));
-            console.error('❌ 메타데이터 저장 실패 상세:', {
-              status: saveResponse.status,
-              statusText: saveResponse.statusText,
-              error: errorData
-            });
-            throw new Error(`메타데이터 저장 실패: ${errorData.error || errorData.details || saveResponse.statusText}`);
-          }
-
-          successCount++;
-          console.log(`✅ 파일 ${i + 1}/${files.length} 업로드 완료:`, uploadResult.fileName || file.name);
-        } catch (fileError: any) {
-          failCount++;
-          console.error(`❌ 파일 ${i + 1}/${files.length} 업로드 실패:`, file.name, fileError);
-        }
-      }
-
-      // 결과 알림
-      if (failCount === 0) {
-        alert(`${successCount}개 파일 업로드 완료!`);
-      } else {
-        alert(`업로드 완료: ${successCount}개 성공, ${failCount}개 실패`);
-      }
-
-      // 이미지 목록 새로고침
-      if (successCount > 0) {
-        // DB 동기화를 위한 짧은 지연 추가 (여러 파일 업로드 시 날짜 표시 문제 해결)
-        await new Promise(resolve => setTimeout(resolve, 800));
-        await loadCustomerImages();
-      }
-    } catch (error: any) {
-      console.error('❌ 업로드 오류:', error);
-      alert(`업로드 실패: ${error.message}`);
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
-    }
+    // 첫 번째 파일만 처리 (새로운 업로드 플로우 사용)
+    setSelectedFileForUpload(files[0]);
+    setShowUploadModal(true);
   };
 
   return (
+    <>
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6">
         <div className="flex items-center justify-between mb-4">
@@ -2526,17 +2980,6 @@ function CustomerImageModal({ customer, onClose }: {
             고객 이미지 관리: {customer.name}
           </h2>
           <div className="flex items-center gap-2">
-            {/* 갤러리 관리 버튼 */}
-            <button
-              onClick={handleOpenGallery}
-              disabled={uploading}
-              className={`px-3 py-1.5 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm flex items-center gap-1.5 transition-colors ${
-                uploading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-              title={`갤러리 관리에서 ${customer.folder_name || customer.name} 폴더 열기`}
-            >
-              📁 갤러리 관리
-            </button>
             <button 
               onClick={onClose} 
               disabled={uploading}
@@ -2591,55 +3034,26 @@ function CustomerImageModal({ customer, onClose }: {
             />
           </div>
 
-          {/* 업로드 모드 선택 */}
-          <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
-            <label className="text-xs font-medium text-gray-600 mb-1.5 block">
-              업로드 모드
-            </label>
-            
-            {/* 라디오 버튼을 좌우로 작게 배치 */}
-            <div className="flex items-center gap-4">
-              {/* 파일명 최적화 (기본) */}
-              <label 
-                className="flex items-center cursor-pointer group"
-                title="파일명: 폴더 기반 최적화 + 타임스탬프 + 중복방지&#10;확장자: 원본 유지&#10;최적화: 없음 (원본 그대로)"
-              >
-                <input
-                  type="radio"
-                  name="uploadMode"
-                  value="optimize-filename"
-                  checked={uploadMode === 'optimize-filename'}
-                  onChange={(e) => setUploadMode('optimize-filename')}
-                  disabled={uploading}
-                  className="mr-1.5 w-3.5 h-3.5 text-blue-600"
-                />
-                <span className="text-xs text-gray-700">파일명 최적화</span>
-              </label>
-              
-              {/* 파일명 유지 */}
-              <label 
-                className="flex items-center cursor-pointer group"
-                title="파일명: 원본 그대로&#10;확장자: 원본 유지&#10;최적화: 없음 (원본 그대로)"
-              >
-                <input
-                  type="radio"
-                  name="uploadMode"
-                  value="preserve-filename"
-                  checked={uploadMode === 'preserve-filename'}
-                  onChange={(e) => setUploadMode('preserve-filename')}
-                  disabled={uploading}
-                  className="mr-1.5 w-3.5 h-3.5 text-blue-600"
-                />
-                <span className="text-xs text-gray-700">파일명 유지</span>
-              </label>
-            </div>
-          </div>
-
           {/* 파일 업로드 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               이미지/영상 업로드
             </label>
+            
+            {/* 갤러리에서 선택 버튼 */}
+            <div className="mb-3">
+              <button
+                type="button"
+                onClick={() => setShowGalleryPicker(true)}
+                disabled={uploading}
+                className={`px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm flex items-center gap-2 transition-colors ${
+                  uploading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                🖼️ 갤러리에서 선택
+              </button>
+            </div>
+            
             <div 
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                 uploading 
@@ -2657,7 +3071,9 @@ function CustomerImageModal({ customer, onClose }: {
                 e.stopPropagation();
                 const files = Array.from(e.dataTransfer.files);
                 if (files.length > 0) {
-                  await handleFileUpload(files);
+                  // 첫 번째 파일만 선택하여 업로드 모달 열기
+                  setSelectedFileForUpload(files[0]);
+                  setShowUploadModal(true);
                 }
               }}
             >
@@ -2669,7 +3085,9 @@ function CustomerImageModal({ customer, onClose }: {
                 onChange={(e) => {
                   const files = Array.from(e.target.files || []);
                   if (files.length > 0) {
-                    handleFileUpload(files);
+                    // 첫 번째 파일만 선택하여 업로드 모달 열기
+                    setSelectedFileForUpload(files[0]);
+                    setShowUploadModal(true);
                   }
                 }}
                 className="hidden"
@@ -2749,59 +3167,81 @@ function CustomerImageModal({ customer, onClose }: {
             </div>
           )}
 
-          {/* 보기 모드 선택 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              보기 모드
-            </label>
-            <div className="flex gap-2 mb-4">
-              <button
-                onClick={() => setViewMode('date')}
-                className={`px-3 py-1 rounded text-sm ${
-                  viewMode === 'date' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                날짜별
-              </button>
-              <button
-                onClick={() => setViewMode('type')}
-                className={`px-3 py-1 rounded text-sm ${
-                  viewMode === 'type' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                타입별
-              </button>
-              <button
-                onClick={() => setViewMode('all')}
-                className={`px-3 py-1 rounded text-sm ${
-                  viewMode === 'all' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                전체
-              </button>
+          {/* 미디어 탭 */}
+          <div className="mb-6">
+            <div className="border-b border-gray-200 mb-4">
+              <nav className="flex space-x-4">
+                <button
+                  onClick={() => setActiveMediaTab('all')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeMediaTab === 'all'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  미디어 ({totalMediaCount}개)
+                </button>
+                <button
+                  onClick={() => setActiveMediaTab('image')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeMediaTab === 'image'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  이미지 ({imageCount}개)
+                </button>
+                <button
+                  onClick={() => setActiveMediaTab('video')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeMediaTab === 'video'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  동영상 ({videoCount}개)
+                </button>
+                <button
+                  onClick={() => setActiveMediaTab('document')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeMediaTab === 'document'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  서류 ({documentCount}개)
+                </button>
+              </nav>
             </div>
-          </div>
-
-          {/* 업로드된 이미지 목록 */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">
-              업로드된 이미지 ({filteredImages.length}개{selectedDateFilter ? ` (필터: ${selectedDateFilter})` : ''})
-            </h3>
+            
+            {/* 탭별 콘텐츠 */}
+            <div className="bg-blue-50/30 rounded-lg p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  {activeMediaTab === 'all' && <span className="text-2xl">📦</span>}
+                  {activeMediaTab === 'image' && <span className="text-2xl">📷</span>}
+                  {activeMediaTab === 'video' && <span className="text-2xl">🎥</span>}
+                  {activeMediaTab === 'document' && <span className="text-2xl">📄</span>}
+                  <span>
+                    {activeMediaTab === 'all' && `미디어 (${filteredMediaByTabWithDate.length}개)`}
+                    {activeMediaTab === 'image' && `이미지 (${filteredMediaByTabWithDate.length}개)`}
+                    {activeMediaTab === 'video' && `동영상 (${filteredMediaByTabWithDate.length}개)`}
+                    {activeMediaTab === 'document' && `서류 (${filteredMediaByTabWithDate.length}개)`}
+                  </span>
+                </h3>
+              </div>
             {loadingImages ? (
               <div className="text-center py-8 text-gray-500">로딩 중...</div>
-            ) : filteredImages.length > 0 ? (
+            ) : (activeMediaTab === 'document' ? 
+              // 서류 탭은 아래 별도 섹션에서 처리
+              false : 
+              filteredMediaByTabWithDate.length > 0) ? (
               <>
-                {/* 날짜별 보기 */}
-                {viewMode === 'date' && (
+                {/* 날짜별 보기 (이미지 탭일 때, 방문일자 필터가 없을 때만 그룹화) */}
+                {activeMediaTab === 'image' && !selectedDateFilter && (
                   <div>
                     {Object.entries(
-                      filteredImages.reduce((acc: any, img: any) => {
+                      filteredMediaByTabWithDate.reduce((acc: any, img: any) => {
                         const date = img.date_folder || '날짜 없음';
                         if (!acc[date]) acc[date] = [];
                         acc[date].push(img);
@@ -2824,7 +3264,15 @@ function CustomerImageModal({ customer, onClose }: {
                                   return name.trim().replace(/^%20+|%20+$/g, '').replace(/^ +| +$/g, '');
                                 }
                               };
-                              const fileName = normalizeDisplayFileName(img.english_filename || img.original_filename || '');
+                              // 파일명 우선순위: filename > english_filename > original_filename
+                              const fileName = normalizeDisplayFileName(img.filename || img.english_filename || img.original_filename || '');
+                              console.log('🖼️ [썸네일 파일명] 이미지 객체:', {
+                                id: img.id,
+                                filename: img.filename,
+                                english_filename: img.english_filename,
+                                original_filename: img.original_filename,
+                                '최종 사용 파일명': fileName
+                              });
                               const isVideoFile = fileName.toLowerCase().match(/\.(mp4|mov|avi|webm|mkv)$/);
                               const isGif = fileName.toLowerCase().endsWith('.gif');
                               return (
@@ -2840,6 +3288,7 @@ function CustomerImageModal({ customer, onClose }: {
                                       onClick={!isVideoFile ? () => {
                                         setSelectedImageUrl(img.image_url);
                                         setSelectedImageFileName(fileName);
+                                        setSelectedImageMetadata(img);
                                       } : undefined}
                         />
                       )}
@@ -2858,7 +3307,7 @@ function CustomerImageModal({ customer, onClose }: {
                         </span>
                       )}
                       
-                      {/* 대표 이미지 배지 (클릭 가능) - 동영상 제외 */}
+                      {/* 장면별 대표 이미지 배지 (클릭 가능) - 동영상 제외 */}
                       {img.story_scene && !isVideo(img.image_url) && (
                         <button
                           onClick={(e) => {
@@ -2874,9 +3323,31 @@ function CustomerImageModal({ customer, onClose }: {
                               ? 'bg-yellow-500 text-white hover:bg-yellow-600'
                               : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100'
                           }`}
-                          title={img.is_scene_representative ? '대표 이미지 취소 (클릭)' : '대표 이미지로 설정 (클릭)'}
+                          title={img.is_scene_representative ? '장면 대표 이미지 취소 (클릭)' : '장면 대표 이미지로 설정 (클릭)'}
                         >
                           {img.is_scene_representative ? '⭐ 대표' : '○ 일반'}
+                        </button>
+                      )}
+                      
+                      {/* 고객 썸네일 대표 이미지 배지 (클릭 가능) - 동영상 제외 */}
+                      {!isVideo(img.image_url) && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (img.is_customer_representative) {
+                              handleUnsetCustomerRepresentative(img.id);
+                            } else {
+                              handleSetCustomerRepresentative(img.id);
+                            }
+                          }}
+                          className={`absolute ${img.story_scene ? 'top-10 left-2' : 'top-2 left-2'} z-10 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
+                            img.is_customer_representative
+                              ? 'bg-blue-500 text-white hover:bg-blue-600'
+                              : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100'
+                          }`}
+                          title={img.is_customer_representative ? '썸네일 대표 이미지 해제 (클릭)' : '썸네일 대표 이미지로 설정 (클릭)'}
+                        >
+                          {img.is_customer_representative ? '🏠 썸네일' : '○ 일반'}
                         </button>
                       )}
                       
@@ -2895,6 +3366,17 @@ function CustomerImageModal({ customer, onClose }: {
                             ⭐
                           </button>
                         )}
+                        {/* 목록 제거 버튼 */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveFromCustomerList(img.id, img.image_url);
+                          }}
+                          className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-orange-600 text-xs"
+                          title="고객 목록에서 제거 (Storage 파일은 유지)"
+                        >
+                          ⊖
+                        </button>
                       </div>
                     </div>
                                 <div 
@@ -2912,115 +3394,10 @@ function CustomerImageModal({ customer, onClose }: {
               </div>
                 )}
 
-                {/* 타입별 보기 */}
-                {viewMode === 'type' && (
-                  <div>
-                    {Object.entries(
-                      filteredImages.reduce((acc: any, img: any) => {
-                        const type = img.image_type || 'unknown';
-                        if (!acc[type]) acc[type] = [];
-                        acc[type].push(img);
-                        return acc;
-                      }, {})
-                    ).map(([type, images]: [string, any[]]) => (
-                      <div key={type} className="mb-6">
-                        <h4 className="text-md font-semibold text-gray-800 mb-2">{type} ({images.length}개)</h4>
-                        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                          {images.map((img: any, index: number) => {
-                            // 파일명 정규화 (공백, %20 제거)
-                            const normalizeDisplayFileName = (name: string) => {
-                              if (!name) return '파일명 없음';
-                              try {
-                                const decoded = decodeURIComponent(name);
-                                return decoded.trim().replace(/^%20+|%20+$/g, '').replace(/^ +| +$/g, '');
-                              } catch {
-                                return name.trim().replace(/^%20+|%20+$/g, '').replace(/^ +| +$/g, '');
-                              }
-                            };
-                            const fileName = normalizeDisplayFileName(img.english_filename || img.original_filename || '');
-                            const isVideoFile = fileName.toLowerCase().match(/\.(mp4|mov|avi|webm|mkv)$/);
-                            return (
-                              <div key={index} className="relative group">
-                                <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
-                                  {img.image_url && (
-                                    <MediaRenderer
-                                      url={img.image_url}
-                                      alt={fileName}
-                                      className="w-full h-full object-cover"
-                                      showControls={false}
-                                      onVideoClick={isVideoFile ? () => setSelectedVideoUrl(img.image_url) : undefined}
-                                      onClick={!isVideoFile ? () => {
-                                        setSelectedImageUrl(img.image_url);
-                                        setSelectedImageFileName(fileName);
-                                      } : undefined}
-                                    />
-                                  )}
-                                  
-                                  {/* 동영상 배지 */}
-                                  {isVideoFile && (
-                                    <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-500 text-white shadow-lg">
-                                      동영상
-                                    </span>
-                                  )}
-                                  
-                                  {/* 대표 이미지 배지 (클릭 가능) */}
-                                  {img.story_scene && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (img.is_scene_representative) {
-                                          handleUnsetSceneRepresentative(img.id);
-                                        } else {
-                                          handleSetSceneRepresentative(img.id, img.story_scene);
-                                        }
-                                      }}
-                                      className={`absolute top-2 left-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
-                                        img.is_scene_representative
-                                          ? 'bg-yellow-500 text-white hover:bg-yellow-600'
-                                          : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100'
-                                      }`}
-                                      title={img.is_scene_representative ? '대표 이미지 취소 (클릭)' : '대표 이미지로 설정 (클릭)'}
-                                    >
-                                      {img.is_scene_representative ? '⭐ 대표' : '○ 일반'}
-                                    </button>
-                                  )}
-                                  
-                                  {/* 액션 버튼들 (호버 시 표시) */}
-                                  <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                                    {/* 대표로 설정 버튼 (배지가 보이지 않을 때만 표시) */}
-                                    {!img.is_scene_representative && img.story_scene && (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleSetSceneRepresentative(img.id, img.story_scene);
-                                        }}
-                                        className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-yellow-600 text-xs"
-                                        title="대표 이미지로 설정"
-                                      >
-                                        ⭐
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                                <div 
-                                  className="mt-1 text-xs text-gray-600 truncate" 
-                                  title={`${fileName} | ${img.date_folder || '날짜 없음'} | 타입: ${img.image_type || 'unknown'}${img.is_scene_representative ? ' | ⭐ 대표' : ''}`}
-                                >
-                                  {fileName}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* 전체 보기 */}
-                {viewMode === 'all' && (
+                {/* 이미지 탭에서 방문일자 필터가 선택되었을 때 또는 다른 탭들 (서류 탭 제외) */}
+                {((activeMediaTab === 'image' && selectedDateFilter) || (activeMediaTab !== 'image' && activeMediaTab !== 'document')) && (
               <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {filteredImages.map((img: any, index: number) => {
+                {filteredMediaByTabWithDate.map((img: any, index: number) => {
                   // 파일명 정규화 (공백, %20 제거)
                   const normalizeDisplayFileName = (name: string) => {
                     if (!name) return '파일명 없음';
@@ -3046,19 +3423,35 @@ function CustomerImageModal({ customer, onClose }: {
                             onClick={!isVideoFile ? () => {
                               setSelectedImageUrl(img.image_url);
                               setSelectedImageFileName(fileName);
+                              setSelectedImageMetadata(img);
                             } : undefined}
                           />
                         )}
                         
+                        {/* 스캔 서류 배지 */}
+                        {img.is_scanned_document && (
+                          <span className={`absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md text-white shadow-lg ${
+                            img.document_type === 'order_spec' ? 'bg-purple-500' :
+                            img.document_type === 'survey' ? 'bg-green-500' :
+                            img.document_type === 'consent' ? 'bg-orange-500' :
+                            'bg-gray-500'
+                          }`}>
+                            {img.document_type === 'order_spec' ? '주문사양서' :
+                             img.document_type === 'survey' ? '설문조사' :
+                             img.document_type === 'consent' ? '동의서' :
+                             '스캔서류'}
+                          </span>
+                        )}
+                        
                         {/* 동영상 배지 */}
                         {isVideoFile && (
-                          <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-500 text-white shadow-lg">
+                          <span className={`absolute ${img.is_scanned_document ? 'top-10' : 'top-2'} right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-500 text-white shadow-lg`}>
                             동영상
                           </span>
                         )}
                         
-                        {/* 대표 이미지 배지 (클릭 가능) */}
-                        {img.story_scene && (
+                        {/* 장면별 대표 이미지 배지 (클릭 가능) */}
+                        {img.story_scene && !isVideo(img.image_url) && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -3073,9 +3466,31 @@ function CustomerImageModal({ customer, onClose }: {
                                 ? 'bg-yellow-500 text-white hover:bg-yellow-600'
                                 : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100'
                             }`}
-                            title={img.is_scene_representative ? '대표 이미지 취소 (클릭)' : '대표 이미지로 설정 (클릭)'}
+                            title={img.is_scene_representative ? '장면 대표 이미지 취소 (클릭)' : '장면 대표 이미지로 설정 (클릭)'}
                           >
                             {img.is_scene_representative ? '⭐ 대표' : '○ 일반'}
+                          </button>
+                        )}
+                        
+                        {/* 고객 썸네일 대표 이미지 배지 (클릭 가능) - 동영상 제외 */}
+                        {!isVideo(img.image_url) && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (img.is_customer_representative) {
+                                handleUnsetCustomerRepresentative(img.id);
+                              } else {
+                                handleSetCustomerRepresentative(img.id);
+                              }
+                            }}
+                            className={`absolute ${img.story_scene ? 'top-10 left-2' : 'top-2 left-2'} z-10 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
+                              img.is_customer_representative
+                                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                                : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100'
+                            }`}
+                            title={img.is_customer_representative ? '썸네일 대표 이미지 해제 (클릭)' : '썸네일 대표 이미지로 설정 (클릭)'}
+                          >
+                            {img.is_customer_representative ? '🏠 썸네일' : '○ 일반'}
                           </button>
                         )}
                         
@@ -3094,6 +3509,17 @@ function CustomerImageModal({ customer, onClose }: {
                               ⭐
                             </button>
                           )}
+                          {/* 목록 제거 버튼 */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveFromCustomerList(img.id, img.image_url);
+                            }}
+                            className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-orange-600 text-xs"
+                            title="고객 목록에서 제거 (Storage 파일은 유지)"
+                          >
+                            ⊖
+                          </button>
                         </div>
                       </div>
                       <div 
@@ -3109,29 +3535,178 @@ function CustomerImageModal({ customer, onClose }: {
                 )}
               </>
             ) : (
-              <div className="text-center py-8 text-gray-500">
-                업로드된 이미지가 없습니다.
-              </div>
+              // 서류 탭일 때는 빈 상태 메시지를 표시하지 않음 (서류 타입 필터링 섹션에서 처리)
+              activeMediaTab !== 'document' && (
+                <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-sm">
+                    {activeMediaTab === 'all' && '미디어가 없습니다.'}
+                    {activeMediaTab === 'image' && '이미지가 없습니다.'}
+                    {activeMediaTab === 'video' && '동영상이 없습니다.'}
+                  </p>
+                </div>
+              )
             )}
+            
           </div>
+          
+          {/* 서류 타입 필터링 적용 (서류 탭일 때만) */}
+          {activeMediaTab === 'document' && (
+            <div className="mt-4">
+              {/* 서류 탭일 때 문서 타입 필터 */}
+              {filteredMediaByTabWithDate.length > 0 && (
+                <div className="mb-4 flex justify-end">
+                  <select
+                    value={documentTypeFilter}
+                    onChange={(e) => setDocumentTypeFilter(e.target.value)}
+                    className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">전체 문서</option>
+                    <option value="order_spec">주문사양서</option>
+                    <option value="survey">설문조사</option>
+                    <option value="consent">동의서</option>
+                    <option value="other">기타</option>
+                  </select>
+                </div>
+              )}
+              
+              {(() => {
+                // 문서 타입 필터 적용
+                let typeFiltered = filteredMediaByTabWithDate;
+                if (documentTypeFilter !== 'all') {
+                  typeFiltered = filteredMediaByTabWithDate.filter((doc: any) => {
+                    if (documentTypeFilter === 'other') {
+                      return !doc.document_type || 
+                             (doc.document_type !== 'order_spec' && 
+                              doc.document_type !== 'survey' && 
+                              doc.document_type !== 'consent');
+                    }
+                    return doc.document_type === documentTypeFilter;
+                  });
+                }
+                
+                if (typeFiltered.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-gray-200">
+                      <p className="text-sm">
+                        {documentTypeFilter === 'all' ? '서류가 없습니다.' : '선택한 타입의 서류가 없습니다.'}
+                      </p>
+                    </div>
+                  );
+                }
+                
+                return (
+                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {typeFiltered.map((doc: any, index: number) => {
+                      const normalizeDisplayFileName = (name: string) => {
+                        if (!name) return '파일명 없음';
+                        try {
+                          const decoded = decodeURIComponent(name);
+                          return decoded.trim().replace(/^%20+|%20+$/g, '').replace(/^ +| +$/g, '');
+                        } catch {
+                          return name.trim().replace(/^%20+|%20+$/g, '').replace(/^ +| +$/g, '');
+                        }
+                      };
+                      // 파일명 우선순위: filename > english_filename > original_filename
+                      const fileName = normalizeDisplayFileName(doc.filename || doc.english_filename || doc.original_filename || '');
+                      console.log('📄 [서류 썸네일 파일명] 문서 객체:', {
+                        id: doc.id,
+                        filename: doc.filename,
+                        english_filename: doc.english_filename,
+                        original_filename: doc.original_filename,
+                        '최종 사용 파일명': fileName
+                      });
+                      return (
+                        <div key={index} className="relative group">
+                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
+                            {doc.image_url && (
+                              <MediaRenderer
+                                url={doc.image_url}
+                                alt={fileName}
+                                className="w-full h-full object-cover"
+                                showControls={false}
+                                onClick={() => {
+                                  setSelectedImageUrl(doc.image_url);
+                                  setSelectedImageFileName(fileName);
+                                  setSelectedImageMetadata(doc);
+                                }}
+                              />
+                            )}
+                            
+                            {/* 스캔 서류 배지 */}
+                            <span className={`absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md text-white shadow-lg ${
+                              doc.document_type === 'order_spec' ? 'bg-purple-500' :
+                              doc.document_type === 'survey' ? 'bg-green-500' :
+                              doc.document_type === 'consent' ? 'bg-orange-500' :
+                              'bg-gray-500'
+                            }`}>
+                              {doc.document_type === 'order_spec' ? '주문사양서' :
+                               doc.document_type === 'survey' ? '설문조사' :
+                               doc.document_type === 'consent' ? '동의서' :
+                               '스캔서류'}
+                            </span>
+                            
+                            {/* 고객 썸네일 대표 이미지 배지 (서류도 썸네일로 설정 가능) */}
+                            {!isVideo(doc.image_url) && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (doc.is_customer_representative) {
+                                    handleUnsetCustomerRepresentative(doc.id);
+                                  } else {
+                                    handleSetCustomerRepresentative(doc.id);
+                                  }
+                                }}
+                                className={`absolute top-2 left-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
+                                  doc.is_customer_representative
+                                    ? 'bg-blue-500 text-white hover:bg-blue-600'
+                                    : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100'
+                                }`}
+                                title={doc.is_customer_representative ? '썸네일 대표 이미지 해제 (클릭)' : '썸네일 대표 이미지로 설정 (클릭)'}
+                              >
+                                {doc.is_customer_representative ? '🏠 썸네일' : '○ 일반'}
+                              </button>
+                            )}
+                          </div>
+                          <div 
+                            className="mt-1 text-xs text-gray-600 truncate" 
+                            title={`${fileName} | ${doc.date_folder || '날짜 없음'} | ${doc.document_type || '기타'}`}
+                          >
+                            {fileName}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+        </div>
         </div>
         )}
 
-        <div className="flex justify-end mt-6">
+        <div className="flex justify-end gap-2 mt-6">
           <button
             onClick={onClose}
             disabled={uploading}
             className={`px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            닫기
+            취소
+          </button>
+          <button
+            onClick={onClose}
+            disabled={uploading}
+            className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            저장
           </button>
         </div>
       </div>
-
-      {/* 비디오 및 이미지 전체 화면 모달 (Portal 사용) */}
-      {typeof window !== 'undefined' && createPortal(
-        <>
-          {selectedVideoUrl && (
+    </div>
+    {/* 비디오 및 이미지 전체 화면 모달 (Portal 사용) */}
+    {typeof window !== 'undefined' && createPortal(
+      <>
+        {selectedVideoUrl && (
             <div 
               className="fixed inset-0 bg-black bg-opacity-90 z-[100] flex items-center justify-center p-4"
               onClick={() => setSelectedVideoUrl(null)}
@@ -3161,37 +3736,205 @@ function CustomerImageModal({ customer, onClose }: {
               onClick={() => {
                 setSelectedImageUrl(null);
                 setSelectedImageFileName(null);
+                setSelectedImageMetadata(null);
               }}
             >
-              <div className="w-full h-full flex flex-col items-center justify-center p-4" onClick={(e) => e.stopPropagation()}>
+              <div 
+                className="relative w-full h-full flex flex-col items-center justify-center p-4" 
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button
                   onClick={() => {
                     setSelectedImageUrl(null);
                     setSelectedImageFileName(null);
+                    setSelectedImageMetadata(null);
                   }}
-                  className="absolute top-4 right-4 text-white text-3xl hover:text-gray-300 z-10 bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center"
+                  className="absolute top-4 right-4 text-white text-3xl hover:text-gray-300 z-20 bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+                  aria-label="닫기"
                 >
                   ×
                 </button>
-                <div className="flex-1 flex items-center justify-center w-full mb-16">
+                <div className="relative flex-1 flex items-center justify-center w-full max-w-6xl">
                   <img
                     src={selectedImageUrl}
-                    alt="확대 이미지"
-                    className="max-w-full max-h-[calc(100vh-120px)] object-contain"
+                    alt={selectedImageFileName || '확대 이미지'}
+                    className="max-w-full max-h-[calc(100vh-120px)] object-contain rounded-lg"
                   />
+                  
+                  {/* 메타데이터 오버레이 */}
+                  {selectedImageMetadata && (
+                    <ImageMetadataOverlay metadata={selectedImageMetadata} />
+                  )}
                 </div>
-                {selectedImageFileName && (
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm text-center bg-black bg-opacity-70 px-4 py-2 rounded max-w-[90%] truncate">
-                    {selectedImageFileName}
-                  </div>
-                )}
               </div>
             </div>
           )}
-        </>,
-        document.body
-      )}
-    </div>
+      </>,
+      document.body
+    )}
+
+    {/* 갤러리에서 이미지 선택 모달 */}
+    <FolderImagePicker
+        isOpen={showGalleryPicker}
+        onClose={() => {
+          setShowGalleryPicker(false);
+        }}
+        onSelect={handleGalleryImageSelect}
+        folderPath={getCustomerFolderPath()}
+        title="갤러리에서 이미지 선택"
+        enableDelete={true}
+        enableUpload={false}
+        onDelete={async (imageUrl: string, imageInfo?: { name: string; folderPath?: string }) => {
+          console.log('🗑️ [고객 이미지 삭제 시작]', {
+            imageUrl: imageUrl.substring(0, 100),
+            imageInfo,
+            customerId: customer.id,
+            customerName: customer.name
+          });
+          
+          try {
+            // 갤러리 관리 일괄 삭제와 동일한 패턴 사용
+            let imageName = '';
+            
+            if (imageInfo && imageInfo.name) {
+              // FolderImagePicker에서 전달된 folderPath와 name 사용 (갤러리 관리와 동일)
+              const folderPath = imageInfo.folderPath || getCustomerFolderPath();
+              imageName = folderPath && folderPath !== '' 
+                ? `${folderPath}/${imageInfo.name}` 
+                : imageInfo.name;
+              console.log('📝 [삭제 경로 구성]', {
+                folderPath: imageInfo.folderPath,
+                name: imageInfo.name,
+                finalImageName: imageName
+              });
+            } else {
+              // imageInfo가 없는 경우 (하위 호환성) URL에서 추출
+              imageName = extractImageNameFromUrl(imageUrl);
+              console.log('📝 [URL에서 경로 추출]', {
+                imageUrl: imageUrl.substring(0, 100),
+                extractedImageName: imageName
+              });
+            }
+            
+            console.log('📡 [삭제 API 호출]', {
+              method: 'POST',
+              endpoint: '/api/admin/delete-image',
+              imageName
+            });
+            
+            // 갤러리 관리와 동일하게 POST 메서드 사용
+            const response = await fetch('/api/admin/delete-image', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ imageName }),
+            });
+
+            console.log('📥 [삭제 API 응답]', {
+              status: response.status,
+              statusText: response.statusText,
+              ok: response.ok
+            });
+
+            const result = await response.json();
+            
+            console.log('📦 [삭제 API 결과]', {
+              success: result.success,
+              deletedImages: result.deletedImages,
+              deletedImagesCount: result.deletedImages?.length || 0,
+              metadataDeletedCount: result.metadataDeletedCount || 0,
+              deletionVerification: result.deletionVerification,
+              message: result.message,
+              existingFiles: result.existingFiles,
+              originalTargets: result.originalTargets
+            });
+
+            // ✅ 파일이 존재하지 않았거나 실제로 삭제되지 않은 경우
+            if (!result.success || (result.deletedImages && result.deletedImages.length === 0)) {
+              const errorMessage = result.message || result.error || '이미지를 찾을 수 없거나 삭제에 실패했습니다.';
+              console.error('❌ [삭제 실패]', {
+                errorMessage,
+                result,
+                reason: result.deletedImages?.length === 0 ? '삭제된 파일이 없음' : 'API가 success: false 반환'
+              });
+              throw new Error(errorMessage);
+            }
+
+            if (!response.ok) {
+              const errorMessage = result.error || result.message || '이미지 삭제에 실패했습니다.';
+              console.error('❌ [삭제 실패 - HTTP 오류]', {
+                status: response.status,
+                statusText: response.statusText,
+                errorMessage,
+                result
+              });
+              throw new Error(errorMessage);
+            }
+
+            // 삭제 성공 메시지 표시 (갤러리 관리와 동일)
+            const deletedCount = result.deletedImages?.length || 1;
+            const metadataDeleted = result.metadataDeletedCount || 0;
+            let successMessage = `✅ 이미지가 성공적으로 삭제되었습니다.`;
+            if (deletedCount > 1) {
+              successMessage = `✅ ${deletedCount}개의 이미지가 삭제되었습니다.`;
+            }
+            if (metadataDeleted > 0) {
+              successMessage += `\n(DB 메타데이터 ${metadataDeleted}개 삭제됨)`;
+            }
+            
+            console.log('✅ [삭제 성공]', {
+              deletedCount,
+              metadataDeleted,
+              successMessage
+            });
+            
+            alert(successMessage);
+
+            console.log('🔄 [이미지 목록 새로고침 시작]', {
+              selectedDateFilter,
+              customerId: customer.id
+            });
+            
+            // 이미지 목록 새로고침
+            await loadCustomerImages(selectedDateFilter);
+            
+            console.log('✅ [이미지 목록 새로고침 완료]');
+            
+            // 고객 리스트 썸네일 새로고침을 위한 이벤트 발생
+            window.dispatchEvent(new CustomEvent('customerImagesUpdated', { 
+              detail: { customerId: customer.id } 
+            }));
+            
+            console.log('📢 [고객 이미지 업데이트 이벤트 발생]', {
+              customerId: customer.id
+            });
+          } catch (error: any) {
+            console.error('❌ [이미지 삭제 오류]', {
+              error,
+              message: error.message,
+              stack: error.stack
+            });
+            throw error; // FolderImagePicker에서 처리
+          }
+        }}
+      />
+
+      {/* 업로드 전 설정 모달 */}
+      <CustomerImageUploadModal
+        isOpen={showUploadModal}
+        onClose={() => {
+          setShowUploadModal(false);
+          setSelectedFileForUpload(null);
+        }}
+        customer={customer}
+        visitDate={visitDate}
+        file={selectedFileForUpload}
+        onConfirm={async (config) => {
+          await handleUploadWithMetadata(config);
+        }}
+      />
+    </>
   );
 }
 

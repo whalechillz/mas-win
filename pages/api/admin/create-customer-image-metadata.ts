@@ -125,6 +125,14 @@ export default async function handler(
     const tempFilePath = `${tempFolderPath}/${tempFileName}`;
     
     console.log('🔍 [create-customer-image-metadata] 이미지 타입 감지 시작');
+    console.log('📋 [메타데이터 생성] 입력 파라미터:', {
+      customerId,
+      customerName,
+      visitDate,
+      metadataType,
+      fileName,
+      tempFilePath
+    });
     
     // 메타데이터 생성 전에 임시로 ALT 텍스트와 설명 추출 (타입 감지에 활용)
     let tempAltText: string | null = null;
@@ -159,6 +167,15 @@ export default async function handler(
       console.warn('⚠️ [create-customer-image-metadata] 빠른 분석 실패 (무시):', error);
     }
     
+    console.log('🔍 [메타데이터 생성] detectCustomerImageType 호출 전:', {
+      imageUrl: tempUploadResult.url?.substring(0, 100),
+      fileName,
+      tempFilePath,
+      metadataType,
+      tempAltText: tempAltText?.substring(0, 50),
+      tempDescription: tempDescription?.substring(0, 50)
+    });
+    
     const typeDetection = await detectCustomerImageType(
       tempUploadResult.url,
       fileName,
@@ -168,11 +185,12 @@ export default async function handler(
       tempDescription
     );
 
-    console.log('✅ [create-customer-image-metadata] 이미지 타입 감지 완료:', {
+    console.log('✅ [메타데이터 생성] 이미지 타입 감지 완료:', {
       scene: typeDetection.scene,
       type: typeDetection.type,
       confidence: typeDetection.confidence,
-      detectionMethod: typeDetection.detectionMethod
+      detectionMethod: typeDetection.detectionMethod,
+      keywords: typeDetection.keywords
     });
 
     // 3. 메타데이터 생성 (타입 감지 결과를 반영하여 더 정확한 메타데이터 생성)
@@ -234,6 +252,21 @@ export default async function handler(
     const detectedMimeType = mimeTypeMap[fileExtension] || file.mimetype || 'image/webp';
     const formatValue = fileExtension === 'jpg' ? 'jpeg' : fileExtension;
 
+    // 고객 정보를 메타데이터에 저장 (정확한 장면 번호와 타입)
+    const aiTags = [
+      `customer-${customerId}`,
+      `visit-${visitDate}`,
+      `scene-${typeDetection.scene}`, // 정확한 장면 번호 (S1-S7)
+      `type-${typeDetection.type}`, // 정확한 타입 (happy, problem, group 등)
+      ...typeDetection.keywords
+    ];
+    
+    console.log('🏷️ [메타데이터 생성] AI 태그 생성:', {
+      scene: typeDetection.scene,
+      type: typeDetection.type,
+      aiTags
+    });
+
     const metadataPayload = {
       // 필수 필드
       filename: fileNameFromPath,
@@ -248,13 +281,7 @@ export default async function handler(
       alt_text: metadata.alt_text || metadata.description || '',
       description: metadata.description || '',
       // 고객 정보를 메타데이터에 저장 (정확한 장면 번호와 타입)
-      ai_tags: [
-        `customer-${customerId}`,
-        `visit-${visitDate}`,
-        `scene-${typeDetection.scene}`, // 정확한 장면 번호 (S1-S7)
-        `type-${typeDetection.type}`, // 정확한 타입 (happy, problem, group 등)
-        ...typeDetection.keywords
-      ],
+      ai_tags: aiTags,
       // 타입 감지 결과 저장
       story_scene: typeDetection.scene > 0 ? typeDetection.scene : null,
       // 임시 파일임을 표시

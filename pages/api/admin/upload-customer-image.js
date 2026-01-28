@@ -14,6 +14,14 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     // 이미지 업로드 및 메타데이터 저장
     try {
+      console.log('📥 [upload-customer-image API] 요청 수신:', {
+        method: req.method,
+        contentType: req.headers['content-type'],
+        hasBody: !!req.body,
+        bodyKeys: req.body ? Object.keys(req.body) : [],
+        timestamp: new Date().toISOString()
+      });
+
       const { 
         customerId, 
         customerName, 
@@ -28,9 +36,26 @@ export default async function handler(req, res) {
         storyScene,
         imageType,
         folderName
-      } = req.body;
+      } = req.body || {};
+
+      console.log('📦 [upload-customer-image API] 요청 본문 파싱:', {
+        customerId,
+        customerName,
+        visitDate,
+        imageUrl: imageUrl?.substring(0, 100),
+        filePath: filePath?.substring(0, 100),
+        fileName,
+        originalFileName,
+        fileSize,
+        hasAllRequired: !!(customerId && visitDate && imageUrl)
+      });
 
       if (!customerId || !visitDate || !imageUrl) {
+        console.error('❌ [upload-customer-image API] 필수 파라미터 누락:', {
+          customerId: !!customerId,
+          visitDate: !!visitDate,
+          imageUrl: !!imageUrl
+        });
         return res.status(400).json({
           success: false,
           error: 'customerId, visitDate, imageUrl이 필요합니다.'
@@ -39,50 +64,123 @@ export default async function handler(req, res) {
 
       const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-      // image_metadata 테이블에 저장 (upsert 사용 - image_url 기준)
+      // ✅ 먼저 이미 등록된 이미지인지 확인
+      const { data: existingImage, error: checkError } = await supabase
+        .from('image_assets')
+        .select('id, cdn_url, file_path')
+        .eq('cdn_url', imageUrl)
+        .maybeSingle();
+
+      if (checkError && checkError.code !== 'PGRST116') { // PGRST116은 "not found" 오류 (정상)
+        console.error('❌ 이미지 중복 확인 오류:', checkError);
+        return res.status(500).json({
+          success: false,
+          error: '이미지 확인 중 오류가 발생했습니다.',
+          details: checkError.message
+        });
+      }
+
+      // ✅ 이미 등록된 이미지인 경우
+      if (existingImage) {
+        console.log('ℹ️ 이미 등록된 이미지:', {
+          imageUrl,
+          existingId: existingImage.id,
+          existingFilePath: existingImage.file_path
+        });
+        return res.status(200).json({
+          success: true,
+          message: '이미 등록된 이미지입니다.',
+          alreadyRegistered: true,
+          image: existingImage
+        });
+      }
+
+      // image_assets 테이블에 저장 (새 이미지)
+      // ⚠️ image_assets 테이블의 필수 필드: filename, original_filename, file_path, file_size, mime_type, format
+      const fileNameFromPath = filePath ? filePath.split('/').pop() : (fileName || '');
+      const fileExtension = fileNameFromPath.split('.').pop()?.toLowerCase() || 'webp';
+      const mimeTypeMap = {
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'gif': 'image/gif',
+        'webp': 'image/webp',
+        'heic': 'image/heic',
+        'mp4': 'video/mp4',
+        'mov': 'video/quicktime',
+        'avi': 'video/x-msvideo',
+        'webm': 'video/webm'
+      };
+      const detectedMimeType = mimeTypeMap[fileExtension] || 'image/webp';
+      const formatValue = fileExtension === 'jpg' ? 'jpeg' : fileExtension;
+
       const metadataPayload = {
-        image_url: imageUrl,  // UNIQUE 컬럼
-          folder_path: filePath.substring(0, filePath.lastIndexOf('/')),
-          date_folder: visitDate,
-          source: 'customer',
-          channel: 'customer',
-          title: `${customerName} - ${visitDate}`,
-          alt_text: `${customerName} 고객 방문 이미지 (${visitDate})`,
-          file_size: fileSize || null,
-          // 고객 정보를 메타데이터에 저장 (JSON 필드 활용)
-          tags: [`customer-${customerId}`, `visit-${visitDate}`],
-        // 스토리 기반 분류 추가
-        story_scene: storyScene || null,
-        image_type: imageType || null,
-        original_filename: originalFileName || null,
-        english_filename: fileName || null,
-        customer_name_en: customerNameEn || null,
-        customer_initials: customerInitials || null,
-        image_quality: 'final',
-        metadata: {
-          visitDate: visitDate,
-          customerName: customerName,
-          folderName: folderName
-        },
+        // ✅ 필수 필드
+        filename: fileNameFromPath,
+        original_filename: originalFileName || fileNameFromPath,
+        file_path: filePath,
+        file_size: fileSize || 0,
+        mime_type: detectedMimeType,
+        format: formatValue,
+        // ✅ 선택 필드
+        cdn_url: imageUrl,  // UNIQUE 컬럼
+        title: `${customerName} - ${visitDate}`,
+        alt_text: `${customerName} 고객 방문 이미지 (${visitDate})`,
+        // 고객 정보를 메타데이터에 저장 (JSON 필드 활용)
+        ai_tags: [`customer-${customerId}`, `visit-${visitDate}`],
+        // ⚠️ image_assets에는 다음 필드들이 없음: folder_path, date_folder, source, channel, story_scene, image_type, english_filename, customer_name_en, customer_initials, image_quality, metadata
         updated_at: new Date().toISOString()
       };
 
-      // upsert 사용: image_url이 있으면 업데이트, 없으면 생성
+      console.log('📝 [upload-customer-image API] 메타데이터 페이로드 구성:', {
+        filename: metadataPayload.filename,
+        original_filename: metadataPayload.original_filename,
+        file_path: metadataPayload.file_path?.substring(0, 100),
+        file_size: metadataPayload.file_size,
+        mime_type: metadataPayload.mime_type,
+        format: metadataPayload.format,
+        cdn_url: metadataPayload.cdn_url?.substring(0, 100),
+        ai_tags: metadataPayload.ai_tags
+      });
+
+      // 새 이미지 등록
+      console.log('📝 [upload-customer-image API] 메타데이터 저장 시도:', {
+        metadataPayload: {
+          ...metadataPayload,
+          ai_tags: metadataPayload.ai_tags
+        }
+      });
+
       const { data, error } = await supabase
-        .from('image_metadata')
-        .upsert(metadataPayload, {
-          onConflict: 'image_url',
-          ignoreDuplicates: false
-        })
+        .from('image_assets')
+        .insert(metadataPayload)
         .select();
 
+      console.log('📥 [upload-customer-image API] 메타데이터 저장 결과:', {
+        success: !!data && !error,
+        dataCount: data?.length || 0,
+        error: error ? {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        } : null
+      });
+
       if (error) {
-        console.error('❌ 메타데이터 저장 실패:', error);
-        console.error('저장 시도한 데이터:', metadataPayload);
+        console.error('❌ [upload-customer-image API] 메타데이터 저장 실패:', {
+          error,
+          errorCode: error.code,
+          errorMessage: error.message,
+          errorDetails: error.details,
+          errorHint: error.hint,
+          metadataPayload
+        });
         return res.status(500).json({
           success: false,
           error: '메타데이터 저장 실패',
-          details: error.message
+          details: error.message,
+          errorCode: error.code
         });
       }
 
@@ -105,6 +203,12 @@ export default async function handler(req, res) {
         }
       }
 
+      console.log('✅ [upload-customer-image API] 성공:', {
+        imageId: data[0]?.id,
+        cdn_url: data[0]?.cdn_url?.substring(0, 100),
+        file_path: data[0]?.file_path?.substring(0, 100)
+      });
+
       return res.status(200).json({
         success: true,
         message: '고객 이미지가 저장되었습니다.',
@@ -112,11 +216,16 @@ export default async function handler(req, res) {
       });
 
     } catch (error) {
-      console.error('❌ 고객 이미지 업로드 오류:', error);
+      console.error('❌ [upload-customer-image API] 예외 발생:', {
+        error,
+        errorMessage: error?.message,
+        errorStack: error?.stack,
+        errorName: error?.name
+      });
       return res.status(500).json({
         success: false,
         error: '고객 이미지 업로드 중 오류가 발생했습니다.',
-        details: error.message
+        details: error?.message || '알 수 없는 오류'
       });
     }
   } else if (req.method === 'GET') {
@@ -144,39 +253,127 @@ export default async function handler(req, res) {
         console.warn('⚠️ 고객 정보 조회 실패 (계속 진행):', customerError?.message);
       }
 
-      // 2. image_metadata에서 조회 (개선: tags 필터 + folder_path 필터 AND 조건으로 엄격하게 필터링)
-      // 다른 고객 이미지가 포함되지 않도록 AND 조건 사용
+      // 2. image_assets에서 조회 (ai_tags 필터 사용)
+      // ⚠️ image_assets에는 folder_path, date_folder가 없으므로 ai_tags와 file_path 사용
       let metadataQuery = supabase
-        .from('image_metadata')
+        .from('image_assets')
         .select('*');
       
-      // tags와 folder_path를 AND 조건으로 필터링하여 더 엄격하게 매칭
+      // ✅ ai_tags와 file_path를 모두 확인하여 필터링
+      // 목록 제거 기능을 위해 ai_tags에 customer-{customerId} 태그가 있는 이미지만 반환
       if (customerData?.folder_name) {
         const exactFolderPath = `originals/customers/${customerData.folder_name}`;
-        // AND 조건: tags에 customer-{id}가 포함되고, folder_path가 정확한 경로로 시작
-        // 이렇게 하면 다른 고객의 이미지가 포함되지 않음
-        metadataQuery = metadataQuery
-          .contains('tags', [`customer-${customerId}`])
-          .ilike('folder_path', `${exactFolderPath}/%`);
+        const customerTag = `customer-${customerId}`;
+        
+        console.log('🔍 [고객 이미지 조회] 필터링 조건:', {
+          folderPath: exactFolderPath,
+          customerTag,
+          customerId
+        });
+        
+        // file_path로 필터링 (가장 안정적이고 정확함)
+        metadataQuery = metadataQuery.ilike('file_path', `${exactFolderPath}/%`);
+        
+        // ⚠️ ai_tags 쿼리는 JSONB 파싱 오류가 발생할 수 있으므로
+        // 쿼리 단계에서는 file_path만 사용하고, 결과를 필터링할 때 ai_tags 확인
       } else {
-        // folder_name이 없으면 tags만 사용
-        metadataQuery = metadataQuery.contains('tags', [`customer-${customerId}`]);
+        // ⚠️ folder_name이 없으면 이미지를 조회하지 않음
+        // folder_name이 없으면 전체 customers 폴더를 조회하여 다른 고객의 이미지가 포함될 수 있음
+        console.warn('⚠️ folder_name이 없어 이미지를 조회하지 않습니다. customerId:', customerId);
+        // 빈 결과 반환 (존재하지 않는 ID로 필터링)
+        metadataQuery = metadataQuery.eq('id', '00000000-0000-0000-0000-000000000000');
       }
 
-      // 날짜 필터 적용
-      if (dateFilter) {
-        metadataQuery = metadataQuery.eq('date_folder', dateFilter);
-      }
-
+      // 날짜 필터 적용 (file_path에서 날짜 추출하여 필터링)
+      // ⚠️ image_assets에는 date_folder가 없으므로 file_path에서 날짜를 추출해야 함
+      // 하지만 쿼리 단계에서는 날짜 필터링이 어려우므로, 모든 데이터를 가져온 후 필터링
       const { data: metadataImages, error: metadataError } = await metadataQuery
-        .order('date_folder', { ascending: false })
         .order('created_at', { ascending: false });
+      
+      if (metadataError) {
+        console.error('❌ [고객 이미지 조회] 쿼리 오류:', metadataError);
+      } else {
+        console.log('✅ [고객 이미지 조회] 성공:', {
+          customerId,
+          folderName: customerData?.folder_name,
+          count: metadataImages?.length || 0
+        });
+      }
 
       if (metadataError) {
         console.error('❌ 메타데이터 조회 실패:', metadataError);
       }
 
-      let allImages = metadataImages || [];
+      // ✅ ai_tags에 customer-{customerId} 태그가 있는 이미지만 필터링 (목록 제거 기능 지원)
+      // ⚠️ 단, 기존 이미지 중 ai_tags가 없는 경우 file_path로 확인하여 포함 (하위 호환성)
+      const customerTag = `customer-${customerId}`;
+      const exactFolderPath = customerData?.folder_name ? `originals/customers/${customerData.folder_name}` : null;
+      
+      let filteredMetadataImages = (metadataImages || []).filter(img => {
+        const tags = Array.isArray(img.ai_tags) ? img.ai_tags : [];
+        const hasCustomerTag = tags.includes(customerTag);
+        
+        // ai_tags에 태그가 있으면 포함
+        if (hasCustomerTag) {
+          return true;
+        }
+        
+        // ai_tags가 비어있거나 태그가 없는 경우, file_path로 확인 (기존 이미지 하위 호환성)
+        if (exactFolderPath && img.file_path) {
+          const isInCustomerFolder = img.file_path.startsWith(exactFolderPath);
+          if (isInCustomerFolder) {
+            console.log('🔍 [고객 이미지 필터링] ai_tags 없지만 file_path로 포함 (하위 호환성):', {
+              imageId: img.id,
+              filePath: img.file_path?.substring(0, 100),
+              tags,
+              customerTag,
+              customerId
+            });
+            return true;
+          }
+        }
+        
+        // 둘 다 해당 안되면 제외
+        console.log('🔍 [고객 이미지 필터링] ai_tags와 file_path 모두 불일치 - 제외:', {
+          imageId: img.id,
+          filePath: img.file_path?.substring(0, 100),
+          tags,
+          customerTag,
+          customerId
+        });
+        
+        return false;
+      });
+
+      console.log('📦 [고객 이미지 필터링] ai_tags/file_path 필터링 결과:', {
+        before: metadataImages?.length || 0,
+        after: filteredMetadataImages.length,
+        customerTag,
+        customerId,
+        folderPath: exactFolderPath
+      });
+
+      // 날짜 필터 적용 (file_path에서 날짜 추출)
+      if (dateFilter && filteredMetadataImages.length > 0) {
+        filteredMetadataImages = filteredMetadataImages.filter(img => {
+          // file_path에서 날짜 추출
+          const pathToCheck = img.file_path || img.folder_path || '';
+          const dateMatch = pathToCheck.match(/(\d{4}-\d{2}-\d{2})/);
+          const extractedDate = dateMatch ? dateMatch[1] : null;
+          
+          // cdn_url에서도 날짜 추출 시도
+          if (!extractedDate && img.cdn_url) {
+            const urlDateMatch = img.cdn_url.match(/(\d{4}-\d{2}-\d{2})/);
+            if (urlDateMatch) {
+              return urlDateMatch[1] === dateFilter;
+            }
+          }
+          
+          return extractedDate === dateFilter;
+        });
+      }
+
+      let allImages = filteredMetadataImages || [];
       let storageImages = [];
 
       // 3. Storage에서 실제 파일 조회 (폴더명이 있는 경우)
@@ -281,9 +478,11 @@ export default async function handler(req, res) {
 
             // metadata 파일명 및 URL 맵 생성 (확장자 포함 및 제거 버전 모두)
             const metadataFileMap = new Map();
-            (metadataImages || []).forEach(img => {
-              const metaFileName = normalizeFileName(img.english_filename || img.original_filename || '');
-              const metaFileNameWithoutExt = getFileNameWithoutExt(img.english_filename || img.original_filename || '');
+            (filteredMetadataImages || []).forEach(img => {
+              // ⚠️ image_assets에는 english_filename, original_filename이 없으므로 file_path에서 추출
+              const fileNameFromPath = img.file_path ? img.file_path.split('/').pop() : '';
+              const metaFileName = normalizeFileName(fileNameFromPath || '');
+              const metaFileNameWithoutExt = getFileNameWithoutExt(fileNameFromPath || '');
               
               // 확장자 포함 버전
               if (metaFileName) {
@@ -299,8 +498,8 @@ export default async function handler(req, res) {
               }
               
               // URL에서 파일명 추출하여도 맵에 추가
-              const urlFileName = normalizeFileName(extractFileNameFromUrl(img.image_url || ''));
-              const urlFileNameWithoutExt = getFileNameWithoutExt(extractFileNameFromUrl(img.image_url || ''));
+              const urlFileName = normalizeFileName(extractFileNameFromUrl(img.cdn_url || img.image_url || ''));
+              const urlFileNameWithoutExt = getFileNameWithoutExt(extractFileNameFromUrl(img.cdn_url || img.image_url || ''));
               
               if (urlFileName && urlFileName !== metaFileName) {
                 metadataFileMap.set(urlFileName, img);
@@ -344,28 +543,48 @@ export default async function handler(req, res) {
                 // metadata 이미지 목록에서 URL로도 확인 (인코딩 차이 고려)
                 let metadataByUrl = null;
                 if (!matchingMetadata) {
-                  metadataByUrl = (metadataImages || []).find(meta => {
-                    if (!meta.image_url) return false;
+                  metadataByUrl = (filteredMetadataImages || []).find(meta => {
+                    if (!meta.cdn_url && !meta.image_url) return false;
+                    const metaUrl = meta.cdn_url || meta.image_url;
                     try {
-                      const metaUrlObj = new URL(meta.image_url);
+                      const metaUrlObj = new URL(metaUrl);
                       const normalizedMetaUrl = decodeURIComponent(metaUrlObj.origin + metaUrlObj.pathname);
-                      return normalizedMetaUrl === normalizedPublicUrl || meta.image_url === publicUrl;
+                      return normalizedMetaUrl === normalizedPublicUrl || metaUrl === publicUrl;
                     } catch {
-                      return meta.image_url === publicUrl;
+                      return metaUrl === publicUrl;
                     }
                   });
                 }
                 
                 const finalMetadata = matchingMetadata || metadataByUrl;
                 
+                // 파일명 추출 (URL 디코딩 포함)
+                const extractFileName = (name) => {
+                  if (!name) return null;
+                  try {
+                    return decodeURIComponent(name);
+                  } catch {
+                    return name;
+                  }
+                };
+                
+                const decodedFileName = extractFileName(file.name);
+                
                 return {
                   id: finalMetadata?.id || null,
                   image_url: publicUrl,
-                  english_filename: file.name,
-                  original_filename: file.name,
+                  cdn_url: publicUrl, // 하위 호환성
+                  english_filename: decodedFileName || file.name,
+                  original_filename: decodedFileName || file.name,
                   date_folder: fileDate,
-                  story_scene: finalMetadata?.story_scene || null,
-                  image_type: extractImageTypeFromFileName(file.name) || finalMetadata?.image_type || null,
+                  // ⚠️ image_assets에는 story_scene, image_type이 없을 수 있음
+                  story_scene: null, // finalMetadata?.story_scene || null,
+                  image_type: extractImageTypeFromFileName(file.name) || null, // finalMetadata?.image_type || null,
+                  // 스캔 서류 필드 추가
+                  is_scanned_document: finalMetadata?.is_scanned_document || false,
+                  document_type: finalMetadata?.document_type || null,
+                  // 고객 썸네일 대표 이미지 필드 추가
+                  is_customer_representative: finalMetadata?.is_customer_representative || false,
                   isFromStorage: !finalMetadata, // metadata에 없으면 Storage에서 가져온 파일
                   metadataMissing: !finalMetadata, // metadata에 없는 파일
                   // 고객명 확인용 필드 추가
@@ -387,16 +606,17 @@ export default async function handler(req, res) {
                 
                 // 2. metadata에 없는 파일만 필터링 (id가 null인 파일)
                 // 단, 이미 metadata 목록에 있는 URL과 중복되지 않는 경우만
-                const isDuplicate = (metadataImages || []).some(meta => {
-                  if (!meta.image_url || !img.image_url) return false;
+                const isDuplicate = (filteredMetadataImages || []).some(meta => {
+                  const metaUrl = meta.cdn_url || meta.image_url;
+                  if (!metaUrl || !img.image_url) return false;
                   try {
-                    const metaUrlObj = new URL(meta.image_url);
+                    const metaUrlObj = new URL(metaUrl);
                     const imgUrlObj = new URL(img.image_url);
                     const normalizedMetaUrl = decodeURIComponent(metaUrlObj.origin + metaUrlObj.pathname);
                     const normalizedImgUrl = decodeURIComponent(imgUrlObj.origin + imgUrlObj.pathname);
                     return normalizedMetaUrl === normalizedImgUrl;
                   } catch {
-                    return meta.image_url === img.image_url;
+                    return metaUrl === img.image_url;
                   }
                 });
                 
@@ -409,8 +629,24 @@ export default async function handler(req, res) {
                 return rest;
               });
 
-            // metadata와 병합
-            allImages = [...(metadataImages || []), ...storageImages];
+            // ✅ Storage 이미지도 ai_tags 확인하여 필터링 (metadata에 매칭된 경우만 포함)
+            // Storage에서 가져온 이미지 중 metadata에 매칭된 것만 포함
+            // metadata에 매칭되지 않은 Storage 이미지는 ai_tags가 없으므로 제외
+            const storageImagesWithMetadata = storageImages.filter(img => {
+              // metadata에 매칭된 이미지만 포함 (ai_tags가 있음)
+              return !!img.id;
+            });
+
+            console.log('📦 [Storage 이미지 필터링] 결과:', {
+              totalStorageImages: storageImages.length,
+              withMetadata: storageImagesWithMetadata.length,
+              withoutMetadata: storageImages.length - storageImagesWithMetadata.length,
+              customerTag,
+              customerId
+            });
+
+            // metadata와 병합 (metadata에 있는 이미지만 포함)
+            allImages = [...(filteredMetadataImages || []), ...storageImagesWithMetadata];
           }
         } catch (storageErr) {
           console.warn('⚠️ Storage 조회 실패 (계속 진행):', storageErr);
@@ -418,18 +654,21 @@ export default async function handler(req, res) {
       }
 
       // date_folder가 없는 이미지에 대해 폴더 경로나 created_at에서 날짜 추출
+      // ⚠️ image_assets에는 date_folder가 없으므로 항상 추출 필요
       allImages = allImages.map(img => {
         if (!img.date_folder) {
-          // folder_path에서 날짜 추출
-          if (img.folder_path) {
-            const dateMatch = img.folder_path.match(/(\d{4}-\d{2}-\d{2})/);
+          // file_path에서 날짜 추출 (image_assets는 file_path 사용)
+          if (img.file_path || img.folder_path) {
+            const pathToCheck = img.file_path || img.folder_path;
+            const dateMatch = pathToCheck.match(/(\d{4}-\d{2}-\d{2})/);
             if (dateMatch) {
               img.date_folder = dateMatch[1];
             }
           }
-          // image_url에서 날짜 추출 시도
-          if (!img.date_folder && img.image_url) {
-            const urlDateMatch = img.image_url.match(/(\d{4}-\d{2}-\d{2})/);
+          // cdn_url 또는 image_url에서 날짜 추출 시도
+          const urlToCheck = img.cdn_url || img.image_url;
+          if (!img.date_folder && urlToCheck) {
+            const urlDateMatch = urlToCheck.match(/(\d{4}-\d{2}-\d{2})/);
             if (urlDateMatch) {
               img.date_folder = urlDateMatch[1];
             }
@@ -437,13 +676,100 @@ export default async function handler(req, res) {
           // created_at에서 날짜 추출
           if (!img.date_folder && img.created_at) {
             img.date_folder = img.created_at.slice(0, 10);
-      }
+          }
           // 모두 실패하면 unknown
           if (!img.date_folder) {
             img.date_folder = 'unknown';
           }
         }
-        return img;
+        
+        // image_assets 형식으로 변환 (하위 호환성)
+        // 프론트엔드가 기대하는 필드들 추가
+        
+        // 파일명 추출 함수 (URL 디코딩 포함)
+        const extractFileName = (pathOrUrl) => {
+          if (!pathOrUrl) return null;
+          try {
+            // file_path나 cdn_url에서 파일명 추출
+            const fileName = pathOrUrl.split('/').pop() || '';
+            // URL 인코딩된 파일명 디코딩
+            try {
+              return decodeURIComponent(fileName.split('?')[0]);
+            } catch {
+              return fileName.split('?')[0];
+            }
+          } catch {
+            return null;
+          }
+        };
+        
+        // 파일명 추출 (여러 소스에서 시도)
+        // ⚠️ filename 필드를 최우선으로 사용 (업데이트된 파일명)
+        let fileName = img.filename || img.english_filename || img.original_filename || null;
+        if (!fileName && img.file_path) {
+          fileName = extractFileName(img.file_path);
+        }
+        if (!fileName && img.cdn_url) {
+          fileName = extractFileName(img.cdn_url);
+        }
+        if (!fileName && img.image_url) {
+          fileName = extractFileName(img.image_url);
+        }
+        
+        // ⚠️ cdn_url이 있는 경우 우선 사용
+        // cdn_url이 없으면 file_path로부터 URL 생성 (마이그레이션 과정에서 cdn_url이 누락된 경우 대비)
+        let imageUrl = img.cdn_url || img.image_url;
+        
+        // ⚠️ cdn_url이 없고 file_path가 있으면 URL 생성
+        // 마이그레이션 과정에서 cdn_url이 누락되었지만 Storage에는 파일이 존재하는 경우
+        // 특히 비디오 파일의 경우 마이그레이션 과정에서 cdn_url이 누락된 경우가 많음
+        if (!imageUrl && img.file_path) {
+          // 비디오 파일인지 확인
+          const videoExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv'];
+          const isVideo = videoExtensions.some(ext => 
+            img.file_path.toLowerCase().includes(ext) || 
+            (img.cdn_url && img.cdn_url.toLowerCase().includes(ext))
+          );
+          
+          // 비디오 파일이거나, 이미지 파일인 경우 file_path로부터 URL 생성
+          // 마이그레이션 과정에서 cdn_url이 누락된 경우를 대비
+          try {
+            const { data: { publicUrl } } = supabase.storage
+              .from(bucketName)
+              .getPublicUrl(img.file_path);
+            
+            if (publicUrl) {
+              imageUrl = publicUrl;
+              console.log(`✅ [고객 ${isVideo ? '비디오' : '이미지'}] file_path로부터 URL 생성: ${img.file_path.substring(0, 100)}...`);
+            }
+          } catch (urlError) {
+            console.warn(`⚠️ [고객 ${isVideo ? '비디오' : '이미지'}] URL 생성 실패: ${img.file_path.substring(0, 100)}...`, urlError.message);
+            imageUrl = null;
+          }
+        }
+        
+        return {
+          ...img,
+          image_url: imageUrl, // 하위 호환성 (프론트엔드가 image_url 사용)
+          cdn_url: imageUrl, // cdn_url도 동일하게 설정
+          // ⚠️ 파일명 필드 복구: filename을 최우선으로 사용 (업데이트된 파일명)
+          filename: img.filename || fileName || null, // ⚠️ 중요: filename 필드 명시적으로 포함
+          english_filename: img.english_filename || fileName || null,
+          original_filename: img.original_filename || fileName || null,
+          folder_path: img.file_path ? img.file_path.substring(0, img.file_path.lastIndexOf('/')) : null, // 하위 호환성
+          // 스캔 서류 필드 추가
+          is_scanned_document: img.is_scanned_document || false,
+          document_type: img.document_type || null,
+          // 고객 썸네일 대표 이미지 필드 추가
+          is_customer_representative: img.is_customer_representative || false,
+          // 프론트엔드가 사용하는 필드들
+          // ⚠️ image_assets에 story_scene, display_order 컬럼이 추가되었으므로 실제 값 사용
+          story_scene: img.story_scene !== undefined && img.story_scene !== null ? img.story_scene : null,
+          display_order: img.display_order !== undefined && img.display_order !== null ? img.display_order : null,
+          // image_assets에는 없는 필드들
+          image_type: null, // image_assets에는 없음
+          is_scene_representative: null // image_assets에는 없음
+        };
       });
 
       // 날짜별로 그룹화
@@ -466,7 +792,7 @@ export default async function handler(req, res) {
         success: true,
         images: allImages,
         groupedByDate,
-        metadataCount: metadataImages?.length || 0,
+        metadataCount: filteredMetadataImages?.length || 0,
         storageCount: storageImages.length,
         folderName: customerData?.folder_name || null
       });
