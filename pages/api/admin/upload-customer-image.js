@@ -367,16 +367,19 @@ export default async function handler(req, res) {
         try {
           const pathParts = img.file_path.split('/');
           const lastPart = pathParts[pathParts.length - 1];
-          const isDateFolder = /^\d{4}-\d{2}-\d{2}$/.test(lastPart);
+          // 날짜 폴더 패턴: YYYY-MM-DD 또는 YYYY.MM.DD 형식
+          const isDateFolder = /^\d{4}[.-]\d{2}[.-]\d{2}$/.test(lastPart);
+          // 파일명이 있는지 확인 (확장자가 있는지 체크)
+          const hasFilename = lastPart.includes('.') && !isDateFolder;
           
           let actualFilePath = img.file_path;
           let folderPath = pathParts.slice(0, -1).join('/');
           let fileName = lastPart;
           
           // file_path에 파일명이 없는 경우 (날짜 폴더만 있는 경우)
-          if (isDateFolder || !lastPart.includes('.')) {
+          if (isDateFolder || (!hasFilename && !lastPart.includes('.'))) {
             // filename 필드에서 파일명 추출
-            const fileNameFromField = img.filename || img.english_filename || img.original_filename;
+            const fileNameFromField = img.filename;
             if (fileNameFromField) {
               actualFilePath = `${img.file_path}/${fileNameFromField}`;
               folderPath = img.file_path;
@@ -488,10 +491,13 @@ export default async function handler(req, res) {
           if (img.file_path) {
             const pathParts = img.file_path.split('/');
             const lastPart = pathParts[pathParts.length - 1];
-            const isDateFolder = /^\d{4}-\d{2}-\d{2}$/.test(lastPart);
+            // 날짜 폴더 패턴: YYYY-MM-DD 또는 YYYY.MM.DD 형식
+            const isDateFolder = /^\d{4}[.-]\d{2}[.-]\d{2}$/.test(lastPart);
+            // 파일명이 있는지 확인 (확장자가 있는지 체크)
+            const hasFilename = lastPart.includes('.') && !isDateFolder;
             
-            if (isDateFolder || !lastPart.includes('.')) {
-              const fileName = img.filename || img.english_filename || img.original_filename;
+            if (isDateFolder || (!hasFilename && !lastPart.includes('.'))) {
+              const fileName = img.filename;
               if (fileName) {
                 img.file_path = `${img.file_path}/${fileName}`;
                 console.log('📝 [file_path 수정] 파일명 추가:', {
