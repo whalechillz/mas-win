@@ -201,12 +201,16 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     }
   }, [form.description, image]);
 
-  // OCR 텍스트가 있는지 확인 (description에 OCR 텍스트가 포함되어 있는지)
+  // OCR 텍스트가 있는지 확인 (description에 OCR 텍스트가 포함되어 있는지 또는 ocr_text 필드가 있는지)
   const hasOCRText = useMemo(() => {
-    if (!form.description) return false;
-    // OCR 텍스트는 보통 "[OCR 추출 텍스트]" 같은 마커가 있거나, description에 긴 텍스트가 포함됨
-    return form.description.length > 100 || form.description.includes('[OCR') || form.description.includes('OCR');
-  }, [form.description]);
+    // ocr_text 필드가 있으면 항상 true
+    if ((form as any).ocrText) return true;
+    // description에 OCR 마커가 있으면 true
+    if (form.description && (form.description.includes('[OCR') || form.description.includes('OCR 추출'))) return true;
+    // description이 100자 이상이면 OCR 텍스트로 간주
+    if (form.description && form.description.length > 100) return true;
+    return false;
+  }, [form.description, (form as any).ocrText]);
 
   // SEO 파일명 자동 생성 (하이브리드: 규칙 기반 + AI)
   const handleGenerateSEOFileName = useCallback(async () => {
@@ -993,7 +997,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
               })}
               
               {/* OCR 문서 뷰어 전환 버튼 */}
-              {hasOCRText && (form as any).ocrText && (
+              {hasOCRText && (
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div>
