@@ -255,10 +255,10 @@ export default async function handler(req, res) {
 
       // 2. image_assets에서 조회 (ai_tags 필터 사용)
       // ⚠️ image_assets에는 folder_path, date_folder가 없으므로 ai_tags와 file_path 사용
-      // ✅ OCR 관련 컬럼도 포함
+      // ✅ OCR 관련 컬럼도 포함 (fullTextAnnotation 포함)
       let metadataQuery = supabase
         .from('image_assets')
-        .select('*, ocr_extracted, ocr_text, ocr_confidence, ocr_processed_at');
+        .select('*, ocr_extracted, ocr_text, ocr_confidence, ocr_processed_at, ocr_fulltextannotation');
       
       // ✅ ai_tags와 file_path를 모두 확인하여 필터링
       // 목록 제거 기능을 위해 ai_tags에 customer-{customerId} 태그가 있는 이미지만 반환

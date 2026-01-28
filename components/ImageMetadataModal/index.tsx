@@ -5,6 +5,7 @@ import { SEOScore } from './components/SEOScore';
 import { useAIGeneration } from './hooks/useAIGeneration';
 import { validateForm, calculateSEOScore, getSEORecommendations } from './utils/validation';
 import { extractVideoMetadataClient } from '@/lib/video-utils';
+import DocumentOCRViewer from '../../admin/DocumentOCRViewer';
 
 interface ImageMetadataModalProps {
   isOpen: boolean;
@@ -118,6 +119,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [isExtractingEXIF, setIsExtractingEXIF] = useState(false);
   const [isCorrectingOCR, setIsCorrectingOCR] = useState(false);
+  const [showDocumentViewer, setShowDocumentViewer] = useState(false);
   const [exifData, setExifData] = useState<{
     taken_at?: string;
     gps_lat?: number;
@@ -430,6 +432,18 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
         ? image.category 
         : (image.category ? image.category.split(',').map(c => c.trim()).filter(c => c) : []);
       
+      // OCR 텍스트 추출 (description에서 [OCR 추출 텍스트] 마커 제거)
+      let ocrTextFromDescription = '';
+      if (image.description) {
+        const ocrMarkerIndex = image.description.indexOf('[OCR 추출 텍스트]');
+        if (ocrMarkerIndex !== -1) {
+          ocrTextFromDescription = image.description.substring(ocrMarkerIndex + '[OCR 추출 텍스트]'.length).trim();
+        } else if (image.description.length > 200) {
+          // 마커가 없지만 긴 텍스트면 OCR 텍스트로 간주
+          ocrTextFromDescription = image.description;
+        }
+      }
+      
       const newForm: MetadataForm = {
         alt_text: image.alt_text || '',
         keywords: image.keywords?.join(', ') || '',
@@ -439,6 +453,12 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
         categories: imageCategories,  // 다중 선택용
         filename: image.name || ''
       };
+      
+      // OCR 텍스트가 있으면 별도로 저장 (문서 뷰어용)
+      if (ocrTextFromDescription || (image as any).ocr_text) {
+        (newForm as any).ocrText = (image as any).ocr_text || ocrTextFromDescription;
+        (newForm as any).fullTextAnnotation = (image as any).ocr_fulltextannotation || null;
+      }
       
       setForm(newForm);
       setHasChanges(false);
@@ -853,9 +873,36 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
 
         {/* 컨텐츠 - 스크롤 가능한 영역 */}
         <div className="flex flex-1 overflow-hidden">
-          {/* 메인 폼 */}
-          <div className="flex-1 p-6 overflow-y-auto">
-            <div className="space-y-6">
+          {/* OCR 문서 뷰어 모드 */}
+          {showDocumentViewer && hasOCRText && (form as any).ocrText && (
+            <div className="flex-1 overflow-hidden">
+              <DocumentOCRViewer
+                imageUrl={image?.url || ''}
+                ocrText={(form as any).ocrText || form.description}
+                originalText={(form as any).ocrText || form.description}
+                fullTextAnnotation={(form as any).fullTextAnnotation}
+                onTextChange={(text) => {
+                  setForm(prev => ({
+                    ...prev,
+                    description: text
+                  }));
+                  setHasChanges(true);
+                }}
+                onSave={async (text) => {
+                  // 저장은 상위 onSave로 위임
+                  await onSave({
+                    ...form,
+                    description: text
+                  }, exifData);
+                }}
+              />
+            </div>
+          )}
+          
+          {/* 메인 폼 (기본 모드 또는 문서 뷰어가 아닐 때) */}
+          {!showDocumentViewer && (
+            <div className="flex-1 p-6 overflow-y-auto">
+              <div className="space-y-6">
               {Object.entries(FIELD_CONFIGS).map(([field, config]) => {
                 // 카테고리 필드 제외 (키워드 중심으로 전환)
                 if (field === 'category') {
@@ -884,6 +931,34 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
                 );
               })}
               
+              {/* OCR 문서 뷰어 전환 버튼 */}
+              {hasOCRText && (form as any).ocrText && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-medium text-blue-900 mb-1">
+                        📄 OCR 문서 편집 모드
+                      </h4>
+                      <p className="text-xs text-blue-700">
+                        원본 이미지와 텍스트를 나란히 보면서 편집할 수 있습니다.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowDocumentViewer(!showDocumentViewer)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                    >
+                      {showDocumentViewer ? '메타데이터 편집으로' : '문서 뷰어로 보기'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          )}
+          
+          {/* 메인 폼 계속 (문서 뷰어가 아닐 때만 표시) */}
+          {!showDocumentViewer && (
+            <>
               {/* EXIF/비디오 메타데이터 정보 표시 영역 */}
               {exifData && (
                 <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded">

@@ -343,6 +343,9 @@ export default async function handler(
       const ocrResult = await ocrResponse.json();
       ocrText = ocrResult.text || '';
       
+      // fullTextAnnotation 저장 (문서 재구성용)
+      const fullTextAnnotation = ocrResult.fullTextAnnotation || null;
+      
       console.log('✅ [create-customer-image-metadata] OCR 텍스트 추출 완료:', {
         textLength: ocrText.length,
         preview: ocrText.substring(0, 100)
@@ -461,6 +464,16 @@ export default async function handler(
       metadataPayload.ocr_text = ocrText;
       metadataPayload.ocr_extracted = true;
       metadataPayload.ocr_processed_at = new Date().toISOString();
+      
+      // fullTextAnnotation 저장 (문서 재구성용)
+      if (fullTextAnnotation) {
+        metadataPayload.ocr_fulltextannotation = fullTextAnnotation;
+        console.log('✅ [create-customer-image-metadata] fullTextAnnotation 저장:', {
+          blocksCount: fullTextAnnotation.blocks?.length || 0,
+          pagesCount: fullTextAnnotation.pages?.length || 0
+        });
+      }
+      
       // OCR 텍스트를 description에도 포함 (검색 가능하도록)
       if (metadataPayload.description) {
         metadataPayload.description = `${metadataPayload.description}\n\n[OCR 추출 텍스트]\n${ocrText.substring(0, 1000)}`;
@@ -472,7 +485,8 @@ export default async function handler(
         textLength: ocrText.length,
         preview: ocrText.substring(0, 100),
         ocrExtracted: metadataPayload.ocr_extracted,
-        ocrProcessedAt: metadataPayload.ocr_processed_at
+        ocrProcessedAt: metadataPayload.ocr_processed_at,
+        hasFullTextAnnotation: !!fullTextAnnotation
       });
     }
 
