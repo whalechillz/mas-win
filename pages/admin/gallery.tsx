@@ -1532,6 +1532,9 @@ export default function GalleryAdmin() {
   const [showConvertMenu, setShowConvertMenu] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
   const [upscaleModel, setUpscaleModel] = useState<'fal' | 'replicate'>('fal');
+  
+  // OCR 스캔 관련 상태
+  const [isScanningOCR, setIsScanningOCR] = useState(false);
   const [upscaleScale, setUpscaleScale] = useState<2 | 4>(2);
   const [navigateSelectedOnly, setNavigateSelectedOnly] = useState(false);
   const [metadataAnimation, setMetadataAnimation] = useState(false);
@@ -6321,6 +6324,84 @@ export default function GalleryAdmin() {
                     </div>
                   )}
                 </div>
+                {/* OCR 스캔 버튼 */}
+                {selectedImageForZoom && getFileType(selectedImageForZoom.name, selectedImageForZoom.url) === 'image' && (
+                  <button
+                    onClick={async () => {
+                      if (!selectedImageForZoom) return;
+                      
+                      if (!confirm('이미지에서 OCR 텍스트를 추출하시겠습니까?\n\n문서 이미지(주문사양서, 서류 등)에 적합합니다.')) {
+                        return;
+                      }
+                      
+                      try {
+                        setIsScanningOCR(true);
+                        console.log('📄 OCR 스캔 시작:', selectedImageForZoom.url);
+                        
+                        // OCR API 호출
+                        const ocrResponse = await fetch('/api/admin/extract-document-text', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ imageUrl: selectedImageForZoom.url })
+                        });
+                        
+                        if (!ocrResponse.ok) {
+                          const errorData = await ocrResponse.json();
+                          throw new Error(errorData.error || 'OCR 처리 실패');
+                        }
+                        
+                        const ocrResult = await ocrResponse.json();
+                        
+                        if (!ocrResult.text || ocrResult.text.trim().length === 0) {
+                          alert('⚠️ OCR로 텍스트를 추출할 수 없습니다.\n\n이미지에 텍스트가 없거나, 이미지 품질이 낮을 수 있습니다.');
+                          setIsScanningOCR(false);
+                          return;
+                        }
+                        
+                        // OCR 결과를 메타데이터에 저장
+                        const metadataUpdateResponse = await fetch('/api/admin/image-metadata', {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            imageUrl: selectedImageForZoom.url,
+                            ocr_text: ocrResult.text,
+                            ocr_extracted: true,
+                            ocr_confidence: ocrResult.confidence || null,
+                            ocr_processed_at: new Date().toISOString(),
+                            ocr_fulltextannotation: ocrResult.fullTextAnnotation || null,
+                            description: `[OCR 추출 텍스트]\n${ocrResult.text.substring(0, 1000)}`
+                          })
+                        });
+                        
+                        if (metadataUpdateResponse.ok) {
+                          alert(`✅ OCR 텍스트 추출 완료!\n\n추출된 텍스트 길이: ${ocrResult.text.length}자\n\n메타데이터 편집에서 확인할 수 있습니다.`);
+                          // 이미지 목록 새로고침
+                          setTimeout(async () => {
+                            await fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+                          }, 500);
+                        } else {
+                          const errorData = await metadataUpdateResponse.json();
+                          throw new Error(errorData.error || 'OCR 결과 저장 실패');
+                        }
+                      } catch (error: any) {
+                        console.error('❌ OCR 스캔 오류:', error);
+                        alert(`OCR 스캔 실패: ${error.message}`);
+                      } finally {
+                        setIsScanningOCR(false);
+                      }
+                    }}
+                    disabled={isScanningOCR}
+                    className={`px-3 py-1 text-sm rounded transition-colors ${
+                      isScanningOCR
+                        ? 'bg-gray-400 text-white cursor-not-allowed opacity-50'
+                        : 'bg-indigo-500 text-white hover:bg-indigo-600'
+                    }`}
+                    title="이미지에서 텍스트 추출 (OCR)"
+                  >
+                    {isScanningOCR ? 'OCR 스캔 중...' : '📄 OCR 스캔'}
+                  </button>
+                )}
+                
                 {/* 변환 버튼 */}
                 <div className="relative inline-block">
                   <button

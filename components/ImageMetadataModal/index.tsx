@@ -120,6 +120,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
   const [isExtractingEXIF, setIsExtractingEXIF] = useState(false);
   const [isCorrectingOCR, setIsCorrectingOCR] = useState(false);
   const [showDocumentViewer, setShowDocumentViewer] = useState(false);
+  const [isScanningOCR, setIsScanningOCR] = useState(false);
   const [exifData, setExifData] = useState<{
     taken_at?: string;
     gps_lat?: number;
@@ -859,6 +860,66 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
             >
               {isExtractingEXIF ? '⏳' : fileType === 'video' ? '🎬' : '📷'} {fileType === 'video' ? '비디오 메타 추출' : 'EXIF 추출'}
             </button>
+            
+            {/* OCR 스캔 버튼 (이미지인 경우만) */}
+            {fileType === 'image' && (
+              <button
+                onClick={async () => {
+                  if (!image?.url) {
+                    alert('이미지 URL이 없습니다.');
+                    return;
+                  }
+                  
+                  if (!confirm('이미지에서 OCR 텍스트를 추출하시겠습니까?\n\n문서 이미지(주문사양서, 서류 등)에 적합합니다.')) {
+                    return;
+                  }
+                  
+                  try {
+                    setIsScanningOCR(true);
+                    console.log('📄 OCR 스캔 시작:', image.url);
+                    
+                    // OCR API 호출
+                    const ocrResponse = await fetch('/api/admin/extract-document-text', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ imageUrl: image.url })
+                    });
+                    
+                    if (!ocrResponse.ok) {
+                      const errorData = await ocrResponse.json();
+                      throw new Error(errorData.error || 'OCR 처리 실패');
+                    }
+                    
+                    const ocrResult = await ocrResponse.json();
+                    
+                    if (!ocrResult.text || ocrResult.text.trim().length === 0) {
+                      alert('⚠️ OCR로 텍스트를 추출할 수 없습니다.\n\n이미지에 텍스트가 없거나, 이미지 품질이 낮을 수 있습니다.');
+                      setIsScanningOCR(false);
+                      return;
+                    }
+                    
+                    // OCR 결과를 description 필드에 자동 입력
+                    setForm(prev => ({
+                      ...prev,
+                      description: `[OCR 추출 텍스트]\n${ocrResult.text}`
+                    }));
+                    setHasChanges(true);
+                    
+                    alert(`✅ OCR 텍스트 추출 완료!\n\n추출된 텍스트 길이: ${ocrResult.text.length}자\n\n설명 필드에 자동으로 입력되었습니다.`);
+                  } catch (error: any) {
+                    console.error('❌ OCR 스캔 오류:', error);
+                    alert(`OCR 스캔 실패: ${error.message}`);
+                  } finally {
+                    setIsScanningOCR(false);
+                  }
+                }}
+                disabled={isGenerating || isScanningOCR}
+                className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                title="이미지에서 텍스트 추출 (OCR)"
+              >
+                {isScanningOCR ? '⏳' : '📄'} {isScanningOCR ? 'OCR 스캔 중...' : 'OCR 스캔'}
+              </button>
+            )}
             
             <button
               onClick={onClose}
