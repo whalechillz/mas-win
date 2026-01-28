@@ -450,7 +450,7 @@ export default function CustomersPage() {
     // eslint-disable-line react-hooks/exhaustive-deps
   }, [q, onlyOptOut, onlyWithImages]);
 
-  // 고객 이미지 업데이트 이벤트 리스너 (대표 이미지 설정 시 썸네일 새로고침)
+  // 고객 이미지 업데이트 이벤트 리스너 (대표 이미지 설정 시 고객 목록 썸네일 새로고침)
   useEffect(() => {
     const handleCustomerImagesUpdated = (e: CustomEvent) => {
       console.log('🔄 고객 이미지 업데이트 이벤트 수신, 고객 리스트 새로고침');
@@ -2496,7 +2496,7 @@ function CustomerImageModal({ customer, onClose }: {
     }
   };
 
-  // 고객 썸네일 대표 이미지 설정 핸들러
+  // 고객 대표 이미지 설정 핸들러
   const handleSetCustomerRepresentative = async (imageId: string) => {
     console.log('🖼️ [대표 이미지 설정] 시작:', { imageId, customerId: customer.id });
     
@@ -2537,9 +2537,9 @@ function CustomerImageModal({ customer, onClose }: {
     }
   };
 
-  // 고객 썸네일 대표 이미지 해제 핸들러
+  // 고객 대표 이미지 해제 핸들러
   const handleUnsetCustomerRepresentative = async (imageId: string) => {
-    if (!confirm('썸네일 대표 이미지를 해제하시겠습니까?')) {
+    if (!confirm('대표 이미지를 해제하시겠습니까?')) {
       return;
     }
 
@@ -3343,7 +3343,7 @@ function CustomerImageModal({ customer, onClose }: {
                         </button>
                       )}
                       
-                      {/* 고객 썸네일 대표 이미지 배지 (클릭 가능) - 동영상 제외 */}
+                      {/* 고객 대표 이미지 배지 (클릭 가능) - 동영상 제외 */}
                       {!isVideo(img.image_url) && (
                         <button
                           onClick={(e) => {
@@ -3359,9 +3359,9 @@ function CustomerImageModal({ customer, onClose }: {
                               ? 'bg-blue-500 text-white hover:bg-blue-600' // 대표 이미지로 설정된 경우 항상 표시
                               : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100' // 일반 상태는 호버 시에만 표시
                           }`}
-                          title={img.is_customer_representative ? '썸네일 대표 이미지 해제 (클릭)' : '썸네일 대표 이미지로 설정 (클릭)'}
+                          title={img.is_customer_representative ? '대표 이미지 해제 (클릭)' : '대표 이미지로 설정 (클릭)'}
                         >
-                          {img.is_customer_representative ? '🏠 썸네일' : '○ 일반'}
+                          {img.is_customer_representative ? '⭐ 대표' : '○ 일반'}
                         </button>
                       )}
                       
@@ -3486,7 +3486,7 @@ function CustomerImageModal({ customer, onClose }: {
                           </button>
                         )}
                         
-                        {/* 고객 썸네일 대표 이미지 배지 (클릭 가능) - 동영상 제외 */}
+                        {/* 고객 대표 이미지 배지 (클릭 가능) - 동영상 제외 */}
                         {!isVideo(img.image_url) && (
                           <button
                             onClick={(e) => {
@@ -3502,9 +3502,9 @@ function CustomerImageModal({ customer, onClose }: {
                                 ? 'bg-blue-500 text-white hover:bg-blue-600'
                                 : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100'
                             }`}
-                            title={img.is_customer_representative ? '썸네일 대표 이미지 해제 (클릭)' : '썸네일 대표 이미지로 설정 (클릭)'}
+                            title={img.is_customer_representative ? '대표 이미지 해제 (클릭)' : '대표 이미지로 설정 (클릭)'}
                           >
-                            {img.is_customer_representative ? '🏠 썸네일' : '○ 일반'}
+                            {img.is_customer_representative ? '⭐ 대표' : '○ 일반'}
                           </button>
                         )}
                         
@@ -3659,7 +3659,7 @@ function CustomerImageModal({ customer, onClose }: {
                                '스캔서류'}
                             </span>
                             
-                            {/* 고객 썸네일 대표 이미지 배지 (서류도 썸네일로 설정 가능) */}
+                            {/* 고객 대표 이미지 배지 (서류도 대표 이미지로 설정 가능) */}
                             {!isVideo(doc.image_url) && (
                               <button
                                 onClick={(e) => {
@@ -3675,9 +3675,9 @@ function CustomerImageModal({ customer, onClose }: {
                                     ? 'bg-blue-500 text-white hover:bg-blue-600'
                                     : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100'
                                 }`}
-                                title={doc.is_customer_representative ? '썸네일 대표 이미지 해제 (클릭)' : '썸네일 대표 이미지로 설정 (클릭)'}
+                                title={doc.is_customer_representative ? '대표 이미지 해제 (클릭)' : '대표 이미지로 설정 (클릭)'}
                               >
-                                {doc.is_customer_representative ? '🏠 썸네일' : '○ 일반'}
+                                {doc.is_customer_representative ? '⭐ 대표' : '○ 일반'}
                               </button>
                             )}
                           </div>
