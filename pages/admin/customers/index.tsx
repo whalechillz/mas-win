@@ -2498,6 +2498,8 @@ function CustomerImageModal({ customer, onClose }: {
 
   // 고객 썸네일 대표 이미지 설정 핸들러
   const handleSetCustomerRepresentative = async (imageId: string) => {
+    console.log('🖼️ [대표 이미지 설정] 시작:', { imageId, customerId: customer.id });
+    
     try {
       const response = await fetch('/api/admin/set-customer-representative-image', {
         method: 'POST',
@@ -2511,6 +2513,8 @@ function CustomerImageModal({ customer, onClose }: {
 
       const result = await response.json();
       
+      console.log('📥 [대표 이미지 설정] API 응답:', result);
+      
       if (!result.success) {
         throw new Error(result.error || '대표 이미지 설정 실패');
       }
@@ -2523,10 +2527,13 @@ function CustomerImageModal({ customer, onClose }: {
         detail: { customerId: customer.id } 
       }));
       
-      console.log('✅ 고객 썸네일 대표 이미지 설정 완료:', { imageId });
+      console.log('✅ [대표 이미지 설정] 완료:', { imageId, customerId: customer.id });
+      
+      // 성공 메시지 표시 (토스트 알림)
+      alert('✅ 대표 이미지로 설정되었습니다.');
     } catch (error: any) {
-      console.error('고객 썸네일 대표 이미지 설정 오류:', error);
-      alert('대표 이미지 설정에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
+      console.error('❌ [대표 이미지 설정] 오류:', error);
+      alert('❌ 대표 이미지 설정에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
     }
   };
 
@@ -2535,6 +2542,8 @@ function CustomerImageModal({ customer, onClose }: {
     if (!confirm('썸네일 대표 이미지를 해제하시겠습니까?')) {
       return;
     }
+
+    console.log('🖼️ [대표 이미지 해제] 시작:', { imageId, customerId: customer.id });
 
     try {
       const response = await fetch('/api/admin/set-customer-representative-image', {
@@ -2549,6 +2558,8 @@ function CustomerImageModal({ customer, onClose }: {
 
       const result = await response.json();
       
+      console.log('📥 [대표 이미지 해제] API 응답:', result);
+      
       if (!result.success) {
         throw new Error(result.error || '대표 이미지 해제 실패');
       }
@@ -2561,10 +2572,13 @@ function CustomerImageModal({ customer, onClose }: {
         detail: { customerId: customer.id } 
       }));
       
-      console.log('✅ 고객 썸네일 대표 이미지 해제 완료:', { imageId });
+      console.log('✅ [대표 이미지 해제] 완료:', { imageId, customerId: customer.id });
+      
+      // 성공 메시지 표시 (토스트 알림)
+      alert('✅ 대표 이미지가 해제되었습니다.');
     } catch (error: any) {
-      console.error('고객 썸네일 대표 이미지 해제 오류:', error);
-      alert('대표 이미지 해제에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
+      console.error('❌ [대표 이미지 해제] 오류:', error);
+      alert('❌ 대표 이미지 해제에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
     }
   };
 
@@ -3342,8 +3356,8 @@ function CustomerImageModal({ customer, onClose }: {
                           }}
                           className={`absolute ${img.story_scene ? 'top-10 left-2' : 'top-2 left-2'} z-10 px-2 py-1 text-[10px] font-semibold rounded-md shadow-lg flex items-center gap-1 cursor-pointer transition-colors ${
                             img.is_customer_representative
-                              ? 'bg-blue-500 text-white hover:bg-blue-600'
-                              : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100'
+                              ? 'bg-blue-500 text-white hover:bg-blue-600' // 대표 이미지로 설정된 경우 항상 표시
+                              : 'bg-gray-400 text-white hover:bg-gray-500 opacity-0 group-hover:opacity-100' // 일반 상태는 호버 시에만 표시
                           }`}
                           title={img.is_customer_representative ? '썸네일 대표 이미지 해제 (클릭)' : '썸네일 대표 이미지로 설정 (클릭)'}
                         >
