@@ -49,9 +49,19 @@ export default function CustomerImageUploadModal({
       fileName.includes('specification');
     
     // 디버깅 로그
-    if (detected) {
-      console.log('📄 [문서 감지] 파일명:', file.name, '→ 문서로 감지됨');
-    }
+    console.log('📄 [isDocument 계산]', {
+      fileName: file.name,
+      fileNameLower: fileName,
+      detected,
+      checks: {
+        hasDoc: fileName.includes('doc'),
+        has사양서: fileName.includes('사양서'),
+        has문서: fileName.includes('문서'),
+        has주문: fileName.includes('주문'),
+        hasOrder: fileName.includes('order'),
+        hasSpec: fileName.includes('spec')
+      }
+    });
     
     return detected;
   })() : false;
@@ -59,27 +69,34 @@ export default function CustomerImageUploadModal({
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && file) {
       setSelectedVisitDate(visitDate);
       // 문서인 경우 OCR을 기본값으로 설정 (isDocument와 동일한 로직 사용)
-      const isDoc = file ? (() => {
-        const fileName = file.name.toLowerCase();
-        return 
-          fileName.includes('doc') ||
-          fileName.includes('사양서') ||
-          fileName.includes('문서') ||
-          fileName.includes('scan') ||
-          fileName.includes('seukaen') ||
-          fileName.includes('주문') ||
-          fileName.includes('order') ||
-          fileName.includes('spec') ||
-          fileName.includes('specification');
-      })() : false;
+      const fileName = file.name.toLowerCase();
+      const isDoc = 
+        fileName.includes('doc') ||
+        fileName.includes('사양서') ||
+        fileName.includes('문서') ||
+        fileName.includes('scan') ||
+        fileName.includes('seukaen') ||
+        fileName.includes('주문') ||
+        fileName.includes('order') ||
+        fileName.includes('spec') ||
+        fileName.includes('specification');
       
       console.log('🔍 [useEffect] 문서 감지:', {
-        fileName: file?.name,
+        fileName: file.name,
+        fileNameLower: fileName,
         isDoc,
-        willSetTo: isDoc ? 'ocr' : 'golf-ai'
+        willSetTo: isDoc ? 'ocr' : 'golf-ai',
+        checks: {
+          hasDoc: fileName.includes('doc'),
+          has사양서: fileName.includes('사양서'),
+          has문서: fileName.includes('문서'),
+          has주문: fileName.includes('주문'),
+          hasOrder: fileName.includes('order'),
+          hasSpec: fileName.includes('spec')
+        }
       });
       
       setMetadataType(isDoc ? 'ocr' : 'golf-ai');
