@@ -3367,19 +3367,6 @@ function CustomerImageModal({ customer, onClose }: {
                       
                       {/* 액션 버튼들 (호버 시 표시) */}
                       <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                        {/* 대표로 설정 버튼 (배지가 보이지 않을 때만 표시, 동영상 제외) */}
-                        {!img.is_scene_representative && img.story_scene && !isVideo(img.image_url) && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSetSceneRepresentative(img.id, img.story_scene);
-                            }}
-                            className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-yellow-600 text-xs"
-                            title="대표 이미지로 설정"
-                          >
-                            ⭐
-                          </button>
-                        )}
                         {/* 목록 제거 버튼 */}
                         <button
                           onClick={(e) => {
@@ -3508,33 +3495,20 @@ function CustomerImageModal({ customer, onClose }: {
                           </button>
                         )}
                         
-                        {/* 액션 버튼들 (호버 시 표시) */}
-                        <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                          {/* 대표로 설정 버튼 (배지가 보이지 않을 때만 표시) */}
-                          {!img.is_scene_representative && img.story_scene && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleSetSceneRepresentative(img.id, img.story_scene);
-                              }}
-                              className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-yellow-600 text-xs"
-                              title="대표 이미지로 설정"
-                            >
-                              ⭐
-                            </button>
-                          )}
-                          {/* 목록 제거 버튼 */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveFromCustomerList(img.id, img.image_url);
-                            }}
-                            className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-orange-600 text-xs"
-                            title="고객 목록에서 제거 (Storage 파일은 유지)"
-                          >
-                            ⊖
-                          </button>
-                        </div>
+                      {/* 액션 버튼들 (호버 시 표시) */}
+                      <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                        {/* 목록 제거 버튼 */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveFromCustomerList(img.id, img.image_url);
+                          }}
+                          className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-orange-600 text-xs"
+                          title="고객 목록에서 제거 (Storage 파일은 유지)"
+                        >
+                          ⊖
+                        </button>
+                      </div>
                       </div>
                       <div 
                         className="mt-1 text-xs text-gray-600 truncate" 
