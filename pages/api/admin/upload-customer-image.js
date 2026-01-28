@@ -698,19 +698,48 @@ export default async function handler(req, res) {
         let imageUrl = null;
         
         if (img.file_path) {
-          // file_path 기반으로 URL 생성 (갤러리 폴더 기준 - 가장 안정적)
-          const { data: { publicUrl } } = supabase.storage
-            .from(bucketName)
-            .getPublicUrl(img.file_path);
-          imageUrl = publicUrl;
+          // file_path에 파일명이 있는지 확인
+          const pathParts = img.file_path.split('/');
+          const lastPart = pathParts[pathParts.length - 1];
+          const isDateFolder = /^\d{4}-\d{2}-\d{2}$/.test(lastPart);
+          
+          // file_path가 폴더 경로만 있고 파일명이 없는 경우
+          if (isDateFolder || !lastPart.includes('.')) {
+            // filename이나 cdn_url에서 파일명 추출
+            const actualFileName = fileName || extractFileName(img.cdn_url) || 'unknown';
+            const correctedFilePath = `${img.file_path}/${actualFileName}`;
+            
+            console.warn('⚠️ [고객 이미지 조회] file_path에 파일명 없음, 파일명 추가:', {
+              imageId: img.id,
+              originalFilePath: img.file_path,
+              correctedFilePath: correctedFilePath.substring(0, 100),
+              fileName: actualFileName
+            });
+            
+            // 수정된 file_path로 URL 생성
+            const { data: { publicUrl } } = supabase.storage
+              .from(bucketName)
+              .getPublicUrl(correctedFilePath);
+            imageUrl = publicUrl;
+            
+            // file_path도 업데이트 (나중에 DB에 반영)
+            img.file_path = correctedFilePath;
+          } else {
+            // file_path에 파일명이 있으면 그대로 사용
+            const { data: { publicUrl } } = supabase.storage
+              .from(bucketName)
+              .getPublicUrl(img.file_path);
+            imageUrl = publicUrl;
+          }
+          
           console.log('📝 [고객 이미지 조회] file_path 기반 URL 사용 (갤러리 폴더 기준):', {
             imageId: img.id,
             file_path: img.file_path?.substring(0, 100),
-            generatedUrl: publicUrl.substring(0, 100),
+            generatedUrl: imageUrl?.substring(0, 100),
             oldCdnUrl: img.cdn_url?.substring(0, 100)
           });
         } else {
-          // file_path가 없으면 기존 cdn_url 또는 image_url 사용 (하위 호환성)
+          // file_path가 없으면 기존 cdn_url 사용 (하위 호환성)
           imageUrl = img.cdn_url || img.image_url;
           if (!imageUrl) {
             console.warn('⚠️ [고객 이미지 조회] file_path와 cdn_url 모두 없음:', {
