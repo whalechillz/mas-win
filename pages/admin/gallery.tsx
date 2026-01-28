@@ -5840,9 +5840,16 @@ export default function GalleryAdmin() {
           if (!found) return null;
           
           // ✅ OCR 필드 포함하여 전달 (고객 관리와 동일한 방식)
+          // description에 ocr_text가 없으면 추가 (OCR 문서 편집 모드 표시를 위해)
+          const description = found.description || found.ocr_text || '';
+          const finalDescription = found.ocr_text && !description.includes('[OCR') 
+            ? `${description ? description + '\n\n' : ''}[OCR 추출 텍스트]\n${found.ocr_text}`
+            : description;
+          
           return {
             ...found,
             category: String(found.category ?? ''),
+            description: finalDescription,
             // OCR 필드 명시적으로 포함
             ocr_text: found.ocr_text,
             ocr_extracted: found.ocr_extracted,
