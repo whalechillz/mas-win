@@ -37,20 +37,53 @@ export default function CustomerImageUploadModal({
   // 문서 감지 (파일명 기반)
   const isDocument = file ? (() => {
     const originalFileName = file.name;
-    const fileName = originalFileName.toLowerCase();
+    // 유니코드 정규화 (NFC 형식으로 통일)
+    const normalizedFileName = originalFileName.normalize('NFC');
+    const fileName = normalizedFileName.toLowerCase();
     
-    // 각 키워드별 검사 결과
-    const checks = {
-      hasDoc: fileName.includes('doc'),
-      has사양서: fileName.includes('사양서'),
-      has문서: fileName.includes('문서'),
-      hasScan: fileName.includes('scan'),
-      hasSeukaen: fileName.includes('seukaen'),
-      has주문: fileName.includes('주문'),
-      hasOrder: fileName.includes('order'),
-      hasSpec: fileName.includes('spec'),
-      hasSpecification: fileName.includes('specification')
+    // 키워드 목록 (정규화된 형태)
+    const keywords = {
+      doc: 'doc',
+      사양서: '사양서',
+      문서: '문서',
+      scan: 'scan',
+      seukaen: 'seukaen',
+      주문: '주문',
+      order: 'order',
+      spec: 'spec',
+      specification: 'specification'
     };
+    
+    // 각 키워드별 검사 결과 (정규화된 키워드 사용)
+    const checks = {
+      hasDoc: fileName.includes(keywords.doc),
+      has사양서: fileName.includes(keywords.사양서),
+      has문서: fileName.includes(keywords.문서),
+      hasScan: fileName.includes(keywords.scan),
+      hasSeukaen: fileName.includes(keywords.seukaen),
+      has주문: fileName.includes(keywords.주문),
+      hasOrder: fileName.includes(keywords.order),
+      hasSpec: fileName.includes(keywords.spec),
+      hasSpecification: fileName.includes(keywords.specification)
+    };
+    
+    // 직접 문자열 비교 테스트
+    const directTests: any = {};
+    Object.entries(keywords).forEach(([key, value]) => {
+      const index = fileName.indexOf(value);
+      directTests[key] = {
+        keyword: value,
+        found: index >= 0,
+        index: index,
+        testResult: fileName.includes(value),
+        // 실제 파일명에서 해당 키워드 부분 추출
+        extracted: index >= 0 ? fileName.substring(index, index + value.length) : null,
+        // 키워드의 유니코드
+        keywordCodes: Array.from(value).map(c => c.charCodeAt(0)),
+        // 파일명에서 해당 위치의 유니코드
+        fileCodes: index >= 0 ? Array.from(fileName.substring(index, index + value.length)).map(c => c.charCodeAt(0)) : null
+      };
+    });
     
     // 각 키워드별 상세 검사 (문자열 위치까지 확인)
     const detailedChecks: any = {};
@@ -91,14 +124,28 @@ export default function CustomerImageUploadModal({
     // 상세 디버깅 로그
     console.log('📄 [isDocument 계산] 상세 분석:', {
       '원본 파일명': originalFileName,
-      '원본 파일명 길이': originalFileName.length,
-      '원본 파일명 문자 코드': Array.from(originalFileName).map(c => `${c}(${c.charCodeAt(0)})`).join(', '),
+      '정규화 후 파일명': normalizedFileName,
       '소문자 변환 후': fileName,
-      '소문자 변환 후 길이': fileName.length,
-      '소문자 변환 후 문자 코드': Array.from(fileName).map(c => `${c}(${c.charCodeAt(0)})`).join(', '),
       '최종 감지 결과': detected,
-      '키워드 검사 상세': detailedChecks,
-      '검사 요약': checks
+      '직접 문자열 비교 테스트': directTests,
+      '검사 요약': checks,
+      '파일명 전체 분석': {
+        '원본 길이': originalFileName.length,
+        '정규화 후 길이': normalizedFileName.length,
+        '소문자 후 길이': fileName.length,
+        '원본 문자별 코드': Array.from(originalFileName).map((c, i) => ({
+          char: c,
+          code: c.charCodeAt(0),
+          hex: c.charCodeAt(0).toString(16),
+          position: i
+        })),
+        '정규화 후 문자별 코드': Array.from(normalizedFileName).map((c, i) => ({
+          char: c,
+          code: c.charCodeAt(0),
+          hex: c.charCodeAt(0).toString(16),
+          position: i
+        }))
+      }
     });
     
     return detected;
@@ -111,20 +158,48 @@ export default function CustomerImageUploadModal({
       setSelectedVisitDate(visitDate);
       // 문서인 경우 OCR을 기본값으로 설정 (isDocument와 동일한 로직 사용)
       const originalFileName = file.name;
-      const fileName = originalFileName.toLowerCase();
+      // 유니코드 정규화 (NFC 형식으로 통일)
+      const normalizedFileName = originalFileName.normalize('NFC');
+      const fileName = normalizedFileName.toLowerCase();
       
-      // 각 키워드별 검사
-      const checks = {
-        hasDoc: fileName.includes('doc'),
-        has사양서: fileName.includes('사양서'),
-        has문서: fileName.includes('문서'),
-        hasScan: fileName.includes('scan'),
-        hasSeukaen: fileName.includes('seukaen'),
-        has주문: fileName.includes('주문'),
-        hasOrder: fileName.includes('order'),
-        hasSpec: fileName.includes('spec'),
-        hasSpecification: fileName.includes('specification')
+      // 키워드 목록
+      const keywords = {
+        doc: 'doc',
+        사양서: '사양서',
+        문서: '문서',
+        scan: 'scan',
+        seukaen: 'seukaen',
+        주문: '주문',
+        order: 'order',
+        spec: 'spec',
+        specification: 'specification'
       };
+      
+      // 각 키워드별 검사 (정규화된 키워드 사용)
+      const checks = {
+        hasDoc: fileName.includes(keywords.doc),
+        has사양서: fileName.includes(keywords.사양서),
+        has문서: fileName.includes(keywords.문서),
+        hasScan: fileName.includes(keywords.scan),
+        hasSeukaen: fileName.includes(keywords.seukaen),
+        has주문: fileName.includes(keywords.주문),
+        hasOrder: fileName.includes(keywords.order),
+        hasSpec: fileName.includes(keywords.spec),
+        hasSpecification: fileName.includes(keywords.specification)
+      };
+      
+      // 직접 문자열 비교 테스트
+      const directTests: any = {};
+      Object.entries(keywords).forEach(([key, value]) => {
+        const index = fileName.indexOf(value);
+        directTests[key] = {
+          keyword: value,
+          found: index >= 0,
+          index: index,
+          testResult: fileName.includes(value),
+          extracted: index >= 0 ? fileName.substring(index, index + value.length) : null
+        };
+      });
       
       const isDoc = 
         checks.hasDoc ||
@@ -150,17 +225,29 @@ export default function CustomerImageUploadModal({
       
       console.log('🔍 [useEffect] 문서 감지 상세:', {
         '원본 파일명': originalFileName,
+        '정규화 후 파일명': normalizedFileName,
         '소문자 변환 후': fileName,
         '최종 감지 결과': isDoc,
         '설정될 metadataType': isDoc ? 'ocr' : 'golf-ai',
-        '키워드 검사 상세': detailedChecks,
+        '직접 문자열 비교 테스트': directTests,
         '검사 요약': checks,
-        '파일명 유니코드': Array.from(originalFileName).map((c, i) => ({
-          char: c,
-          code: c.charCodeAt(0),
-          hex: c.charCodeAt(0).toString(16),
-          position: i
-        }))
+        '파일명 전체 분석': {
+          '원본 길이': originalFileName.length,
+          '정규화 후 길이': normalizedFileName.length,
+          '소문자 후 길이': fileName.length,
+          '원본 문자별 코드': Array.from(originalFileName).map((c, i) => ({
+            char: c,
+            code: c.charCodeAt(0),
+            hex: c.charCodeAt(0).toString(16),
+            position: i
+          })),
+          '정규화 후 문자별 코드': Array.from(normalizedFileName).map((c, i) => ({
+            char: c,
+            code: c.charCodeAt(0),
+            hex: c.charCodeAt(0).toString(16),
+            position: i
+          }))
+        }
       });
       
       setMetadataType(isDoc ? 'ocr' : 'golf-ai');
