@@ -38,7 +38,7 @@ export default async function handler(req, res) {
 
     // 1. image_metadata에서 원본 이미지 찾기
     const { data: imageMetadata, error: metaError } = await supabase
-      .from('image_metadata')
+      .from('image_assets')
       .select('*')
       .eq('image_url', imageUrl)
       .maybeSingle();
@@ -94,7 +94,7 @@ export default async function handler(req, res) {
 
     // 3. image_metadata 업데이트
     const { data: updatedMetadata, error: updateError } = await supabase
-      .from('image_metadata')
+      .from('image_assets')
       .update({
         tags: updatedTags,
         updated_at: new Date().toISOString()

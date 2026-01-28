@@ -32,10 +32,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
+      // ⚠️ image_assets로 변경 (ID는 UUID이므로 문자열 배열로 변환 필요)
+      const idStringArray = idArray.map(id => id.toString());
       const { data, error } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .select('*')
-        .in('id', idArray);
+        .in('id', idStringArray);
 
       if (error) throw error;
 
@@ -61,77 +63,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'imageId가 필요합니다.' });
       }
 
+      // ⚠️ image_assets로 변경 (customer_id, story_scene, is_scene_representative는 image_assets에 없음)
       // 먼저 현재 이미지 정보 조회
       const { data: currentImage, error: fetchError } = await supabase
-        .from('image_metadata')
-        .select('id, customer_id, story_scene, is_scene_representative, image_url')
-        .eq('id', imageId)
+        .from('image_assets')
+        .select('id, cdn_url')
+        .eq('id', imageId.toString())
         .single();
 
       if (fetchError || !currentImage) {
         return res.status(404).json({ error: '이미지를 찾을 수 없습니다.' });
       }
 
-      // 대표 이미지 설정 시 동영상 체크
-      if (isSceneRepresentative === true) {
-        const videoExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv'];
-        const imageUrl = currentImage.image_url?.toLowerCase() || '';
-        const isVideo = videoExtensions.some(ext => imageUrl.includes(ext));
-        
-        if (isVideo) {
-          return res.status(400).json({ 
-            success: false,
-            error: '동영상은 대표 이미지로 설정할 수 없습니다. 이미지만 대표 이미지로 설정 가능합니다.' 
-          });
-        }
-        
-        if (!currentImage.story_scene) {
-          return res.status(400).json({ 
-            success: false,
-            error: '장면이 할당되지 않은 이미지는 대표 이미지로 설정할 수 없습니다.' 
-          });
-        }
-        
-        const scene = storyScene || currentImage.story_scene;
-        
-        // 해당 장면의 기존 대표 이미지 모두 해제
-        const { error: unsetError } = await supabase
-          .from('image_metadata')
-          .update({
-            is_scene_representative: false,
-            updated_at: new Date().toISOString()
-          })
-          .eq('customer_id', String(currentImage.customer_id)) // customer_id는 VARCHAR(50)이므로 문자열로 변환
-          .eq('story_scene', scene)
-          .eq('is_scene_representative', true);
-
-        if (unsetError) {
-          console.error('기존 대표 이미지 해제 오류:', unsetError);
-          // 계속 진행 (트랜잭션이 아니므로)
-        }
+      // ⚠️ image_assets에는 customer_id, story_scene, is_scene_representative가 없으므로 이 기능은 지원되지 않음
+      if (isSceneRepresentative !== undefined || storyScene !== undefined || displayOrder !== undefined) {
+        return res.status(400).json({
+          success: false,
+          error: 'image_assets 테이블에는 customer_id, story_scene, is_scene_representative 필드가 없습니다. 이 기능은 현재 지원되지 않습니다.'
+        });
       }
 
-      // 이미지 메타데이터 업데이트
+      // 이미지 메타데이터 업데이트 (기본 정보만)
       const updateData: any = {
         updated_at: new Date().toISOString()
       };
 
-      if (isSceneRepresentative !== undefined) {
-        updateData.is_scene_representative = isSceneRepresentative;
-      }
-
-      if (displayOrder !== undefined) {
-        updateData.display_order = displayOrder;
-      }
-
-      if (storyScene !== undefined) {
-        updateData.story_scene = storyScene;
-      }
-
       const { data: updatedImage, error: updateError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .update(updateData)
-        .eq('id', imageId)
+        .eq('id', imageId.toString())
         .select()
         .single();
 
@@ -140,9 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       console.log('✅ 이미지 메타데이터 업데이트 완료:', {
-        imageId,
-        isSceneRepresentative,
-        storyScene: storyScene || currentImage.story_scene
+        imageId
       });
 
       return res.status(200).json({

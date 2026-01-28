@@ -108,9 +108,9 @@ export default async function handler(req, res) {
 
       // 4. 기존 메타데이터 조회 (태그 등 복사)
       const { data: sourceMetadata } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .select('*')
-        .eq('image_url', imageUrl)
+        .eq('cdn_url', imageUrl)
         .maybeSingle();
 
       // 5. 새 메타데이터 생성
@@ -118,8 +118,10 @@ export default async function handler(req, res) {
       if (messageId) {
         newTags.push(`sms-${messageId}`);
       }
-      if (sourceMetadata?.tags) {
-        const existingTags = Array.isArray(sourceMetadata.tags) ? sourceMetadata.tags : [sourceMetadata.tags];
+      if (sourceMetadata?.ai_tags || sourceMetadata?.tags) {
+        const existingTags = Array.isArray(sourceMetadata.ai_tags) ? sourceMetadata.ai_tags : 
+                            (Array.isArray(sourceMetadata.tags) ? sourceMetadata.tags : 
+                            (sourceMetadata.tags ? [sourceMetadata.tags] : []));
         newTags.push(...existingTags.filter(tag => !tag.startsWith('sms-')));
       }
       if (newTags.length === 0) {
@@ -129,15 +131,12 @@ export default async function handler(req, res) {
       const dateFolder = targetFolder.match(/\d{4}-\d{2}-\d{2}/)?.[0] || null;
 
       const { data: newMetadata, error: metadataError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .insert({
-          image_url: urlData.publicUrl,
-          folder_path: targetFolder,
-          date_folder: dateFolder,
-          original_path: targetPath,
-          source: 'mms',
-          channel: 'sms',
-          tags: newTags,
+          cdn_url: urlData.publicUrl,
+          file_path: targetPath,
+          ai_tags: newTags,
+          // ⚠️ image_assets에는 다음 필드들이 없음: folder_path, date_folder, original_path, source, channel
           alt_text: sourceMetadata?.alt_text || null,
           title: sourceMetadata?.title || `복사본 - ${fileName}`,
           description: sourceMetadata?.description || null,
@@ -171,9 +170,9 @@ export default async function handler(req, res) {
 
       // 1. 기존 메타데이터 조회
       const { data: existingMetadata, error: findError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .select('*')
-        .eq('image_url', imageUrl)
+        .eq('cdn_url', imageUrl)
         .maybeSingle();
 
       if (findError && findError.code !== 'PGRST116') {
@@ -190,14 +189,12 @@ export default async function handler(req, res) {
         const tags = messageId ? [`sms-${messageId}`, 'mms'] : ['mms'];
 
         const { data: newMetadata, error: createError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .insert({
-            image_url: imageUrl,
-            folder_path: sourcePath.split('/').slice(0, -1).join('/'), // 원본 폴더
-            date_folder: dateFolder,
-            source: 'mms',
-            channel: 'sms',
-            tags: tags,
+            cdn_url: imageUrl,
+            file_path: sourcePath,
+            ai_tags: tags,
+            // ⚠️ image_assets에는 다음 필드들이 없음: folder_path, date_folder, source, channel
             upload_source: 'link',
             status: 'active',
             created_at: new Date().toISOString(),
@@ -226,16 +223,16 @@ export default async function handler(req, res) {
       }
 
       // 2. 기존 메타데이터에 태그 추가
-      const existingTags = existingMetadata.tags || [];
+      const existingTags = existingMetadata.ai_tags || existingMetadata.tags || [];
       const newTag = messageId ? `sms-${messageId}` : null;
 
       if (newTag && !existingTags.includes(newTag)) {
         const updatedTags = [...existingTags, newTag];
 
         const { error: updateError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .update({
-            tags: updatedTags,
+            ai_tags: updatedTags,
             updated_at: new Date().toISOString()
           })
           .eq('id', existingMetadata.id);

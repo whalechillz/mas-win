@@ -66,7 +66,7 @@ export default async function handler(req, res) {
 
     // 3. 메타데이터와 매칭 확인
     const { data: metadata, error: metadataError } = await supabase
-      .from('image_metadata')
+        .from('image_assets')
       .select('*')
       .like('file_name', folderPath ? `%${folderPath}%` : '%');
 

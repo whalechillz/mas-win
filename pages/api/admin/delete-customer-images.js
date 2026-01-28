@@ -108,7 +108,7 @@ export default async function handler(req, res) {
 
       // 2. image_metadata 테이블에서 해당 고객 이미지 메타데이터 삭제
       const { error: metadataError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .delete()
         .ilike('folder_path', `${folderPath}%`);
 

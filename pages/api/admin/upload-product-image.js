@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
+import { generateProductImageFileName } from '../../../lib/filename-generator';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -155,18 +156,19 @@ export default async function handler(req, res) {
     // 파일명 생성
     let webpFileName;
     if (customFileName) {
-      // ✅ 커스텀 파일명 사용 (shaft, badge 등)
+      // ✅ 커스텀 파일명 사용 (shaft, badge 등) - 기존 방식 유지
       webpFileName = `${customFileName}.webp`;
     } else if (effectivePreserveFilename) {
-      // 원본 파일명 유지 (확장자만 .webp로 변경)
+      // 원본 파일명 유지 (확장자만 .webp로 변경) - 기존 방식 유지
       const baseName = path.parse(originalName).name;
       webpFileName = `${baseName}.webp`;
     } else {
-      // 기본: 폴더명 + 타임스탬프 + 랜덤 문자열
-      const folderPrefix = extractFolderPrefix(category);
-      const timestamp = Date.now();
-      const randomString = Math.random().toString(36).substring(2, 8);
-      webpFileName = `${folderPrefix}-${timestamp}-${randomString}.webp`;
+      // ✅ 새로운 표준 파일명 형식 사용: massgoo-{제품명}-{날짜}-{순번}.webp
+      webpFileName = await generateProductImageFileName(
+        productSlug,
+        new Date()
+      );
+      console.log('[upload-product-image] 표준 파일명 생성:', webpFileName);
     }
     
     let storagePath = `${storageFolder}/${webpFileName}`;

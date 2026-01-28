@@ -31,6 +31,68 @@
 
 ---
 
+## 📋 예정: 고객 대표 이미지 기능 수정 및 활성화 (2026-01-28)
+
+### 개요
+고객 이미지 관리 모달의 대표 이미지 기능이 작동하지 않는 문제를 해결하고, 썸네일과 대표 이미지 기능을 통합합니다.
+
+### 현재 상황
+- **썸네일 기능**: 고객 목록에 표시되는 작은 이미지 (자동 선택: 최신 이미지)
+- **대표 이미지 기능**: 사용자가 직접 선택하는 썸네일 이미지 (현재 작동 안 함)
+- **장면 대표 이미지**: 스토리보드용 장면별 대표 이미지 (별도 기능)
+
+### 기능 관계
+- ✅ **같은 DB 사용**: `image_assets` 테이블
+- ✅ **같은 목적**: 고객 목록 썸네일 표시
+- ❌ **다른 용도**: 
+  - 썸네일: 자동 선택 (최신 이미지) - Fallback으로 유지
+  - 대표 이미지: 수동 선택 (사용자 지정) - 메인 기능으로 활성화
+
+### 권장 방안: 대표 이미지 기능만 사용 ⭐
+**이유**:
+1. 이미 구현되어 있음 (API, UI, 핸들러 모두 존재)
+2. 사용자가 직접 선택할 수 있어 더 나은 UX
+3. 썸네일 자동 선택은 fallback으로만 사용 (이미 구현됨)
+
+### 작업 내용
+1. **DB 스키마 확인 및 수정** (우선순위: 높음)
+   - `is_customer_representative` 컬럼 존재 여부 확인
+   - 없으면 추가 (`database/add-customer-representative-image.sql`)
+
+2. **API 디버깅 및 수정** (우선순위: 높음)
+   - `pages/api/admin/set-customer-representative-image.ts` 수정
+   - 상세한 로그 추가
+   - 에러 핸들링 개선
+   - 이미지 소유권 확인 로직 강화
+
+3. **UI 개선** (우선순위: 중간)
+   - 배지 표시 개선 (대표 이미지로 설정된 경우 항상 표시)
+   - 피드백 메시지 추가
+   - 에러 메시지 표시
+
+4. **고객 목록 API 확인** (우선순위: 낮음)
+   - 대표 이미지 우선 조회 로직 확인 (이미 구현됨)
+   - 로그 추가
+
+### 변경 파일
+- `database/add-customer-representative-image.sql` (확인/수정)
+- `pages/api/admin/set-customer-representative-image.ts` (수정)
+- `pages/admin/customers/index.tsx` (UI 개선)
+- `pages/api/admin/customers/index.ts` (확인)
+
+### 상세 계획
+- 📄 `docs/customer-representative-image-plan.md` 참고 (수정됨)
+- 📄 `docs/customer-thumbnail-representative-feature-analysis.md` 참고 (신규)
+
+### 예상 작업 시간
+- DB 스키마 확인/수정: 30분
+- API 디버깅 및 수정: 1-2시간
+- UI 개선: 1시간
+- 테스트: 1시간
+- **총 예상 시간: 3-4시간**
+
+---
+
 ## 📋 예정: 스토리 기반 장면(S1-S7) 자동 감지 및 메타데이터 개선 (2026-01-28)
 
 ### 개요

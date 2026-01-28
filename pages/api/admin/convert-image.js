@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { generateConvertFileName, detectLocation, extractProductName } from '../../../lib/filename-generator';
 // Sharp는 동적 import로 로드 (Vercel 환경 호환성)
 
 const supabase = createClient(
@@ -100,13 +101,72 @@ export default async function handler(req, res) {
       fileExtension = 'jpg';
     }
 
-    // 새 파일명 생성
-    const baseName = fileName?.replace(/\.[^/.]+$/, '') || `converted-${Date.now()}`;
-    const newFileName = `${baseName}.${fileExtension}`;
+    // 원본 이미지 메타데이터 조회 (위치 및 제품명 추출용)
+    let location = 'uploaded';
+    let productName = 'none';
+    
+    try {
+      const sourceImageUrl = originalImageUrl || imageUrl;
+      const { data: originalMetadata } = await supabase
+        .from('image_assets')
+        .select('file_path, ai_tags')
+        .eq('cdn_url', sourceImageUrl)
+        .maybeSingle();
 
-    // 원본과 같은 폴더에 저장
+      if (originalMetadata && originalMetadata.file_path) {
+        const metadataFolderPath = originalMetadata.file_path.substring(0, originalMetadata.file_path.lastIndexOf('/'));
+        location = detectLocation(metadataFolderPath);
+        
+        // 제품명 추출
+        const extractedProductName = await extractProductName(sourceImageUrl);
+        if (extractedProductName) {
+          productName = extractedProductName;
+        }
+      }
+    } catch (metadataError) {
+      console.warn('⚠️ 원본 메타데이터 조회 실패 (기본값 사용):', metadataError);
+    }
+
+    // 표준 변환 파일명 생성
+    const newFileName = await generateConvertFileName({
+      location: location,
+      productName: productName,
+      tool: 'sharp',
+      format: format,
+      quality: quality,
+      creationDate: new Date(),
+      extension: fileExtension
+    });
+
+    // 원본과 같은 폴더에 저장 (folderPath가 있으면 사용, 없으면 원본 메타데이터에서 추출)
     const bucket = 'blog-images';
-    const uploadPath = folderPath ? `${folderPath}/${newFileName}` : newFileName;
+    let finalFolderPath = folderPath;
+    
+    if (!finalFolderPath) {
+      try {
+        const sourceImageUrl = originalImageUrl || imageUrl;
+        const { data: originalMetadata } = await supabase
+          .from('image_assets')
+          .select('file_path')
+          .eq('cdn_url', sourceImageUrl)
+          .maybeSingle();
+        
+        if (originalMetadata && originalMetadata.file_path) {
+          finalFolderPath = originalMetadata.file_path.substring(0, originalMetadata.file_path.lastIndexOf('/'));
+        }
+      } catch (error) {
+        console.warn('⚠️ 폴더 경로 추출 실패:', error);
+      }
+    }
+    
+    const uploadPath = finalFolderPath ? `${finalFolderPath}/${newFileName}` : newFileName;
+    
+    console.log('✅ 표준 변환 파일명 생성 완료:', {
+      location,
+      productName,
+      newFileName,
+      uploadPath
+    });
 
     console.log('💾 Supabase Storage에 업로드 중:', uploadPath);
 
@@ -136,9 +196,9 @@ export default async function handler(req, res) {
         const sourceImageUrl = originalImageUrl || imageUrl;
         // 원본 이미지의 메타데이터 조회
         const { data: originalMetadata, error: metadataError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .select('*')
-          .eq('image_url', sourceImageUrl)
+          .eq('cdn_url', sourceImageUrl)
           .maybeSingle();
 
         if (!metadataError && originalMetadata) {
@@ -147,40 +207,31 @@ export default async function handler(req, res) {
             newUrl: urlData.publicUrl
           });
 
-          // 새 메타데이터 생성 (파일명 관련 필드 제외)
+          // 새 메타데이터 생성 (image_assets 형식)
           const newMetadata = {
-            image_url: urlData.publicUrl,
-            folder_path: folderPath,
-            // 원본 메타데이터 복사 (파일명 관련 필드 제외)
+            cdn_url: urlData.publicUrl,
+            file_path: uploadPath,
+            // 원본 메타데이터 복사
             alt_text: originalMetadata.alt_text || null,
             title: originalMetadata.title || null,
             description: originalMetadata.description || null,
-            tags: originalMetadata.tags || null,
-            prompt: originalMetadata.prompt || null,
-            category_id: originalMetadata.category_id || null,
+            ai_tags: originalMetadata.ai_tags || originalMetadata.tags || null,
             file_size: processedBuffer.length,
             width: metadata.width || null,
             height: metadata.height || null,
             format: fileExtension,
             upload_source: 'conversion', // 변환으로 생성된 이미지 표시
             status: originalMetadata.status || 'active',
-            // 고객 이미지 관련 필드도 복사
-            story_scene: originalMetadata.story_scene || null,
-            image_type: originalMetadata.image_type || null,
-            customer_name_en: originalMetadata.customer_name_en || null,
-            customer_initials: originalMetadata.customer_initials || null,
-            date_folder: originalMetadata.date_folder || null,
-            english_filename: newFileName, // 새 파일명만 설정
-            original_filename: originalMetadata.original_filename || newFileName,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
+            // ⚠️ image_assets에는 다음 필드들이 없음: folder_path, prompt, category_id, story_scene, image_type, customer_name_en, customer_initials, date_folder, english_filename, original_filename
           };
 
           // 메타데이터 저장 (upsert 사용)
           const { error: saveError } = await supabase
-            .from('image_metadata')
+            .from('image_assets')
             .upsert(newMetadata, {
-              onConflict: 'image_url',
+              onConflict: 'cdn_url',
               ignoreDuplicates: false
             });
 

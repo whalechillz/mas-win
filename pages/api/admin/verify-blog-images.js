@@ -110,7 +110,7 @@ const checkMetadataExists = async (imagePath) => {
     
     // image_metadata 테이블에서 검색
     const { data, error } = await supabase
-      .from('image_metadata')
+        .from('image_assets')
       .select('id, image_url, alt_text, title, keywords')
       .or(`image_url.ilike.%${imagePath}%,folder_path.ilike.%${imagePath}%`)
       .limit(1);

@@ -20,12 +20,12 @@ export default async function handler(req, res) {
 
     const supabase = createServerSupabase();
 
-    // image_metadata에서 해당 이미지 찾기 (is_liked 컬럼이 없을 수 있으므로 id만 먼저 조회)
+    // image_assets에서 해당 이미지 찾기 (cdn_url 사용)
     const { data: existingMetadata, error: selectError } = await supabase
-      .from('image_metadata')
+        .from('image_assets')
       .select('id')
-      .eq('image_url', imageUrl)
-      .single();
+      .eq('cdn_url', imageUrl)
+      .maybeSingle();
 
     // PGRST116 = not found (정상적인 경우)
     if (selectError && selectError.code !== 'PGRST116') {
@@ -47,14 +47,14 @@ export default async function handler(req, res) {
     if (existingMetadata) {
       // 기존 메타데이터 업데이트 (is_liked 컬럼이 없으면 에러 발생 가능)
       const { data: updatedData, error: updateError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .update({ 
           is_liked: finalIsLiked,
           updated_at: new Date().toISOString()
         })
-        .eq('image_url', imageUrl)
+        .eq('cdn_url', imageUrl)
         .select('is_liked')
-        .single();
+        .maybeSingle();
 
       if (updateError) {
         // is_liked 컬럼이 없으면 에러 발생
@@ -76,15 +76,15 @@ export default async function handler(req, res) {
     } else {
       // 메타데이터가 없으면 생성 (is_liked 컬럼이 없으면 에러 발생 가능)
       const { data: insertedData, error: insertError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .insert({
-          image_url: imageUrl,
+          cdn_url: imageUrl,
           is_liked: finalIsLiked,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
         .select('is_liked')
-        .single();
+        .maybeSingle();
 
       if (insertError) {
         // is_liked 컬럼이 없으면 에러 발생

@@ -32,54 +32,58 @@ function extractStoragePath(url) {
 }
 
 /**
- * 이미지 메타데이터 찾기 (최적화: 쿼리 횟수 감소)
+ * 이미지 메타데이터 찾기 (image_assets 사용)
  */
 async function findImageMetadata(supabase, imageUrl) {
   const normalizedUrl = normalizeImageUrl(imageUrl);
   
   // 1. 정규화된 URL로 정확히 일치하는 경우 (가장 빠름)
-  const { data: metadata } = await supabase
-    .from('image_metadata')
-    .select('id, usage_count, used_in')
-    .eq('image_url', normalizedUrl)
+  const { data: asset } = await supabase
+    .from('image_assets')
+    .select('id, usage_count')
+    .eq('cdn_url', normalizedUrl)
     .maybeSingle();
   
-  if (metadata) {
-    return metadata;
+  if (asset) {
+    return {
+      id: asset.id,
+      usage_count: asset.usage_count || 0,
+      used_in: null // image_assets에는 used_in이 없음
+    };
   }
   
   // 2. 원본 URL로도 시도
   if (imageUrl !== normalizedUrl) {
-    const { data: metadata2 } = await supabase
-      .from('image_metadata')
-      .select('id, usage_count, used_in')
-      .eq('image_url', imageUrl)
+    const { data: asset2 } = await supabase
+      .from('image_assets')
+      .select('id, usage_count')
+      .eq('cdn_url', imageUrl)
       .maybeSingle();
     
-    if (metadata2) {
-      return metadata2;
+    if (asset2) {
+      return {
+        id: asset2.id,
+        usage_count: asset2.usage_count || 0,
+        used_in: null
+      };
     }
   }
   
   // 3. Storage 경로로 찾기
   const storagePath = extractStoragePath(imageUrl);
   if (storagePath) {
-    const { data: asset } = await supabase
+    const { data: asset3 } = await supabase
       .from('image_assets')
-      .select('id, file_path, cdn_url')
+      .select('id, file_path, cdn_url, usage_count')
       .or(`file_path.eq.${storagePath},cdn_url.eq.${normalizedUrl},cdn_url.eq.${imageUrl}`)
       .maybeSingle();
     
-    if (asset && asset.cdn_url) {
-      const { data: metadata3 } = await supabase
-        .from('image_metadata')
-        .select('id, usage_count, used_in')
-        .eq('image_url', asset.cdn_url)
-        .maybeSingle();
-      
-      if (metadata3) {
-        return metadata3;
-      }
+    if (asset3) {
+      return {
+        id: asset3.id,
+        usage_count: asset3.usage_count || 0,
+        used_in: null
+      };
     }
   }
   
@@ -184,64 +188,20 @@ async function updateImageUsageBatch(imageUsageMap) {
           const metadata = await findImageMetadata(supabase, imageUrl);
           
           if (metadata) {
-            // 기존 used_in 배열 가져오기
-            let existingUsedIn = [];
-            if (metadata.used_in) {
-              try {
-                existingUsedIn = Array.isArray(metadata.used_in) ? metadata.used_in : JSON.parse(metadata.used_in);
-              } catch (e) {
-                existingUsedIn = [];
-              }
-            }
+            // image_assets에는 used_in이 없으므로 usage_count만 업데이트
+            const newUsageCount = (metadata.usage_count || 0) + usedInEntries.length;
             
-            // 중복 제거: 같은 type, date, account 조합이 이미 있으면 추가하지 않음
-            const existingKeys = new Set(
-              existingUsedIn.map((u) => `${u.type}-${u.date}-${u.account || ''}`)
-            );
+            await supabase
+              .from('image_assets')
+              .update({
+                usage_count: newUsageCount,
+                last_used_at: new Date().toISOString()
+              })
+              .eq('id', metadata.id);
             
-            const newEntries = usedInEntries.filter((entry) => {
-              const key = `${entry.type}-${entry.date}-${entry.account || ''}`;
-              return !existingKeys.has(key);
-            });
-            
-            // 새로운 항목만 추가
-            if (newEntries.length > 0) {
-              const updatedUsedIn = [...existingUsedIn, ...newEntries];
-              const newUsageCount = updatedUsedIn.length;
-              
-              await supabase
-                .from('image_metadata')
-                .update({
-                  usage_count: newUsageCount,
-                  used_in: updatedUsedIn,
-                  last_used_at: new Date().toISOString()
-                })
-                .eq('id', metadata.id);
-              
-              updatedCount++;
-            }
+            updatedCount++;
           } else {
             console.warn(`⚠️ 이미지 메타데이터를 찾을 수 없음: ${imageUrl.substring(0, 100)}...`);
-          }
-          
-          // image_assets 테이블도 업데이트 (있는 경우)
-          const storagePath = extractStoragePath(imageUrl);
-          if (storagePath) {
-            const { data: asset } = await supabase
-              .from('image_assets')
-              .select('id, usage_count')
-              .or(`file_path.eq.${storagePath},cdn_url.ilike.%${storagePath.split('/').pop()}%`)
-              .maybeSingle();
-            
-            if (asset) {
-              await supabase
-                .from('image_assets')
-                .update({
-                  usage_count: (asset.usage_count || 0) + usedInEntries.length,
-                  last_used_at: new Date().toISOString()
-                })
-                .eq('id', asset.id);
-            }
           }
         } catch (error) {
           console.warn(`⚠️ 이미지 사용 기록 업데이트 실패 (${imageUrl}):`, error.message);

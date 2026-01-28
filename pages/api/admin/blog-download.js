@@ -69,7 +69,7 @@ export default async function handler(req, res) {
           console.log(`  🔍 네이버 URL 감지, 메타데이터 검색: ${normalizedUrl.substring(0, 80)}...`);
           
           const { data: metadataList, error: metadataError } = await supabase
-            .from('image_metadata')
+            .from('image_assets')
             .select('image_url, original_url')
             .or(`original_url.eq.${normalizedUrl},image_url.eq.${normalizedUrl}`)
             .limit(5);

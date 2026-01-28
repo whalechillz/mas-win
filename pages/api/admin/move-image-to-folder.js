@@ -142,7 +142,7 @@ export default async function handler(req, res) {
       
       // 방법 1: 정확한 imageUrl로 검색
       const { data: metadata1, error: error1 } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .select('id, image_url, original_path')
         .eq('image_url', imageUrl)
         .limit(1)
@@ -154,7 +154,7 @@ export default async function handler(req, res) {
       } else {
         // 방법 2: 정규화된 URL로 검색
         const { data: metadata2, error: error2 } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .select('id, image_url, original_path')
           .eq('image_url', normalizedOldUrl)
           .limit(1)
@@ -168,7 +168,7 @@ export default async function handler(req, res) {
           const fileName = currentPath.split('/').pop();
           if (fileName) {
             const { data: metadata3, error: error3 } = await supabase
-              .from('image_metadata')
+              .from('image_assets')
               .select('id, image_url, original_path')
               .ilike('original_path', `%${fileName}`)
               .limit(5); // 여러 개일 수 있으므로 limit 증가
@@ -204,7 +204,7 @@ export default async function handler(req, res) {
       if (metadata && !metadataError) {
         // 메타데이터 업데이트
         const { error: updateError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .update({
             image_url: newUrlData.publicUrl,
             original_path: targetPath,

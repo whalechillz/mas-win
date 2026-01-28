@@ -1,0 +1,421 @@
+{
+  "totalFolders": 96,
+  "matched": 41,
+  "unmatched": 55,
+  "matchedFolders": [
+    {
+      "folderName": "ahnjutcheot-3665",
+      "customerId": 2018,
+      "customerName": "안중철",
+      "phone": "01052133665"
+    },
+    {
+      "folderName": "ahnyeotho-0506",
+      "customerId": 1772,
+      "customerName": "안영호",
+      "phone": "01052480506"
+    },
+    {
+      "folderName": "chaemunseok-7973",
+      "customerId": 1655,
+      "customerName": "채문석",
+      "phone": "01052587973"
+    },
+    {
+      "folderName": "chaeyeottae-7508",
+      "customerId": 13633,
+      "customerName": "채영태",
+      "phone": "01037157508"
+    },
+    {
+      "folderName": "choiseokho-1801",
+      "customerId": 2304,
+      "customerName": "최석호",
+      "phone": "01054281801"
+    },
+    {
+      "folderName": "choiseutnal-2216",
+      "customerId": 13748,
+      "customerName": "최승남",
+      "phone": "01071492216"
+    },
+    {
+      "folderName": "choyeotsu-7526",
+      "customerId": 2024,
+      "customerName": "조영수",
+      "phone": "01037247526"
+    },
+    {
+      "folderName": "janggaban-3336",
+      "customerId": 13716,
+      "customerName": "장가반",
+      "phone": "01052763336"
+    },
+    {
+      "folderName": "jangjinsu-8189",
+      "customerId": 602,
+      "customerName": "장진수",
+      "phone": "01091938189"
+    },
+    {
+      "folderName": "jedothwan-8282",
+      "customerId": 2204,
+      "customerName": "제동환",
+      "phone": "01052268282"
+    },
+    {
+      "folderName": "jeonjinyot-9699",
+      "customerId": 266,
+      "customerName": "전진용",
+      "phone": "01053839699"
+    },
+    {
+      "folderName": "jobohyeon-8857",
+      "customerId": 13719,
+      "customerName": "조보현",
+      "phone": "01087528857"
+    },
+    {
+      "folderName": "joyanghyeon-1813",
+      "customerId": 2437,
+      "customerName": "조양현",
+      "phone": "01037551813"
+    },
+    {
+      "folderName": "jungtaeut-8562",
+      "customerId": 1004,
+      "customerName": "정태웅",
+      "phone": "01040178562"
+    },
+    {
+      "folderName": "jungyunho-2942",
+      "customerId": 2305,
+      "customerName": "정윤호",
+      "phone": "01052322942"
+    },
+    {
+      "folderName": "kimjaehui-3272",
+      "customerId": 2034,
+      "customerName": "김재희",
+      "phone": "01066823272"
+    },
+    {
+      "folderName": "kimjeotseok-8351",
+      "customerId": 13941,
+      "customerName": "김정석",
+      "phone": "01037248351"
+    },
+    {
+      "folderName": "kimseokgu-6302",
+      "customerId": 13542,
+      "customerName": "김석구",
+      "phone": "01086316302"
+    },
+    {
+      "folderName": "kimseuthun-4375",
+      "customerId": 1543,
+      "customerName": "김승훈",
+      "phone": "01057594375"
+    },
+    {
+      "folderName": "kimsuhwan-2183",
+      "customerId": 15182,
+      "customerName": "김수환",
+      "phone": "01037772183"
+    },
+    {
+      "folderName": "kimyeotjin-4452",
+      "customerId": 372,
+      "customerName": "김영진",
+      "phone": "01046224452"
+    },
+    {
+      "folderName": "kimyeotpit-7272",
+      "customerId": 2190,
+      "customerName": "김영필",
+      "phone": "01036097272"
+    },
+    {
+      "folderName": "kimyotseok-4453",
+      "customerId": 1997,
+      "customerName": "김용석",
+      "phone": "01087164453"
+    },
+    {
+      "folderName": "leegatseok-8200",
+      "customerId": 1689,
+      "customerName": "이강석",
+      "phone": "01072378200"
+    },
+    {
+      "folderName": "leejunhui-2495",
+      "customerId": 1831,
+      "customerName": "이준희",
+      "phone": "01021852495"
+    },
+    {
+      "folderName": "leesatcheon-5282",
+      "customerId": 650,
+      "customerName": "이상천",
+      "phone": "01052695282"
+    },
+    {
+      "folderName": "leesuwon-7146",
+      "customerId": 2327,
+      "customerName": "이수원",
+      "phone": "01087107146"
+    },
+    {
+      "folderName": "leeyotbok-8505",
+      "customerId": 2350,
+      "customerName": "이용복",
+      "phone": "01052378505"
+    },
+    {
+      "folderName": "leeyunhui-4572",
+      "customerId": 1692,
+      "customerName": "이윤희",
+      "phone": "01035324572"
+    },
+    {
+      "folderName": "limtaehui-0506",
+      "customerId": 2382,
+      "customerName": "임태희",
+      "phone": "01054410506"
+    },
+    {
+      "folderName": "moongwatbae-4258",
+      "customerId": 1761,
+      "customerName": "문광배",
+      "phone": "01043584258"
+    },
+    {
+      "folderName": "parkjungjin-8580",
+      "customerId": 2156,
+      "customerName": "박중진",
+      "phone": "01048938580"
+    },
+    {
+      "folderName": "parkseongwon-6712",
+      "customerId": 13924,
+      "customerName": "박성원",
+      "phone": "01033946712"
+    },
+    {
+      "folderName": "parksungwoo-6003",
+      "customerId": 2398,
+      "customerName": "박성우",
+      "phone": "01090686003"
+    },
+    {
+      "folderName": "shimwonseom-5250",
+      "customerId": 1701,
+      "customerName": "심원섭",
+      "phone": "01047095250"
+    },
+    {
+      "folderName": "shinhuigap-7773",
+      "customerId": 37,
+      "customerName": "신희갑",
+      "phone": "01084427773"
+    },
+    {
+      "folderName": "shinjaesik-4391",
+      "customerId": 2407,
+      "customerName": "신재식",
+      "phone": "01052694391"
+    },
+    {
+      "folderName": "songhwayot-8385",
+      "customerId": 1781,
+      "customerName": "송화용",
+      "phone": "01054188385"
+    },
+    {
+      "folderName": "yeonjaehwa-1456",
+      "customerId": 2425,
+      "customerName": "연재화",
+      "phone": "01035861456"
+    },
+    {
+      "folderName": "yoohotgeun-5160",
+      "customerId": 2057,
+      "customerName": "유홍근",
+      "phone": "01037685160"
+    },
+    {
+      "folderName": "yunhyoyeot-6175",
+      "customerId": 2383,
+      "customerName": "윤효영",
+      "phone": "01031926175"
+    }
+  ],
+  "unmatchedFolders": [
+    {
+      "folderName": "banggwatseot-0007"
+    },
+    {
+      "folderName": "chobyeotseom-2002"
+    },
+    {
+      "folderName": "choibeolgyu-6508"
+    },
+    {
+      "folderName": "hajotcheon-5458"
+    },
+    {
+      "folderName": "hangwiyot-7115"
+    },
+    {
+      "folderName": "honggibot-8688"
+    },
+    {
+      "folderName": "hwanginseok-8206"
+    },
+    {
+      "folderName": "janggeunsu-2788"
+    },
+    {
+      "folderName": "jeonghaeseon-0712"
+    },
+    {
+      "folderName": "jeonyugeun-9269"
+    },
+    {
+      "folderName": "joseongdae-7010"
+    },
+    {
+      "folderName": "junghyeotpyo-1255"
+    },
+    {
+      "folderName": "kangbyeotbu-4758"
+    },
+    {
+      "folderName": "kangsathwi-4111"
+    },
+    {
+      "folderName": "kangseotdot-5787"
+    },
+    {
+      "folderName": "kangwonsik-6350"
+    },
+    {
+      "folderName": "kangyeotgit-5774"
+    },
+    {
+      "folderName": "kimbothyeon-4648"
+    },
+    {
+      "folderName": "kimchangi-3802"
+    },
+    {
+      "folderName": "kimgayeot-0599"
+    },
+    {
+      "folderName": "kimhakgyu-5084"
+    },
+    {
+      "folderName": "kimhangu-3445"
+    },
+    {
+      "folderName": "kimhotchat-9751"
+    },
+    {
+      "folderName": "kimjingwon-0645"
+    },
+    {
+      "folderName": "kimjongchull-6654"
+    },
+    {
+      "folderName": "kimjotan-3957"
+    },
+    {
+      "folderName": "kimsabin-2528"
+    },
+    {
+      "folderName": "kimsathyeon-6800"
+    },
+    {
+      "folderName": "kimseonae-1211"
+    },
+    {
+      "folderName": "kimseonok-6420"
+    },
+    {
+      "folderName": "kimseotmuk-4401"
+    },
+    {
+      "folderName": "kimseotsu-4223"
+    },
+    {
+      "folderName": "kimsunbok-2469"
+    },
+    {
+      "folderName": "kimwonputun-4416"
+    },
+    {
+      "folderName": "kwonseotsu-0199"
+    },
+    {
+      "folderName": "leegyeotmin-8813"
+    },
+    {
+      "folderName": "leehuiik-0519"
+    },
+    {
+      "folderName": "leejudot-2716"
+    },
+    {
+      "folderName": "leenalgu-8768"
+    },
+    {
+      "folderName": "leenamgu-8768"
+    },
+    {
+      "folderName": "leeokhyeot-1493"
+    },
+    {
+      "folderName": "leesungit-6560"
+    },
+    {
+      "folderName": "minhosik-5549"
+    },
+    {
+      "folderName": "mooneungyeot-6710"
+    },
+    {
+      "folderName": "mukhyeonsat-6791"
+    },
+    {
+      "folderName": "parkbotsu-0002"
+    },
+    {
+      "folderName": "parkdotryeot-5411"
+    },
+    {
+      "folderName": "parkjinuk-8333"
+    },
+    {
+      "folderName": "parkyeotgu-7773"
+    },
+    {
+      "folderName": "parkyeotgwan-1311"
+    },
+    {
+      "folderName": "parkyotok-7873"
+    },
+    {
+      "folderName": "wonjongmun-0002"
+    },
+    {
+      "folderName": "yoobyeotmuk-7724"
+    },
+    {
+      "folderName": "yoojaeyeot-6257"
+    },
+    {
+      "folderName": "yoonjotdeok-9809"
+    }
+  ],
+  "timestamp": "2026-01-25T15:39:31.302Z"
+}

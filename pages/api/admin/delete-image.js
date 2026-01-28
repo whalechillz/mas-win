@@ -11,26 +11,45 @@ if (!supabaseUrl || !supabaseServiceKey) {
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export default async function handler(req, res) {
-  console.log('🗑️ 이미지 삭제 API 요청:', req.method, req.url);
+  console.log('🗑️ [삭제 API] 요청 수신:', {
+    method: req.method,
+    url: req.url,
+    body: req.body ? JSON.stringify(req.body).substring(0, 200) : '없음',
+    timestamp: new Date().toISOString()
+  });
 
   try {
     // 1) POST: 일괄 삭제 지원 (imageNames 배열)
     if (req.method === 'POST') {
       const { imageNames, imageName } = req.body || {};
 
+      console.log('📦 [삭제 API] 요청 본문 파싱:', {
+        hasImageNames: !!imageNames,
+        hasImageName: !!imageName,
+        imageNamesType: Array.isArray(imageNames) ? 'array' : typeof imageNames,
+        imageNameValue: imageName
+      });
+
       // 단일 키로 들어오면 배열로 정규화
       const targets = Array.isArray(imageNames)
         ? imageNames
         : (imageName ? [imageName] : []);
 
+      console.log('🎯 [삭제 API] 정규화된 삭제 대상:', {
+        targetsCount: targets.length,
+        targets: targets
+      });
+
       if (!targets || targets.length === 0) {
+        console.error('❌ [삭제 API] 삭제 대상이 없음');
         return res.status(400).json({ 
+          success: false,
           error: '삭제할 이미지 이름이 필요합니다. (imageNames: string[])' 
         });
       }
 
-      console.log('🗑️ 일괄 이미지 삭제 중:', targets.length, '개');
-      console.log('🗑️ 삭제 대상 파일들:', targets);
+      console.log('🗑️ [삭제 API] 일괄 이미지 삭제 시작:', targets.length, '개');
+      console.log('🗑️ [삭제 API] 삭제 대상 파일들:', targets);
 
       // 실제 존재하는 파일들만 필터링 (폴더 경로 포함)
       const existingFiles = [];
@@ -101,23 +120,64 @@ export default async function handler(req, res) {
           // 방법 2: 파일명만으로 전체 검색 (폴더 경로 무시)
           if (!fileFound) {
             console.log('🔍 전체 검색 시도:', fileName);
-            const { data: allFiles, error: allError } = await supabase.storage
-              .from('blog-images')
-              .list('', { search: fileName });
             
-            if (!allError && allFiles && allFiles.length > 0) {
-              const matchingFile = allFiles.find(file => 
-                file.name === fileName || 
-                file.name.includes(fileName) ||
-                fileName.includes(file.name)
-              );
+            // ✅ 먼저 폴더 경로 내에서 하위 폴더까지 검색
+            if (folderPath) {
+              // 하위 폴더 목록 가져오기
+              const { data: subFolders } = await supabase.storage
+                .from('blog-images')
+                .list(folderPath);
               
-              if (matchingFile) {
-                // 실제 경로 재구성
-                const actualPath = matchingFile.name.includes('/') ? matchingFile.name : targetWithExtension;
-                existingFiles.push(actualPath);
-                fileFound = true;
-                console.log('✅ 전체 검색에서 파일 발견 (방법2):', actualPath);
+              if (subFolders && subFolders.length > 0) {
+                // 각 하위 폴더에서 파일 검색
+                for (const subFolder of subFolders) {
+                  if (!subFolder.id) continue; // 폴더만 처리
+                  
+                  const subFolderPath = `${folderPath}/${subFolder.name}`;
+                  const { data: subFiles } = await supabase.storage
+                    .from('blog-images')
+                    .list(subFolderPath, { search: fileName });
+                  
+                  if (subFiles && subFiles.length > 0) {
+                    const exactFile = subFiles.find(file => file.name === fileName);
+                    if (exactFile) {
+                      const correctedPath = `${subFolderPath}/${fileName}`;
+                      existingFiles.push(correctedPath);
+                      fileFound = true;
+                      console.log('✅ 하위 폴더에서 파일 발견 (방법2-1):', correctedPath);
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+            
+            // 방법 2-2: 루트에서 파일명으로 검색 (마지막 시도)
+            if (!fileFound) {
+              const { data: allFiles, error: allError } = await supabase.storage
+                .from('blog-images')
+                .list('', { search: fileName, limit: 100 });
+              
+              if (!allError && allFiles && allFiles.length > 0) {
+                // 파일명이 정확히 일치하는 파일 찾기
+                const matchingFile = allFiles.find(file => file.name === fileName);
+                if (matchingFile) {
+                  // 파일이 루트에 있는 경우
+                  existingFiles.push(fileName);
+                  fileFound = true;
+                  console.log('✅ 루트에서 파일 발견 (방법2-2):', fileName);
+                } else {
+                  // 파일명이 포함된 경로 찾기
+                  for (const file of allFiles) {
+                    if (file.name === fileName || file.name.endsWith(`/${fileName}`)) {
+                      const filePath = file.name.includes('/') ? file.name : `${folderPath || ''}/${file.name}`.replace(/^\/+/, '');
+                      existingFiles.push(filePath);
+                      fileFound = true;
+                      console.log('✅ 부분 일치 파일 발견 (방법2-2):', filePath);
+                      break;
+                    }
+                  }
+                }
               }
             }
           }
@@ -181,33 +241,56 @@ export default async function handler(req, res) {
 
       console.log('🗑️ 실제 존재하는 파일들:', existingFiles);
 
+      console.log('🔍 [삭제 API] 파일 존재 확인 결과:', {
+        requestedCount: targets.length,
+        foundCount: existingFiles.length,
+        foundFiles: existingFiles,
+        notFoundFiles: targets.filter(t => !existingFiles.includes(t))
+      });
+
       if (existingFiles.length === 0) {
-        console.warn('⚠️ 삭제할 파일이 존재하지 않음');
+        console.warn('⚠️ [삭제 API] 삭제할 파일이 존재하지 않음:', {
+          requestedTargets: targets,
+          searchAttempts: '모든 경로 조합 시도했으나 파일을 찾지 못함'
+        });
         return res.status(200).json({
-          success: true,
+          success: false, // ✅ 실제로 삭제된 것이 없으므로 false
           message: '삭제할 파일이 존재하지 않습니다.',
           deletedImages: [],
-          originalTargets: targets
+          originalTargets: targets,
+          existingFiles: []
         });
       }
 
       // 1. Supabase Storage에서 파일 삭제
-      console.log('🗑️ 스토리지 삭제 시도:', existingFiles);
+      console.log('🗑️ [삭제 API] 스토리지 삭제 시도:', {
+        filesToDelete: existingFiles,
+        count: existingFiles.length
+      });
+      
       const { data, error } = await supabase.storage
         .from('blog-images')
         .remove(existingFiles);
 
       if (error) {
-        console.error('❌ 이미지 일괄 삭제 에러:', error);
+        console.error('❌ [삭제 API] 이미지 일괄 삭제 에러:', {
+          error,
+          errorMessage: error.message,
+          attemptedFiles: existingFiles
+        });
         return res.status(500).json({
+          success: false,
           error: '이미지 일괄 삭제에 실패했습니다.',
           details: error.message,
           attemptedFiles: existingFiles
         });
       }
 
-      console.log('✅ 이미지 일괄 삭제 성공:', existingFiles.length, '개');
-      console.log('✅ 삭제된 파일들:', data);
+      console.log('✅ [삭제 API] 이미지 일괄 삭제 성공:', {
+        deletedCount: existingFiles.length,
+        deletedFiles: existingFiles,
+        storageResponse: data
+      });
 
       // 1-1. 삭제 결과 검증 (실제로 삭제되었는지 확인)
       console.log('🔍 삭제 결과 검증 시작');
@@ -234,47 +317,77 @@ export default async function handler(req, res) {
         console.warn('⚠️ 일부 파일이 삭제되지 않음:', stillExistingFiles);
       }
 
-      // 2. image_metadata 테이블에서 메타데이터 삭제 (개선된 로직)
-      // ✅ file_name 컬럼이 없으므로 image_url만 사용
+      // 2. image_assets 테이블에서 메타데이터 삭제 (image_metadata → image_assets 변경)
+      // ✅ cdn_url과 file_path 둘 다 사용 (더 정확한 매칭)
       let metadataDeletedCount = 0;
       for (const fileName of existingFiles) {
         console.log('🗑️ 메타데이터 삭제 시도:', fileName);
         
-        // ✅ image_url로 삭제 (URL 기반) - file_name 컬럼이 없으므로 이 방법만 사용
+        let deleted = false;
+        
+        // 방법 1: file_path로 삭제 시도 (가장 정확)
         try {
-          const { data: urlData } = supabase.storage
-            .from('blog-images')
-            .getPublicUrl(fileName);
-          
-          const { error: urlError, count: urlCount } = await supabase
-            .from('image_metadata')
+          const { error: pathError, count: pathCount } = await supabase
+            .from('image_assets')
             .delete()
-            .eq('image_url', urlData.publicUrl);
+            .eq('file_path', fileName);
 
-          if (urlError) {
-            console.warn('⚠️ URL 매칭 삭제 실패:', fileName, urlError);
-          } else if (urlCount && urlCount > 0) {
-            metadataDeletedCount += urlCount;
-            console.log('✅ URL 매칭 삭제 성공:', fileName, `(${urlCount}개 행 삭제됨)`);
-          } else {
-            console.log('ℹ️ 해당 URL의 메타데이터가 없음:', fileName);
+          if (pathError) {
+            console.warn('⚠️ file_path 매칭 삭제 실패:', fileName, pathError);
+          } else if (pathCount && pathCount > 0) {
+            metadataDeletedCount += pathCount;
+            deleted = true;
+            console.log('✅ file_path 매칭 삭제 성공:', fileName, `(${pathCount}개 행 삭제됨)`);
           }
-        } catch (urlError) {
-          console.warn('⚠️ URL 생성 실패:', fileName, urlError);
+        } catch (pathError) {
+          console.warn('⚠️ file_path 삭제 시도 실패:', fileName, pathError);
+        }
+        
+        // 방법 2: cdn_url로 삭제 시도 (file_path로 삭제되지 않은 경우)
+        if (!deleted) {
+          try {
+            const { data: urlData } = supabase.storage
+              .from('blog-images')
+              .getPublicUrl(fileName);
+            
+            const { error: urlError, count: urlCount } = await supabase
+              .from('image_assets')
+              .delete()
+              .eq('cdn_url', urlData.publicUrl);
+
+            if (urlError) {
+              console.warn('⚠️ URL 매칭 삭제 실패:', fileName, urlError);
+            } else if (urlCount && urlCount > 0) {
+              metadataDeletedCount += urlCount;
+              deleted = true;
+              console.log('✅ URL 매칭 삭제 성공:', fileName, `(${urlCount}개 행 삭제됨)`);
+            } else {
+              console.log('ℹ️ 해당 URL의 메타데이터가 없음:', fileName);
+            }
+          } catch (urlError) {
+            console.warn('⚠️ URL 생성 실패:', fileName, urlError);
+          }
+        }
+        
+        if (!deleted) {
+          console.log('ℹ️ 메타데이터가 없거나 삭제되지 않음:', fileName);
         }
       }
 
-      console.log('✅ 메타데이터 삭제 완료:', metadataDeletedCount, '개');
+      console.log('✅ [삭제 API] 메타데이터 삭제 완료:', {
+        metadataDeletedCount,
+        totalFiles: existingFiles.length
+      });
       
       // ✅ 이미지 목록 캐시 무효화 (삭제 후 목록 동기화)
       try {
         invalidateCache();
-        console.log('🗑️ 이미지 목록 캐시 무효화 완료');
+        console.log('🗑️ [삭제 API] 이미지 목록 캐시 무효화 완료');
       } catch (cacheError) {
-        console.warn('⚠️ 캐시 무효화 실패 (계속 진행):', cacheError);
+        console.warn('⚠️ [삭제 API] 캐시 무효화 실패 (계속 진행):', cacheError);
       }
-      
-      return res.status(200).json({
+
+      const response = {
         success: true,
         deletedImages: existingFiles,
         originalTargets: targets,
@@ -287,7 +400,16 @@ export default async function handler(req, res) {
           actuallyDeleted: existingFiles.length - stillExistingFiles.length,
           deletionSuccess: stillExistingFiles.length === 0
         }
+      };
+
+      console.log('✅ [삭제 API] 최종 응답:', {
+        success: response.success,
+        deletedImagesCount: response.deletedImages.length,
+        metadataDeletedCount: response.metadataDeletedCount,
+        verification: response.deletionVerification
       });
+
+      return res.status(200).json(response);
 
     } else if (req.method === 'DELETE' || req.method === 'POST') {
       const { imageName } = req.body;
@@ -359,33 +481,52 @@ export default async function handler(req, res) {
         console.warn('⚠️ 파일 삭제 검증 실패:', targetWithExtension);
       }
 
-      // 2. image_metadata 테이블에서 메타데이터 삭제 (개선된 로직)
-      // ✅ file_name 컬럼이 없으므로 image_url만 사용
+      // 2. image_assets 테이블에서 메타데이터 삭제 (image_metadata → image_assets 변경)
+      // ✅ cdn_url과 file_path 둘 다 사용 (더 정확한 매칭)
       console.log('🗑️ 메타데이터 삭제 시도:', targetWithExtension);
       
       let metadataDeleted = false;
       
-      // ✅ image_url로 삭제 (URL 기반) - file_name 컬럼이 없으므로 이 방법만 사용
+      // 방법 1: file_path로 삭제 시도 (가장 정확)
       try {
-        const { data: urlData } = supabase.storage
-          .from('blog-images')
-          .getPublicUrl(targetWithExtension);
-        
-        const { error: urlError, count: urlCount } = await supabase
-          .from('image_metadata')
+        const { error: pathError, count: pathCount } = await supabase
+          .from('image_assets')
           .delete()
-          .eq('image_url', urlData.publicUrl);
+          .eq('file_path', targetWithExtension);
 
-        if (urlError) {
-          console.warn('⚠️ URL 매칭 삭제 실패:', targetWithExtension, urlError);
-        } else if (urlCount && urlCount > 0) {
+        if (pathError) {
+          console.warn('⚠️ file_path 매칭 삭제 실패:', targetWithExtension, pathError);
+        } else if (pathCount && pathCount > 0) {
           metadataDeleted = true;
-          console.log('✅ URL 매칭 삭제 성공:', targetWithExtension, `(${urlCount}개 행 삭제됨)`);
-        } else {
-          console.log('ℹ️ 해당 URL의 메타데이터가 없음:', targetWithExtension);
+          console.log('✅ file_path 매칭 삭제 성공:', targetWithExtension, `(${pathCount}개 행 삭제됨)`);
         }
-      } catch (urlError) {
-        console.warn('⚠️ URL 생성 실패:', targetWithExtension, urlError);
+      } catch (pathError) {
+        console.warn('⚠️ file_path 삭제 시도 실패:', targetWithExtension, pathError);
+      }
+      
+      // 방법 2: cdn_url로 삭제 시도 (file_path로 삭제되지 않은 경우)
+      if (!metadataDeleted) {
+        try {
+          const { data: urlData } = supabase.storage
+            .from('blog-images')
+            .getPublicUrl(targetWithExtension);
+          
+          const { error: urlError, count: urlCount } = await supabase
+            .from('image_assets')
+            .delete()
+            .eq('cdn_url', urlData.publicUrl);
+
+          if (urlError) {
+            console.warn('⚠️ URL 매칭 삭제 실패:', targetWithExtension, urlError);
+          } else if (urlCount && urlCount > 0) {
+            metadataDeleted = true;
+            console.log('✅ URL 매칭 삭제 성공:', targetWithExtension, `(${urlCount}개 행 삭제됨)`);
+          } else {
+            console.log('ℹ️ 해당 URL의 메타데이터가 없음:', targetWithExtension);
+          }
+        } catch (urlError) {
+          console.warn('⚠️ URL 생성 실패:', targetWithExtension, urlError);
+        }
       }
 
       if (!metadataDeleted) {

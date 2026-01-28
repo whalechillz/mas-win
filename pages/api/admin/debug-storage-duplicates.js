@@ -83,7 +83,7 @@ export default async function handler(req, res) {
 
     // 4. 메타데이터 테이블과 비교
     const { data: metadata, error: metaError } = await supabase
-      .from('image_metadata')
+        .from('image_assets')
       .select('id, image_url, title, created_at')
       .order('created_at', { ascending: false });
     

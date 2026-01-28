@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     if (imageId && !imageId.toString().startsWith('temp-') && !isNaN(imageId)) {
       // 숫자 ID로 조회 시도
       const { data, error } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .select('*')
         .eq('id', parseInt(imageId))
         .single();
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
     if (!currentImage) {
       if (imageUrl) {
         const { data, error } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .select('*')
           .eq('image_url', imageUrl)
           .single();
@@ -66,7 +66,7 @@ export default async function handler(req, res) {
         const constructedUrl = `${storageBaseUrl}${currentFileName}`;
         
         const { data, error } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .select('*')
           .eq('image_url', constructedUrl)
           .single();
@@ -198,7 +198,7 @@ export default async function handler(req, res) {
     let updateError;
     if (currentImage.id && !isNaN(currentImage.id)) {
       const { error } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .update({
           image_url: urlData.publicUrl,
           title: newFileName // 제목도 새 파일명으로 업데이트
@@ -208,7 +208,7 @@ export default async function handler(req, res) {
     } else {
       // ID가 없거나 유효하지 않은 경우 image_url로 업데이트
       const { error } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .update({
           image_url: urlData.publicUrl,
           title: newFileName

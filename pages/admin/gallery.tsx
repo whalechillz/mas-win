@@ -2841,7 +2841,13 @@ export default function GalleryAdmin() {
   };
 
   // 제품 합성 함수
-  const handleProductComposition = async (imageUrl: string, productId: string, target: 'hands' | 'head' | 'body' | 'accessory' = 'hands') => {
+  const handleProductComposition = async (
+    imageUrl: string, 
+    productId: string, 
+    target: 'hands' | 'head' | 'body' | 'accessory' = 'hands',
+    originalFileName?: string,
+    originalFolderPath?: string
+  ) => {
     if (!imageUrl || !productId) {
       alert('이미지와 제품을 선택해주세요.');
       return;
@@ -2852,24 +2858,41 @@ export default function GalleryAdmin() {
       return;
     }
 
+    // 디버깅: 전달되는 파라미터 확인
+    console.log('🔍 제품 합성 시작:', {
+      imageUrl,
+      productId,
+      productIdType: typeof productId,
+      target,
+      originalFileName,
+      originalFolderPath
+    });
+
     setIsComposingProduct(true);
     setImageGenerationStep('제품 합성 중...');
     setImageGenerationModel('제품 합성');
     setShowGenerationProcess(true);
 
     try {
+      const requestBody = {
+        modelImageUrl: imageUrl, // API는 modelImageUrl을 요구함
+        productId: String(productId), // 문자열로 명시적 변환
+        compositionTarget: target,
+        baseImageUrl: imageUrl, // 저장 위치 결정용
+        originalFileName: originalFileName, // 원본 파일명 (파일명 최적화용)
+        originalFolderPath: originalFolderPath, // 원본 폴더 경로 (저장 위치 최적화용)
+        title: '갤러리 이미지 제품 합성',
+        excerpt: '갤러리에서 제품 합성된 이미지',
+        contentType: 'gallery',
+        brandStrategy: 'professional'
+      };
+
+      console.log('📤 제품 합성 API 요청:', requestBody);
+
       const response = await fetch('/api/compose-product-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageUrl: imageUrl,
-          productId: productId,
-          compositionTarget: target,
-          title: '갤러리 이미지 제품 합성',
-          excerpt: '갤러리에서 제품 합성된 이미지',
-          contentType: 'gallery',
-          brandStrategy: 'professional'
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -2879,20 +2902,30 @@ export default function GalleryAdmin() {
 
       const result = await response.json();
       
-      if (result.imageUrl) {
-        setGeneratedImages(prev => [result.imageUrl, ...prev]);
-        setShowGeneratedImages(true);
+      console.log('📥 제품 합성 API 응답:', result);
+      
+      // API는 images 배열을 반환함
+      if (result.success && result.images && result.images.length > 0) {
+        const firstImage = result.images[0];
+        const imageUrl = firstImage.imageUrl || firstImage.publicUrl;
         
-        // 확대 모달 닫기
-        setSelectedImageForZoom(null);
-        setShowProductCompositionModal(false);
-        
-        // 이미지 목록 새로고침
-        fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
-        
-        alert('✅ 제품 합성이 완료되었습니다!');
+        if (imageUrl) {
+          setGeneratedImages(prev => [imageUrl, ...prev]);
+          setShowGeneratedImages(true);
+          
+          // 확대 모달 닫기
+          setSelectedImageForZoom(null);
+          setShowProductCompositionModal(false);
+          
+          // 이미지 목록 새로고침
+          fetchImages(1, true, folderFilter, includeChildren, searchQuery, true);
+          
+          alert(`✅ 제품 합성이 완료되었습니다!\n\n생성된 이미지: ${result.images.length}개`);
+        } else {
+          throw new Error('합성된 이미지 URL이 없습니다.');
+        }
       } else {
-        throw new Error('합성된 이미지가 생성되지 않았습니다.');
+        throw new Error(result.error || '합성된 이미지가 생성되지 않았습니다.');
       }
     } catch (error: any) {
       console.error('❌ 제품 합성 오류:', error);
@@ -4950,50 +4983,89 @@ export default function GalleryAdmin() {
                     <div className="mb-6">
                       <h4 className="text-sm font-medium text-gray-700 mb-3">생성된 이미지</h4>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {generatedImages.map((imageUrl, index) => (
-                          <div key={index} className="relative group">
-                            <img
-                              src={imageUrl}
-                              alt={`생성된 이미지 ${index + 1}`}
-                              className="w-full h-32 object-cover rounded-lg border border-gray-200 cursor-pointer hover:border-blue-500 transition-colors"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                              }}
-                            />
-                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
-                              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-wrap gap-1 justify-center p-2">
+                        {generatedImages.map((imageUrl, index) => {
+                          // imageUrl로 ImageMetadata 객체 찾기 또는 생성
+                          const imageMetadata = images.find(img => img.url === imageUrl || img.cdn_url === imageUrl) || {
+                            name: imageUrl.split('/').pop() || `generated-${index + 1}`,
+                            url: imageUrl,
+                            cdn_url: imageUrl,
+                            folder_path: '',
+                            size: 0,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            is_liked: likedImages.has(imageUrl)
+                          } as ImageMetadata;
+
+                          return (
+                            <div key={index} className="relative group">
+                              <img
+                                src={imageUrl}
+                                alt={`생성된 이미지 ${index + 1}`}
+                                className="w-full h-32 object-cover rounded-lg border border-gray-200 cursor-pointer hover:border-blue-500 transition-colors"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                }}
+                              />
+                              {/* 퀵 액션 버튼들: 확대 / 편집 / 삭제 / 좋아요 표시 (하단 썸네일과 동일) */}
+                              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col space-y-1">
+                                {/* 확대 버튼 */}
                                 <button
-                                  type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    if (confirm('이 이미지를 삭제하시겠습니까?')) {
+                                    setSelectedImageForZoom(imageMetadata);
+                                  }}
+                                  className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
+                                  title="확대"
+                                >
+                                  🔍
+                                </button>
+                                {/* 하트 버튼 */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleToggleLike(imageMetadata, e)}
+                                  className={`p-1 rounded shadow-sm transition-colors ${
+                                    likedImages.has(imageUrl)
+                                      ? 'bg-red-100 hover:bg-red-200'
+                                      : 'bg-white hover:bg-gray-50'
+                                  }`}
+                                  title={likedImages.has(imageUrl) ? "좋아요 취소" : "좋아요"}
+                                >
+                                  {likedImages.has(imageUrl) ? '❤️' : '🤍'}
+                                </button>
+                                {/* 편집 버튼 */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    startEditing(imageMetadata);
+                                  }}
+                                  className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
+                                  title="편집"
+                                >
+                                  ✏️
+                                </button>
+                                {/* 삭제 버튼 (진짜 삭제) */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const fullPath = imageMetadata.folder_path && imageMetadata.folder_path !== '' 
+                                      ? `${imageMetadata.folder_path}/${imageMetadata.name}` 
+                                      : imageMetadata.name;
+                                    if (confirm(`"${imageMetadata.name}" 이미지를 삭제하시겠습니까?`)) {
+                                      handleDeleteImage(fullPath);
+                                      // 로컬 상태에서도 제거
                                       setGeneratedImages(prev => prev.filter((_, i) => i !== index));
                                     }
                                   }}
-                                  className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                                  className="p-1 bg-red-100 rounded shadow-sm hover:bg-red-200"
                                   title="삭제"
                                 >
                                   🗑️
                                 </button>
-                                <button
-                                  type="button"
-                                  disabled={isGeneratingVariation}
-                                  onClick={async (e) => {
-                                    e.stopPropagation();
-                                    if (isGeneratingVariation) return;
-                                    setSelectedBaseImage(imageUrl);
-                                    await generateImageVariation('Replicate Flux');
-                                  }}
-                                  className={`px-2 py-1 text-xs rounded ${isGeneratingVariation ? 'bg-purple-300 text-white cursor-not-allowed' : 'bg-purple-500 text-white hover:bg-purple-600'}`}
-                                  title="변형"
-                                >
-                                  {isGeneratingVariation ? '…' : '🎨'}
-                                </button>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -5275,6 +5347,18 @@ export default function GalleryAdmin() {
             <div className="p-4 border-b">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
+                  {/* 리프레시 버튼 */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      fetchImages(1, true, folderFilter, includeChildren, searchQuery);
+                    }}
+                    className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors flex items-center space-x-2"
+                    title="이미지 목록 새로고침"
+                  >
+                    <span>🔄</span>
+                    <span>리프레시</span>
+                  </button>
                   <label className="flex items-center space-x-2">
                     <input
                       type="checkbox"
@@ -6825,7 +6909,7 @@ export default function GalleryAdmin() {
                     if (!selectedImageForZoom) return;
                     if (isUpscaling) return;
                     
-                    if (!confirm(`"${selectedImageForZoom.name}" 이미지를 ${upscaleScale}배 업스케일링하시겠습니까?`)) {
+                    if (!confirm(`"${selectedImageForZoom.name}" 이미지를 ${upscaleScale}배 업스케일링하시겠습니까?\n\n(Replicate Real-ESRGAN AI를 사용한 ${upscaleScale}배 업스케일링)`)) {
                       return;
                     }
                     
@@ -10289,13 +10373,12 @@ export default function GalleryAdmin() {
               <p className="text-xs text-blue-700 mb-2">
                 💡 제품 합성 관리 페이지에서 제품을 추가하거나 수정할 수 있습니다.
               </p>
-              <Link href="/admin/product-composition">
-                <a
-                  target="_blank"
-                  className="text-xs text-blue-600 hover:text-blue-800 underline"
-                >
-                  제품 합성 관리 페이지 열기 →
-                </a>
+              <Link 
+                href="/admin/product-composition"
+                target="_blank"
+                className="text-xs text-blue-600 hover:text-blue-800 underline"
+              >
+                제품 합성 관리 페이지 열기 →
               </Link>
             </div>
 
@@ -10316,10 +10399,16 @@ export default function GalleryAdmin() {
                     alert('제품을 선택해주세요.');
                     return;
                   }
+                  // 원본 이미지 정보 추출
+                  const originalFileName = selectedImageForZoom.name || '';
+                  const originalFolderPath = selectedImageForZoom.folder_path || '';
+                  
                   await handleProductComposition(
                     selectedImageForZoom.url,
                     selectedProductId,
-                    compositionTarget
+                    compositionTarget,
+                    originalFileName,
+                    originalFolderPath
                   );
                 }}
                 disabled={!selectedProductId || isComposingProduct}

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { logFALAIUsage } from '../../lib/ai-usage-logger';
+import { generateStandardFileName, determineStorageLocationForAI, extractProductName } from '../../lib/filename-generator';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -261,37 +262,102 @@ const PRESETS = {
       }
       
       const imageBuffer = await imageFetchResponse.arrayBuffer();
-      const dateStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-      const yearMonth = dateStr.slice(0, 7); // YYYY-MM
-      const fileName = `existing-variation-${Date.now()}.png`;
       
-      // 원본 이미지의 메타데이터 먼저 조회 (폴더 경로 결정을 위해)
+      // 저장 위치 결정 (현재 폴더 위치 확인)
+      const storageLocation = await determineStorageLocationForAI(imageUrl, 'fal');
+      
+      let targetFolderPath;
+      let location = 'uploaded';
+      let productName = 'none';
+      
+      if (storageLocation.location === 'current-folder' && storageLocation.folderPath) {
+        // 현재 폴더 위치가 있으면 원본과 동일한 폴더 사용
+        targetFolderPath = storageLocation.folderPath;
+        
+        // 위치 감지
+        if (targetFolderPath.includes('customers/')) {
+          location = 'customers';
+          // 고객명 추출 (folder_name)
+          const customerMatch = targetFolderPath.match(/customers\/([^/]+)/);
+          if (customerMatch) {
+            productName = customerMatch[1];
+          }
+        } else if (targetFolderPath.includes('products/') && targetFolderPath.includes('/gallery')) {
+          location = 'products';
+        } else if (targetFolderPath.includes('goods/') && targetFolderPath.includes('/gallery')) {
+          location = 'goods';
+        } else if (targetFolderPath.includes('daily-branding/kakao/')) {
+          location = 'daily-kakao';
+        }
+        
+        // 제품명 추출 (고객이 아닌 경우)
+        if (location !== 'customers') {
+          if (storageLocation.productName) {
+            productName = storageLocation.productName;
+          } else {
+            const extractedProductName = await extractProductName(imageUrl);
+            if (extractedProductName) {
+              productName = extractedProductName;
+            }
+          }
+        }
+        
+        console.log('✅ 현재 폴더 위치 사용:', {
+          targetFolderPath,
+          location,
+          productName
+        });
+      } else {
+        // 현재 폴더 위치가 없으면 ai-generated 폴더 사용
+        targetFolderPath = storageLocation.folderPath || `originals/ai-generated/${new Date().toISOString().slice(0, 10)}`;
+        location = 'ai-generated';
+        
+        // 제품명 추출 시도
+        const extractedProductName = await extractProductName(imageUrl);
+        if (extractedProductName) {
+          productName = extractedProductName;
+        }
+        
+        console.log('✅ AI 생성 폴더 사용:', {
+          targetFolderPath,
+          location,
+          productName
+        });
+      }
+      
+      // 원본 이미지의 메타데이터 조회 (메타데이터 복사용)
       let originalMetadata = null;
-      let targetFolderPath = `uploaded/${yearMonth}/${dateStr}`;
-      let targetDateFolder = dateStr;
-      
       try {
         const { data: metadata, error: metadataError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .select('*')
-          .eq('image_url', imageUrl)
+          .eq('cdn_url', imageUrl)
           .maybeSingle();
 
         if (!metadataError && metadata) {
           originalMetadata = metadata;
-          
-          // 원본이 고객 폴더인 경우 그대로 사용
-          if (metadata.folder_path && metadata.folder_path.includes('originals/customers/')) {
-            targetFolderPath = metadata.folder_path;
-            targetDateFolder = metadata.date_folder || dateStr;
-            console.log('✅ 원본이 고객 폴더입니다. 같은 폴더에 저장:', targetFolderPath);
-          }
         }
       } catch (metadataError) {
-        console.warn('⚠️ 원본 메타데이터 조회 실패 (기본 경로 사용):', metadataError);
+        console.warn('⚠️ 원본 메타데이터 조회 실패:', metadataError);
       }
       
+      // 표준 파일명 생성
+      const fileName = await generateStandardFileName({
+        location: location,
+        productName: productName,
+        compositionProgram: 'fal',
+        compositionFunction: 'variation',
+        creationDate: new Date(),
+        extension: 'png'
+      });
+      
       const objectPath = `${targetFolderPath}/${fileName}`;
+      
+      console.log('✅ 표준 파일명 생성 완료:', {
+        location,
+        productName,
+        fileName
+      });
       
       // Supabase Storage에 업로드
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -312,23 +378,16 @@ const PRESETS = {
       
       console.log('✅ Supabase 저장 완료:', publicUrl);
 
-      // 원본 이미지의 메타데이터 복사
+      // 원본 이미지의 메타데이터 복사 (image_assets 형식)
       let newMetadata = {
-        image_url: publicUrl,
-        folder_path: targetFolderPath,
-        date_folder: targetDateFolder,
-        english_filename: fileName,
-        original_filename: fileName,
-        prompt: prompt, // 새 프롬프트 사용
+        cdn_url: publicUrl,
+        file_path: targetFolderPath ? `${targetFolderPath}/${fileName}` : fileName,
         title: title || '기존 이미지 변형',
-        excerpt: excerpt || '기존 이미지를 변형하여 생성된 이미지',
-        content_type: contentType || 'blog',
-        brand_strategy: brandStrategy || 'professional',
         upload_source: 'variation-fal', // FAL 변형으로 생성된 이미지 표시
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        usage_count: 0,
-        is_featured: false
+        usage_count: 0
+        // ⚠️ image_assets에는 다음 필드들이 없음: folder_path, date_folder, english_filename, original_filename, prompt, excerpt, content_type, brand_strategy, is_featured
       };
 
       // 원본 메타데이터가 있으면 복사
@@ -338,36 +397,80 @@ const PRESETS = {
           newUrl: publicUrl
         });
 
-        // 원본 메타데이터 복사 (파일명, prompt 제외)
+        // 원본 메타데이터 복사 (image_assets 형식)
         newMetadata = {
           ...newMetadata,
           alt_text: originalMetadata.alt_text || null,
           description: originalMetadata.description || null,
-          tags: originalMetadata.tags || null,
-          category_id: originalMetadata.category_id || null,
+          ai_tags: originalMetadata.ai_tags || originalMetadata.tags || null,
           file_size: imageBuffer.byteLength,
           width: originalMetadata.width || null,
           height: originalMetadata.height || null,
           format: 'png',
           status: originalMetadata.status || 'active',
-          // 고객 이미지 관련 필드도 복사
-          story_scene: originalMetadata.story_scene || null,
-          image_type: originalMetadata.image_type || null,
-          customer_name_en: originalMetadata.customer_name_en || null,
-          customer_initials: originalMetadata.customer_initials || null,
-          original_filename: originalMetadata.original_filename || fileName,
           // GPS 및 촬영일시 복사
           gps_lat: originalMetadata.gps_lat || null,
           gps_lng: originalMetadata.gps_lng || null,
           taken_at: originalMetadata.taken_at || null
+          // ⚠️ image_assets에는 다음 필드들이 없음: category_id, story_scene, image_type, customer_name_en, customer_initials, original_filename
         };
+      }
+
+      // 고객 이미지인 경우 고객 정보 조회 및 ai_tags에 추가
+      if (location === 'customers' && productName !== 'none') {
+        try {
+          const { data: customer, error: customerError } = await supabase
+            .from('customers')
+            .select('id, folder_name')
+            .eq('folder_name', productName)
+            .maybeSingle();
+
+          if (!customerError && customer) {
+            console.log('✅ 고객 정보 조회 완료:', {
+              customerId: customer.id,
+              folderName: customer.folder_name
+            });
+
+            // 날짜 추출 (file_path에서 또는 현재 날짜)
+            const dateMatch = newMetadata.file_path?.match(/(\d{4}-\d{2}-\d{2})/);
+            const visitDate = dateMatch ? dateMatch[1] : new Date().toISOString().slice(0, 10);
+            
+            // ai_tags에 고객 정보 추가
+            const customerTag = `customer-${customer.id}`;
+            const visitTag = `visit-${visitDate}`;
+            
+            // 기존 ai_tags가 있으면 배열로 변환, 없으면 새 배열 생성
+            const existingTags = Array.isArray(newMetadata.ai_tags) 
+              ? newMetadata.ai_tags 
+              : newMetadata.ai_tags 
+                ? [newMetadata.ai_tags] 
+                : [];
+            
+            // 고객 태그가 이미 있으면 제거 후 다시 추가 (중복 방지)
+            const tagsWithoutCustomer = existingTags.filter(
+              (tag) => typeof tag === 'string' && !tag.startsWith('customer-') && !tag.startsWith('visit-')
+            );
+            
+            newMetadata.ai_tags = [customerTag, visitTag, ...tagsWithoutCustomer];
+            
+            console.log('✅ 고객 태그 추가 완료:', {
+              customerTag,
+              visitTag,
+              ai_tags: newMetadata.ai_tags
+            });
+          } else {
+            console.warn('⚠️ 고객 정보 조회 실패:', customerError?.message || '고객을 찾을 수 없음');
+          }
+        } catch (error) {
+          console.warn('⚠️ 고객 정보 조회 중 오류 (계속 진행):', error.message);
+        }
       }
 
       // 이미지 메타데이터 저장
       const { error: metadataError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .upsert(newMetadata, {
-          onConflict: 'image_url',
+          onConflict: 'cdn_url',
           ignoreDuplicates: false
         });
 

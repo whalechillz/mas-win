@@ -232,7 +232,7 @@ const findMissingMetadata = async (storageImages) => {
     
     while (true) {
       const { data: metadata, error } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .select('image_url')
         .range(offset, offset + batchSize - 1);
       
@@ -461,7 +461,7 @@ export default async function handler(req, res) {
         
         // ✅ image_url이 UNIQUE이므로 image_url 기준으로 upsert
         const { error: upsertError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .upsert(metadataPayload, { onConflict: 'image_url' });
         
         if (upsertError) {

@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     // 1. 현재 이미지 메타데이터 조회
     console.log('🔍 메타데이터 조회 시도:', imageId);
     const { data: currentImage, error: fetchError } = await supabase
-      .from('image_metadata')
+        .from('image_assets')
       .select('*')
       .eq('id', imageId)
       .single();
@@ -183,7 +183,7 @@ export default async function handler(req, res) {
     // 7. 메타데이터 업데이트
     // 주의: image_metadata 테이블에는 file_name 컬럼이 없고 image_url만 있음
     const { error: updateError } = await supabase
-      .from('image_metadata')
+        .from('image_assets')
       .update({
         image_url: urlData.publicUrl
       })

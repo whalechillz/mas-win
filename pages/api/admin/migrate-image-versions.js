@@ -82,7 +82,7 @@ export default async function handler(req, res) {
 
         // 메타데이터 존재 여부 확인
         const { data: metadata, error: metadataError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .select('image_url');
 
         if (!metadataError && metadata) {
@@ -146,7 +146,7 @@ export default async function handler(req, res) {
           try {
             // 메타데이터 찾기
             const { data: metadata, error: metadataError } = await supabase
-              .from('image_metadata')
+              .from('image_assets')
               .select('*')
               .or(
                 Object.values(group.versions)
@@ -163,7 +163,7 @@ export default async function handler(req, res) {
 
             // 버전 정보 업데이트
             const { error: updateError } = await supabase
-              .from('image_metadata')
+              .from('image_assets')
               .update({
                 versions: JSON.stringify(group.versions),
                 updated_at: new Date().toISOString()

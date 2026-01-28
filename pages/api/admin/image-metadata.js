@@ -109,15 +109,15 @@ export default async function handler(req, res) {
       }
 
       try {
-        // 데이터베이스에서 실제 메타데이터 조회
-        let query = supabase.from('image_metadata').select('*');
+        // 데이터베이스에서 실제 메타데이터 조회 (image_assets 사용)
+        let query = supabase.from('image_assets').select('*');
         
         if (imageUrl) {
-          query = query.eq('image_url', imageUrl);
+          query = query.eq('cdn_url', imageUrl);
         } else if (imageName) {
           // imageName으로 조회할 때는 URL을 구성해서 검색
           const constructedUrl = `https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/${imageName}`;
-          query = query.eq('image_url', constructedUrl);
+          query = query.eq('cdn_url', constructedUrl);
         }
         
         const { data, error } = await query.single();
@@ -139,20 +139,16 @@ export default async function handler(req, res) {
           return res.status(500).json({ error: '메타데이터 조회 실패', details: error.message });
         }
 
-        // 데이터베이스에서 조회한 실제 데이터 반환
+        // 데이터베이스에서 조회한 실제 데이터 반환 (image_assets 형식)
         const metadata = {
           filename: imageName,
           altText: data.alt_text || '',
-          keywords: data.tags || [],
+          keywords: Array.isArray(data.ai_tags) ? data.ai_tags : [],
           seoTitle: data.title || '',
           description: data.description || '',
-          category: data.category_id ? 
-            (data.category_id === 1 ? '골프' : 
-             data.category_id === 2 ? '장비' : 
-             data.category_id === 3 ? '코스' : 
-             data.category_id === 4 ? '이벤트' : '기타') : '',
+          category: '', // image_assets에는 category_id가 없음
           createdAt: data.created_at,
-          // EXIF 정보 포함
+          // EXIF 정보 포함 (image_assets에 있는 경우)
           gps_lat: data.gps_lat || null,
           gps_lng: data.gps_lng || null,
           taken_at: data.taken_at || null,
@@ -257,22 +253,16 @@ export default async function handler(req, res) {
         // 에러로 처리하지 않고 경고만 로그에 남김
       }
 
-      // 데이터베이스에 메타데이터 저장/업데이트
-      // 주의: image_metadata 테이블 스키마에는 file_name, category 컬럼이 없음
-      // image_url이 UNIQUE이므로 image_url로만 조회/업데이트
+      // 데이터베이스에 메타데이터 저장/업데이트 (image_assets 사용)
+      // ⚠️ image_assets에는 category_id가 없으므로 제거
       const metadataData = {
-        image_url: imageUrl,
+        cdn_url: imageUrl,
         alt_text: alt_text || '',
-        tags: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()).filter(k => k) : []),
+        ai_tags: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()).filter(k => k) : []),
         title: title || '',
         description: description || '',
         updated_at: new Date().toISOString()
       };
-      
-      // category_id는 NULL일 수 있으므로 있을 때만 추가
-      if (categoryId !== null && categoryId !== undefined) {
-        metadataData.category_id = categoryId;
-      }
       
       // EXIF 정보 추가 (있는 경우)
       if (exifData) {
@@ -301,7 +291,7 @@ export default async function handler(req, res) {
         category_id: metadataData.category_id
       });
 
-      // image_url이 UNIQUE이므로 upsert 사용 (중복 방지 및 안전한 저장)
+      // cdn_url이 UNIQUE이므로 upsert 사용 (중복 방지 및 안전한 저장)
       console.log('🔍 메타데이터 upsert 시작:', imageUrl);
       
       const insertData = {
@@ -311,9 +301,9 @@ export default async function handler(req, res) {
       
       // 기존 레코드 확인 (로깅용)
       const { data: existingCheck } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .select('id')
-        .eq('image_url', imageUrl)
+        .eq('cdn_url', imageUrl)
         .single();
       
       if (existingCheck) {
@@ -322,11 +312,11 @@ export default async function handler(req, res) {
         console.log('➕ 새 메타데이터 생성 예정');
       }
       
-      // upsert 사용: image_url이 있으면 업데이트, 없으면 생성
+      // upsert 사용: cdn_url이 있으면 업데이트, 없으면 생성
       const { data: result, error: upsertError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .upsert(insertData, {
-          onConflict: 'image_url',
+          onConflict: 'cdn_url',
           ignoreDuplicates: false
         })
         .select()
@@ -363,8 +353,8 @@ export default async function handler(req, res) {
           title_length: result.title ? result.title.length : 0,
           description: result.description,
           description_length: result.description ? result.description.length : 0,
-          tags: result.tags,
-          tags_json: JSON.stringify(result.tags)
+          ai_tags: result.ai_tags,
+          ai_tags_json: JSON.stringify(result.ai_tags)
         });
       }
 
@@ -410,23 +400,21 @@ export default async function handler(req, res) {
         categoryId = categoryMap[firstCategory.toLowerCase()] || 5; // 기본값: '기타'
       }
 
-      // 데이터베이스에서 메타데이터 업데이트
+      // 데이터베이스에서 메타데이터 업데이트 (image_assets 사용)
+      // ⚠️ image_assets에는 category_id가 없으므로 제거
       const metadataData = {
-        image_url: imageUrl,
+        cdn_url: imageUrl,
         alt_text: alt_text || '',
-        tags: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()) : []),
+        ai_tags: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()) : []),
         title: title || '',
         description: description || '',
-        category_id: categoryId,
-        // categories 배열은 문자열로 저장 (하위 호환성: 기존 category 필드에 저장)
-        category: categoryString || null,
         updated_at: new Date().toISOString()
       };
 
       const { data, error } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .update(metadataData)
-        .eq('image_url', imageUrl)
+        .eq('cdn_url', imageUrl)
         .select()
         .single();
       
@@ -452,9 +440,10 @@ export default async function handler(req, res) {
 
       try {
         // 먼저 현재 이미지 정보 조회 (folder_path도 포함)
+        // ⚠️ image_assets에는 customer_id, story_scene, is_scene_representative가 없을 수 있음
         const { data: currentImage, error: fetchError } = await supabase
-          .from('image_metadata')
-          .select('id, customer_id, story_scene, is_scene_representative, image_url, folder_path, tags')
+          .from('image_assets')
+          .select('id, cdn_url, file_path, ai_tags')
           .eq('id', imageId)
           .single();
 
@@ -462,103 +451,23 @@ export default async function handler(req, res) {
           return res.status(404).json({ error: '이미지를 찾을 수 없습니다.' });
         }
 
-        // 대표 이미지 설정 시 동영상 체크
-        if (isSceneRepresentative === true) {
-          const videoExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv'];
-          const imageUrl = currentImage.image_url?.toLowerCase() || '';
-          const isVideo = videoExtensions.some(ext => imageUrl.includes(ext));
-          
-          if (isVideo) {
-            return res.status(400).json({ 
-              success: false,
-              error: '동영상은 대표 이미지로 설정할 수 없습니다. 이미지만 대표 이미지로 설정 가능합니다.' 
-            });
-          }
-          
-          if (!currentImage.story_scene) {
-            return res.status(400).json({ 
-              success: false,
-              error: '장면이 할당되지 않은 이미지는 대표 이미지로 설정할 수 없습니다.' 
-            });
-          }
-          
-          const scene = storyScene || currentImage.story_scene;
-          
-          // 해당 장면의 기존 대표 이미지 모두 해제
-          // customer_id가 있으면 customer_id로, 없으면 folder_path와 tags로 필터링
-          let unsetQuery = supabase
-            .from('image_metadata')
-            .update({ 
-              is_scene_representative: false,
-              updated_at: new Date().toISOString()
-            })
-            .eq('story_scene', scene)
-            .eq('is_scene_representative', true);
-          
-          if (currentImage.customer_id) {
-            // customer_id가 있으면 customer_id로 필터링 (VARCHAR이므로 문자열로 변환)
-            unsetQuery = unsetQuery.eq('customer_id', String(currentImage.customer_id));
-          } else if (currentImage.folder_path) {
-            // customer_id가 없으면 folder_path로 필터링
-            // folder_path에서 고객 폴더명 추출 (예: originals/customers/choiseokho-1801/2020-09-02/...)
-            const customerFolderMatch = currentImage.folder_path.match(/customers\/([^\/]+)/);
-            if (customerFolderMatch) {
-              const customerFolder = customerFolderMatch[1];
-              unsetQuery = unsetQuery.ilike('folder_path', `%customers/${customerFolder}%`);
-            } else {
-              // folder_path에서 고객 폴더를 추출할 수 없으면 tags로 확인
-              if (currentImage.tags && Array.isArray(currentImage.tags)) {
-                const customerTag = currentImage.tags.find((tag) => 
-                  typeof tag === 'string' && tag.startsWith('customer-')
-                );
-                if (customerTag) {
-                  unsetQuery = unsetQuery.contains('tags', [customerTag]);
-                }
-              }
-            }
-          } else if (currentImage.tags && Array.isArray(currentImage.tags)) {
-            // folder_path도 없으면 tags로만 확인
-            const customerTag = currentImage.tags.find((tag) => 
-              typeof tag === 'string' && tag.startsWith('customer-')
-            );
-            if (customerTag) {
-              unsetQuery = unsetQuery.contains('tags', [customerTag]);
-            }
-          }
-
-          const { error: unsetError } = await unsetQuery;
-
-          if (unsetError) {
-            console.error('기존 대표 이미지 해제 오류:', unsetError);
-            // 계속 진행 (트랜잭션이 아니므로)
-          } else {
-            console.log('✅ 기존 대표 이미지 해제 완료:', {
-              scene,
-              customerId: currentImage.customer_id,
-              folderPath: currentImage.folder_path
-            });
-          }
+        // ⚠️ image_assets에는 customer_id, story_scene, is_scene_representative가 없으므로
+        // 이 기능은 일단 비활성화하거나 다른 방식으로 처리 필요
+        if (isSceneRepresentative !== undefined || storyScene !== undefined || displayOrder !== undefined) {
+          console.warn('⚠️ image_assets에는 customer_id, story_scene, is_scene_representative가 없습니다. 이 기능은 현재 지원되지 않습니다.');
+          return res.status(400).json({
+            success: false,
+            error: 'image_assets 테이블에는 대표 이미지 설정 기능이 지원되지 않습니다.'
+          });
         }
 
-        // 이미지 메타데이터 업데이트
+        // 이미지 메타데이터 업데이트 (기본 정보만)
         const updateData = {
           updated_at: new Date().toISOString()
         };
 
-        if (isSceneRepresentative !== undefined) {
-          updateData.is_scene_representative = isSceneRepresentative;
-        }
-
-        if (displayOrder !== undefined) {
-          updateData.display_order = displayOrder;
-        }
-
-        if (storyScene !== undefined) {
-          updateData.story_scene = storyScene;
-        }
-
         const { data: updatedImage, error: updateError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .update(updateData)
           .eq('id', imageId)
           .select()
@@ -569,9 +478,7 @@ export default async function handler(req, res) {
         }
 
         console.log('✅ 이미지 메타데이터 업데이트 완료:', {
-          imageId,
-          isSceneRepresentative,
-          storyScene: storyScene || currentImage.story_scene
+          imageId
         });
 
         return res.status(200).json({

@@ -29,7 +29,7 @@ export default async function handler(req, res) {
 
   try {
     let query = supabase
-      .from('image_metadata')
+        .from('image_assets')
       .select('*')
       .eq('source', 'mms')
       .eq('channel', 'sms')

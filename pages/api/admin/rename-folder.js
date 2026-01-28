@@ -121,7 +121,7 @@ export default async function handler(req, res) {
         const newImageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/blog-images/${movedFile.newPath}`;
         
         const { error: metadataError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .update({
             image_url: newImageUrl
           })

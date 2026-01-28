@@ -14,7 +14,7 @@ export default async function handler(req, res) {
 
     // 1. 모든 메타데이터 레코드 조회
     const { data: allMetadata, error: fetchError } = await supabase
-      .from('image_metadata')
+        .from('image_assets')
       .select('id, image_url, title, created_at')
       .order('created_at', { ascending: false });
 

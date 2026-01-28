@@ -310,18 +310,20 @@ async function deleteImageMetadata(targetUrl, targetFilePath) {
   const conditions = [];
   
   if (targetUrl) {
-    conditions.push(`image_url.eq.${targetUrl}`);
+    conditions.push(`cdn_url.eq.${targetUrl}`);
   }
   
-  // ✅ file_name 컬럼이 없으므로 제거
-  // image_metadata 테이블은 image_url만 사용
+  // ✅ file_path도 확인 (선택적)
+  if (targetFilePath) {
+    conditions.push(`file_path.eq.${targetFilePath}`);
+  }
   
   if (conditions.length === 0) {
     return { deleted: false, count: 0, error: null };
   }
   
   const { error, count } = await supabase
-    .from('image_metadata')
+    .from('image_assets')
     .delete()
     .or(conditions.join(','));
   
@@ -506,27 +508,27 @@ async function handleImageDelete(req, res) {
       } else if (metadataDeleteResult.error) {
         console.warn('⚠️ image_metadata 삭제 실패:', metadataDeleteResult.error);
       } else {
-        console.log('ℹ️ image_metadata에서 삭제할 행이 없습니다. (이미 삭제되었거나 존재하지 않을 수 있음)');
+        console.log('ℹ️ image_assets에서 삭제할 행이 없습니다. (이미 삭제되었거나 존재하지 않을 수 있음)');
       }
       
       // 추가 시도: imageUrl이 있으면 한 번 더 시도 (기존 로직 유지)
       if (!metadataDeleted && imageUrl && imageUrl !== targetUrl) {
         try {
           const { error: metadataError4, count: metadataCount4 } = await supabase
-            .from('image_metadata')
+            .from('image_assets')
             .delete()
-            .eq('image_url', imageUrl);
+            .eq('cdn_url', imageUrl);
             
             if (metadataError4) {
-              console.warn('⚠️ image_metadata 삭제 실패 (image_url):', metadataError4);
-              metadataDeleteErrors.push(`image_url 삭제 실패: ${metadataError4.message}`);
+              console.warn('⚠️ image_assets 삭제 실패 (cdn_url):', metadataError4);
+              metadataDeleteErrors.push(`cdn_url 삭제 실패: ${metadataError4.message}`);
             } else if (metadataCount4 > 0) {
               metadataDeleted = true;
-              console.log(`✅ image_metadata 삭제 성공 (image_url): ${metadataCount4}개 행 삭제됨`);
+              console.log(`✅ image_assets 삭제 성공 (cdn_url): ${metadataCount4}개 행 삭제됨`);
             }
         } catch (urlError) {
           console.warn('⚠️ image_metadata 삭제 시도 중 오류:', urlError);
-          metadataDeleteErrors.push(`image_url 삭제 시도 중 오류: ${urlError.message}`);
+          metadataDeleteErrors.push(`cdn_url 삭제 시도 중 오류: ${urlError.message}`);
         }
       }
       

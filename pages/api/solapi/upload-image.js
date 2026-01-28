@@ -54,37 +54,21 @@ const upsertImageMetadata = async (supabase, payload) => {
   if (!payload.image_url) return;
 
   const metadataPayload = {
-    image_url: payload.image_url,
-    folder_path: payload.folder_path || null,
-    date_folder: payload.date_folder || null,
-    source: 'mms',
-    channel: 'sms',
+    cdn_url: payload.image_url,
+    file_path: payload.original_path || payload.folder_path || null,
     file_size: payload.file_size || null,
     width: payload.width || null,
     height: payload.height || null,
     format: 'jpg',
     upload_source: 'mms-editor',
-    tags: payload.tags || [],
-    original_path: payload.original_path || null,
+    ai_tags: payload.tags || [],
     updated_at: new Date().toISOString()
+    // ⚠️ image_assets에는 다음 필드들이 없음: folder_path, date_folder, source, channel, original_path, file_name
   };
 
-  if (payload.file_name) {
-    metadataPayload.file_name = payload.file_name;
-  }
-
   let { error } = await supabase
-    .from('image_metadata')
-    .upsert(metadataPayload, { onConflict: 'image_url' });
-
-  if (error && error.code === '42703') {
-    const fallback = { ...metadataPayload };
-    delete fallback.file_name;
-    delete fallback.original_path;
-    ({ error } = await supabase
-      .from('image_metadata')
-      .upsert(fallback, { onConflict: 'image_url' }));
-  }
+    .from('image_assets')
+    .upsert(metadataPayload, { onConflict: 'cdn_url' });
 
   if (error) {
     console.error('⚠️ image_metadata upsert 실패:', error.message);

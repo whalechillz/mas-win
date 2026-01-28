@@ -6,7 +6,12 @@ import { useState, useEffect } from 'react';
 import { getProductImageUrl } from './product-image-url';
 
 interface UseProductDataResult {
-  productImages: string[];
+  productImages: string[]; // detail_images (기존 호환성 유지)
+  heroImages: string[]; // hero_images
+  hookImages: string[]; // hook_images
+  hookContent: Array<{ image: string; title: string; description: string }>; // hook_content
+  detailImages: string[]; // detail_images (명시적)
+  detailContent: Array<{ image: string; title: string; description: string }>; // detail_content
   galleryImages: string[];
   performanceImages: string[];
   isLoadingProduct: boolean;
@@ -14,7 +19,12 @@ interface UseProductDataResult {
 }
 
 export function useProductData(slug: string, defaultImages: string[] = []): UseProductDataResult {
-  const [productImages, setProductImages] = useState<string[]>([]);
+  const [productImages, setProductImages] = useState<string[]>([]); // detail_images (기존 호환성)
+  const [heroImages, setHeroImages] = useState<string[]>([]);
+  const [hookImages, setHookImages] = useState<string[]>([]);
+  const [hookContent, setHookContent] = useState<Array<{ image: string; title: string; description: string }>>([]);
+  const [detailImages, setDetailImages] = useState<string[]>([]);
+  const [detailContent, setDetailContent] = useState<Array<{ image: string; title: string; description: string }>>([]);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [performanceImages, setPerformanceImages] = useState<string[]>([]);
   const [isLoadingProduct, setIsLoadingProduct] = useState(true);
@@ -31,13 +41,55 @@ export function useProductData(slug: string, defaultImages: string[] = []): UseP
           const productData = json.product;
           setProduct(productData);
           
+          // hero_images 처리
+          if (Array.isArray(productData.hero_images) && productData.hero_images.length > 0) {
+            const heroUrls = productData.hero_images.map((img: string) => getProductImageUrl(img));
+            setHeroImages(heroUrls);
+          } else {
+            setHeroImages([]);
+          }
+          
+          // hook_images 처리
+          if (Array.isArray(productData.hook_images) && productData.hook_images.length > 0) {
+            const hookUrls = productData.hook_images.map((img: string) => getProductImageUrl(img));
+            setHookImages(hookUrls);
+          } else {
+            setHookImages([]);
+          }
+          
+          // hook_content 처리
+          if (Array.isArray(productData.hook_content) && productData.hook_content.length > 0) {
+            const hookContentData = productData.hook_content.map((item: any) => ({
+              image: getProductImageUrl(item.image || ''),
+              title: item.title || '',
+              description: item.description || '',
+            }));
+            setHookContent(hookContentData);
+          } else {
+            setHookContent([]);
+          }
+          
           // detail_images 처리 - 정확히 매칭 (폴백 없음)
           if (Array.isArray(productData.detail_images) && productData.detail_images.length > 0) {
             const detailUrls = productData.detail_images.map((img: string) => getProductImageUrl(img));
-            setProductImages(detailUrls);
+            setProductImages(detailUrls); // 기존 호환성 유지
+            setDetailImages(detailUrls); // 명시적 필드
           } else {
             // 데이터베이스에 이미지가 없으면 빈 배열
             setProductImages([]);
+            setDetailImages([]);
+          }
+          
+          // detail_content 처리
+          if (Array.isArray(productData.detail_content) && productData.detail_content.length > 0) {
+            const detailContentData = productData.detail_content.map((item: any) => ({
+              image: getProductImageUrl(item.image || ''),
+              title: item.title || '',
+              description: item.description || '',
+            }));
+            setDetailContent(detailContentData);
+          } else {
+            setDetailContent([]);
           }
           
           // gallery_images 처리 (착용 이미지)
@@ -58,6 +110,11 @@ export function useProductData(slug: string, defaultImages: string[] = []): UseP
         } else {
           // 데이터베이스에 제품이 없으면 빈 배열
           setProductImages([]);
+          setHeroImages([]);
+          setHookImages([]);
+          setHookContent([]);
+          setDetailImages([]);
+          setDetailContent([]);
           setGalleryImages([]);
           setPerformanceImages([]);
         }
@@ -65,6 +122,11 @@ export function useProductData(slug: string, defaultImages: string[] = []): UseP
         console.error('제품 로드 오류:', error);
         // 오류 발생 시에도 폴백 없이 빈 배열
         setProductImages([]);
+        setHeroImages([]);
+        setHookImages([]);
+        setHookContent([]);
+        setDetailImages([]);
+        setDetailContent([]);
         setGalleryImages([]);
         setPerformanceImages([]);
       } finally {
@@ -78,7 +140,12 @@ export function useProductData(slug: string, defaultImages: string[] = []): UseP
   }, [slug]);
 
   return {
-    productImages,
+    productImages, // detail_images (기존 호환성 유지)
+    heroImages,
+    hookImages,
+    hookContent,
+    detailImages,
+    detailContent,
     galleryImages,
     performanceImages,
     isLoadingProduct,

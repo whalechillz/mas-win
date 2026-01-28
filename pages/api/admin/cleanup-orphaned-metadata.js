@@ -17,9 +17,9 @@ export default async function handler(req, res) {
   try {
     console.log('🧹 고아 메타데이터 정리 시작...');
 
-    // 1. image_metadata 테이블에서 모든 레코드 조회
+    // 1. image_assets 테이블에서 모든 레코드 조회
     const { data: allMetadata, error: metadataError } = await supabase
-      .from('image_metadata')
+      .from('image_assets')
       .select('*');
 
     if (metadataError) {
@@ -84,7 +84,7 @@ export default async function handler(req, res) {
       const orphanedIds = orphanedRecords.map(record => record.id);
       
       const { error: deleteError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .delete()
         .in('id', orphanedIds);
 
@@ -110,8 +110,8 @@ export default async function handler(req, res) {
       },
       orphanedFiles: orphanedRecords.map(record => ({
         id: record.id,
-        fileName: record.file_name || record.image_url?.split('/').pop(),
-        imageUrl: record.image_url,
+        fileName: record.file_path?.split('/').pop() || record.cdn_url?.split('/').pop(),
+        imageUrl: record.cdn_url || record.image_url,
         createdAt: record.created_at
       }))
     });

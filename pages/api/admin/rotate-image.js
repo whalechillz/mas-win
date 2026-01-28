@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { generateRotationFileName, detectLocation, extractProductName } from '../../../lib/filename-generator';
 // Sharp는 동적 import로 로드 (Vercel 환경 호환성)
 
 const supabase = createClient(
@@ -117,13 +118,71 @@ export default async function handler(req, res) {
       fileExtension = originalMetadata.format || 'jpg';
     }
 
-    // 새 파일명 생성: 원본 파일명 + 회전 각도 + 원본 확장자
-    const baseName = fileName?.replace(/\.[^/.]+$/, '') || `rotated-${Date.now()}`;
-    const newFileName = `${baseName}-rotated-${Math.abs(rotation)}.${fileExtension}`;
+    // 원본 이미지 메타데이터 조회 (위치 및 제품명 추출용)
+    let location = 'uploaded';
+    let productName = 'none';
+    
+    try {
+      const { data: originalMetadata } = await supabase
+        .from('image_assets')
+        .select('file_path, ai_tags')
+        .eq('cdn_url', imageUrl)
+        .maybeSingle();
 
-    // 원본과 같은 폴더에 저장
+      if (originalMetadata && originalMetadata.file_path) {
+        const metadataFolderPath = originalMetadata.file_path.substring(0, originalMetadata.file_path.lastIndexOf('/'));
+        location = detectLocation(metadataFolderPath);
+        
+        // 제품명 추출
+        const extractedProductName = await extractProductName(imageUrl);
+        if (extractedProductName) {
+          productName = extractedProductName;
+        }
+      }
+    } catch (metadataError) {
+      console.warn('⚠️ 원본 메타데이터 조회 실패 (기본값 사용):', metadataError);
+    }
+
+    // 표준 회전 파일명 생성
+    const quality = targetFormat === 'webp' ? 90 : (targetFormat === 'jpg' ? 90 : undefined);
+    const newFileName = await generateRotationFileName({
+      location: location,
+      productName: productName,
+      rotation: Math.abs(rotation),
+      format: targetFormat,
+      quality: quality,
+      creationDate: new Date(),
+      extension: fileExtension
+    });
+
+    // 원본과 같은 폴더에 저장 (folderPath가 있으면 사용, 없으면 원본 메타데이터에서 추출)
     const bucket = 'blog-images';
-    const uploadPath = folderPath ? `${folderPath}/${newFileName}` : newFileName;
+    let finalFolderPath = folderPath;
+    
+    if (!finalFolderPath) {
+      try {
+        const { data: originalMetadata } = await supabase
+          .from('image_assets')
+          .select('file_path')
+          .eq('cdn_url', imageUrl)
+          .maybeSingle();
+        
+        if (originalMetadata && originalMetadata.file_path) {
+          finalFolderPath = originalMetadata.file_path.substring(0, originalMetadata.file_path.lastIndexOf('/'));
+        }
+      } catch (error) {
+        console.warn('⚠️ 폴더 경로 추출 실패:', error);
+      }
+    }
+    
+    const uploadPath = finalFolderPath ? `${finalFolderPath}/${newFileName}` : newFileName;
+    
+    console.log('✅ 표준 회전 파일명 생성 완료:', {
+      location,
+      productName,
+      newFileName,
+      uploadPath
+    });
 
     console.log('💾 Supabase Storage에 업로드 중:', uploadPath);
 

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { logFALAIUsage } from '../../../lib/ai-usage-logger';
+import { generateStandardFileName, determineStorageLocationForAI, detectLocation, extractProductName } from '../../../lib/filename-generator';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -141,10 +142,73 @@ export default async function handler(req, res) {
       }
       
       const imageBuffer = await imageFetchResponse.arrayBuffer();
-      const dateStr = new Date().toISOString().slice(0, 10);
-      const fileName = `upscaled-${Date.now()}.png`;
-      // AI 생성 이미지는 originals/ai-generated/YYYY-MM-DD 폴더에 저장
-      const objectPath = `originals/ai-generated/${dateStr}/${fileName}`;
+      
+      // 저장 위치 결정 (원본 이미지의 폴더 위치 확인)
+      const storageLocation = await determineStorageLocationForAI(imageUrl, 'replicate');
+      
+      let targetFolderPath;
+      let location = 'ai-generated';
+      let productName = 'none';
+      
+      if (storageLocation.location === 'current-folder' && storageLocation.folderPath) {
+        // 원본과 동일한 폴더에 저장
+        targetFolderPath = storageLocation.folderPath;
+        
+        // 위치 감지
+        location = detectLocation(targetFolderPath);
+        
+        // 제품명 추출
+        if (storageLocation.productName) {
+          productName = storageLocation.productName;
+        } else {
+          const extractedProductName = await extractProductName(imageUrl);
+          if (extractedProductName) {
+            productName = extractedProductName;
+          }
+        }
+        
+        console.log('✅ 원본 폴더 위치 사용:', {
+          targetFolderPath,
+          location,
+          productName
+        });
+      } else {
+        // ai-generated 폴더에 저장
+        const dateStr = new Date().toISOString().slice(0, 10);
+        targetFolderPath = `originals/ai-generated/${dateStr}`;
+        location = 'ai-generated';
+        
+        // 제품명 추출 시도
+        const extractedProductName = await extractProductName(imageUrl);
+        if (extractedProductName) {
+          productName = extractedProductName;
+        }
+        
+        console.log('✅ AI 생성 폴더 사용:', {
+          targetFolderPath,
+          location,
+          productName
+        });
+      }
+      
+      // 표준 파일명 생성
+      const fileName = await generateStandardFileName({
+        location: location,
+        productName: productName,
+        compositionProgram: 'replicate',
+        compositionFunction: 'upscale',
+        creationDate: new Date(),
+        extension: 'png'
+      });
+      
+      const objectPath = `${targetFolderPath}/${fileName}`;
+      
+      console.log('✅ 표준 파일명 생성 완료:', {
+        location,
+        productName,
+        fileName,
+        objectPath
+      });
       
       // Supabase Storage에 업로드
       const { error: uploadError } = await supabase.storage
@@ -165,25 +229,23 @@ export default async function handler(req, res) {
       
       console.log('✅ Supabase 저장 완료:', publicUrl);
 
-      // 원본 이미지의 메타데이터 복사
+      // 원본 이미지의 메타데이터 복사 (image_assets 형식)
       let metadataToSave = {
-        image_url: publicUrl,
-        folder_path: `originals/ai-generated/${dateStr}`,
-        date_folder: dateStr,
-        english_filename: fileName,
-        original_filename: fileName,
+        cdn_url: publicUrl,
+        file_path: objectPath,
         file_size: imageBuffer.byteLength,
         upload_source: 'upscale', // 업스케일로 생성된 이미지 표시
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
+        // ⚠️ image_assets에는 다음 필드들이 없음: folder_path, date_folder, english_filename, original_filename
       };
 
       // 원본 이미지의 메타데이터 조회
       try {
         const { data: originalMetadata, error: metadataError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .select('*')
-          .eq('image_url', imageUrl)
+          .eq('cdn_url', imageUrl)
           .maybeSingle();
 
         if (!metadataError && originalMetadata) {
@@ -192,26 +254,18 @@ export default async function handler(req, res) {
             newUrl: publicUrl
           });
 
-          // 원본 메타데이터 복사 (파일명 관련 필드 제외)
+          // 원본 메타데이터 복사 (image_assets 형식)
           metadataToSave = {
             ...metadataToSave,
             alt_text: originalMetadata.alt_text || null,
             title: originalMetadata.title || null,
             description: originalMetadata.description || null,
-            tags: originalMetadata.tags || null,
-            prompt: originalMetadata.prompt || null,
-            category_id: originalMetadata.category_id || null,
+            ai_tags: originalMetadata.ai_tags || originalMetadata.tags || null,
             width: originalExif?.width ? originalExif.width * scale : (originalMetadata.width ? originalMetadata.width * scale : null),
             height: originalExif?.height ? originalExif.height * scale : (originalMetadata.height ? originalMetadata.height * scale : null),
             format: 'png',
-            status: originalMetadata.status || 'active',
-            // 고객 이미지 관련 필드도 복사
-            story_scene: originalMetadata.story_scene || null,
-            image_type: originalMetadata.image_type || null,
-            customer_name_en: originalMetadata.customer_name_en || null,
-            customer_initials: originalMetadata.customer_initials || null,
-            date_folder: originalMetadata.date_folder || dateStr,
-            original_filename: originalMetadata.original_filename || fileName
+            status: originalMetadata.status || 'active'
+            // ⚠️ image_assets에는 다음 필드들이 없음: prompt, category_id, story_scene, image_type, customer_name_en, customer_initials, date_folder, original_filename
           };
 
           // EXIF 데이터가 있으면 추가
@@ -244,9 +298,9 @@ export default async function handler(req, res) {
 
       // 메타데이터 저장 (upsert 사용)
       const { error: saveError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .upsert(metadataToSave, {
-          onConflict: 'image_url',
+          onConflict: 'cdn_url',
           ignoreDuplicates: false
         });
 

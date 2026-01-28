@@ -209,11 +209,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 로고 메타데이터 조회
     console.log('🔍 로고 메타데이터 조회:', { logoId });
     
+    // ⚠️ image_assets로 변경 (is_logo, logo_brand, logo_type 필드는 image_assets에 없을 수 있음)
     const { data: logoMetadata, error: fetchError } = await supabase
-      .from('image_metadata')
+      .from('image_assets')
       .select('*')
-      .eq('id', logoId)
-      .eq('is_logo', true)
+      .eq('id', logoId.toString()) // UUID는 문자열
       .single();
 
     if (fetchError || !logoMetadata) {
@@ -231,18 +231,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     console.log('✅ 로고 메타데이터 조회 성공:', {
       id: logoMetadata.id,
-      imageUrl: logoMetadata.image_url,
-      brand: logoMetadata.logo_brand,
-      type: logoMetadata.logo_type
+      imageUrl: logoMetadata.cdn_url || logoMetadata.image_url,
+      brand: logoMetadata.logo_brand || null, // image_assets에 없을 수 있음
+      type: logoMetadata.logo_type || null // image_assets에 없을 수 있음
     });
 
     // 이미지 다운로드
+    const imageUrl = logoMetadata.cdn_url || logoMetadata.image_url;
     console.log('📥 이미지 다운로드 시작:', {
-      imageUrl: logoMetadata.image_url,
+      imageUrl: imageUrl,
       logoId: logoId
     });
     
-    const imageResponse = await fetch(logoMetadata.image_url);
+    const imageResponse = await fetch(imageUrl);
     
     if (!imageResponse.ok) {
       let errorText = '';

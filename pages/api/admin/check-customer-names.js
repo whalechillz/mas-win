@@ -44,7 +44,7 @@ export default async function handler(req, res) {
 
       // image_metadata에서 폴더 경로로 조회
       const { data: metadataData, error: metadataError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .select('title, alt_text, folder_path, tags, created_at, usage_count')
         .ilike('folder_path', `originals/customers/customer-${customerId}%`)
         .order('created_at', { ascending: false })

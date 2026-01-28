@@ -282,72 +282,52 @@ async function generateUniqueFileName(
         clearTimeout(timeoutId);
         
         if (headResponse.ok) {
-          // 파일이 존재함
-          console.log(`⚠️ 파일이 이미 존재함: ${fullPath}`);
+          // 파일이 존재함 - 자동으로 _01, _02, _03 형식으로 번호 추가
+          console.log(`⚠️ 파일이 이미 존재함: ${fullPath}, 자동으로 번호 추가 중...`);
           
-          // 경고창 표시
-          if (showWarning) {
-            const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
-            const baseName = fileName.replace(/\.[^/.]+$/, '');
-            const suggestedName = `${baseName}(1)${ext}`;
+          const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
+          // 기존 번호 제거 (예: file_01.webp -> file.webp)
+          let baseName = fileName.replace(/\.[^/.]+$/, '').replace(/_\d{2}$/, '');
+          
+          let counter = 1;
+          while (counter < 100) {
+            const newFileName = `${baseName}_${String(counter).padStart(2, '0')}${ext}`;
+            const newFullPath = folderOnly ? `${folderOnly}/${newFileName}` : newFileName;
             
-            const userChoice = confirm(
-              `⚠️ 중복된 파일명이 있습니다.\n\n` +
-              `파일명: ${fileNameOnly}\n\n` +
-              `파일명 뒤에 번호를 추가하여 업로드하시겠습니까?\n` +
-              `(예: ${suggestedName})\n\n` +
-              `[확인] = 번호 추가 (1), (2), (3)...\n` +
-              `[취소] = 타임스탬프 추가`
-            );
+            // 새 파일명으로 존재 확인
+            const { data: newUrlData } = supabase.storage
+              .from('blog-images')
+              .getPublicUrl(newFullPath);
             
-            if (userChoice) {
-              // (1), (2), (3) 형식으로 번호 추가
-              let counter = 1;
+            const newController = new AbortController();
+            const newTimeoutId = setTimeout(() => newController.abort(), 2000);
+            
+            try {
+              const newHeadResponse = await fetch(newUrlData.publicUrl, { 
+                method: 'HEAD',
+                signal: newController.signal
+              });
+              clearTimeout(newTimeoutId);
               
-              while (counter < 100) {
-                const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
-                const baseName = fileName.replace(/\.[^/.]+$/, '');
-                const newFileName = `${baseName}(${counter})${ext}`;
-                const newFullPath = folderOnly ? `${folderOnly}/${newFileName}` : newFileName;
-                
-                // 새 파일명으로 존재 확인
-                const { data: newUrlData } = supabase.storage
-                  .from('blog-images')
-                  .getPublicUrl(newFullPath);
-                
-                const newController = new AbortController();
-                const newTimeoutId = setTimeout(() => newController.abort(), 2000);
-                
-                try {
-                  const newHeadResponse = await fetch(newUrlData.publicUrl, { 
-                    method: 'HEAD',
-                    signal: newController.signal
-                  });
-                  clearTimeout(newTimeoutId);
-                  
-                  if (!newHeadResponse.ok) {
-                    // 파일이 없음 - 사용 가능
-                    console.log(`✅ 고유 파일명 생성: ${newFileName} (번호 추가)`);
-                    return newFileName;
-                  }
-                } catch {
-                  clearTimeout(newTimeoutId);
-                  // 에러 발생 시 파일이 없는 것으로 간주
-                  console.log(`✅ 고유 파일명 생성: ${newFileName} (번호 추가)`);
-                  return newFileName;
-                }
-                
-                counter++;
+              if (!newHeadResponse.ok) {
+                // 파일이 없음 - 사용 가능
+                console.log(`✅ 고유 파일명 생성: ${newFileName} (자동 번호 추가)`);
+                return newFileName;
               }
+            } catch {
+              clearTimeout(newTimeoutId);
+              // 에러 발생 시 파일이 없는 것으로 간주
+              console.log(`✅ 고유 파일명 생성: ${newFileName} (자동 번호 추가)`);
+              return newFileName;
             }
+            
+            counter++;
           }
           
-          // 타임스탬프 추가 (사용자가 취소했거나 자동 처리)
+          // 99까지 모두 사용된 경우 타임스탬프 추가
           const timestamp = Date.now();
-          const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
-          const baseName = fileName.replace(/\.[^/.]+$/, '');
           const newFileName = `${baseName}-${timestamp}${ext}`;
-          console.log(`✅ 고유 파일명 생성: ${newFileName} (타임스탬프 추가)`);
+          console.log(`✅ 고유 파일명 생성: ${newFileName} (타임스탬프 추가, 번호 99까지 사용됨)`);
           return newFileName;
         }
       } catch (fetchError) {
@@ -439,55 +419,17 @@ export async function uploadLargeFileDirectlyToSupabase(
           if (signRes.status === 409 || errorMessage.includes('already exists') || errorMessage.includes('resource already')) {
             console.warn(`⚠️ 파일이 이미 존재함 (${signRes.status}), 고유 파일명 생성 후 재시도: ${uploadPath}`);
             
-            // 첫 시도이고 경고창 표시 옵션이 활성화되어 있으면 경고창 표시
-            if (showWarning && retryCount === 0) {
-              const pathParts = uploadPath.split('/');
-              const fileNameOnly = pathParts[pathParts.length - 1];
-              const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
-              const baseName = fileName.replace(/\.[^/.]+$/, '');
-              const suggestedName = `${baseName}(1)${ext}`;
-              
-              const userChoice = confirm(
-                `⚠️ 중복된 파일명이 있습니다.\n\n` +
-                `파일명: ${fileNameOnly}\n\n` +
-                `파일명 뒤에 번호를 추가하여 업로드하시겠습니까?\n` +
-                `(예: ${suggestedName})\n\n` +
-                `[확인] = 번호 추가 (1), (2), (3)...\n` +
-                `[취소] = 타임스탬프 추가`
-              );
-              
-              if (userChoice) {
-                // (1), (2), (3) 형식으로 번호 추가 모드 활성화
-                useNumberSuffix = true;
-                const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
-                const baseName = fileName.replace(/\.[^/.]+$/, '').replace(/\(\d+\)$/, ''); // 기존 번호 제거
-                const counter = retryCount + 1;
-                fileName = `${baseName}(${counter})${ext}`;
-                uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
-                retryCount++;
-                continue; // 재시도 (번호 자동 증가)
-              }
-            }
+            // 자동으로 _01, _02, _03 형식으로 번호 추가
+            console.warn(`⚠️ 파일이 이미 존재함, 자동으로 번호 추가 중: ${uploadPath}`);
             
-            // 번호 추가 모드인 경우 번호 증가
-            if (useNumberSuffix) {
-              const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
-              const baseName = fileName.replace(/\.[^/.]+$/, '').replace(/\(\d+\)$/, ''); // 기존 번호 제거
-              const counter = retryCount + 1;
-              fileName = `${baseName}(${counter})${ext}`;
-              uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
-              retryCount++;
-              continue; // 재시도
-            }
-            
-            // 타임스탬프 추가 (사용자가 취소했거나 자동 처리)
-            const timestamp = Date.now();
             const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
-            const baseName = fileName.replace(/\.[^/.]+$/, '').replace(/\(\d+\)$/, ''); // 기존 번호 제거
-            fileName = `${baseName}-${timestamp}${ext}`;
+            // 기존 번호 제거 (예: file_01.webp -> file.webp)
+            let baseName = fileName.replace(/\.[^/.]+$/, '').replace(/_\d{2}$/, '');
+            const counter = retryCount + 1;
+            fileName = `${baseName}_${String(counter).padStart(2, '0')}${ext}`;
             uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
             retryCount++;
-            continue; // 재시도
+            continue; // 재시도 (번호 자동 증가)
           }
           
           throw new Error(`서명 URL 발급 실패: ${errorMessage}`);
@@ -508,16 +450,39 @@ export async function uploadLargeFileDirectlyToSupabase(
         if (error) {
           console.error('❌ Supabase 서명 URL 업로드 오류:', error);
           
-          // 중복 파일 에러 처리 - 재시도
-          if (error.message?.includes('already exists') && retryCount < maxRetries - 1) {
-            console.warn(`⚠️ 업로드 중 파일 중복 감지, 고유 파일명 생성 후 재시도: ${uploadPath}`);
-            const timestamp = Date.now();
-            const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
-            const baseName = fileName.replace(/\.[^/.]+$/, '');
-            fileName = `${baseName}-${timestamp}${ext}`;
-            uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
-            retryCount++;
-            continue; // 재시도
+          // "already exists" 에러인 경우, 실제로 파일이 업로드되었는지 확인
+          if (error.message?.includes('already exists') || error.message?.includes('resource already')) {
+            console.warn(`⚠️ 업로드 중 파일 중복 감지: ${uploadPath}`);
+            
+            // 파일이 실제로 존재하는지 확인
+            const { data: { publicUrl } } = supabase.storage
+              .from('blog-images')
+              .getPublicUrl(uploadPath);
+            
+            try {
+              const headResponse = await fetch(publicUrl, { method: 'HEAD' });
+              if (headResponse.ok) {
+                // 파일이 실제로 존재함 - 업로드 성공으로 처리
+                console.log('✅ 파일이 이미 존재함 (업로드 성공으로 처리):', publicUrl);
+                // 업로드 성공 - 루프 종료
+                break;
+              }
+            } catch (checkError) {
+              console.warn('⚠️ 파일 존재 확인 실패, 재시도:', checkError);
+            }
+            
+            // 파일이 없으면 재시도 (_01, _02, _03 형식)
+            if (retryCount < maxRetries - 1) {
+              console.warn(`⚠️ 고유 파일명 생성 후 재시도: ${uploadPath}`);
+              const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
+              // 기존 번호 제거
+              let baseName = fileName.replace(/\.[^/.]+$/, '').replace(/_\d{2}$/, '');
+              const counter = retryCount + 1;
+              fileName = `${baseName}_${String(counter).padStart(2, '0')}${ext}`;
+              uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
+              retryCount++;
+              continue; // 재시도
+            }
           }
           
           throw new Error(`업로드 실패: ${error.message || '알 수 없는 오류'}`);
@@ -527,13 +492,14 @@ export async function uploadLargeFileDirectlyToSupabase(
         break;
         
       } catch (signError: any) {
-        // "already exists" 에러인 경우 재시도
+        // "already exists" 에러인 경우 재시도 (_01, _02, _03 형식)
         if (signError.message?.includes('already exists') && retryCount < maxRetries - 1) {
-          console.warn(`⚠️ 에러 발생, 고유 파일명 생성 후 재시도: ${signError.message}`);
-          const timestamp = Date.now();
+          console.warn(`⚠️ 에러 발생, 자동으로 번호 추가 후 재시도: ${signError.message}`);
           const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
-          const baseName = fileName.replace(/\.[^/.]+$/, '');
-          fileName = `${baseName}-${timestamp}${ext}`;
+          // 기존 번호 제거
+          let baseName = fileName.replace(/\.[^/.]+$/, '').replace(/_\d{2}$/, '');
+          const counter = retryCount + 1;
+          fileName = `${baseName}_${String(counter).padStart(2, '0')}${ext}`;
           uploadPath = targetFolder ? `${targetFolder}/${fileName}`.replace(/\/+/g, '/') : fileName;
           retryCount++;
           continue; // 재시도

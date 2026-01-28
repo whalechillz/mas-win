@@ -137,7 +137,7 @@ export default async function handler(req, res) {
 
         // 이미지 메타데이터 저장 (기존 갤러리 관리와 동일한 방식)
         const { error: metadataError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .insert({
             image_url: publicUrl,
             original_url: src,

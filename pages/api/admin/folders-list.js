@@ -174,7 +174,7 @@ export default async function handler(req, res) {
 
       // 🔧 최적화: 이미지 메타데이터에서 폴더 경로 추출 (더 빠름)
       const { data: images, error } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .select('folder_path')
         .not('folder_path', 'is', null)
         .neq('folder_path', '');

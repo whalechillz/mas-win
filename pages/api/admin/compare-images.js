@@ -303,13 +303,22 @@ export default async function handler(req, res) {
       const cdnUrls = images.map(img => img.cdn_url).filter(Boolean);
       if (cdnUrls.length > 0) {
         const { data: metadataList, error: metadataError } = await supabase
-          .from('image_metadata')
-          .select('image_url, tags, alt_text, title, description, used_in, usage_count')
-          .in('image_url', cdnUrls);
+          .from('image_assets')
+          .select('cdn_url, ai_tags, alt_text, title, description, usage_count')
+          .in('cdn_url', cdnUrls);
         
         if (!metadataError && metadataList) {
           metadataList.forEach(meta => {
-            imageMetadataMap.set(meta.image_url, meta);
+            // image_metadata 형식으로 변환 (하위 호환성)
+            imageMetadataMap.set(meta.cdn_url, {
+              image_url: meta.cdn_url,
+              tags: meta.ai_tags || [],
+              alt_text: meta.alt_text,
+              title: meta.title,
+              description: meta.description,
+              used_in: null, // image_assets에는 used_in이 없음
+              usage_count: meta.usage_count || 0
+            });
           });
         }
       }

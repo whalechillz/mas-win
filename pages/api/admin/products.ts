@@ -8,7 +8,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // 공통으로 사용하는 컬럼 목록 (SELECT 시 재사용)
 // performance_images는 필드가 없을 수 있으므로 별도로 처리
 const PRODUCT_SELECT_COLUMNS =
-  'id, name, sku, category, color, size, legacy_name, is_gift, is_sellable, is_active, normal_price, sale_price, is_component, condition, product_type, slug, subtitle, badge_left, badge_right, badge_left_color, badge_right_color, border_color, features, specifications, display_order, detail_images, composition_images, gallery_images';
+  'id, name, sku, category, color, size, legacy_name, is_gift, is_sellable, is_active, normal_price, sale_price, is_component, condition, product_type, slug, subtitle, badge_left, badge_right, badge_left_color, badge_right_color, border_color, features, specifications, display_order, detail_images, composition_images, gallery_images, hero_images, hook_images, hook_content, detail_content';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -226,6 +226,10 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       detail_images,
       performance_images,
       product_type,
+      hero_images,
+      hook_images,
+      hook_content,
+      detail_content,
     } = req.body || {};
 
     if (!name) {
@@ -348,6 +352,18 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     }
     if (performance_images !== undefined) {
       payload.performance_images = Array.isArray(performance_images) ? performance_images : [];
+    }
+    if (hero_images !== undefined) {
+      payload.hero_images = Array.isArray(hero_images) ? hero_images : [];
+    }
+    if (hook_images !== undefined) {
+      payload.hook_images = Array.isArray(hook_images) ? hook_images : [];
+    }
+    if (hook_content !== undefined) {
+      payload.hook_content = Array.isArray(hook_content) ? hook_content : [];
+    }
+    if (detail_content !== undefined) {
+      payload.detail_content = Array.isArray(detail_content) ? detail_content : [];
     }
 
     const { data, error } = await supabase
@@ -599,6 +615,10 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
       badge_right,
       badge_left_color,
       badge_right_color,
+      hero_images,
+      hook_images,
+      hook_content,
+      detail_content,
     } = req.body || {};
 
     if (!id) {
@@ -632,6 +652,18 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     }
     if (performance_images !== undefined) {
       update.performance_images = Array.isArray(performance_images) ? performance_images : [];
+    }
+    if (hero_images !== undefined) {
+      update.hero_images = Array.isArray(hero_images) ? hero_images : [];
+    }
+    if (hook_images !== undefined) {
+      update.hook_images = Array.isArray(hook_images) ? hook_images : [];
+    }
+    if (hook_content !== undefined) {
+      update.hook_content = Array.isArray(hook_content) ? hook_content : [];
+    }
+    if (detail_content !== undefined) {
+      update.detail_content = Array.isArray(detail_content) ? detail_content : [];
     }
 
     // 드라이버 제품 전용 필드

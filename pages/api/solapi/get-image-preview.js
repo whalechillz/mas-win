@@ -89,7 +89,7 @@ export default async function handler(req, res) {
     const { data: smsMessages, error: smsError } = await supabase
       .from('channel_sms')
       .select('id')
-      .eq('image_url', imageId)
+      .eq('cdn_url', imageId)
       .limit(1);
 
     if (!smsError && smsMessages && smsMessages.length > 0) {
@@ -98,16 +98,15 @@ export default async function handler(req, res) {
       
       // image_metadata에서 해당 메시지의 이미지 찾기
       const { data: metadataImages, error: metadataError } = await supabase
-        .from('image_metadata')
-        .select('image_url')
-        .contains('tags', [tag])
-        .eq('source', 'mms')
-        .eq('channel', 'sms')
+        .from('image_assets')
+        .select('cdn_url')
+        .contains('ai_tags', [tag])
+        // ⚠️ image_assets에는 source, channel 필드가 없음
         .order('created_at', { ascending: false })
         .limit(1);
 
       if (!metadataError && metadataImages && metadataImages.length > 0) {
-        const candidateUrl = metadataImages[0].image_url;
+        const candidateUrl = metadataImages[0].cdn_url || metadataImages[0].image_url;
         const exists = await ensureSupabaseObjectExists(candidateUrl);
 
         if (exists) {
@@ -132,14 +131,14 @@ export default async function handler(req, res) {
     // 방법 2: image_metadata 테이블에서 Solapi imageId로 직접 이미지 찾기
     // ⭐ 수정: upload_source 조건 제거하여 더 많은 이미지 찾기
     const { data: metadataImages2, error: metadataError2 } = await supabase
-      .from('image_metadata')
-      .select('image_url, folder_path')
-      .contains('tags', [`solapi-${imageId}`])
+      .from('image_assets')
+      .select('cdn_url, file_path')
+      .contains('ai_tags', [`solapi-${imageId}`])
       .order('created_at', { ascending: true }) // 가장 오래된 것 우선 (중복 방지)
       .limit(1);
 
     if (!metadataError2 && metadataImages2 && metadataImages2.length > 0) {
-      const existingImageUrl = metadataImages2[0].image_url;
+      const existingImageUrl = metadataImages2[0].cdn_url || metadataImages2[0].image_url;
       // Supabase URL인지 확인
       if (existingImageUrl && existingImageUrl.includes('supabase.co')) {
         const exists = await ensureSupabaseObjectExists(existingImageUrl);
@@ -197,13 +196,13 @@ export default async function handler(req, res) {
           
           // ⭐ 중복 방지: 같은 imageId의 이미지가 이미 있는지 먼저 확인 (upload_source 조건 제거)
           const { data: existingImages } = await supabase
-            .from('image_metadata')
-            .select('image_url, folder_path')
-            .contains('tags', [`solapi-${imageId}`])
+            .from('image_assets')
+            .select('cdn_url, file_path')
+            .contains('ai_tags', [`solapi-${imageId}`])
             .limit(1);
 
           if (existingImages && existingImages.length > 0) {
-            const existingUrl = existingImages[0].image_url;
+            const existingUrl = existingImages[0].cdn_url || existingImages[0].image_url;
             if (existingUrl && existingUrl.includes('supabase.co')) {
               console.log('✅ 기존 Solapi 이미지 재사용 (다운로드 전):', existingUrl);
               if (redirect === 'true') {
@@ -282,7 +281,7 @@ export default async function handler(req, res) {
 
               // ⭐ 중복 확인: 같은 imageId의 메타데이터가 이미 있는지 확인
               const { data: existingMetadata } = await supabase
-                .from('image_metadata')
+                .from('image_assets')
                 .select('id, tags')
                 .contains('tags', [`solapi-${imageId}`])
                 .eq('image_url', finalUrl)
@@ -294,7 +293,7 @@ export default async function handler(req, res) {
                 const newTags = [...new Set([...existingTags, ...tags])];
                 
                 await supabase
-                  .from('image_metadata')
+                  .from('image_assets')
                   .update({
                     tags: newTags,
                     updated_at: new Date().toISOString()
@@ -321,7 +320,7 @@ export default async function handler(req, res) {
                 };
 
                 await supabase
-                  .from('image_metadata')
+                  .from('image_assets')
                   .upsert(metadataPayload, { onConflict: 'image_url' })
                   .catch(err => {
                     console.error('⚠️ image_metadata 저장 실패 (무시):', err.message);

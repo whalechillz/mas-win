@@ -77,7 +77,7 @@ export default async function handler(req, res) {
     let metadataDeleted = 0;
     for (const filePath of filePaths) {
       const { error: metadataError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .delete()
         .like('file_name', `%${filePath}%`);
 

@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { imageId, imageUrl, storyScene, displayOrder } = req.body;
 
-  console.log('🔍 [API 처리] 요청 데이터:', { imageId, imageUrl, storyScene, displayOrder });
+  console.log('🔍 [API 처리] 요청 데이터:', { imageId, imageUrl, storyScene, displayOrder, imageIdType: typeof imageId });
 
   if (!imageId && !imageUrl) {
     console.error('❌ [API 에러] imageId 또는 imageUrl이 필요합니다');
@@ -58,18 +58,58 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  // imageId가 있으면 id로, 없으면 imageUrl로 업데이트
+  // ⚠️ image_assets로 변경 (story_scene은 image_assets에 없을 수 있음)
+  // imageId가 UUID 형식인지 확인 (36자 문자열, 하이픈 포함)
+  // 숫자인 경우는 image_metadata 테이블의 ID일 수 있으므로 imageUrl 우선 사용
+  
+  // imageId가 UUID 형식인지 확인 (36자 문자열, 하이픈 포함)
+  const isUUID = imageId && typeof imageId === 'string' && imageId.length === 36 && imageId.includes('-');
+  const isNumericId = imageId && (typeof imageId === 'number' || (typeof imageId === 'string' && /^\d+$/.test(imageId)));
+  
   let query = supabase
-    .from('image_metadata')
+    .from('image_assets')
     .update(updateData);
   
-  if (imageId) {
+  // imageUrl 우선 사용 (가장 안정적)
+  if (normalizedImageUrl) {
+    query = query.eq('cdn_url', normalizedImageUrl);
+    console.log('🔍 [API 처리] 정규화된 cdn_url로 업데이트:', normalizedImageUrl);
+  } else if (isUUID) {
+    // UUID 형식인 경우 직접 사용
     query = query.eq('id', imageId);
-    console.log('🔍 [API 처리] imageId로 업데이트:', imageId);
-  } else if (normalizedImageUrl) {
-    // 정규화된 URL로 먼저 시도
-    query = query.eq('image_url', normalizedImageUrl);
-    console.log('🔍 [API 처리] 정규화된 imageUrl로 업데이트:', normalizedImageUrl);
+    console.log('🔍 [API 처리] UUID imageId로 업데이트:', imageId);
+  } else if (isNumericId) {
+    // 숫자 ID인 경우, image_metadata 테이블에서 찾아서 image_assets로 변환
+    console.log('⚠️ [API 처리] 숫자 imageId 감지, image_metadata에서 조회 후 변환 시도:', imageId);
+    
+    // image_metadata 테이블에서 조회 (있다면)
+    const { data: metadataImage, error: metadataError } = await supabase
+      .from('image_metadata')
+      .select('image_url, cdn_url')
+      .eq('id', parseInt(imageId.toString()))
+      .maybeSingle();
+    
+    if (!metadataError && metadataImage) {
+      const urlToUse = metadataImage.cdn_url || metadataImage.image_url;
+      if (urlToUse) {
+        // URL 정규화
+        try {
+          const urlObj = new URL(urlToUse);
+          const normalizedUrl = decodeURIComponent(urlObj.origin + urlObj.pathname);
+          query = query.eq('cdn_url', normalizedUrl);
+          console.log('🔍 [API 처리] image_metadata에서 찾은 URL로 업데이트:', normalizedUrl);
+        } catch {
+          query = query.eq('cdn_url', urlToUse);
+          console.log('🔍 [API 처리] image_metadata에서 찾은 URL로 업데이트 (정규화 실패):', urlToUse);
+        }
+      } else {
+        return res.status(404).json({ error: '이미지를 찾을 수 없습니다. (URL 없음)' });
+      }
+    } else {
+      return res.status(404).json({ error: '이미지를 찾을 수 없습니다. (image_metadata 조회 실패)' });
+    }
+  } else if (!normalizedImageUrl) {
+    return res.status(400).json({ error: 'imageUrl 또는 유효한 imageId가 필요합니다.' });
   }
 
   // 업데이트 실행 (select() 추가하여 업데이트된 행 확인)
@@ -90,7 +130,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     resultArray.forEach((row: any, index: number) => {
       console.log(`  [${index}]`, {
         id: row.id,
-        image_url: row.image_url,
+        cdn_url: row.cdn_url || row.image_url,
         story_scene: row.story_scene,
         story_scene_type: typeof row.story_scene,
         updated_at: row.updated_at,
@@ -101,43 +141,83 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (updateError) {
     console.error('❌ [API 에러] 업데이트 오류:', updateError);
-    // 정규화된 URL로 실패하면 원본 URL로 재시도
-    if (imageUrl && normalizedImageUrl !== imageUrl) {
-      console.log('🔍 [API 처리] 원본 URL로 재시도:', imageUrl);
-      const fallbackQuery = supabase
-        .from('image_metadata')
-        .update(updateData)
-        .eq('image_url', imageUrl)
-        .select();
-      
-      const { data: fallbackResult, error: fallbackError } = await fallbackQuery;
-      
-      console.log('🔍 [API 처리] 재시도 결과:', {
-        data: fallbackResult,
-        error: fallbackError,
-        affectedRows: fallbackResult ? (Array.isArray(fallbackResult) ? fallbackResult.length : 1) : 0
+    console.error('❌ [API 에러] 오류 상세:', {
+      message: updateError.message,
+      code: updateError.code,
+      details: updateError.details,
+      hint: updateError.hint
+    });
+    
+    // story_scene 컬럼이 없는 경우 명확한 오류 메시지
+    if (updateError.message && (updateError.message.includes('story_scene') || updateError.message.includes('column') && updateError.message.includes('does not exist'))) {
+      console.error('❌ [API 에러] image_assets 테이블에 story_scene 컬럼이 없습니다. 데이터베이스 스키마를 업데이트해주세요.');
+      return res.status(500).json({ 
+        success: false,
+        error: '데이터베이스 스키마 오류: story_scene 컬럼이 없습니다. database/add-story-scene-to-image-assets.sql 스크립트를 실행해주세요.',
+        details: updateError.message 
       });
-      
-      if (fallbackError) {
-        console.error('❌ [API 에러] 재시도 실패:', fallbackError);
-        return res.status(500).json({ error: fallbackError.message });
-      }
-      
-      if (!fallbackResult || (Array.isArray(fallbackResult) && fallbackResult.length === 0)) {
-        console.error('❌ [API 에러] 재시도 후 업데이트된 행이 없습니다');
-        return res.status(404).json({ error: '이미지를 찾을 수 없습니다.' });
-      }
-      
-      console.log('✅ [API 성공] 재시도 성공, 업데이트된 데이터:', fallbackResult);
-      return res.status(200).json({ 
-        success: true,
-        message: '이미지 장면이 업데이트되었습니다.',
-        usedFallback: true,
-        updatedData: Array.isArray(fallbackResult) ? fallbackResult[0] : fallbackResult
-      });
-    } else {
-      return res.status(500).json({ error: updateError.message });
     }
+    
+    // 이미지를 찾을 수 없는 경우
+    if (updateError.message && (updateError.message.includes('No rows') || updateError.message.includes('not found'))) {
+      console.error('❌ [API 에러] 이미지를 찾을 수 없습니다. imageUrl로 재시도...');
+      
+      // imageUrl이 있으면 원본 URL로 재시도
+      if (imageUrl && normalizedImageUrl !== imageUrl) {
+        console.log('🔍 [API 처리] 원본 URL로 재시도:', imageUrl);
+        const fallbackQuery = supabase
+          .from('image_assets')
+          .update(updateData)
+          .eq('cdn_url', imageUrl)
+          .select();
+        
+        const { data: fallbackResult, error: fallbackError } = await fallbackQuery;
+        
+        console.log('🔍 [API 처리] 재시도 결과:', {
+          data: fallbackResult,
+          error: fallbackError,
+          affectedRows: fallbackResult ? (Array.isArray(fallbackResult) ? fallbackResult.length : 1) : 0
+        });
+        
+        if (fallbackError) {
+          console.error('❌ [API 에러] 재시도 실패:', fallbackError);
+          return res.status(500).json({ 
+            success: false,
+            error: fallbackError.message || '이미지 업데이트 실패',
+            details: fallbackError.details || fallbackError.hint
+          });
+        }
+        
+        if (!fallbackResult || (Array.isArray(fallbackResult) && fallbackResult.length === 0)) {
+          console.error('❌ [API 에러] 재시도 후 업데이트된 행이 없습니다');
+          return res.status(404).json({ 
+            success: false,
+            error: '이미지를 찾을 수 없습니다. image_assets 테이블에 해당 이미지의 메타데이터가 없을 수 있습니다.' 
+          });
+        }
+        
+        console.log('✅ [API 성공] 재시도 성공, 업데이트된 데이터:', fallbackResult);
+        return res.status(200).json({ 
+          success: true,
+          message: '이미지 장면이 업데이트되었습니다.',
+          usedFallback: true,
+          updatedData: Array.isArray(fallbackResult) ? fallbackResult[0] : fallbackResult
+        });
+      }
+      
+      return res.status(404).json({ 
+        success: false,
+        error: '이미지를 찾을 수 없습니다. image_assets 테이블에 해당 이미지의 메타데이터가 없을 수 있습니다.',
+        details: updateError.message
+      });
+    }
+    
+    // 기타 오류
+    return res.status(500).json({ 
+      success: false,
+      error: updateError.message || '이미지 업데이트 실패',
+      details: updateError.details || updateError.hint
+    });
   }
 
   // 업데이트된 행 확인
@@ -181,28 +261,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             
             const imageType = extractImageTypeFromFileName(fileName);
             
-            // 메타데이터 생성
+            // 메타데이터 생성 (image_assets 형식)
+            // ⚠️ image_assets에는 많은 필드가 없으므로 기본 필드만 사용
             const newMetadata = {
-              image_url: normalizedImageUrl || imageUrl,
-              folder_path: `originals/customers/${folderName}/${dateFolder}`,
-              date_folder: dateFolder,
-              source: 'customer',
-              channel: 'customer',
+              cdn_url: normalizedImageUrl || imageUrl,
+              file_path: `originals/customers/${folderName}/${dateFolder}/${fileName}`,
               title: `${customerData.name} - ${dateFolder}`,
               alt_text: `${customerData.name} 고객 방문 이미지 (${dateFolder})`,
-              tags: [`customer-${customerData.id}`, `visit-${dateFolder}`],
-              story_scene: storyScene !== undefined ? storyScene : null,
-              image_type: imageType || null,
-              english_filename: fileName,
-              original_filename: fileName,
-              customer_name_en: customerData.name_en || null,
-              customer_initials: customerData.initials || null,
-              image_quality: 'final',
-              metadata: {
-                visitDate: dateFolder,
-                customerName: customerData.name,
-                folderName: folderName
-              },
+              ai_tags: [`customer-${customerData.id}`, `visit-${dateFolder}`],
+              // ⚠️ image_assets에는 다음 필드들이 없음: story_scene, image_type, english_filename, original_filename, customer_name_en, customer_initials, image_quality, metadata, date_folder, source, channel, folder_path
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             };
@@ -210,7 +277,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             console.log('🔍 [API 처리] 새 메타데이터 생성:', newMetadata);
             
             const { data: createdMetadata, error: createError } = await supabase
-              .from('image_metadata')
+              .from('image_assets')
               .insert(newMetadata)
               .select()
               .single();
@@ -243,9 +310,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const updatedData = Array.isArray(updateResult) ? updateResult[0] : updateResult;
+  
+  if (!updatedData) {
+    console.error('❌ [API 에러] 업데이트된 데이터가 없습니다');
+    return res.status(500).json({ 
+      success: false,
+      error: '업데이트된 데이터를 찾을 수 없습니다.'
+    });
+  }
+  
   console.log('✅ [API 성공] 업데이트 완료, 업데이트된 데이터:', {
     id: updatedData.id,
-    image_url: updatedData.image_url,
+    cdn_url: updatedData.cdn_url || updatedData.image_url,
     story_scene: updatedData.story_scene,
     updated_at: updatedData.updated_at
   });

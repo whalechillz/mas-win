@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import AdminNav from '../../components/admin/AdminNav';
 import { getProductImageUrl } from '../../lib/product-image-url';
 import FolderImagePicker from '../../components/admin/FolderImagePicker';
+import { extractImageNameFromUrl } from '../../lib/image-url-to-name-converter';
 
 type Product = {
   id: number;
@@ -39,6 +40,10 @@ type Product = {
   composition_images?: string[] | null;
   gallery_images?: string[] | null;
   performance_images?: string[] | null;
+  hero_images?: string[] | null;
+  hook_images?: string[] | null;
+  hook_content?: Array<{ image: string; title: string; description: string }> | null;
+  detail_content?: Array<{ image: string; title: string; description: string }> | null;
   // 제품 합성 관리 데이터
   product_composition?: {
     id: string;
@@ -92,9 +97,14 @@ export default function ProductsAdminPage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [detailImages, setDetailImages] = useState<string[]>([]);
   const [showGalleryPicker, setShowGalleryPicker] = useState(false);
-  const [galleryPickerMode, setGalleryPickerMode] = useState<'detail' | 'performance' | null>(null);
+  const [galleryPickerMode, setGalleryPickerMode] = useState<'detail' | 'performance' | 'hero' | 'hook' | null>(null);
   const [mainImageUrl, setMainImageUrl] = useState<string>(''); // 대표 이미지
   const [performanceImages, setPerformanceImages] = useState<string[]>([]); // 성능 데이터 이미지
+  const [heroImages, setHeroImages] = useState<string[]>([]); // Hero 이미지
+  const [hookImages, setHookImages] = useState<string[]>([]); // Hook 이미지
+  const [hookContent, setHookContent] = useState<Array<{ image: string; title: string; description: string }>>([]); // Hook 콘텐츠
+  const [detailContent, setDetailContent] = useState<Array<{ image: string; title: string; description: string }>>([]); // Detail 콘텐츠
+  const [activeTab, setActiveTab] = useState<'detail' | 'hero' | 'hook' | 'performance'>('detail'); // 탭 상태
   
   // 합성 관리가 불필요한 카테고리
   const COMPOSITION_EXCLUDED_CATEGORIES = ['component', 'weight_pack'];
@@ -398,6 +408,11 @@ export default function ProductsAdminPage() {
     setMainImageUrl('');
     setDetailImages([]);
     setPerformanceImages([]);
+    setHeroImages([]);
+    setHookImages([]);
+    setHookContent([]);
+    setDetailContent([]);
+    setActiveTab('detail');
     setFormState({
       name: '',
       sku: '',
@@ -433,6 +448,12 @@ export default function ProductsAdminPage() {
     });
     setMainImageUrl(''); // ✅ 메인 이미지도 초기화
     setDetailImages([]);
+    setPerformanceImages([]);
+    setHeroImages([]);
+    setHookImages([]);
+    setHookContent([]);
+    setDetailContent([]);
+    setActiveTab('detail');
     setCreateComposition(true); // ✅ 합성 데이터 생성 옵션 초기화
     setShowModal(true);
   };
@@ -548,6 +569,26 @@ export default function ProductsAdminPage() {
     // 성능 데이터 이미지 초기화
     const perfImages = Array.isArray(product.performance_images) ? product.performance_images : [];
     setPerformanceImages(perfImages);
+    // Hero 이미지 초기화
+    const heroImgs = Array.isArray(product.hero_images) ? product.hero_images : [];
+    setHeroImages(heroImgs);
+    // Hook 이미지 및 콘텐츠 초기화
+    const hookImgs = Array.isArray(product.hook_images) ? product.hook_images : [];
+    setHookImages(hookImgs);
+    const hookCont = Array.isArray(product.hook_content) ? product.hook_content : [];
+    setHookContent(hookCont);
+    // Detail 콘텐츠 초기화
+    let detailCont = Array.isArray(product.detail_content) ? product.detail_content : [];
+    // detail_content가 없고 detail_images가 있으면 자동 생성
+    if (detailCont.length === 0 && images.length > 0) {
+      detailCont = images.map((img: string) => ({
+        image: img,
+        title: '',
+        description: '',
+      }));
+    }
+    setDetailContent(detailCont);
+    setActiveTab('detail');
     setShowModal(true);
   };
 
@@ -601,6 +642,10 @@ export default function ProductsAdminPage() {
             : formState.sale_price,
         detail_images: finalDetailImages,
         performance_images: performanceImages.length > 0 ? performanceImages : [],
+        hero_images: heroImages.length > 0 ? heroImages : [],
+        hook_images: hookImages.length > 0 ? hookImages : [],
+        hook_content: hookContent.length > 0 ? hookContent : [],
+        detail_content: detailContent.length > 0 ? detailContent : [],
         // 합성 데이터 생성 옵션 (신규 제품 또는 합성 데이터가 없는 제품)
         ...(isEdit 
           ? (createComposition && !editingProduct?.product_composition ? { createComposition: true } : {})
@@ -727,6 +772,9 @@ export default function ProductsAdminPage() {
       // detailImages에서 제거
       setDetailImages(detailImages.filter(img => img !== imageUrl));
     }
+    
+    // detailContent에서도 제거
+    setDetailContent(detailContent.filter(item => item.image !== imageUrl));
   };
 
   // 성능 데이터 이미지 제외 (Storage에는 유지, 배열에서만 제거)
@@ -745,19 +793,36 @@ export default function ProductsAdminPage() {
     }
 
     try {
-      // Storage에서 삭제
+      // 갤러리 관리와 동일한 패턴: imageUrl에서 경로 추출
+      const imageName = extractImageNameFromUrl(imageUrl);
+      
+      // 갤러리 관리와 동일하게 POST 메서드 사용
       const response = await fetch('/api/admin/delete-image', {
-        method: 'DELETE',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ imageUrl }),
+        body: JSON.stringify({ imageName }),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || '이미지 삭제에 실패했습니다.');
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        const errorMessage = result.error || result.message || '이미지 삭제에 실패했습니다.';
+        throw new Error(errorMessage);
       }
+
+      // 삭제 성공 메시지 표시 (갤러리 관리와 동일)
+      const deletedCount = result.deletedImages?.length || 1;
+      const metadataDeleted = result.metadataDeletedCount || 0;
+      let successMessage = `✅ 이미지가 성공적으로 삭제되었습니다.`;
+      if (deletedCount > 1) {
+        successMessage = `✅ ${deletedCount}개의 이미지가 삭제되었습니다.`;
+      }
+      if (metadataDeleted > 0) {
+        successMessage += `\n(DB 메타데이터 ${metadataDeleted}개 삭제됨)`;
+      }
+      alert(successMessage);
 
       // 성능 데이터 이미지 목록에서도 제거
       setPerformanceImages(performanceImages.filter(img => img !== imageUrl));
@@ -805,6 +870,10 @@ export default function ProductsAdminPage() {
         setMainImageUrl('');
         setDetailImages([]);
       }
+      
+      // detailContent에서도 제거
+      const updatedDetailContent = detailContent.filter(item => item.image !== imageUrl);
+      setDetailContent(updatedDetailContent);
 
       // 메시지 표시
       if (result.alreadyDeleted || result.skipped) {
@@ -841,7 +910,7 @@ export default function ProductsAdminPage() {
     }
   };
 
-  const handleDetailImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, imageType: 'detail' | 'hero' | 'hook' = 'detail') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -872,13 +941,14 @@ export default function ProductsAdminPage() {
 
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
-      uploadFormData.append('productSlug', productSlugForUpload); // ✅ 빈 문자열 체크 후 전달
+      uploadFormData.append('productSlug', productSlugForUpload);
       uploadFormData.append('category', categoryForUpload);
-      uploadFormData.append('imageType', 'detail');
+      uploadFormData.append('imageType', imageType);
 
       console.log('📤 이미지 업로드 요청:', {
         productSlug: productSlugForUpload,
         category: categoryForUpload,
+        imageType,
         fileName: file.name,
       });
 
@@ -890,13 +960,37 @@ export default function ProductsAdminPage() {
       if (response.ok) {
         const data = await response.json();
         const imageUrl = data.url || data.storageUrl;
-        const allImages = getAllImages();
         
-        // 첫 번째 이미지면 대표로, 아니면 참조로 추가
-        if (allImages.length === 0) {
-          setMainImageUrl(imageUrl);
+        // 이미지 타입에 따라 다른 상태 업데이트
+        if (imageType === 'hero') {
+          if (!heroImages.includes(imageUrl)) {
+            setHeroImages([...heroImages, imageUrl]);
+          }
+        } else if (imageType === 'hook') {
+          if (!hookImages.includes(imageUrl)) {
+            setHookImages([...hookImages, imageUrl]);
+            setHookContent([...hookContent, {
+              image: imageUrl,
+              title: '',
+              description: '',
+            }]);
+          }
         } else {
-          setDetailImages([...detailImages, imageUrl]);
+          // detail 타입
+          const allImages = getAllImages();
+          if (allImages.length === 0) {
+            setMainImageUrl(imageUrl);
+          } else {
+            setDetailImages([...detailImages, imageUrl]);
+          }
+          // detailContent에 자동 추가
+          if (!detailContent.find(item => item.image === imageUrl)) {
+            setDetailContent([...detailContent, {
+              image: imageUrl,
+              title: '',
+              description: '',
+            }]);
+          }
         }
         alert('이미지가 추가되었습니다.');
       } else {
@@ -911,6 +1005,11 @@ export default function ProductsAdminPage() {
       setUploadingImage(false);
       e.target.value = '';
     }
+  };
+
+  // Detail 이미지 업로드 (기존 호환성 유지)
+  const handleDetailImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    await handleImageUpload(e, 'detail');
   };
 
   // 갤러리에서 이미지 선택
@@ -933,6 +1032,34 @@ export default function ProductsAdminPage() {
     }
     
     return `originals/goods/${slug}/detail`;
+  };
+
+  // Hero 이미지용 폴더 경로
+  const getHeroFolderPath = (): string | undefined => {
+    if (!formState.slug && !formState.sku) return undefined;
+    let slug = formState.slug;
+    if (!slug && formState.sku) {
+      slug = formState.sku.toLowerCase().replace(/_+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    }
+    if (!slug) return undefined;
+    if (formState.product_type === 'driver') {
+      return `originals/products/${slug}/hero`;
+    }
+    return `originals/goods/${slug}/hero`;
+  };
+
+  // Hook 이미지용 폴더 경로
+  const getHookFolderPath = (): string | undefined => {
+    if (!formState.slug && !formState.sku) return undefined;
+    let slug = formState.slug;
+    if (!slug && formState.sku) {
+      slug = formState.sku.toLowerCase().replace(/_+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    }
+    if (!slug) return undefined;
+    if (formState.product_type === 'driver') {
+      return `originals/products/${slug}/hook`;
+    }
+    return `originals/goods/${slug}/hook`;
   };
 
   // 성능 데이터 이미지용 폴더 경로
@@ -989,6 +1116,36 @@ export default function ProductsAdminPage() {
       return;
     }
     
+    if (galleryPickerMode === 'hero') {
+      // Hero 이미지 추가
+      if (heroImages.includes(imageUrl)) {
+        alert('이미 추가된 이미지입니다.');
+        return;
+      }
+      setHeroImages([...heroImages, imageUrl]);
+      setShowGalleryPicker(false);
+      setGalleryPickerMode(null);
+      return;
+    }
+    
+    if (galleryPickerMode === 'hook') {
+      // Hook 이미지 추가 (텍스트 콘텐츠와 함께)
+      if (hookImages.includes(imageUrl)) {
+        alert('이미 추가된 이미지입니다.');
+        return;
+      }
+      setHookImages([...hookImages, imageUrl]);
+      // hook_content에 기본값 추가
+      setHookContent([...hookContent, {
+        image: imageUrl,
+        title: '',
+        description: '',
+      }]);
+      setShowGalleryPicker(false);
+      setGalleryPickerMode(null);
+      return;
+    }
+    
     // 기존 로직 (detail_images)
     const allImages = getAllImages();
     
@@ -1003,6 +1160,15 @@ export default function ProductsAdminPage() {
       setMainImageUrl(imageUrl);
     } else {
       setDetailImages([...detailImages, imageUrl]);
+    }
+    
+    // detail_content에 자동 추가 (이미지가 detail_images에 포함된 경우)
+    if (!detailContent.find(item => item.image === imageUrl)) {
+      setDetailContent([...detailContent, {
+        image: imageUrl,
+        title: '',
+        description: '',
+      }]);
     }
     
     setShowGalleryPicker(false);
@@ -1940,42 +2106,177 @@ export default function ProductsAdminPage() {
                 </div>
               )}
               
-              {/* 제품 이미지 관리 */}
+              {/* 제품 이미지 관리 - 탭 UI */}
               <div className="border-t pt-4 mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
                   제품 이미지 관리 *
-                  {getAllImages().length > 0 && (
-                    <span className="ml-2 text-xs text-gray-500 font-normal">
-                      (총 {getAllImages().length}개)
-                    </span>
-                  )}
                 </label>
                 
-                {/* 이미지 추가 버튼 */}
-                <div className="flex gap-2 mb-4">
-                  <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer text-sm">
-                    {uploadingImage ? '업로드 중...' : '📷 이미지 업로드'}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleDetailImageUpload}
-                      className="hidden"
-                      disabled={uploadingImage}
-                    />
-                  </label>
+                {/* 탭 메뉴 */}
+                <div className="flex gap-2 mb-4 border-b">
                   <button
                     type="button"
-                    onClick={handleOpenGallery}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+                    onClick={() => setActiveTab('detail')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                      activeTab === 'detail'
+                        ? 'border-blue-600 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
                   >
-                    🖼️ 갤러리에서 선택
+                    Detail ({getAllImages().length})
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('hero')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                      activeTab === 'hero'
+                        ? 'border-blue-600 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Hero ({heroImages.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('hook')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                      activeTab === 'hook'
+                        ? 'border-blue-600 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Hook ({hookImages.length})
+                  </button>
+                  {formState.product_type === 'driver' && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('performance')}
+                      className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                        activeTab === 'performance'
+                          ? 'border-blue-600 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      Performance ({performanceImages.length})
+                    </button>
+                  )}
                 </div>
+                
+                {/* Detail 탭 */}
+                {activeTab === 'detail' && (
+                  <>
+                    {/* 이미지 추가 버튼 */}
+                    <div className="flex gap-2 mb-4">
+                      <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer text-sm">
+                        {uploadingImage ? '업로드 중...' : '📷 이미지 업로드'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleDetailImageUpload}
+                          className="hidden"
+                          disabled={uploadingImage}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setGalleryPickerMode('detail');
+                          setShowGalleryPicker(true);
+                        }}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+                      >
+                        🖼️ 갤러리에서 선택
+                      </button>
+                    </div>
+                  </>
+                )}
+                
+                {/* Hero 탭 */}
+                {activeTab === 'hero' && (
+                  <>
+                    <p className="text-xs text-gray-500 mb-3">
+                      상단 슬라이더용 이미지 (originals/products/{'{slug}'}/hero)
+                    </p>
+                    <div className="flex gap-2 mb-4">
+                      <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer text-sm">
+                        {uploadingImage ? '업로드 중...' : '📷 이미지 업로드'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, 'hero')}
+                          className="hidden"
+                          disabled={uploadingImage}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setGalleryPickerMode('hero');
+                          setShowGalleryPicker(true);
+                        }}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+                      >
+                        🖼️ 갤러리에서 선택
+                      </button>
+                    </div>
+                  </>
+                )}
+                
+                {/* Hook 탭 */}
+                {activeTab === 'hook' && (
+                  <>
+                    <p className="text-xs text-gray-500 mb-3">
+                      2컷 후킹 이미지 (originals/products/{'{slug}'}/hook) - 각 이미지별 제목/설명 편집 가능
+                    </p>
+                    <div className="flex gap-2 mb-4">
+                      <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer text-sm">
+                        {uploadingImage ? '업로드 중...' : '📷 이미지 업로드'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, 'hook')}
+                          className="hidden"
+                          disabled={uploadingImage}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setGalleryPickerMode('hook');
+                          setShowGalleryPicker(true);
+                        }}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+                      >
+                        🖼️ 갤러리에서 선택
+                      </button>
+                    </div>
+                  </>
+                )}
+                
+                {/* Performance 탭 (기존 유지) */}
+                {activeTab === 'performance' && formState.product_type === 'driver' && (
+                  <>
+                    <p className="text-xs text-gray-500 mb-3">
+                      실제 성능 데이터 섹션에 표시될 이미지를 선택하세요. (originals/products/{'{slug}'}/gallery)
+                    </p>
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        type="button"
+                        onClick={handleOpenPerformanceGallery}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
+                      >
+                        🖼️ 갤러리에서 선택
+                      </button>
+                    </div>
+                  </>
+                )}
 
-                {/* 통합 이미지 그리드 */}
-                {getAllImages().length > 0 ? (
-                  <div className="grid grid-cols-4 gap-4">
-                    {getAllImages().map((img, index) => {
+                {/* Detail 탭 - 통합 이미지 그리드 */}
+                {activeTab === 'detail' && (
+                  <>
+                    {getAllImages().length > 0 ? (
+                      <div className="grid grid-cols-4 gap-4">
+                        {getAllImages().map((img, index) => {
                       const isMain = mainImageUrl === img;
                       const fileName = getFileNameFromUrl(img);
                       return (
@@ -2062,123 +2363,347 @@ export default function ProductsAdminPage() {
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded">
-                    <p className="mb-2 font-medium">이미지가 없습니다.</p>
-                    <p className="text-xs text-gray-400">
-                      위 버튼을 사용하여 이미지를 추가하세요.
-                    </p>
-                  </div>
+                      <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded">
+                        <p className="mb-2 font-medium">이미지가 없습니다.</p>
+                        <p className="text-xs text-gray-400">
+                          위 버튼을 사용하여 이미지를 추가하세요.
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Hero 탭 - 이미지 그리드 */}
+                {activeTab === 'hero' && (
+                  <>
+                    {heroImages.length > 0 ? (
+                      <div className="grid grid-cols-4 gap-4">
+                        {heroImages.map((img, index) => {
+                          const fileName = getFileNameFromUrl(img);
+                          return (
+                            <div key={index} className="relative group">
+                              <div className="relative w-full h-32 bg-gray-100 rounded overflow-hidden border-2 border-blue-300">
+                                <Image
+                                  src={getProductImageUrl(img)}
+                                  alt={`Hero 이미지 ${index + 1}`}
+                                  fill
+                                  className="object-contain"
+                                  unoptimized
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    console.error('❌ 이미지 로드 실패:', img);
+                                  }}
+                                />
+                                <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                                  Hero
+                                </div>
+                                <div className="absolute top-1 right-1 bg-gray-800 text-white text-xs px-2 py-1 rounded z-10 font-semibold">
+                                  {index + 1}
+                                </div>
+                              </div>
+                              <div className="mt-1 text-xs text-gray-600 truncate" title={fileName || img}>
+                                {fileName || '파일명 없음'}
+                              </div>
+                              <div className="mt-2 flex gap-1">
+                                {index > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newImages = [...heroImages];
+                                      [newImages[index - 1], newImages[index]] = [newImages[index], newImages[index - 1]];
+                                      setHeroImages(newImages);
+                                    }}
+                                    className="flex-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                  >
+                                    ↑
+                                  </button>
+                                )}
+                                {index < heroImages.length - 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newImages = [...heroImages];
+                                      [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
+                                      setHeroImages(newImages);
+                                    }}
+                                    className="flex-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                  >
+                                    ↓
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newImages = heroImages.filter((_, i) => i !== index);
+                                    setHeroImages(newImages);
+                                  }}
+                                  className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+                                >
+                                  제외
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded">
+                        <p className="mb-2 font-medium">Hero 이미지가 없습니다.</p>
+                        <p className="text-xs text-gray-400">
+                          위 버튼을 사용하여 갤러리에서 이미지를 선택하세요.
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Hook 탭 - 이미지 그리드 + 텍스트 편집 */}
+                {activeTab === 'hook' && (
+                  <>
+                    {hookImages.length > 0 || hookContent.length > 0 ? (
+                      <div className="space-y-4">
+                        {hookContent.map((item, index) => {
+                          const fileName = getFileNameFromUrl(item.image);
+                          return (
+                            <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                              <div className="grid grid-cols-3 gap-4">
+                                <div className="relative h-32 bg-gray-100 rounded overflow-hidden border-2 border-green-300">
+                                  <Image
+                                    src={getProductImageUrl(item.image)}
+                                    alt={item.title}
+                                    fill
+                                    className="object-contain"
+                                    unoptimized
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      target.style.display = 'none';
+                                    }}
+                                  />
+                                  <div className="absolute top-1 left-1 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                                    Hook
+                                  </div>
+                                </div>
+                                <div className="col-span-2 space-y-2">
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">제목</label>
+                                    <input
+                                      type="text"
+                                      value={item.title}
+                                      onChange={(e) => {
+                                        const newContent = [...hookContent];
+                                        newContent[index] = { ...newContent[index], title: e.target.value };
+                                        setHookContent(newContent);
+                                      }}
+                                      className="w-full px-2 py-1 border rounded text-sm"
+                                      placeholder="예: 티타늄 파이버 샤프트"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">설명</label>
+                                    <textarea
+                                      value={item.description}
+                                      onChange={(e) => {
+                                        const newContent = [...hookContent];
+                                        newContent[index] = { ...newContent[index], description: e.target.value };
+                                        setHookContent(newContent);
+                                      }}
+                                      className="w-full px-2 py-1 border rounded text-sm"
+                                      rows={2}
+                                      placeholder="예: 일본 최고급 티타늄 그라파이트가 만들어내는 초고속 반발력의 혁신"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="mt-2 flex gap-1">
+                                {index > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newContent = [...hookContent];
+                                      [newContent[index - 1], newContent[index]] = [newContent[index], newContent[index - 1]];
+                                      setHookContent(newContent);
+                                    }}
+                                    className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                  >
+                                    ↑
+                                  </button>
+                                )}
+                                {index < hookContent.length - 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newContent = [...hookContent];
+                                      [newContent[index], newContent[index + 1]] = [newContent[index + 1], newContent[index]];
+                                      setHookContent(newContent);
+                                    }}
+                                    className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                  >
+                                    ↓
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newContent = hookContent.filter((_, i) => i !== index);
+                                    const newImages = hookImages.filter((img) => img !== item.image);
+                                    setHookContent(newContent);
+                                    setHookImages(newImages);
+                                  }}
+                                  className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+                                >
+                                  제외
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded">
+                        <p className="mb-2 font-medium">Hook 이미지가 없습니다.</p>
+                        <p className="text-xs text-gray-400">
+                          위 버튼을 사용하여 갤러리에서 이미지를 선택하세요.
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Performance 탭 - 이미지 그리드 (기존 유지) */}
+                {activeTab === 'performance' && formState.product_type === 'driver' && (
+                  <>
+                    {performanceImages.length > 0 ? (
+                      <div className="grid grid-cols-4 gap-4">
+                        {performanceImages.map((img, index) => {
+                          const fileName = getFileNameFromUrl(img);
+                          return (
+                            <div key={index} className="relative group">
+                              <div className="relative w-full h-32 bg-gray-100 rounded overflow-hidden border-2 border-purple-300">
+                                <Image
+                                  src={getProductImageUrl(img)}
+                                  alt={`성능 데이터 이미지 ${index + 1}`}
+                                  fill
+                                  className="object-contain"
+                                  unoptimized
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    console.error('❌ 이미지 로드 실패:', img);
+                                  }}
+                                />
+                                <div className="absolute top-1 left-1 bg-purple-500 text-white text-xs px-2 py-1 rounded">
+                                  성능
+                                </div>
+                              </div>
+                              <div className="mt-1 text-xs text-gray-600 truncate" title={fileName || img}>
+                                {fileName || '파일명 없음'}
+                              </div>
+                              <div className="mt-2 flex gap-1">
+                                {index > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newImages = [...performanceImages];
+                                      [newImages[index - 1], newImages[index]] = [newImages[index], newImages[index - 1]];
+                                      setPerformanceImages(newImages);
+                                    }}
+                                    className="flex-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                  >
+                                    ↑
+                                  </button>
+                                )}
+                                {index < performanceImages.length - 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newImages = [...performanceImages];
+                                      [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
+                                      setPerformanceImages(newImages);
+                                    }}
+                                    className="flex-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                                  >
+                                    ↓
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => handleExcludePerformanceImage(img)}
+                                  className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
+                                >
+                                  제외
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded">
+                        <p className="mb-2 font-medium">성능 데이터 이미지가 없습니다.</p>
+                        <p className="text-xs text-gray-400">
+                          위 버튼을 사용하여 갤러리에서 이미지를 선택하세요.
+                        </p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
               
-              {/* 성능 데이터 이미지 관리 (드라이버 제품만) */}
-              {formState.product_type === 'driver' && (
+              {/* Detail 콘텐츠 편집 섹션 (Detail 탭에서만 표시) */}
+              {activeTab === 'detail' && detailContent.length > 0 && (
                 <div className="border-t pt-4 mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    성능 데이터 이미지 관리
-                    {performanceImages.length > 0 && (
-                      <span className="ml-2 text-xs text-gray-500 font-normal">
-                        (총 {performanceImages.length}개)
-                      </span>
-                    )}
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Detail 이미지 텍스트 편집
                   </label>
-                  <p className="text-xs text-gray-500 mb-3">
-                    실제 성능 데이터 섹션에 표시될 이미지를 선택하세요. (originals/products/{'{slug}'}/gallery)
-                  </p>
-                  
-                  {/* 이미지 추가 버튼 */}
-                  <div className="flex gap-2 mb-4">
-                    <button
-                      type="button"
-                      onClick={handleOpenPerformanceGallery}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
-                    >
-                      🖼️ 갤러리에서 선택
-                    </button>
-                  </div>
-
-                  {/* 성능 데이터 이미지 그리드 */}
-                  {performanceImages.length > 0 ? (
-                    <div className="grid grid-cols-4 gap-4">
-                      {performanceImages.map((img, index) => {
-                        const fileName = getFileNameFromUrl(img);
-                        return (
-                          <div key={index} className="relative group">
-                            <div className="relative w-full h-32 bg-gray-100 rounded overflow-hidden border-2 border-purple-300">
+                  <div className="space-y-4">
+                    {detailContent.map((item, index) => {
+                      const fileName = getFileNameFromUrl(item.image);
+                      return (
+                        <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                          <div className="grid grid-cols-3 gap-4">
+                            <div className="relative h-32 bg-gray-100 rounded overflow-hidden border-2 border-blue-300">
                               <Image
-                                src={getProductImageUrl(img)}
-                                alt={`성능 데이터 이미지 ${index + 1}`}
+                                src={getProductImageUrl(item.image)}
+                                alt={item.title}
                                 fill
                                 className="object-contain"
                                 unoptimized
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.style.display = 'none';
-                                  console.error('❌ 이미지 로드 실패:', img);
-                                }}
                               />
-                              <div className="absolute top-1 left-1 bg-purple-500 text-white text-xs px-2 py-1 rounded">
-                                성능
+                            </div>
+                            <div className="col-span-2 space-y-2">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">제목</label>
+                                <input
+                                  type="text"
+                                  value={item.title}
+                                  onChange={(e) => {
+                                    const newContent = [...detailContent];
+                                    newContent[index] = { ...newContent[index], title: e.target.value };
+                                    setDetailContent(newContent);
+                                  }}
+                                  className="w-full px-2 py-1 border rounded text-sm"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">설명</label>
+                                <textarea
+                                  value={item.description}
+                                  onChange={(e) => {
+                                    const newContent = [...detailContent];
+                                    newContent[index] = { ...newContent[index], description: e.target.value };
+                                    setDetailContent(newContent);
+                                  }}
+                                  className="w-full px-2 py-1 border rounded text-sm"
+                                  rows={2}
+                                />
                               </div>
                             </div>
-                            
-                            {/* 파일명 표시 */}
-                            <div className="mt-1 text-xs text-gray-600 truncate" title={fileName || img}>
-                              {fileName || '파일명 없음'}
-                            </div>
-                            
-                            {/* 버튼 그룹 */}
-                            <div className="mt-2 flex gap-1">
-                              {index > 0 && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const newImages = [...performanceImages];
-                                    [newImages[index - 1], newImages[index]] = [newImages[index], newImages[index - 1]];
-                                    setPerformanceImages(newImages);
-                                  }}
-                                  className="flex-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                                  title="위로 이동"
-                                >
-                                  ↑
-                                </button>
-                              )}
-                              {index < performanceImages.length - 1 && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const newImages = [...performanceImages];
-                                    [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
-                                    setPerformanceImages(newImages);
-                                  }}
-                                  className="flex-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                                  title="아래로 이동"
-                                >
-                                  ↓
-                                </button>
-                              )}
-                              {/* 제외 버튼 */}
-                              <button
-                                type="button"
-                                onClick={() => handleExcludePerformanceImage(img)}
-                                className="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600"
-                                title="노출에서 제외"
-                              >
-                                제외
-                              </button>
-                            </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded">
-                      <p className="mb-2 font-medium">성능 데이터 이미지가 없습니다.</p>
-                      <p className="text-xs text-gray-400">
-                        위 버튼을 사용하여 갤러리에서 이미지를 선택하세요.
-                      </p>
-                    </div>
-                  )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
               
@@ -2229,28 +2754,69 @@ export default function ProductsAdminPage() {
         folderPath={
           galleryPickerMode === 'performance' 
             ? (getPerformanceFolderPath() || '')
+            : galleryPickerMode === 'hero'
+            ? (getHeroFolderPath() || '')
+            : galleryPickerMode === 'hook'
+            ? (getHookFolderPath() || '')
             : (getDetailFolderPath() || '')
         }
         title={
           galleryPickerMode === 'performance'
             ? '성능 데이터 이미지 선택'
+            : galleryPickerMode === 'hero'
+            ? 'Hero 이미지 선택'
+            : galleryPickerMode === 'hook'
+            ? 'Hook 이미지 선택'
             : '갤러리에서 이미지 선택'
         }
         // ✅ 삭제 기능 활성화
         enableDelete={true}
-        onDelete={async (imageUrl: string) => {
-          // Storage에서 삭제
-          const response = await fetch('/api/admin/delete-image', {
-            method: 'DELETE',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ imageUrl }),
-          });
+        onDelete={async (imageUrl: string, imageInfo?: { name: string; folderPath?: string }) => {
+          try {
+            // 갤러리 관리 일괄 삭제와 동일한 패턴 사용
+            let imageName = '';
+            
+            if (imageInfo && imageInfo.name) {
+              // FolderImagePicker에서 전달된 folderPath와 name 사용
+              const folderPath = imageInfo.folderPath || '';
+              imageName = folderPath && folderPath !== '' 
+                ? `${folderPath}/${imageInfo.name}` 
+                : imageInfo.name;
+            } else {
+              // imageInfo가 없는 경우 URL에서 추출
+              imageName = extractImageNameFromUrl(imageUrl);
+            }
+            
+            // 갤러리 관리와 동일하게 POST 메서드 사용
+            const response = await fetch('/api/admin/delete-image', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ imageName }),
+            });
 
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || '이미지 삭제에 실패했습니다.');
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+              const errorMessage = result.error || result.message || '이미지 삭제에 실패했습니다.';
+              throw new Error(errorMessage);
+            }
+
+            // 삭제 성공 메시지 표시 (갤러리 관리와 동일)
+            const deletedCount = result.deletedImages?.length || 1;
+            const metadataDeleted = result.metadataDeletedCount || 0;
+            let successMessage = `✅ 이미지가 성공적으로 삭제되었습니다.`;
+            if (deletedCount > 1) {
+              successMessage = `✅ ${deletedCount}개의 이미지가 삭제되었습니다.`;
+            }
+            if (metadataDeleted > 0) {
+              successMessage += `\n(DB 메타데이터 ${metadataDeleted}개 삭제됨)`;
+            }
+            alert(successMessage);
+          } catch (error: any) {
+            console.error('이미지 삭제 오류:', error);
+            throw error; // FolderImagePicker에서 처리
           }
 
           // ✅ 성능 데이터 이미지 모달인 경우

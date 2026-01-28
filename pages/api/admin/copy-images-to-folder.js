@@ -201,23 +201,20 @@ export default async function handler(req, res) {
           .from('blog-images')
           .getPublicUrl(finalPath);
 
-        // 6. 메타데이터 저장
+        // 6. 메타데이터 저장 (image_assets 형식)
         const metadata = {
-          image_url: urlData.publicUrl,
-          original_path: finalPath,
-          file_name: newFileName,
-          english_filename: newFileName, // 정규화된 파일명 저장
-          original_filename: image.name, // 원본 파일명 보존
-          folder_path: targetFolder,
+          cdn_url: urlData.publicUrl,
+          file_path: finalPath,
           alt_text: image.alt_text || '',
           title: image.title || image.name,
           description: image.description || '',
-          tags: Array.isArray(image.keywords) ? image.keywords : (image.keywords ? [image.keywords] : []),
+          ai_tags: Array.isArray(image.keywords) ? image.keywords : (image.keywords ? [image.keywords] : []),
           file_size: imageBuffer.byteLength,
           upload_source: 'copy',
           status: 'active',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
+          // ⚠️ image_assets에는 다음 필드들이 없음: original_path, file_name, english_filename, original_filename, folder_path
         };
 
         // 고객 폴더인 경우 추가 메타데이터 설정
@@ -244,82 +241,37 @@ export default async function handler(req, res) {
           if (!customerError && customerData) {
             console.log('✅ [갤러리 업로드] 고객 정보 조회 성공:', customerData);
             
-            metadata.source = 'customer';
-            metadata.channel = 'customer';
-            metadata.date_folder = dateFolder;
-            metadata.customer_name_en = customerData.name_en;
-            metadata.customer_initials = customerData.initials;
-            
-            // tags 설정 (기존 keywords가 있으면 추가, 없으면 기본 tags만)
+            // ⚠️ image_assets에는 다음 필드들이 없음: source, channel, date_folder, customer_name_en, customer_initials, metadata, story_scene, image_type
+            // ai_tags에 고객 정보 추가
             if (Array.isArray(image.keywords) && image.keywords.length > 0) {
-              metadata.tags = [
+              metadata.ai_tags = [
                 `customer-${customerData.id}`,
                 `visit-${dateFolder}`,
                 ...image.keywords
               ];
             } else if (image.keywords) {
-              metadata.tags = [
+              metadata.ai_tags = [
                 `customer-${customerData.id}`,
                 `visit-${dateFolder}`,
                 image.keywords
               ];
             } else {
               // keywords가 없으면 기본 tags만 설정
-              metadata.tags = [
+              metadata.ai_tags = [
                 `customer-${customerData.id}`,
                 `visit-${dateFolder}`
               ];
-            }
-            metadata.metadata = {
-              visitDate: dateFolder,
-              customerName: customerData.name,
-              folderName: customerFolderName
-            };
-            
-            // 파일명에서 story_scene 추출 시도
-            // 형식: {이니셜}_s{장면코드}_{타입}_{번호}.webp
-            const sceneMatch = newFileName.match(/_s(\d+)_/);
-            if (sceneMatch) {
-              const sceneNum = parseInt(sceneMatch[1], 10);
-              if (sceneNum >= 1 && sceneNum <= 7) {
-                metadata.story_scene = sceneNum;
-                console.log('✅ [갤러리 업로드] story_scene 추출:', sceneNum);
-              }
-            }
-            
-            // 파일명에서 image_type 추출 시도
-            const typeMatch = newFileName.match(/_s\d+_(.+?)_\d+\./);
-            if (typeMatch) {
-              metadata.image_type = typeMatch[1];
-              console.log('✅ [갤러리 업로드] image_type 추출:', typeMatch[1]);
-            }
-            
-            // 파일 확장자로 image_type 보정
-            const fileExt = newFileName.split('.').pop()?.toLowerCase();
-            if (fileExt && ['mp4', 'mov', 'avi', 'webm', 'mkv'].includes(fileExt)) {
-              metadata.image_type = 'video';
-            } else if (fileExt === 'gif') {
-              metadata.image_type = 'gif';
-            } else if (!metadata.image_type) {
-              metadata.image_type = 'image';
-            }
-            
-            // customer-{timestamp} 형식 파일 처리
-            if (newFileName.startsWith('customer-') && !metadata.story_scene) {
-              // 기본값으로 story_scene을 null로 명시적으로 설정 (미할당)
-              metadata.story_scene = null;
-              console.log('ℹ️ [갤러리 업로드] customer- 형식 파일, story_scene은 null로 설정 (미할당)');
             }
           } else {
             console.warn('⚠️ [갤러리 업로드] 고객 정보 조회 실패:', customerError?.message || '고객을 찾을 수 없음');
           }
         }
 
-        // upsert 사용 (image_url 기준)
+        // upsert 사용 (cdn_url 기준)
         const { error: metadataError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .upsert(metadata, {
-            onConflict: 'image_url',
+            onConflict: 'cdn_url',
             ignoreDuplicates: false
           });
 
@@ -328,7 +280,7 @@ export default async function handler(req, res) {
           // 메타데이터 저장 실패해도 이미지는 저장되었으므로 계속 진행
         } else {
           console.log('✅ [갤러리 업로드] 메타데이터 저장 성공:', {
-            image_url: urlData.publicUrl,
+            cdn_url: urlData.publicUrl,
             customer_id: metadata.metadata?.customerName ? '있음' : '없음',
             story_scene: metadata.story_scene || '없음',
             image_type: metadata.image_type || '없음'

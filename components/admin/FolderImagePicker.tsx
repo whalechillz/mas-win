@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import MediaRenderer from './MediaRenderer';
 
 type ImageItem = {
   name: string;
   url: string;
   size: number;
   created_at: string;
+  folder?: string | null; // 하위 폴더 정보 (예: '2026-01-27')
 };
 
 type AlternativeFolder = {
@@ -27,8 +29,8 @@ type Props = {
   enableDelete?: boolean;
   // ✅ 추가: 업로드 기능 활성화
   enableUpload?: boolean;
-  // ✅ 추가: 삭제 콜백
-  onDelete?: (imageUrl: string) => Promise<void>;
+  // ✅ 추가: 삭제 콜백 (imageUrl 또는 { url, name, folderPath } 객체)
+  onDelete?: (imageUrl: string, imageInfo?: { name: string; folderPath?: string }) => Promise<void>;
   // ✅ 추가: 업로드 콜백
   onUpload?: (file: File, folderPath: string, uploadMode?: 'optimize-filename' | 'preserve-filename') => Promise<void>;
   // ✅ 추가: 업로드 모드 (기본값: optimize-filename)
@@ -71,13 +73,25 @@ const FolderImagePicker: React.FC<Props> = ({
       return;
     }
 
+    console.log('📂 [폴더 이미지 조회 시작]', {
+      folderPath: currentFolderPath,
+      timestamp: new Date().toISOString()
+    });
+
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(
-        `/api/admin/folder-images?folder=${encodeURIComponent(currentFolderPath)}&includeChildren=true`
-      );
+      const url = `/api/admin/folder-images?folder=${encodeURIComponent(currentFolderPath)}&includeChildren=true&_t=${Date.now()}`;
+      console.log('📡 [폴더 이미지 API 호출]', { url });
+      
+      const response = await fetch(url);
+
+      console.log('📥 [폴더 이미지 API 응답]', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }));
@@ -85,9 +99,27 @@ const FolderImagePicker: React.FC<Props> = ({
       }
 
       const data = await response.json();
+      
+      console.log('📦 [폴더 이미지 조회 결과]', {
+        imagesCount: data.images?.length || 0,
+        images: data.images?.map((img: any) => ({
+          name: img.name,
+          url: img.url?.substring(0, 100)
+        })),
+        folder: data.folder
+      });
+      
       setImages(data.images || []);
+      
+      console.log('✅ [폴더 이미지 조회 완료]', {
+        imagesCount: data.images?.length || 0
+      });
     } catch (err: any) {
-      console.error('이미지 로드 오류:', err);
+      console.error('❌ [폴더 이미지 로드 오류]', {
+        error: err,
+        message: err.message,
+        folderPath: currentFolderPath
+      });
       setError(err.message || '이미지를 불러오는 중 오류가 발생했습니다.');
       setImages([]);
     } finally {
@@ -379,13 +411,24 @@ const FolderImagePicker: React.FC<Props> = ({
                     onSelect(img.url);
                   }}
                 >
-                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-500 transition-all">
-                    <img
-                      src={img.url}
+                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-500 transition-all relative">
+                    <MediaRenderer
+                      url={img.url}
                       alt={img.name}
                       className="w-full h-full object-cover"
-                      loading="lazy"
+                      showControls={false}
+                      onVideoClick={() => {
+                        // 동영상 클릭 시 전체 화면 재생
+                        const event = new CustomEvent('openVideoModal', { detail: { url: img.url } });
+                        window.dispatchEvent(event);
+                      }}
                     />
+                    {/* 동영상 배지 */}
+                    {img.name.toLowerCase().match(/\.(mp4|mov|avi|webm|mkv)$/) && (
+                      <span className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded z-10">
+                        동영상
+                      </span>
+                    )}
                   </div>
                   
                   {/* ✅ 삭제 버튼 추가 (enableDelete가 true일 때만) */}
@@ -403,11 +446,42 @@ const FolderImagePicker: React.FC<Props> = ({
                         setIsDeleting(img.url);
                         
                         try {
-                          await onDelete(img.url);
+                          // ✅ 하위 폴더 정보를 포함한 전체 경로 구성
+                          let fullFolderPath = currentFolderPath;
+                          if (img.folder) {
+                            fullFolderPath = `${currentFolderPath}/${img.folder}`;
+                          }
+                          
+                          console.log('🗑️ [FolderImagePicker 삭제 시작]', {
+                            imageName: img.name,
+                            imageUrl: img.url?.substring(0, 100),
+                            currentFolderPath,
+                            subFolder: img.folder,
+                            fullFolderPath,
+                            currentImagesCount: images.length
+                          });
+                          
+                          // 갤러리 관리와 동일한 패턴: folderPath와 name 정보 전달 (하위 폴더 포함)
+                          await onDelete(img.url, { 
+                            name: img.name, 
+                            folderPath: fullFolderPath // 하위 폴더 경로 포함
+                          });
+                          
+                          console.log('✅ [FolderImagePicker 삭제 완료, 목록 새로고침 시작]');
+                          
                           // 삭제 후 이미지 목록 새로고침
                           await fetchFolderImages();
+                          
+                          console.log('✅ [FolderImagePicker 목록 새로고침 완료]', {
+                            newImagesCount: images.length
+                          });
                         } catch (error: any) {
-                          console.error('이미지 삭제 오류:', error);
+                          console.error('❌ [FolderImagePicker 삭제 오류]', {
+                            error,
+                            message: error.message,
+                            stack: error.stack,
+                            imageName: img.name
+                          });
                           alert(error.message || '이미지 삭제 중 오류가 발생했습니다.');
                         } finally {
                           setIsDeleting(null);

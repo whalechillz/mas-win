@@ -206,42 +206,34 @@ export default async function handler(req, res) {
     // 원본 동영상의 메타데이터 복사
     try {
       const { data: originalMetadata, error: metadataError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .select('*')
-        .eq('image_url', videoUrl)
+        .eq('cdn_url', videoUrl)
         .maybeSingle();
 
       if (!metadataError && originalMetadata) {
         const newMetadata = {
-          image_url: urlData.publicUrl,
-          folder_path: folderPath,
+          cdn_url: urlData.publicUrl,
+          file_path: folderPath ? `${folderPath}/${outputFileName}` : outputFileName,
           alt_text: originalMetadata.alt_text || null,
           title: originalMetadata.title || null,
           description: originalMetadata.description || null,
-          tags: originalMetadata.tags || null,
-          prompt: originalMetadata.prompt || null,
-          category_id: originalMetadata.category_id || null,
+          ai_tags: originalMetadata.ai_tags || originalMetadata.tags || null,
           file_size: gifSize,
           width: width || null,
           height: null, // GIF는 높이 자동 계산
           format: 'gif',
           upload_source: 'video-to-gif',
           status: originalMetadata.status || 'active',
-          story_scene: originalMetadata.story_scene || null,
-          image_type: originalMetadata.image_type || null,
-          customer_name_en: originalMetadata.customer_name_en || null,
-          customer_initials: originalMetadata.customer_initials || null,
-          date_folder: originalMetadata.date_folder || null,
-          english_filename: outputFileName,
-          original_filename: originalMetadata.original_filename || outputFileName,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
+          // ⚠️ image_assets에는 다음 필드들이 없음: folder_path, prompt, category_id, story_scene, image_type, customer_name_en, customer_initials, date_folder, english_filename, original_filename
         };
 
         const { error: saveError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .upsert(newMetadata, {
-            onConflict: 'image_url',
+            onConflict: 'cdn_url',
             ignoreDuplicates: false
           });
 

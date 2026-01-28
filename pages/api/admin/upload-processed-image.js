@@ -98,9 +98,9 @@ export default async function handler(req, res) {
       try {
         // 원본 이미지의 메타데이터 조회
         const { data: originalMetadata, error: metadataError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .select('*')
-          .eq('image_url', originalImageUrl)
+          .eq('cdn_url', originalImageUrl)
           .maybeSingle();
 
         if (!metadataError && originalMetadata) {
@@ -111,38 +111,29 @@ export default async function handler(req, res) {
 
           // 새 메타데이터 생성 (파일명 관련 필드 제외)
           const newMetadata = {
-            image_url: urlData.publicUrl,
-            folder_path: folderPath,
-            // 원본 메타데이터 복사 (파일명 관련 필드 제외)
+            cdn_url: urlData.publicUrl,
+            file_path: folderPath ? `${folderPath}/${fileName}` : fileName,
+            // 원본 메타데이터 복사
             alt_text: originalMetadata.alt_text || null,
             title: originalMetadata.title || null,
             description: originalMetadata.description || null,
-            tags: originalMetadata.tags || null,
-            prompt: originalMetadata.prompt || null,
-            category_id: originalMetadata.category_id || null,
+            ai_tags: originalMetadata.ai_tags || originalMetadata.tags || null,
             file_size: fileBuffer.length,
             width: originalMetadata.width || null,
             height: originalMetadata.height || null,
             format: fileExtension,
             upload_source: uploadSource, // FormData에서 받은 값 사용 (rotation, conversion 등)
             status: originalMetadata.status || 'active',
-            // 고객 이미지 관련 필드도 복사
-            story_scene: originalMetadata.story_scene || null,
-            image_type: originalMetadata.image_type || null,
-            customer_name_en: originalMetadata.customer_name_en || null,
-            customer_initials: originalMetadata.customer_initials || null,
-            date_folder: originalMetadata.date_folder || null,
-            english_filename: fileName, // 새 파일명만 설정
-            original_filename: originalMetadata.original_filename || fileName,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
+            // ⚠️ image_assets에는 다음 필드들이 없음: folder_path, prompt, category_id, story_scene, image_type, customer_name_en, customer_initials, date_folder, english_filename, original_filename
           };
 
           // 메타데이터 저장 (upsert 사용)
           const { error: saveError } = await supabase
-            .from('image_metadata')
+            .from('image_assets')
             .upsert(newMetadata, {
-              onConflict: 'image_url',
+              onConflict: 'cdn_url',
               ignoreDuplicates: false
             });
 

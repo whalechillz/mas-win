@@ -5,6 +5,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { generateBlogFileName } from '../../lib/filename-generator';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -68,13 +69,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let featuredImage = null;
     if (consultation.review_images && consultation.review_images.length > 0) {
       const { data: imageData } = await supabase
-        .from('image_metadata')
-        .select('image_url')
+        .from('image_assets')
+        .select('cdn_url')
         .eq('id', consultation.review_images[0])
         .single();
       
       if (imageData) {
-        featuredImage = imageData.image_url;
+        featuredImage = imageData.cdn_url || imageData.image_url;
       }
     }
 
@@ -158,12 +159,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const imageBuffer = await imageResponse.arrayBuffer();
           const contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
           
-          // 파일명 최적화
+          // 표준 블로그 파일명 생성
           const urlPath = new URL(imageUrl).pathname;
           const originalFileName = urlPath.split('/').pop() || 'image.jpg';
-          const ext = originalFileName.split('.').pop()?.toLowerCase() || 'jpg';
-          const timestamp = Date.now();
-          const optimizedFileName = `blog-${blogPost.id}-${timestamp}-${originalFileName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+          const optimizedFileName = await generateBlogFileName(
+            blogPost.id,
+            originalFileName,
+            new Date()
+          );
           
           const newPath = `${blogFolder}/${optimizedFileName}`;
           
@@ -186,19 +189,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             
             // image_metadata 업데이트 (이미지가 metadata에 있는 경우)
             const { data: existingImage } = await supabase
-              .from('image_metadata')
+              .from('image_assets')
               .select('id, blog_posts')
-              .eq('image_url', imageUrl)
+              .eq('cdn_url', imageUrl)
               .single();
             
             if (existingImage) {
               const currentBlogPosts = existingImage.blog_posts || [];
               if (!currentBlogPosts.includes(blogPost.id)) {
                 await supabase
-                  .from('image_metadata')
+                  .from('image_assets')
                   .update({
-                    blog_posts: [...currentBlogPosts, blogPost.id],
-                    folder_path: blogFolder
+                    // ⚠️ image_assets에는 blog_posts, folder_path가 없음
+                    // usage_count 업데이트는 별도로 처리 필요
                   })
                   .eq('id', existingImage.id);
               }

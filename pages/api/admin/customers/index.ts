@@ -214,45 +214,112 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // 이미지가 있는 고객만 필터링
       if (req.query.hasImages === 'true') {
-        // tags 배열에서 customer-{id} 패턴을 찾아서 고객 ID 추출
-        const { data: allImages, error: imagesError } = await supabase
-          .from('image_metadata')
-          .select('tags')
-          .not('tags', 'is', null);
+        // ⚠️ ai_tags만으로는 누락이 발생할 수 있으므로 file_path도 함께 확인
+        // 1. file_path가 customers 폴더에 있는 이미지에서 고객 ID 추출
+        // ⚠️ 동영상 파일은 제외하여 이미지만 있는 고객만 카운트
+        const { data: customerImagesByPath, error: pathError } = await supabase
+          .from('image_assets')
+          .select('file_path')
+          .ilike('file_path', 'originals/customers/%')
+          // 동영상 확장자 제외
+          .not('file_path', 'ilike', '%.mp4%')
+          .not('file_path', 'ilike', '%.mov%')
+          .not('file_path', 'ilike', '%.avi%')
+          .not('file_path', 'ilike', '%.webm%')
+          .not('file_path', 'ilike', '%.mkv%');
         
+        const customerIdsFromPath = new Set<number>();
+        if (!pathError && customerImagesByPath) {
+          // 모든 고객 정보 조회 (folder_name -> customer_id 매핑)
+          const { data: allCustomers } = await supabase
+            .from('customers')
+            .select('id, folder_name');
+          
+          const folderNameToCustomerId = new Map<string, number>();
+          if (allCustomers) {
+            allCustomers.forEach(c => {
+              if (c.folder_name) {
+                folderNameToCustomerId.set(c.folder_name, c.id);
+              }
+            });
+          }
+          
+          // file_path에서 고객 폴더명 추출
+          // ⚠️ 동영상 파일은 제외 (이미지만 있는 고객만 카운트)
+          customerImagesByPath.forEach((img: any) => {
+            const filePath = img.file_path || '';
+            
+            // 동영상 확장자 제외
+            const videoExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv'];
+            const isVideo = videoExtensions.some(ext => filePath.toLowerCase().includes(ext));
+            if (isVideo) {
+              return; // 동영상은 건너뜀
+            }
+            
+            const match = filePath.match(/originals\/customers\/([^\/]+)\//);
+            if (match) {
+              const folderName = match[1];
+              const customerId = folderNameToCustomerId.get(folderName);
+              if (customerId) {
+                customerIdsFromPath.add(customerId);
+              }
+            }
+          });
+        }
+        
+        // 2. ai_tags에서 customer-{id} 패턴 추출 (기존 방식)
+        // ⚠️ 동영상 파일은 제외하여 이미지만 있는 고객만 카운트
+        const { data: allImages, error: imagesError } = await supabase
+          .from('image_assets')
+          .select('ai_tags, file_path, cdn_url')
+          .not('ai_tags', 'is', null);
+        
+        const customerIdsFromTags = new Set<number>();
         if (!imagesError && allImages && allImages.length > 0) {
-          // tags 배열에서 customer-{id} 패턴 추출
-          const customerIds = new Set<number>();
+          // 동영상 확장자
+          const videoExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv'];
           
           allImages.forEach((img: any) => {
-            if (img.tags && Array.isArray(img.tags)) {
-              img.tags.forEach((tag: string) => {
+            // 동영상 파일 제외
+            const filePath = img.file_path || '';
+            const cdnUrl = img.cdn_url || '';
+            const isVideo = videoExtensions.some(ext => 
+              filePath.toLowerCase().includes(ext) || 
+              cdnUrl.toLowerCase().includes(ext)
+            );
+            if (isVideo) {
+              return; // 동영상은 건너뜀
+            }
+            
+            const tags = img.ai_tags || img.tags || [];
+            if (Array.isArray(tags)) {
+              tags.forEach((tag: string) => {
                 if (typeof tag === 'string' && tag.startsWith('customer-')) {
                   const customerId = parseInt(tag.replace('customer-', ''), 10);
                   if (!isNaN(customerId)) {
-                    customerIds.add(customerId);
+                    customerIdsFromTags.add(customerId);
                   }
                 }
               });
             }
           });
-          
-          const customerIdArray = Array.from(customerIds);
-          
-          if (customerIdArray.length > 0) {
-            query = query.in('id', customerIdArray);
-          } else {
-            // 이미지가 있는 고객이 없으면 빈 결과 반환
-            return res.status(200).json({ 
-              success: true, 
-              data: [], 
-              count: 0, 
-              page: pageNum, 
-              pageSize: sizeNum 
-            });
-          }
+        }
+        
+        // 3. 두 방법을 합쳐서 최종 고객 ID 목록 생성
+        const allCustomerIds = new Set([...customerIdsFromPath, ...customerIdsFromTags]);
+        const customerIdArray = Array.from(allCustomerIds);
+        
+        console.log('🔍 [이미지 있는 고객 필터] 결과:', {
+          fromPath: customerIdsFromPath.size,
+          fromTags: customerIdsFromTags.size,
+          total: allCustomerIds.size,
+          customerIdArray: customerIdArray.length
+        });
+        
+        if (customerIdArray.length > 0) {
+          query = query.in('id', customerIdArray);
         } else {
-          // 이미지가 없으면 빈 결과 반환
+          // 이미지가 있는 고객이 없으면 빈 결과 반환
           return res.status(200).json({ 
             success: true, 
             data: [], 
@@ -313,72 +380,124 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const thumbnailPromises = customerIds.map(async (customerId) => {
           const folderName = customerInfoMap.get(customerId);
           
-          // 고객별 이미지 조회 쿼리 생성 (tags 또는 folder_path로 필터링)
-          let query = supabase
-            .from('image_metadata')
-            .select('image_url');
-          
-          // tags와 folder_path 모두 확인
-          if (folderName) {
-            query = query.or(`tags.cs.{customer-${customerId}},folder_path.ilike.%customers/${folderName}%`);
-          } else {
-            query = query.contains('tags', [`customer-${customerId}`]);
+          // ⚠️ folder_name이 없으면 썸네일을 제공하지 않음
+          // folder_name이 없으면 전체 customers 폴더를 조회하여 다른 고객의 이미지가 할당될 수 있음
+          if (!folderName) {
+            console.warn(`⚠️ 썸네일 조회 건너뜀: customerId ${customerId}의 folder_name이 없음`);
+            return {
+              customerId,
+              thumbnailUrl: null
+            };
           }
           
-          // 동영상 제외: NOT LIKE로 동영상 확장자 제외
-          query = query.not('image_url', 'ilike', '%.mp4%')
-            .not('image_url', 'ilike', '%.mov%')
-            .not('image_url', 'ilike', '%.avi%')
-            .not('image_url', 'ilike', '%.webm%')
-            .not('image_url', 'ilike', '%.mkv%');
+          // 1. 먼저 대표 이미지 조회 (is_customer_representative = true)
+          let representativeQuery = supabase
+            .from('image_assets')
+            .select('cdn_url, file_path')
+            .ilike('file_path', `originals/customers/${folderName}/%`)
+            .eq('is_customer_representative', true);
           
-          // 1순위: 대표 이미지 조회 (is_scene_representative = true)
-          const { data: representativeImages } = await query
-            .eq('is_scene_representative', true)
-            .order('created_at', { ascending: false })
-            .limit(10); // 여러 개 가져와서 필터링
+          // 동영상 제외
+          representativeQuery = representativeQuery
+            .not('file_path', 'ilike', '%.mp4%')
+            .not('file_path', 'ilike', '%.mov%')
+            .not('file_path', 'ilike', '%.avi%')
+            .not('file_path', 'ilike', '%.webm%')
+            .not('file_path', 'ilike', '%.mkv%')
+            .not('cdn_url', 'ilike', '%.mp4%')
+            .not('cdn_url', 'ilike', '%.mov%')
+            .not('cdn_url', 'ilike', '%.avi%')
+            .not('cdn_url', 'ilike', '%.webm%')
+            .not('cdn_url', 'ilike', '%.mkv%');
           
-          if (representativeImages && representativeImages.length > 0) {
-            // 확장자로 이미지만 필터링
-            const imageOnly = representativeImages.filter(img => isImage(img.image_url));
-            if (imageOnly.length > 0) {
+          const { data: representativeImage, error: repError } = await representativeQuery
+            .maybeSingle();
+          
+          if (repError) {
+            console.warn(`⚠️ 대표 이미지 조회 오류 (customerId: ${customerId}):`, repError.message);
+          }
+          
+          // 대표 이미지가 있고 유효한 URL이면 사용
+          if (representativeImage?.cdn_url) {
+            const url = representativeImage.cdn_url;
+            if (url && 
+                typeof url === 'string' && 
+                url.trim() !== '' && 
+                (url.startsWith('http://') || url.startsWith('https://')) &&
+                isImage(url)) {
               return {
                 customerId,
-                thumbnailUrl: imageOnly[0].image_url
+                thumbnailUrl: url
               };
             }
           }
           
-          // 2순위: 최신 이미지 조회 (대표 이미지가 없는 경우)
-          // 쿼리 다시 생성 (이전 쿼리가 이미 실행됨)
-          let latestQuery = supabase
-            .from('image_metadata')
-            .select('image_url');
+          // 2. 대표 이미지가 없으면 기존 로직 사용 (최신 이미지 중 첫 번째)
+          let query = supabase
+            .from('image_assets')
+            .select('cdn_url, file_path');
           
-          if (folderName) {
-            latestQuery = latestQuery.or(`tags.cs.{customer-${customerId}},folder_path.ilike.%customers/${folderName}%`);
-          } else {
-            latestQuery = latestQuery.contains('tags', [`customer-${customerId}`]);
-          }
+          // file_path로 필터링 (가장 안정적)
+          query = query.ilike('file_path', `originals/customers/${folderName}/%`);
           
-          // 동영상 제외
-          latestQuery = latestQuery.not('image_url', 'ilike', '%.mp4%')
-            .not('image_url', 'ilike', '%.mov%')
-            .not('image_url', 'ilike', '%.avi%')
-            .not('image_url', 'ilike', '%.webm%')
-            .not('image_url', 'ilike', '%.mkv%');
+          // 동영상 제외: file_path에서 동영상 확장자 제외
+          query = query.not('file_path', 'ilike', '%.mp4%')
+            .not('file_path', 'ilike', '%.mov%')
+            .not('file_path', 'ilike', '%.avi%')
+            .not('file_path', 'ilike', '%.webm%')
+            .not('file_path', 'ilike', '%.mkv%');
           
-          const { data: latestImages } = await latestQuery
+          // cdn_url도 동영상 제외 (이중 체크)
+          query = query.not('cdn_url', 'ilike', '%.mp4%')
+            .not('cdn_url', 'ilike', '%.mov%')
+            .not('cdn_url', 'ilike', '%.avi%')
+            .not('cdn_url', 'ilike', '%.webm%')
+            .not('cdn_url', 'ilike', '%.mkv%');
+          
+          // 최신 이미지 조회
+          const { data: latestImages, error: queryError } = await query
             .order('created_at', { ascending: false })
             .limit(10); // 여러 개 가져와서 필터링
           
+          if (queryError) {
+            console.warn(`⚠️ 썸네일 조회 오류 (customerId: ${customerId}):`, queryError.message);
+          }
+          
           if (latestImages && latestImages.length > 0) {
             // 확장자로 이미지만 필터링
-            const imageOnly = latestImages.filter(img => isImage(img.image_url));
-            return {
-              customerId,
-              thumbnailUrl: imageOnly.length > 0 ? imageOnly[0].image_url : null
-            };
+            const imageOnly = latestImages.filter(img => {
+              const url = img.cdn_url || '';
+              return isImage(url);
+            });
+            
+            if (imageOnly.length > 0) {
+              // ⚠️ cdn_url이 있는 경우만 썸네일 제공
+              // cdn_url이 NULL이면 실제 파일이 Storage에 없거나 접근할 수 없다는 의미
+              // file_path로부터 URL을 생성하면 실제 파일이 없어도 URL이 생성되어 깨진 이미지로 표시됨
+              let thumbnailUrl = imageOnly[0].cdn_url;
+              
+              // ⚠️ cdn_url이 없으면 썸네일을 제공하지 않음
+              // file_path로부터 URL을 생성하지 않음 (실제 파일 존재 여부 확인 불가)
+              if (!thumbnailUrl) {
+                // cdn_url이 없으면 썸네일 없음
+                return {
+                  customerId,
+                  thumbnailUrl: null
+                };
+              }
+              
+              // ⚠️ thumbnailUrl이 유효한 URL인지 검증
+              // 빈 문자열, null, undefined, 또는 잘못된 형식은 null로 처리
+              if (thumbnailUrl && 
+                  typeof thumbnailUrl === 'string' && 
+                  thumbnailUrl.trim() !== '' && 
+                  (thumbnailUrl.startsWith('http://') || thumbnailUrl.startsWith('https://'))) {
+                return {
+                  customerId,
+                  thumbnailUrl: thumbnailUrl
+                };
+              }
+            }
           }
           
           return {

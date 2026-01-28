@@ -1,0 +1,842 @@
+{
+  "totalFolders": 16,
+  "foundByPhone": 1,
+  "foundByName": 0,
+  "foundByImages": 3,
+  "results": [
+    {
+      "folderName": "chobyeotseom-2002",
+      "extractedInfo": {
+        "nameEn": "chobyeotseom",
+        "phoneLast4": "2002"
+      },
+      "matches": {
+        "byPhone": [],
+        "byName": [],
+        "byImageAssets": [
+          {
+            "id": "0e2532f3-3e02-48e0-9eba-8305a58bc5fc",
+            "file_path": "originals/customers/chobyeotseom-2002/2025-09-08",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/chobyeotseom-2002/2025-09-08/chobyeotseom_s3_swing-scene_01.webp"
+          },
+          {
+            "id": "eff4f1d9-d975-40a7-9576-a0045909ed84",
+            "file_path": "originals/customers/chobyeotseom-2002/2025-09-08",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/chobyeotseom-2002/2025-09-08/chobyeotseom_image_01.webp"
+          },
+          {
+            "id": "0dc1e748-4f99-4609-8e71-b30774bcee16",
+            "file_path": "originals/customers/chobyeotseom-2002/2025-09-08",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/chobyeotseom-2002/2025-09-08/chobyeotseom_s4_measurement_21.webp"
+          },
+          {
+            "id": "79f85835-f261-4b0f-a37b-f946892c0356",
+            "file_path": "originals/customers/chobyeotseom-2002/2025-09-08",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/chobyeotseom-2002/2025-09-08/chobyeotseom_s3_swing-video_01.mov"
+          }
+        ],
+        "customerIdsFromImages": []
+      }
+    },
+    {
+      "folderName": "choibeolgyu-6508",
+      "extractedInfo": {
+        "nameEn": "choibeolgyu",
+        "phoneLast4": "6508"
+      },
+      "matches": {
+        "byPhone": [],
+        "byName": [],
+        "byImageAssets": [
+          {
+            "id": "4c9933ba-1929-403f-9083-3830ba6f5c32",
+            "file_path": "originals/customers/choibeolgyu-6508/2025-04-29",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/choibeolgyu-6508/2025-04-29/choibeolgyu_s3_swing-scene_01.webp"
+          },
+          {
+            "id": "687343d9-8120-4cf2-9414-f39cdee01fd1",
+            "file_path": "originals/customers/choibeolgyu-6508/2025-04-29",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/choibeolgyu-6508/2025-04-29/choibeolgyu_s4_swing-consultation_01.webp"
+          },
+          {
+            "id": "bc1c7d49-cfce-46f2-b3eb-2e9f0f1b37ae",
+            "file_path": "originals/customers/choibeolgyu-6508/2025-04-29",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/choibeolgyu-6508/2025-04-29/choibeolgyu_s3_swing-video_01.mp4"
+          },
+          {
+            "id": "6207a0fb-53d2-41ab-bfd4-70008e7dbb38",
+            "file_path": "originals/customers/choibeolgyu-6508/2025-04-29",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/choibeolgyu-6508/2025-04-29/choibeolgyu_s5_art-wall_01.webp"
+          },
+          {
+            "id": "ce7aa486-f469-4ce1-a447-486d81eedc54",
+            "file_path": "originals/customers/choibeolgyu-6508/2025-02-12",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/choibeolgyu-6508/2025-02-12/choibeolgyu_s6_signature_01.webp"
+          },
+          {
+            "id": "8a1a2daa-8c7e-4d2b-a56e-dc63c46af8b2",
+            "file_path": "originals/customers/choibeolgyu-6508/2025-02-12",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/choibeolgyu-6508/2025-02-12/choibeolgyu_s5_art-wall_02.webp"
+          },
+          {
+            "id": "1dadf35c-9f46-4261-9fff-5cc3c314fd40",
+            "file_path": "originals/customers/choibeolgyu-6508/2025-02-12",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/choibeolgyu-6508/2025-02-12/choibeolgyu_s4_swing-consultation_01.webp"
+          },
+          {
+            "id": "cf86f240-540f-4408-926d-9ef49b32f799",
+            "file_path": "originals/customers/choibeolgyu-6508/2025-02-12",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/choibeolgyu-6508/2025-02-12/choibeolgyu_s5_art-wall_01.webp"
+          },
+          {
+            "id": "cdd5d928-1997-46a8-b231-1dc1fdb936e6",
+            "file_path": "originals/customers/choibeolgyu-6508/2025-02-12",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/choibeolgyu-6508/2025-02-12/choibeolgyu_s3_swing-video_01.mp4"
+          }
+        ],
+        "customerIdsFromImages": []
+      }
+    },
+    {
+      "folderName": "hangwiyot-7115",
+      "extractedInfo": {
+        "nameEn": "hangwiyot",
+        "phoneLast4": "7115"
+      },
+      "matches": {
+        "byPhone": [],
+        "byName": [],
+        "byImageAssets": [
+          {
+            "id": "a7943787-999e-4bb1-a4f2-b0836b478126",
+            "file_path": "originals/customers/hangwiyot-7115/2023-12-08",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/hangwiyot-7115/2023-12-08/h_s4_swing-consultation_02.webp"
+          },
+          {
+            "id": "9eee1ce8-61c2-40b5-9d8c-6c3ce38beb8b",
+            "file_path": "originals/customers/hangwiyot-7115/2023-12-08",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/hangwiyot-7115/2023-12-08/h_s5_art-wall_01.webp"
+          },
+          {
+            "id": "7f4fee23-c4a5-4fbb-8a4f-fcf33260af7a",
+            "file_path": "originals/customers/hangwiyot-7115/2023-12-08",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/hangwiyot-7115/2023-12-08/h_s4_swing-consultation_01.webp"
+          },
+          {
+            "id": "25445a43-2197-4f3d-8f79-1a33d773b101",
+            "file_path": "originals/customers/hangwiyot-7115/2023-12-08",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/hangwiyot-7115/2023-12-08/h_s5_art-wall_02.webp"
+          },
+          {
+            "id": "337d89c7-e4e6-44dc-a80d-5e12a40457f0",
+            "file_path": "originals/customers/hangwiyot-7115/2023-12-08",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/hangwiyot-7115/2023-12-08/h_s6_signature_01.webp"
+          },
+          {
+            "id": "1d684dab-ef5c-4dcc-94c5-b63bd0bc3247",
+            "file_path": "originals/customers/hangwiyot-7115/2023-12-08",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/hangwiyot-7115/2023-12-08/hangwiyot_s6_signature_01.webp"
+          },
+          {
+            "id": "6126a71c-2564-484f-881c-b1c8f72c5ac7",
+            "file_path": "originals/customers/hangwiyot-7115/2023-12-08",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/hangwiyot-7115/2023-12-08/hangwiyot_s4_swing-consultation_01.webp"
+          },
+          {
+            "id": "7a1a4f21-bd18-4e51-9eb3-99792cf51b6b",
+            "file_path": "originals/customers/hangwiyot-7115/2023-12-08",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/hangwiyot-7115/2023-12-08/hangwiyot_s4_swing-consultation_02.webp"
+          },
+          {
+            "id": "1f62e845-df86-4e5e-a838-659bd99483ea",
+            "file_path": "originals/customers/hangwiyot-7115/2023-12-08",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/hangwiyot-7115/2023-12-08/hangwiyot_s5_art-wall_01.webp"
+          },
+          {
+            "id": "4c5a54b6-94d2-4dcc-af7c-f3cd7ff61695",
+            "file_path": "originals/customers/hangwiyot-7115/2023-12-08",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/hangwiyot-7115/2023-12-08/hangwiyot_s5_art-wall_02.webp"
+          }
+        ],
+        "customerIdsFromImages": []
+      }
+    },
+    {
+      "folderName": "jeonghaeseon-0712",
+      "extractedInfo": {
+        "nameEn": "jeonghaeseon",
+        "phoneLast4": "0712"
+      },
+      "matches": {
+        "byPhone": [],
+        "byName": [],
+        "byImageAssets": [
+          {
+            "id": "10ab03bf-6e51-44e4-a02d-10293279ef08",
+            "file_path": "originals/customers/jeonghaeseon-0712/2023-12-18",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonghaeseon-0712/2023-12-18/jeonghaeseon_s6_signature_01.webp"
+          },
+          {
+            "id": "e732cccb-808a-4993-96cb-f771d5d3b821",
+            "file_path": "originals/customers/jeonghaeseon-0712/2023-12-18",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonghaeseon-0712/2023-12-18/jeonghaeseon_s4_measurement_22.webp"
+          },
+          {
+            "id": "8b40e220-3c71-49c6-8137-c04a1cda5007",
+            "file_path": "originals/customers/jeonghaeseon-0712/2023-12-18",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonghaeseon-0712/2023-12-18/jeonghaeseon_s4_swing-consultation_01.webp"
+          },
+          {
+            "id": "011a4276-d458-49aa-9964-acc0fe7223c6",
+            "file_path": "originals/customers/jeonghaeseon-0712/2023-12-18",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonghaeseon-0712/2023-12-18/jeonghaeseon_s5_art-wall_01.webp"
+          },
+          {
+            "id": "093624ce-0389-41f9-8c6b-83b490b8cc3b",
+            "file_path": "originals/customers/jeonghaeseon-0712/2023-12-18",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonghaeseon-0712/2023-12-18/jeonghaeseon_s3_swing-scene_01.webp"
+          }
+        ],
+        "customerIdsFromImages": []
+      }
+    },
+    {
+      "folderName": "jeonyugeun-9269",
+      "extractedInfo": {
+        "nameEn": "jeonyugeun",
+        "phoneLast4": "9269"
+      },
+      "matches": {
+        "byPhone": [],
+        "byName": [],
+        "byImageAssets": [
+          {
+            "id": "cac2f414-442b-44b0-80a1-28a03a158472",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/jeonyugeun_s1_seukaen-20260121_01.webp"
+          },
+          {
+            "id": "6d3480b2-fe0b-4815-b744-f4bbd340b3e2",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/jeonyugeun_s1_3_08.webp"
+          },
+          {
+            "id": "126f54f1-c74a-49ea-b0e8-e42f53381758",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/jeonyugeun_s1_image_02.webp"
+          },
+          {
+            "id": "b825f381-ea55-4d3c-bb9a-c381fed06265",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/jeonyugeun_s1_4_09.webp"
+          },
+          {
+            "id": "cc943501-0c40-4924-8d60-415efb320a34",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/jeonyugeun_s1_2_04.webp"
+          },
+          {
+            "id": "61fc5190-1d1d-4d32-8ed4-2f44a01b6b21",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/jeonyugeun_s1_1_06.webp"
+          },
+          {
+            "id": "bfa391f0-7d07-44b1-a3ba-5b0230500fbf",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/jeonyugeun_s1_image_03.webp"
+          },
+          {
+            "id": "4daa9d95-3dc1-4bf8-bc6a-b90010c3e456",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/jeonyugeun_s1_2_07.webp"
+          },
+          {
+            "id": "06a72880-4117-4bc9-9e12-a1c6195a40f3",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/jeonyugeun_s1_3_05.webp"
+          },
+          {
+            "id": "18c3ac0e-c198-4263-be7f-7b7044f0ba6d",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/nanobanana-variation-1768975586862-csr5w3.webp"
+          },
+          {
+            "id": "f2531156-334c-436e-af0d-ff6c7139f332",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/jeonyugeun_s1_image_01.mov"
+          },
+          {
+            "id": "63993960-675d-403b-907f-342b4217a7ba",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/nanobanana-variation-1768978995556-9hc2n1.webp"
+          },
+          {
+            "id": "a2bc8fc5-2ab8-41e5-8806-532ae6c8f690",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/nanobanana-variation-1768979112404-lbudkt.webp"
+          },
+          {
+            "id": "4962fef1-9616-4c11-8716-b3259924a4f0",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/nanobanana-variation-1768979438313-5bt0bc.webp"
+          },
+          {
+            "id": "c68c44af-d3a1-42fe-bd46-13dbcd8413ae",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/jeonyugeun_s1_video_01.mov"
+          },
+          {
+            "id": "740fcae2-fca6-4475-893f-c3c9b8fe18f6",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/sita.mov"
+          },
+          {
+            "id": "b8b2d7ba-ac31-4e01-8364-bc3d7768bf02",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/jeonyugeun_s1_sita_01.mov"
+          },
+          {
+            "id": "39b13cee-df8e-44b9-8214-1c0e6c408459",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/jeonyugeun_s1_video_01(1).mov"
+          },
+          {
+            "id": "32a35282-b00b-4908-a73f-b368c88e4950",
+            "file_path": "originals/customers/jeonyugeun-9269/2026-01-21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/jeonyugeun-9269/2026-01-21/jeonyugeun_s1_video_01(2).mov"
+          }
+        ],
+        "customerIdsFromImages": []
+      }
+    },
+    {
+      "folderName": "joseongdae-7010",
+      "extractedInfo": {
+        "nameEn": "joseongdae",
+        "phoneLast4": "7010"
+      },
+      "matches": {
+        "byPhone": [],
+        "byName": [],
+        "byImageAssets": [
+          {
+            "id": 2112,
+            "name": "조성대",
+            "phone": "01038917010",
+            "folder_name": "joseongdae-7010"
+          },
+          {
+            "id": 13716,
+            "name": "장가반",
+            "phone": "01052763336",
+            "folder_name": "janggaban-3336"
+          }
+        ],
+        "customerIdsFromImages": [
+          2112,
+          13716
+        ]
+      }
+    },
+    {
+      "folderName": "kangseotdot-5787",
+      "extractedInfo": {
+        "nameEn": "kangseotdot",
+        "phoneLast4": "5787"
+      },
+      "matches": {
+        "byPhone": [],
+        "byName": [],
+        "byImageAssets": [
+          {
+            "id": "aa6dcb8a-8998-467a-823f-2cfd86a4410a",
+            "file_path": "originals/customers/kangseotdot-5787/2025-01-24",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kangseotdot-5787/2025-01-24/kangseotdot_s4_measurement_21.webp"
+          },
+          {
+            "id": "af122ba9-6d52-49a5-bd30-be43fb3a3905",
+            "file_path": "originals/customers/kangseotdot-5787/2025-01-24",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kangseotdot-5787/2025-01-24/kangseotdot_s3_swing-video_01.mp4"
+          },
+          {
+            "id": "9041f30f-6176-41d7-8bf3-92f0c48cbdb7",
+            "file_path": "originals/customers/kangseotdot-5787/2025-01-24",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kangseotdot-5787/2025-01-24/kangseotdot_s5_art-wall_01.webp"
+          },
+          {
+            "id": "503897b7-d3f0-43bb-883c-c2a9bb32cc53",
+            "file_path": "originals/customers/kangseotdot-5787/2025-01-24",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kangseotdot-5787/2025-01-24/kangseotdot_s5_art-wall_02.webp"
+          },
+          {
+            "id": "bfeb486e-e6d4-4bd0-8c3c-7fbc8b68ce3f",
+            "file_path": "originals/customers/kangseotdot-5787/2025-01-24",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kangseotdot-5787/2025-01-24/kangseotdot_s4_swing-consultation_01.webp"
+          },
+          {
+            "id": "a13625e8-9607-4813-863f-d39fc7f47ca1",
+            "file_path": "originals/customers/kangseotdot-5787/2025-01-24",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kangseotdot-5787/2025-01-24/kangseotdot_s6_signature_01.webp"
+          }
+        ],
+        "customerIdsFromImages": []
+      }
+    },
+    {
+      "folderName": "kimchangi-3802",
+      "extractedInfo": {
+        "nameEn": "kimchangi",
+        "phoneLast4": "3802"
+      },
+      "matches": {
+        "byPhone": [],
+        "byName": [],
+        "byImageAssets": [
+          {
+            "id": 1702,
+            "name": "김찬기",
+            "phone": "01063353802",
+            "folder_name": "kimchangi-3802"
+          },
+          {
+            "id": 13941,
+            "name": "김정석",
+            "phone": "01037248351",
+            "folder_name": "kimjeotseok-8351"
+          }
+        ],
+        "customerIdsFromImages": [
+          1702,
+          13941
+        ]
+      }
+    },
+    {
+      "folderName": "kimjongchull-6654",
+      "extractedInfo": {
+        "nameEn": "kimjongchull",
+        "phoneLast4": "6654"
+      },
+      "matches": {
+        "byPhone": [],
+        "byName": [],
+        "byImageAssets": [
+          {
+            "id": "6903a0d0-b4a3-4445-9f83-4ad41b4216d0",
+            "file_path": "originals/customers/kimjongchull-6654/2024.10.21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimjongchull-6654/2024.10.21/kimjongchull_s5_swing_02.webp"
+          },
+          {
+            "id": "5dd0ac87-0cbc-458e-91fa-8f0017d7d98b",
+            "file_path": "originals/customers/kimjongchull-6654/2024.10.21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimjongchull-6654/2024.10.21/kimjongchull_s4_guide-meeting_03.webp"
+          },
+          {
+            "id": "54082945-1dbf-40e7-abcc-366461ceb7aa",
+            "file_path": "originals/customers/kimjongchull-6654/2024.10.21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimjongchull-6654/2024.10.21/kimjongchull_s4_guide-meeting_02.webp"
+          },
+          {
+            "id": "8241f682-4e12-4669-9695-cc5bc4b2a557",
+            "file_path": "originals/customers/kimjongchull-6654/2024.10.21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimjongchull-6654/2024.10.21/kimjongchull_s4_guide-meeting_01.webp"
+          },
+          {
+            "id": "dfea6383-c3b8-4efb-a12e-10e80fad984a",
+            "file_path": "originals/customers/kimjongchull-6654/2024.10.21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimjongchull-6654/2024.10.21/kimjongchull_s1_hero_01.webp"
+          },
+          {
+            "id": "c12d27cd-2f5a-4cd6-b46e-c73b3875db05",
+            "file_path": "originals/customers/kimjongchull-6654/2024.10.21",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimjongchull-6654/2024.10.21/kimjongchull_s5_swing_01.webp"
+          }
+        ],
+        "customerIdsFromImages": []
+      }
+    },
+    {
+      "folderName": "kimsunbok-2469",
+      "extractedInfo": {
+        "nameEn": "kimsunbok",
+        "phoneLast4": "2469"
+      },
+      "matches": {
+        "byPhone": [],
+        "byName": [],
+        "byImageAssets": [
+          {
+            "id": "a5034577-d827-473f-9c82-29b2a16683ea",
+            "file_path": "originals/customers/kimsunbok-2469/2023-10-26",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimsunbok-2469/2023-10-26/k_s5_art-wall_01.webp"
+          },
+          {
+            "id": "8255c452-65b4-43d6-9b61-1c6f7ca7b377",
+            "file_path": "originals/customers/kimsunbok-2469/2023-10-26",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimsunbok-2469/2023-10-26/kimsunbok_s3_swing-video_02.mov"
+          },
+          {
+            "id": "60c40940-0c72-42c1-b973-8978d6af856f",
+            "file_path": "originals/customers/kimsunbok-2469/2023-10-26",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimsunbok-2469/2023-10-26/kimsunbok_s4_swing-consultation_01.webp"
+          },
+          {
+            "id": "319b3ca8-0578-4919-89ad-ee8b6159e525",
+            "file_path": "originals/customers/kimsunbok-2469/2023-10-26",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimsunbok-2469/2023-10-26/k_s4_swing-consultation_01.webp"
+          },
+          {
+            "id": "a27a6641-e7ef-4b76-9a85-0e5c6f16ea4a",
+            "file_path": "originals/customers/kimsunbok-2469/2023-10-26",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimsunbok-2469/2023-10-26/kimsunbok_s5_art-wall_01.webp"
+          },
+          {
+            "id": "c414317c-1aa6-4685-9b57-db6619acbfe8",
+            "file_path": "originals/customers/kimsunbok-2469/2023-10-26",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimsunbok-2469/2023-10-26/kimsunbok_s3_swing-video_01.mp4"
+          },
+          {
+            "id": "171acc9e-3de8-4ec8-bd23-5b889c3c7883",
+            "file_path": "originals/customers/kimsunbok-2469/2023-10-26",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimsunbok-2469/2023-10-26/k_s3_swing-video_02.mov"
+          },
+          {
+            "id": "64b886d8-0793-4e53-a00a-d80ff678febf",
+            "file_path": "originals/customers/kimsunbok-2469/2023-10-26",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimsunbok-2469/2023-10-26/k_s3_swing-video_01.mp4"
+          }
+        ],
+        "customerIdsFromImages": []
+      }
+    },
+    {
+      "folderName": "kimwonputun-4416",
+      "extractedInfo": {
+        "nameEn": "kimwonputun",
+        "phoneLast4": "4416"
+      },
+      "matches": {
+        "byPhone": [],
+        "byName": [],
+        "byImageAssets": [
+          {
+            "id": "a549150e-cbf4-4b22-b324-750283024492",
+            "file_path": "originals/customers/kimwonputun-4416/2025-12-02",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimwonputun-4416/2025-12-02/kimwonputun_s5_art-wall_01.webp"
+          },
+          {
+            "id": "0992007b-1b95-491f-92b7-c97c9a78e385",
+            "file_path": "originals/customers/kimwonputun-4416/2025-12-02",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimwonputun-4416/2025-12-02/kimwonputun_s5_art-wall_02.webp"
+          },
+          {
+            "id": "c940c9ce-242c-4e87-8f92-527fd4daf42c",
+            "file_path": "originals/customers/kimwonputun-4416/2025-12-02",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimwonputun-4416/2025-12-02/kimwonputun_s5_art-wall_03.webp"
+          },
+          {
+            "id": "d095269c-055c-4996-bcc1-81acf6a963dc",
+            "file_path": "originals/customers/kimwonputun-4416/2025-12-02",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimwonputun-4416/2025-12-02/kimwonputun_s4_swing-consultation_01.webp"
+          },
+          {
+            "id": "cb871eab-7832-449c-838a-1b14ea6a3204",
+            "file_path": "originals/customers/kimwonputun-4416/2025-12-02",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimwonputun-4416/2025-12-02/kimwonputun_s5_art-wall_04.webp"
+          },
+          {
+            "id": "65b303b1-f32f-498c-89f1-a2619503fb81",
+            "file_path": "originals/customers/kimwonputun-4416/2025-12-02",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimwonputun-4416/2025-12-02/k_s5_art-wall_03.webp"
+          },
+          {
+            "id": "160d6b47-efd2-4f83-8362-67e3cf98bd88",
+            "file_path": "originals/customers/kimwonputun-4416/2025-12-02",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimwonputun-4416/2025-12-02/k_s5_art-wall_01.webp"
+          },
+          {
+            "id": "f27abebf-406d-4c9c-a32f-bf8d1c84189e",
+            "file_path": "originals/customers/kimwonputun-4416/2025-12-02",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimwonputun-4416/2025-12-02/k_s4_swing-consultation_01.webp"
+          },
+          {
+            "id": "16c2233c-9837-4de2-9fc0-cc35a15078bf",
+            "file_path": "originals/customers/kimwonputun-4416/2025-12-02",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimwonputun-4416/2025-12-02/k_s5_art-wall_04.webp"
+          },
+          {
+            "id": "1828e7b9-240d-436d-a5d1-d114b73ae3ea",
+            "file_path": "originals/customers/kimwonputun-4416/2025-12-02",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/kimwonputun-4416/2025-12-02/k_s5_art-wall_02.webp"
+          }
+        ],
+        "customerIdsFromImages": []
+      }
+    },
+    {
+      "folderName": "leejudot-2716",
+      "extractedInfo": {
+        "nameEn": "leejudot",
+        "phoneLast4": "2716"
+      },
+      "matches": {
+        "byPhone": [],
+        "byName": [],
+        "byImageAssets": [
+          {
+            "id": "87e2e6e4-cbb6-4484-8308-51091f5487ee",
+            "file_path": "originals/customers/leejudot-2716/2025-10-17",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/leejudot-2716/2025-10-17/leejudot_s6_signature_01.webp"
+          }
+        ],
+        "customerIdsFromImages": []
+      }
+    },
+    {
+      "folderName": "leenamgu-8768",
+      "extractedInfo": {
+        "nameEn": "leenamgu",
+        "phoneLast4": "8768"
+      },
+      "matches": {
+        "byPhone": [],
+        "byName": [],
+        "byImageAssets": [
+          {
+            "id": "f99d7ccb-45e7-4fb4-86b3-c2dbd02b45ad",
+            "file_path": "originals/customers/leenamgu-8768/2024.10.29",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/leenamgu-8768/2024.10.29/leenamgu_s5_art-wall_02.webp"
+          },
+          {
+            "id": "dcc7828d-e8e6-463d-83a5-98cf040c209e",
+            "file_path": "originals/customers/leenamgu-8768/2024.10.29",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/leenamgu-8768/2024.10.29/leenamgu_s5_swing_03.webp"
+          },
+          {
+            "id": "815b152e-9ad0-4b35-bc77-1e4de985be1f",
+            "file_path": "originals/customers/leenamgu-8768/2024.10.29",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/leenamgu-8768/2024.10.29/leenamgu_s7_signature_01.webp"
+          },
+          {
+            "id": "e5fdb168-c87f-4895-bd50-94d345850450",
+            "file_path": "originals/customers/leenamgu-8768/2024.10.29",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/leenamgu-8768/2024.10.29/leenamgu_s5_measurement_02.webp"
+          },
+          {
+            "id": "b65c912c-45bf-47d7-9fee-45f47bbc4bd4",
+            "file_path": "originals/customers/leenamgu-8768/2024.10.29",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/leenamgu-8768/2024.10.29/leenamgu_s5_swing-video_01.mov"
+          },
+          {
+            "id": "0ecebe67-300a-4c4f-8eab-88036f00afae",
+            "file_path": "originals/customers/leenamgu-8768/2024.10.29",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/leenamgu-8768/2024.10.29/leenamgu_s5_swing_01.webp"
+          },
+          {
+            "id": "8703f4eb-09a6-4b5b-94fb-66a84aac648f",
+            "file_path": "originals/customers/leenamgu-8768/2024.10.29",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/leenamgu-8768/2024.10.29/leenamgu_s5_swing_04.webp"
+          },
+          {
+            "id": "f56a5292-b089-40c7-9f10-f1bd5aa155ec",
+            "file_path": "originals/customers/leenamgu-8768/2024.10.29",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/leenamgu-8768/2024.10.29/leenamgu_s5_measurement_01.webp"
+          },
+          {
+            "id": "6c22a1e7-e2f6-41f3-bd46-2554e8aee062",
+            "file_path": "originals/customers/leenamgu-8768/2024.10.29",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/leenamgu-8768/2024.10.29/leenamgu_s5_swing_02.webp"
+          },
+          {
+            "id": "2e02edaa-65de-4152-be74-e555591f1979",
+            "file_path": "originals/customers/leenamgu-8768/2024.10.29",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/leenamgu-8768/2024.10.29/leenamgu_s5_art-wall_01.webp"
+          },
+          {
+            "id": "ca29c62c-dff6-4d11-ad29-b8dc973be3ce",
+            "file_path": "originals/customers/leenamgu-8768/2024.10.29",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/leenamgu-8768/2024.10.29/leenamgu_s5_art-wall_03.webp"
+          }
+        ],
+        "customerIdsFromImages": []
+      }
+    },
+    {
+      "folderName": "minhosik-5549",
+      "extractedInfo": {
+        "nameEn": "minhosik",
+        "phoneLast4": "5549"
+      },
+      "matches": {
+        "byPhone": [
+          {
+            "id": 1347,
+            "name": "이경희",
+            "phone": "01058945549",
+            "folder_name": "leegyeothui-5549"
+          }
+        ],
+        "byName": [],
+        "byImageAssets": [
+          {
+            "id": 2041,
+            "name": "민호식",
+            "phone": "01067695549",
+            "folder_name": "minhosik-5549"
+          }
+        ],
+        "customerIdsFromImages": [
+          2041
+        ]
+      }
+    },
+    {
+      "folderName": "mooneungyeot-6710",
+      "extractedInfo": {
+        "nameEn": "mooneungyeot",
+        "phoneLast4": "6710"
+      },
+      "matches": {
+        "byPhone": [],
+        "byName": [],
+        "byImageAssets": [
+          {
+            "id": "cbf33a4c-64cb-4827-bb35-6d0780f55aea",
+            "file_path": "originals/customers/mooneungyeot-6710/2025-10-15",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/mooneungyeot-6710/2025-10-15/mooneungyeot_s6_signature_01.webp"
+          }
+        ],
+        "customerIdsFromImages": []
+      }
+    },
+    {
+      "folderName": "mukhyeonsat-6791",
+      "extractedInfo": {
+        "nameEn": "mukhyeonsat",
+        "phoneLast4": "6791"
+      },
+      "matches": {
+        "byPhone": [],
+        "byName": [],
+        "byImageAssets": [
+          {
+            "id": "647b95b0-9532-4782-940a-89ff6c018ece",
+            "file_path": "originals/customers/mukhyeonsat-6791/2025-01-14",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/mukhyeonsat-6791/2025-01-14/mukhyeonsat_s5_art-wall_02.webp"
+          },
+          {
+            "id": "dd498f21-5e99-4dc7-bee7-ea3253094257",
+            "file_path": "originals/customers/mukhyeonsat-6791/2025-01-14",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/mukhyeonsat-6791/2025-01-14/mukhyeonsat_s6_signature_01.webp"
+          },
+          {
+            "id": "e5fff472-11ce-424d-b0c6-ca2392703d44",
+            "file_path": "originals/customers/mukhyeonsat-6791/2025-01-14",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/mukhyeonsat-6791/2025-01-14/mukhyeonsat_s4_swing-consultation_01.webp"
+          },
+          {
+            "id": "df8e6e31-0c94-4519-b4e0-566be1cc9f8d",
+            "file_path": "originals/customers/mukhyeonsat-6791/2025-01-14",
+            "ai_tags": [],
+            "cdn_url": "https://yyytjudftvpmcnppaymw.supabase.co/storage/v1/object/public/blog-images/originals/customers/mukhyeonsat-6791/2025-01-14/mukhyeonsat_s5_art-wall_01.webp"
+          }
+        ],
+        "customerIdsFromImages": []
+      }
+    }
+  ],
+  "timestamp": "2026-01-25T15:45:26.616Z"
+}

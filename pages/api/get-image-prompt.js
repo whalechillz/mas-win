@@ -22,11 +22,12 @@ export default async function handler(req, res) {
       key: supabaseServiceKey ? '설정됨' : '누락'
     });
 
-    // image_metadata 테이블에서 해당 이미지의 프롬프트 조회
+    // image_assets 테이블에서 해당 이미지의 프롬프트 조회
+    // ⚠️ image_assets에는 prompt 필드가 없을 수 있음
     const { data: metadata, error } = await supabase
-      .from('image_metadata')
-      .select('prompt')
-      .eq('image_url', imageUrl)
+      .from('image_assets')
+      .select('prompt, ai_text_extracted')
+      .eq('cdn_url', imageUrl)
       .single();
 
     if (error && error.code !== 'PGRST116') { // PGRST116은 "no rows found" 에러
@@ -37,11 +38,14 @@ export default async function handler(req, res) {
       });
     }
 
-    if (metadata && metadata.prompt) {
-      console.log('✅ 기존 프롬프트 발견:', metadata.prompt.substring(0, 100) + '...');
+    // prompt 필드가 없으면 ai_text_extracted 사용
+    const promptText = metadata?.prompt || metadata?.ai_text_extracted || '';
+    
+    if (promptText) {
+      console.log('✅ 기존 프롬프트 발견:', promptText.substring(0, 100) + '...');
       return res.status(200).json({
         success: true,
-        prompt: metadata.prompt,
+        prompt: promptText,
         source: 'database'
       });
     } else {

@@ -1,0 +1,1281 @@
+{
+  "totalFolders": 55,
+  "exactMatches": 0,
+  "similarMatches": 39,
+  "noMatches": 16,
+  "results": [
+    {
+      "folderName": "banggwatseot-0007",
+      "extractedName": "banggwatseot",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 13558,
+          "name": "방광원",
+          "phone": "01035070464",
+          "folder_name": "banggwatwon-0464",
+          "similarity": 0.75
+        }
+      ]
+    },
+    {
+      "folderName": "chobyeotseom-2002",
+      "extractedName": "chobyeotseom",
+      "matchType": "no_match",
+      "customers": []
+    },
+    {
+      "folderName": "choibeolgyu-6508",
+      "extractedName": "choibeolgyu",
+      "matchType": "no_match",
+      "customers": []
+    },
+    {
+      "folderName": "hajotcheon-5458",
+      "extractedName": "hajotcheon",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 170,
+          "name": "한종현",
+          "phone": "01089235748",
+          "folder_name": "hanjothyeon-5748",
+          "similarity": 0.7272727272727273
+        }
+      ]
+    },
+    {
+      "folderName": "hangwiyot-7115",
+      "extractedName": "hangwiyot",
+      "matchType": "no_match",
+      "customers": []
+    },
+    {
+      "folderName": "honggibot-8688",
+      "extractedName": "honggibot",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 1472,
+          "name": "송기홍",
+          "phone": "01091452825",
+          "folder_name": "songgihot-2825",
+          "similarity": 0.7777777777777778
+        }
+      ]
+    },
+    {
+      "folderName": "hwanginseok-8206",
+      "extractedName": "hwanginseok",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 346,
+          "name": "황안석",
+          "phone": "01026806318",
+          "folder_name": "hwanganseok-6318",
+          "similarity": 0.9090909090909091
+        }
+      ]
+    },
+    {
+      "folderName": "janggeunsu-2788",
+      "extractedName": "janggeunsu",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 533,
+          "name": "장건우",
+          "phone": "01073812221",
+          "folder_name": "janggeonu-2221",
+          "similarity": 0.8
+        },
+        {
+          "id": 441,
+          "name": "장경수",
+          "phone": "01052271629",
+          "folder_name": "janggyeotsu-1629",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 351,
+          "name": "손근수",
+          "phone": "01038582155",
+          "folder_name": "songeunsu-2155",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "jeonghaeseon-0712",
+      "extractedName": "jeonghaeseon",
+      "matchType": "no_match",
+      "customers": []
+    },
+    {
+      "folderName": "jeonyugeun-9269",
+      "extractedName": "jeonyugeun",
+      "matchType": "no_match",
+      "customers": []
+    },
+    {
+      "folderName": "joseongdae-7010",
+      "extractedName": "joseongdae",
+      "matchType": "no_match",
+      "customers": []
+    },
+    {
+      "folderName": "junghyeotpyo-1255",
+      "extractedName": "junghyeotpyo",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 229,
+          "name": "홍명표",
+          "phone": "01087178240",
+          "folder_name": "hongmyeotpyo-8240",
+          "similarity": 0.75
+        }
+      ]
+    },
+    {
+      "folderName": "kangbyeotbu-4758",
+      "extractedName": "kangbyeotbu",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 1256,
+          "name": "강병훈",
+          "phone": "01075982230",
+          "folder_name": "kangbyeothun-2230",
+          "similarity": 0.8333333333333334
+        },
+        {
+          "id": 882,
+          "name": "장경주",
+          "phone": "01037640501",
+          "folder_name": "janggyeotju-0501",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 929,
+          "name": "장병호",
+          "phone": "01076766549",
+          "folder_name": "jangbyeotho-6549",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 1365,
+          "name": "강정수",
+          "phone": "01089417338",
+          "folder_name": "kangjeotsu-7338",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 441,
+          "name": "장경수",
+          "phone": "01052271629",
+          "folder_name": "janggyeotsu-1629",
+          "similarity": 0.7272727272727273
+        }
+      ]
+    },
+    {
+      "folderName": "kangsathwi-4111",
+      "extractedName": "kangsathwi",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 474,
+          "name": "강상호",
+          "phone": "01086225412",
+          "folder_name": "kangsatho-5412",
+          "similarity": 0.8
+        },
+        {
+          "id": 310,
+          "name": "홍상화",
+          "phone": "01047164312",
+          "folder_name": "hongsathwa-4312",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "kangseotdot-5787",
+      "extractedName": "kangseotdot",
+      "matchType": "no_match",
+      "customers": []
+    },
+    {
+      "folderName": "kangwonsik-6350",
+      "extractedName": "kangwonsik",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 918,
+          "name": "방호식",
+          "phone": "01071933955",
+          "folder_name": "banghosik-3955",
+          "similarity": 0.7
+        },
+        {
+          "id": 1102,
+          "name": "강원례",
+          "phone": "01085930360",
+          "folder_name": "kangwonrye-0360",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "kangyeotgit-5774",
+      "extractedName": "kangyeotgit",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 1138,
+          "name": "한경림",
+          "phone": "01096635707",
+          "folder_name": "hangyeotril-5707",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 445,
+          "name": "김결기",
+          "phone": "01071799540",
+          "folder_name": "kimgyeotgi-9540",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 649,
+          "name": "한경미",
+          "phone": "01037035269",
+          "folder_name": "hangyeotmi-5269",
+          "similarity": 0.7272727272727273
+        }
+      ]
+    },
+    {
+      "folderName": "kimbothyeon-4648",
+      "extractedName": "kimbothyeon",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 22,
+          "name": "김종현",
+          "phone": "01052608030",
+          "folder_name": "kimjothyeon-8030",
+          "similarity": 0.9090909090909091
+        },
+        {
+          "id": 1271,
+          "name": "김승현",
+          "phone": "01092294868",
+          "folder_name": "kimseuthyeon-4868",
+          "similarity": 0.75
+        },
+        {
+          "id": 196,
+          "name": "김용선",
+          "phone": "01027473811",
+          "folder_name": "kimyotseon-3811",
+          "similarity": 0.7272727272727273
+        }
+      ]
+    },
+    {
+      "folderName": "kimchangi-3802",
+      "extractedName": "kimchangi",
+      "matchType": "no_match",
+      "customers": []
+    },
+    {
+      "folderName": "kimgayeot-0599",
+      "extractedName": "kimgayeot",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 1366,
+          "name": "김기영",
+          "phone": "01039297197",
+          "folder_name": "kimgiyeot-7197",
+          "similarity": 0.8888888888888888
+        },
+        {
+          "id": 106,
+          "name": "김삼영",
+          "phone": "01062592600",
+          "folder_name": "kimsalyeot-2600",
+          "similarity": 0.8
+        },
+        {
+          "id": 300,
+          "name": "김기형",
+          "phone": "01054848356",
+          "folder_name": "kimgihyeot-8356",
+          "similarity": 0.8
+        },
+        {
+          "id": 1240,
+          "name": "김재열",
+          "phone": "01043529543",
+          "folder_name": "kimjaeyeot-9543",
+          "similarity": 0.8
+        },
+        {
+          "id": 1562,
+          "name": "김대영",
+          "phone": "01052774119",
+          "folder_name": null,
+          "similarity": 0.8
+        },
+        {
+          "id": 237,
+          "name": "김무영",
+          "phone": "01049081411",
+          "folder_name": "kimmuyeot-1411",
+          "similarity": 0.7777777777777778
+        },
+        {
+          "id": 1292,
+          "name": "김호영",
+          "phone": "01087820657",
+          "folder_name": "kimhoyeot-0657",
+          "similarity": 0.7777777777777778
+        },
+        {
+          "id": 879,
+          "name": "김판명",
+          "phone": "01093930869",
+          "folder_name": "kimpanmyeot-0869",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 69,
+          "name": "김금열",
+          "phone": "01045000113",
+          "folder_name": "kimgeulyeot-0113",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 379,
+          "name": "김배명",
+          "phone": "01095912174",
+          "folder_name": "kimbaemyeot-2174",
+          "similarity": 0.7272727272727273
+        }
+      ]
+    },
+    {
+      "folderName": "kimhakgyu-5084",
+      "extractedName": "kimhakgyu",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 1137,
+          "name": "김댁규",
+          "phone": "01036480592",
+          "folder_name": "kimdaekgyu-0592",
+          "similarity": 0.8
+        },
+        {
+          "id": 950,
+          "name": "김상규",
+          "phone": "01025571533",
+          "folder_name": "kimsatgyu-1533",
+          "similarity": 0.7777777777777778
+        }
+      ]
+    },
+    {
+      "folderName": "kimhangu-3445",
+      "extractedName": "kimhangu",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 541,
+          "name": "김한수",
+          "phone": "01090470802",
+          "folder_name": null,
+          "similarity": 0.875
+        },
+        {
+          "id": 1221,
+          "name": "김한중",
+          "phone": "01052116785",
+          "folder_name": "kimhanjut-6785",
+          "similarity": 0.7777777777777778
+        }
+      ]
+    },
+    {
+      "folderName": "kimhotchat-9751",
+      "extractedName": "kimhotchat",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 283,
+          "name": "김동광",
+          "phone": "01052752924",
+          "folder_name": "kimdotgwat-2924",
+          "similarity": 0.7
+        },
+        {
+          "id": 1491,
+          "name": "김용한",
+          "phone": "01090467575",
+          "folder_name": "kimyothan-7575",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "kimjingwon-0645",
+      "extractedName": "kimjingwon",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 329,
+          "name": "김민관",
+          "phone": "01038648861",
+          "folder_name": "kimmingwan-8861",
+          "similarity": 0.8
+        },
+        {
+          "id": 475,
+          "name": "김민관",
+          "phone": "01033394597",
+          "folder_name": "kimmingwan-4597",
+          "similarity": 0.8
+        },
+        {
+          "id": 307,
+          "name": "김인환",
+          "phone": "01091377704",
+          "folder_name": "kiminhwan-7704",
+          "similarity": 0.7
+        },
+        {
+          "id": 508,
+          "name": "임지원",
+          "phone": "01033437523",
+          "folder_name": "limjiwon-7523",
+          "similarity": 0.7
+        },
+        {
+          "id": 2051,
+          "name": "김대권",
+          "phone": "01099963375",
+          "folder_name": "kimdaegwon-3375",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "kimjongchull-6654",
+      "extractedName": "kimjongchull",
+      "matchType": "no_match",
+      "customers": []
+    },
+    {
+      "folderName": "kimjotan-3957",
+      "extractedName": "kimjotan",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 1322,
+          "name": "김종완",
+          "phone": "01047372700",
+          "folder_name": "kimjotwan-2700",
+          "similarity": 0.8888888888888888
+        },
+        {
+          "id": 183,
+          "name": "김종태",
+          "phone": "01037849685",
+          "folder_name": "kimjottae-9685",
+          "similarity": 0.7777777777777778
+        },
+        {
+          "id": 1491,
+          "name": "김용한",
+          "phone": "01090467575",
+          "folder_name": "kimyothan-7575",
+          "similarity": 0.7777777777777778
+        },
+        {
+          "id": 30,
+          "name": "김항안",
+          "phone": "01082403004",
+          "folder_name": "kimhatan-3004",
+          "similarity": 0.75
+        },
+        {
+          "id": 192,
+          "name": "김종구",
+          "phone": "01052330912",
+          "folder_name": "kimjotgu-0912",
+          "similarity": 0.75
+        },
+        {
+          "id": 437,
+          "name": "김종수",
+          "phone": "01036882886",
+          "folder_name": "kimjotsu-2886",
+          "similarity": 0.75
+        },
+        {
+          "id": 1880,
+          "name": "김영란",
+          "phone": "01056787569",
+          "folder_name": "kimyeotran-7569",
+          "similarity": 0.7
+        },
+        {
+          "id": 2019,
+          "name": "김영란",
+          "phone": "01031688434",
+          "folder_name": "kimyeotran-8434",
+          "similarity": 0.7
+        },
+        {
+          "id": 70,
+          "name": "김동환",
+          "phone": "01045014352",
+          "folder_name": "kimdothwan-4352",
+          "similarity": 0.7
+        },
+        {
+          "id": 1216,
+          "name": "김정배",
+          "phone": "01071947000",
+          "folder_name": "kimjeotbae-7000",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "kimsabin-2528",
+      "extractedName": "kimsabin",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 895,
+          "name": "김상운",
+          "phone": "01054640658",
+          "folder_name": "kimsatun-0658",
+          "similarity": 0.75
+        }
+      ]
+    },
+    {
+      "folderName": "kimsathyeon-6800",
+      "extractedName": "kimsathyeon",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 1271,
+          "name": "김승현",
+          "phone": "01092294868",
+          "folder_name": "kimseuthyeon-4868",
+          "similarity": 0.8333333333333334
+        },
+        {
+          "id": 22,
+          "name": "김종현",
+          "phone": "01052608030",
+          "folder_name": "kimjothyeon-8030",
+          "similarity": 0.8181818181818182
+        },
+        {
+          "id": 13498,
+          "name": "김장현",
+          "phone": "01050724788",
+          "folder_name": "kimjanghyeon-4788",
+          "similarity": 0.75
+        },
+        {
+          "id": 985,
+          "name": "김서연",
+          "phone": "01090961027",
+          "folder_name": "kimseoyeon-1027",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 106,
+          "name": "김삼영",
+          "phone": "01062592600",
+          "folder_name": "kimsalyeot-2600",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 1566,
+          "name": "김상돈",
+          "phone": "01037673438",
+          "folder_name": "kimsatdon-3438",
+          "similarity": 0.7272727272727273
+        }
+      ]
+    },
+    {
+      "folderName": "kimseonae-1211",
+      "extractedName": "kimseonae",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 253,
+          "name": "김선태",
+          "phone": "01086498804",
+          "folder_name": "kimseontae-8804",
+          "similarity": 0.9
+        },
+        {
+          "id": 421,
+          "name": "김성혜",
+          "phone": "01092885279",
+          "folder_name": "kimseothye-5279",
+          "similarity": 0.7
+        },
+        {
+          "id": 1216,
+          "name": "김정배",
+          "phone": "01071947000",
+          "folder_name": "kimjeotbae-7000",
+          "similarity": 0.7
+        },
+        {
+          "id": 2013,
+          "name": "김선화",
+          "phone": "01080030556",
+          "folder_name": "kimseonhwa-0556",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "kimseonok-6420",
+      "extractedName": "kimseonok",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 985,
+          "name": "김서연",
+          "phone": "01090961027",
+          "folder_name": "kimseoyeon-1027",
+          "similarity": 0.7
+        },
+        {
+          "id": 253,
+          "name": "김선태",
+          "phone": "01086498804",
+          "folder_name": "kimseontae-8804",
+          "similarity": 0.7
+        },
+        {
+          "id": 337,
+          "name": "김성원",
+          "phone": "01035804976",
+          "folder_name": "kimseotwon-4976",
+          "similarity": 0.7
+        },
+        {
+          "id": 2013,
+          "name": "김선화",
+          "phone": "01080030556",
+          "folder_name": "kimseonhwa-0556",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "kimseotmuk-4401",
+      "extractedName": "kimseotmuk",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 13542,
+          "name": "김석구",
+          "phone": "01086316302",
+          "folder_name": "kimseokgu-6302",
+          "similarity": 0.7
+        },
+        {
+          "id": 1003,
+          "name": "김성일",
+          "phone": "01053405916",
+          "folder_name": "kimseotit-5916",
+          "similarity": 0.7
+        },
+        {
+          "id": 1390,
+          "name": "김동국",
+          "phone": "01052549968",
+          "folder_name": "kimdotguk-9968",
+          "similarity": 0.7
+        },
+        {
+          "id": 328,
+          "name": "김영훈",
+          "phone": "01030336614",
+          "folder_name": "kimyeothun-6614",
+          "similarity": 0.7
+        },
+        {
+          "id": 337,
+          "name": "김성원",
+          "phone": "01035804976",
+          "folder_name": "kimseotwon-4976",
+          "similarity": 0.7
+        },
+        {
+          "id": 360,
+          "name": "김정희",
+          "phone": "01091897234",
+          "folder_name": "kimjeothui-7234",
+          "similarity": 0.7
+        },
+        {
+          "id": 421,
+          "name": "김성혜",
+          "phone": "01092885279",
+          "folder_name": "kimseothye-5279",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "kimseotsu-4223",
+      "extractedName": "kimseotsu",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 1161,
+          "name": "김명수",
+          "phone": "01032308723",
+          "folder_name": "kimmyeotsu-8723",
+          "similarity": 0.8
+        },
+        {
+          "id": 13542,
+          "name": "김석구",
+          "phone": "01086316302",
+          "folder_name": "kimseokgu-6302",
+          "similarity": 0.7777777777777778
+        },
+        {
+          "id": 1003,
+          "name": "김성일",
+          "phone": "01053405916",
+          "folder_name": "kimseotit-5916",
+          "similarity": 0.7777777777777778
+        },
+        {
+          "id": 437,
+          "name": "김종수",
+          "phone": "01036882886",
+          "folder_name": "kimjotsu-2886",
+          "similarity": 0.7777777777777778
+        },
+        {
+          "id": 1087,
+          "name": "김용수",
+          "phone": "01020588448",
+          "folder_name": "kimyotsu-8448",
+          "similarity": 0.7777777777777778
+        },
+        {
+          "id": 253,
+          "name": "김선태",
+          "phone": "01086498804",
+          "folder_name": "kimseontae-8804",
+          "similarity": 0.7
+        },
+        {
+          "id": 328,
+          "name": "김영훈",
+          "phone": "01030336614",
+          "folder_name": "kimyeothun-6614",
+          "similarity": 0.7
+        },
+        {
+          "id": 337,
+          "name": "김성원",
+          "phone": "01035804976",
+          "folder_name": "kimseotwon-4976",
+          "similarity": 0.7
+        },
+        {
+          "id": 360,
+          "name": "김정희",
+          "phone": "01091897234",
+          "folder_name": "kimjeothui-7234",
+          "similarity": 0.7
+        },
+        {
+          "id": 421,
+          "name": "김성혜",
+          "phone": "01092885279",
+          "folder_name": "kimseothye-5279",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "kimsunbok-2469",
+      "extractedName": "kimsunbok",
+      "matchType": "no_match",
+      "customers": []
+    },
+    {
+      "folderName": "kimwonputun-4416",
+      "extractedName": "kimwonputun",
+      "matchType": "no_match",
+      "customers": []
+    },
+    {
+      "folderName": "kwonseotsu-0199",
+      "extractedName": "kwonseotsu",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 537,
+          "name": "권영부",
+          "phone": "01068041316",
+          "folder_name": null,
+          "similarity": 0.8
+        },
+        {
+          "id": 1842,
+          "name": "권상숙",
+          "phone": "01022348008",
+          "folder_name": "kwonsatsuk-8008",
+          "similarity": 0.7
+        },
+        {
+          "id": 452,
+          "name": "권정욱",
+          "phone": "01034496341",
+          "folder_name": "kwonjeotuk-6341",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "leegyeotmin-8813",
+      "extractedName": "leegyeotmin",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 378,
+          "name": "이영미",
+          "phone": "01027024963",
+          "folder_name": "leeyeotmi-4963",
+          "similarity": 0.8181818181818182
+        },
+        {
+          "id": 1347,
+          "name": "이경희",
+          "phone": "01058945549",
+          "folder_name": "leegyeothui-5549",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 241,
+          "name": "이경태",
+          "phone": "01038302170",
+          "folder_name": "leegyeottae-2170",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 1230,
+          "name": "이경태",
+          "phone": "01022787833",
+          "folder_name": "leegyeottae-7833",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 342,
+          "name": "이현진",
+          "phone": "01082060628",
+          "folder_name": "leehyeonjin-0628",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 450,
+          "name": "이경복",
+          "phone": "01037885412",
+          "folder_name": "leegyeotbok-5412",
+          "similarity": 0.7272727272727273
+        }
+      ]
+    },
+    {
+      "folderName": "leehuiik-0519",
+      "extractedName": "leehuiik",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 1417,
+          "name": "이희박",
+          "phone": "01050166012",
+          "folder_name": "leehuibak-6012",
+          "similarity": 0.7777777777777778
+        }
+      ]
+    },
+    {
+      "folderName": "leejudot-2716",
+      "extractedName": "leejudot",
+      "matchType": "no_match",
+      "customers": []
+    },
+    {
+      "folderName": "leenalgu-8768",
+      "extractedName": "leenalgu",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 880,
+          "name": "이남웅",
+          "phone": "01080081135",
+          "folder_name": "leenalut-1135",
+          "similarity": 0.75
+        }
+      ]
+    },
+    {
+      "folderName": "leenamgu-8768",
+      "extractedName": "leenamgu",
+      "matchType": "no_match",
+      "customers": []
+    },
+    {
+      "folderName": "leeokhyeot-1493",
+      "extractedName": "leeokhyeot",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 861,
+          "name": "이시영",
+          "phone": "01066971895",
+          "folder_name": "leesiyeot-1895",
+          "similarity": 0.7
+        },
+        {
+          "id": 469,
+          "name": "이종열",
+          "phone": "01074416641",
+          "folder_name": "leejotyeot-6641",
+          "similarity": 0.7
+        },
+        {
+          "id": 476,
+          "name": "이종열",
+          "phone": "01040627787",
+          "folder_name": "leejotyeot-7787",
+          "similarity": 0.7
+        },
+        {
+          "id": 1500,
+          "name": "이열",
+          "phone": "01090104080",
+          "folder_name": "leeyeot-4080",
+          "similarity": 0.7
+        },
+        {
+          "id": 1613,
+          "name": "이대열",
+          "phone": "01052475311",
+          "folder_name": "leedaeyeot-5311",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "leesungit-6560",
+      "extractedName": "leesungit",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 473,
+          "name": "이은기",
+          "phone": "01087252557",
+          "folder_name": "leeeungi-2557",
+          "similarity": 0.7777777777777778
+        }
+      ]
+    },
+    {
+      "folderName": "minhosik-5549",
+      "extractedName": "minhosik",
+      "matchType": "no_match",
+      "customers": []
+    },
+    {
+      "folderName": "mooneungyeot-6710",
+      "extractedName": "mooneungyeot",
+      "matchType": "no_match",
+      "customers": []
+    },
+    {
+      "folderName": "mukhyeonsat-6791",
+      "extractedName": "mukhyeonsat",
+      "matchType": "no_match",
+      "customers": []
+    },
+    {
+      "folderName": "parkbotsu-0002",
+      "extractedName": "parkbotsu",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 324,
+          "name": "박철수",
+          "phone": "01092053430",
+          "folder_name": "parkcheotsu-3430",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 512,
+          "name": "박정구",
+          "phone": "01071008034",
+          "folder_name": "parkjeotgu-8034",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "parkdotryeot-5411",
+      "extractedName": "parkdotryeot",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 949,
+          "name": "박용현",
+          "phone": "01053376610",
+          "folder_name": "parkyothyeon-6610",
+          "similarity": 0.75
+        },
+        {
+          "id": 2071,
+          "name": "박대평",
+          "phone": "01039998822",
+          "folder_name": "parkdaepyeot-8822",
+          "similarity": 0.75
+        }
+      ]
+    },
+    {
+      "folderName": "parkjinuk-8333",
+      "extractedName": "parkjinuk",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 301,
+          "name": "박진호",
+          "phone": "01062953899",
+          "folder_name": "parkjinho-3899",
+          "similarity": 0.7777777777777778
+        },
+        {
+          "id": 169,
+          "name": "박진춘",
+          "phone": "01053555421",
+          "folder_name": "parkjinchun-5421",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 1607,
+          "name": "박준율",
+          "phone": "01036267788",
+          "folder_name": "parkjunyut-7788",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "parkyeotgu-7773",
+      "extractedName": "parkyeotgu",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 512,
+          "name": "박정구",
+          "phone": "01071008034",
+          "folder_name": "parkjeotgu-8034",
+          "similarity": 0.9
+        },
+        {
+          "id": 1287,
+          "name": "박경규",
+          "phone": "01094973897",
+          "folder_name": "parkgyeotgyu-3897",
+          "similarity": 0.8333333333333334
+        },
+        {
+          "id": 2398,
+          "name": "박성우",
+          "phone": "01090686003",
+          "folder_name": "parksungwoo-6003",
+          "similarity": 0.8
+        },
+        {
+          "id": 324,
+          "name": "박철수",
+          "phone": "01092053430",
+          "folder_name": "parkcheotsu-3430",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 336,
+          "name": "박정준",
+          "phone": "01056430880",
+          "folder_name": "parkjeotjun-0880",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 491,
+          "name": "박정훈",
+          "phone": "01089605225",
+          "folder_name": "parkjeothun-5225",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 15179,
+          "name": "박영만",
+          "phone": "01033865860",
+          "folder_name": "parkyeotman-5860",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 1480,
+          "name": "박병욱",
+          "phone": "01087963776",
+          "folder_name": "parkbyeotuk-3776",
+          "similarity": 0.7272727272727273
+        }
+      ]
+    },
+    {
+      "folderName": "parkyeotgwan-1311",
+      "extractedName": "parkyeotgwan",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 15179,
+          "name": "박영만",
+          "phone": "01033865860",
+          "folder_name": "parkyeotman-5860",
+          "similarity": 0.8333333333333334
+        }
+      ]
+    },
+    {
+      "folderName": "parkyotok-7873",
+      "extractedName": "parkyotok",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 922,
+          "name": "박종록",
+          "phone": "01054636418",
+          "folder_name": "parkjotrok-6418",
+          "similarity": 0.8
+        },
+        {
+          "id": 1480,
+          "name": "박병욱",
+          "phone": "01087963776",
+          "folder_name": "parkbyeotuk-3776",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 279,
+          "name": "박윤목",
+          "phone": "01077639000",
+          "folder_name": "parkyunmok-9000",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "wonjongmun-0002",
+      "extractedName": "wonjongmun",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 1228,
+          "name": "문장문",
+          "phone": "01054204818",
+          "folder_name": "munjangmun-4818",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "yoobyeotmuk-7724",
+      "extractedName": "yoobyeotmuk",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 321,
+          "name": "유영목",
+          "phone": "01052341113",
+          "folder_name": "yooyeotmok-1113",
+          "similarity": 0.8181818181818182
+        }
+      ]
+    },
+    {
+      "folderName": "yoojaeyeot-6257",
+      "extractedName": "yoojaeyeot",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 465,
+          "name": "유채연",
+          "phone": "01087706101",
+          "folder_name": "yoochaeyeon-6101",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 1180,
+          "name": "서재령",
+          "phone": "01038199993",
+          "folder_name": "seojaeryeot-9993",
+          "similarity": 0.7272727272727273
+        },
+        {
+          "id": 1240,
+          "name": "김재열",
+          "phone": "01043529543",
+          "folder_name": "kimjaeyeot-9543",
+          "similarity": 0.7
+        },
+        {
+          "id": 1367,
+          "name": "유주성",
+          "phone": "01031629835",
+          "folder_name": "yoojuseot-9835",
+          "similarity": 0.7
+        }
+      ]
+    },
+    {
+      "folderName": "yoonjotdeok-9809",
+      "extractedName": "yoonjotdeok",
+      "matchType": "similar",
+      "customers": [
+        {
+          "id": 166,
+          "name": "윤종옥",
+          "phone": "01031317717",
+          "folder_name": "yoonjotok-7717",
+          "similarity": 0.8181818181818182
+        }
+      ]
+    }
+  ],
+  "timestamp": "2026-01-25T15:43:13.289Z"
+}

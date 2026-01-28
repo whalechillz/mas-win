@@ -16,8 +16,8 @@ export default async function handler(req, res) {
 
     // 1. 모든 메타데이터 레코드 조회
     const { data: allMetadata, error: fetchError } = await supabase
-      .from('image_metadata')
-      .select('id, image_url, title, created_at')
+      .from('image_assets')
+      .select('id, cdn_url, title, created_at')
       .order('created_at', { ascending: false });
 
     if (fetchError) {
@@ -25,10 +25,10 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: '메타데이터 조회 실패', details: fetchError.message });
     }
 
-    // 2. image_url별로 그룹화
+    // 2. cdn_url별로 그룹화
     const urlGroups = {};
     for (const record of allMetadata) {
-      const url = record.image_url;
+      const url = record.cdn_url || record.image_url;
       if (!urlGroups[url]) {
         urlGroups[url] = [];
       }
@@ -74,7 +74,7 @@ export default async function handler(req, res) {
         for (const record of deleteRecords) {
           try {
             const { error: deleteError } = await supabase
-              .from('image_metadata')
+              .from('image_assets')
               .delete()
               .eq('id', record.id);
 

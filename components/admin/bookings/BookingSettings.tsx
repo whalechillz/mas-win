@@ -85,13 +85,13 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
         // 예약 문자용 로고 정보 로드
         if (settingsData.booking_logo_id) {
           const { data: bookingLogoData } = await supabase
-            .from('image_metadata')
-            .select('id, image_url')
+            .from('image_assets')
+            .select('id, cdn_url')
             .eq('id', settingsData.booking_logo_id)
             .single();
           
           if (bookingLogoData) {
-            setSelectedBookingLogoUrl(bookingLogoData.image_url);
+            setSelectedBookingLogoUrl(bookingLogoData.cdn_url || bookingLogoData.image_url);
           }
         }
       } else {
@@ -1331,27 +1331,24 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
             }
           }
 
-          // image_metadata에서 로고 ID 찾기
+          // image_assets에서 로고 ID 찾기
           const { data: logoData } = await supabase
-            .from('image_metadata')
-            .select('id, image_url')
-            .eq('image_url', imageUrl)
+            .from('image_assets')
+            .select('id, cdn_url')
+            .eq('cdn_url', imageUrl)
             .single();
-
+          
           if (logoData) {
             // ⭐ 추가: 메타데이터에서 실제 파일 형식 확인
-            const { data: logoMetadata } = await supabase
-              .from('image_metadata')
-              .select('is_logo, image_url')
-              .eq('id', logoData.id)
-              .single();
+            // ⚠️ image_assets에는 is_logo 필드가 없을 수 있음
+            const logoUrl = logoData.cdn_url || logoData.image_url || imageUrl;
 
-            // ⭐ 추가: image_url에서도 형식 재확인
-            const metadataIsJpeg = logoMetadata?.image_url?.toLowerCase().endsWith('.jpg') ||
-                                  logoMetadata?.image_url?.toLowerCase().endsWith('.jpeg');
+            // ⭐ 추가: cdn_url에서도 형식 재확인
+            const metadataIsJpeg = logoUrl?.toLowerCase().endsWith('.jpg') ||
+                                  logoUrl?.toLowerCase().endsWith('.jpeg');
 
-            if (!metadataIsJpeg && (logoMetadata?.image_url?.toLowerCase().endsWith('.png') || 
-                                   logoMetadata?.image_url?.toLowerCase().endsWith('.svg'))) {
+            if (!metadataIsJpeg && (logoUrl?.toLowerCase().endsWith('.png') || 
+                                   logoUrl?.toLowerCase().endsWith('.svg'))) {
               alert(
                 '⚠️ 경고: 선택한 로고가 PNG/SVG 형식입니다.\n\n' +
                 '예약 문자 발송 시 메시지가 실패할 수 있습니다.\n' +
@@ -1359,7 +1356,8 @@ export default function BookingSettings({ supabase, onUpdate }: BookingSettingsP
               );
             }
 
-            if (logoMetadata?.is_logo || imageUrl.includes('originals/logos')) {
+            // ⚠️ image_assets에는 is_logo 필드가 없으므로 URL 경로로만 확인
+            if (imageUrl.includes('originals/logos') || logoUrl.includes('originals/logos')) {
               // 예약 문자용 로고 설정
               setSettings({
                 ...settings!,

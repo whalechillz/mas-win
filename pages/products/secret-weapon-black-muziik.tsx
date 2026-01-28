@@ -27,7 +27,20 @@ export default function WeaponBerylProduct() {
   ];
 
   // 제품 데이터 로드
-  const { productImages, galleryImages, performanceImages, isLoadingProduct } = useProductData('secret-weapon-black-muziik', defaultImages);
+  const { 
+    productImages, // detail_images (기존 호환성)
+    heroImages, 
+    hookImages, 
+    hookContent, 
+    detailImages, 
+    detailContent, 
+    galleryImages, 
+    performanceImages, 
+    isLoadingProduct 
+  } = useProductData('secret-weapon-black-muziik', defaultImages);
+  
+  // heroImages가 있으면 우선 사용, 없으면 productImages 사용 (기존 호환성)
+  const displayImages = heroImages.length > 0 ? heroImages : productImages;
 
   useEffect(() => {
     let isMounted = true;
@@ -107,6 +120,62 @@ export default function WeaponBerylProduct() {
           </div>
         </header>
 
+        {/* 2컷 후킹 이미지 섹션 */}
+        {hookContent.length > 0 && (
+          <section className="py-12 sm:py-16 bg-black">
+            <div className="container mx-auto px-4 max-w-7xl">
+              {hookContent.map((item, index) => (
+                <div 
+                  key={index} 
+                  className={`flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-8 items-center ${index < hookContent.length - 1 ? 'mb-12 md:mb-16' : ''}`}
+                >
+                  <div className={`relative w-full rounded-lg overflow-hidden ${index % 2 === 1 ? 'md:order-2' : ''}`}>
+                    <div className="relative w-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px]">
+                      <Image 
+                        src={item.image} 
+                        alt={item.title}
+                        fill
+                        className="object-contain"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        priority={index < 2}
+                        onError={(e) => {
+                          console.error('후킹 이미지 로드 실패:', item.image);
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className={`text-left w-full ${index % 2 === 1 ? 'md:order-1' : ''}`}>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4 leading-tight">{item.title}</h2>
+                    <p className="text-base sm:text-lg text-gray-300 leading-relaxed">{item.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 첫 번째 CTA 버튼 섹션 */}
+        <section className="py-12 sm:py-16 bg-gradient-to-br from-gray-900 via-black to-gray-900">
+          <div className="container mx-auto px-4 max-w-7xl text-center">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
+              프리미엄 마쓰구 드라이버
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-6 sm:mb-8">
+              지금 상담 받고 특별 혜택을 경험하세요!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+              <a href="tel:080-028-8888" className="bg-green-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-green-700 transition-colors font-bold text-base sm:text-lg">
+                080-028-8888 무료 상담하기
+              </a>
+              <a href="https://smartstore.naver.com/mas9golf/products/12606826152" target="_blank" rel="noopener noreferrer" className="bg-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-blue-700 transition-colors font-bold text-base sm:text-lg">
+                네이버 스마트스토어에서 구매하기
+              </a>
+            </div>
+          </div>
+        </section>
+
         {/* 제품 히어로 섹션 */}
         <section className="py-12">
           <div className="container mx-auto px-4 max-w-7xl">
@@ -117,17 +186,17 @@ export default function WeaponBerylProduct() {
                   <div className="relative aspect-square w-full bg-gray-200 rounded-2xl flex items-center justify-center">
                     <p className="text-gray-500">이미지 로딩 중...</p>
                   </div>
-                ) : productImages.length > 0 ? (
+                ) : displayImages.length > 0 ? (
                   <>
                     <div className="relative aspect-square w-full max-w-full">
                       <div className="relative w-full h-full rounded-2xl shadow-2xl overflow-hidden">
                         <Image 
-                          src={productImages[selectedImage]} 
+                          src={displayImages[selectedImage]} 
                           alt="웨폰 블랙 + 베릴 콤보" 
                           fill
                           className="object-contain rounded-2xl"
                           onError={(e) => {
-                            console.error('제품 이미지 로드 실패:', productImages[selectedImage]);
+                            console.error('제품 이미지 로드 실패:', displayImages[selectedImage]);
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
                           }}
@@ -140,7 +209,7 @@ export default function WeaponBerylProduct() {
                     
                     {/* 썸네일 이미지들 - 모바일에서 가로 스크롤 */}
                     <div className="flex space-x-4 overflow-x-auto pb-2 product-scrollbar-light w-full">
-                      {productImages.map((image, index) => (
+                      {displayImages.map((image, index) => (
                         <button
                           key={index}
                           onClick={() => setSelectedImage(index)}
@@ -225,6 +294,44 @@ export default function WeaponBerylProduct() {
             </div>
           </div>
         </section>
+
+        {/* 8컷 상세 이미지 섹션 */}
+        {detailContent.length > 0 && (
+          <section className="py-12 sm:py-16 bg-black">
+            <div className="container mx-auto px-4 max-w-7xl">
+              <div className="space-y-12 md:space-y-16">
+                {detailContent.map((item, index) => (
+                  <div 
+                    key={index} 
+                    className={`flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-8 items-center`}
+                  >
+                    <div className={`relative w-full rounded-lg overflow-hidden ${index % 2 === 1 ? 'md:order-2' : ''}`}>
+                      <div className="relative w-full min-h-[280px] sm:min-h-[320px] md:min-h-[360px]">
+                        <Image 
+                          src={item.image} 
+                          alt={item.title}
+                          fill
+                          className="object-contain"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          priority={index < 2}
+                          onError={(e) => {
+                            console.error('상세 이미지 로드 실패:', item.image);
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className={`text-left w-full ${index % 2 === 1 ? 'md:order-1' : ''}`}>
+                      <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 leading-tight">{item.title}</h3>
+                      <p className="text-sm sm:text-base text-gray-300 leading-relaxed">{item.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* 혁신적인 테크놀로지 섹션 */}
         <section className="py-16 bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -601,6 +708,26 @@ export default function WeaponBerylProduct() {
                   모든 고객님들께 적합하지 않을수 있으니 스페셜 스펙은 별도 문의해 주세요.
                 </p>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 두 번째 CTA 버튼 섹션 */}
+        <section className="py-12 sm:py-16 bg-gradient-to-br from-green-600 to-green-700">
+          <div className="container mx-auto px-4 max-w-7xl text-center">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
+              지금 바로 구매하고 특별 혜택을 받으세요!
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-green-100 mb-6 sm:mb-8">
+              장비 전문가가 직접 상담해드립니다
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+              <a href="tel:080-028-8888" className="bg-white text-green-600 px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-gray-100 transition-colors font-bold text-base sm:text-lg">
+                080-028-8888 무료 상담하기
+              </a>
+              <a href="https://smartstore.naver.com/mas9golf/products/12606826152" target="_blank" rel="noopener noreferrer" className="bg-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-blue-700 transition-colors font-bold text-base sm:text-lg">
+                네이버 스마트스토어에서 구매하기
+              </a>
             </div>
           </div>
         </section>

@@ -430,48 +430,13 @@ export default async function handler(req, res) {
       let filteredImageUrls = null;
       const hasPrefix = prefix && prefix.trim() !== '';
       
-      // prefix가 없을 때만 source/channel 필터로 image_metadata에서 필터링
+      // prefix가 없을 때만 source/channel 필터로 image_assets에서 필터링
+      // ⚠️ 주의: image_assets에는 source/channel 컬럼이 없을 수 있으므로 이 필터는 제거하거나 다른 방식으로 처리 필요
       if (!hasPrefix && (source || channel)) {
-        try {
-          let metadataQuery = supabase
-            .from('image_metadata')
-            .select('image_url');
-          
-          if (source) {
-            metadataQuery = metadataQuery.eq('source', source);
-          }
-          if (channel) {
-            metadataQuery = metadataQuery.eq('channel', channel);
-          }
-          
-          const { data: metadataResults, error: metadataError } = await metadataQuery;
-          
-          if (metadataError) {
-            console.error('❌ image_metadata 필터링 오류:', metadataError);
-          } else if (metadataResults && metadataResults.length > 0) {
-            filteredImageUrls = new Set(metadataResults.map(m => m.image_url));
-            console.log(`✅ image_metadata 필터링 결과: ${filteredImageUrls.size}개 이미지 (source: ${source || 'all'}, channel: ${channel || 'all'})`);
-          } else {
-            // 필터링 결과가 없으면 빈 결과 반환 (prefix가 없을 때만)
-            console.log(`⚠️ 필터링 결과 없음 (source: ${source || 'all'}, channel: ${channel || 'all'})`);
-            return res.status(200).json({
-              images: [],
-              total: 0,
-              count: 0,
-              pagination: {
-                currentPage: 1,
-                totalPages: 0,
-                pageSize,
-                hasNextPage: false,
-                hasPrevPage: false,
-                nextPage: null,
-                prevPage: null
-              }
-            });
-          }
-        } catch (filterError) {
-          console.error('❌ 필터링 처리 오류:', filterError);
-        }
+        // ⚠️ image_assets에는 source/channel 컬럼이 없으므로 필터링 건너뛰기
+        // 필요시 image_assets에 source/channel 컬럼 추가 또는 다른 방식으로 필터링
+        console.log(`⚠️ source/channel 필터는 image_assets에서 지원되지 않음 (source: ${source || 'all'}, channel: ${channel || 'all'})`);
+        // 필터링 없이 진행
       } else if (hasPrefix && (source || channel)) {
         // prefix가 있을 때는 source/channel 필터를 무시하고 Storage 파일을 모두 조회
         // 메타데이터는 보강용으로만 사용
@@ -482,69 +447,139 @@ export default async function handler(req, res) {
       
       // 🔍 검색어가 있을 때: TSVECTOR 서버 사이드 검색
       if (searchTerm) {
-        console.log('🔍 서버 사이드 검색 시작:', searchTerm);
+        console.log('🔍 [검색 디버깅] 서버 사이드 검색 시작:', searchTerm);
         
         try {
-          // 1. RPC 함수로 검색 (더 빠름)
-          const { data: matchingMetadata, error: rpcError } = await supabase.rpc('search_image_metadata', {
-            p_search_terms: searchTerm,
-            p_limit: 1000,
-            p_offset: 0
+          // 1. image_assets 테이블에서 직접 검색 (image_metadata 마이그레이션 완료)
+          // ILIKE 검색 사용 (ai_tags는 JSONB이므로 별도 처리)
+          const likePattern = `alt_text.ilike.%${searchTerm.replace(/%/g, '\\%')}%,title.ilike.%${searchTerm.replace(/%/g, '\\%')}%,description.ilike.%${searchTerm.replace(/%/g, '\\%')}%,ai_text_extracted.ilike.%${searchTerm.replace(/%/g, '\\%')}%`;
+          console.log('🔍 [검색 디버깅] image_assets ILIKE 검색 패턴:', likePattern);
+          
+          const { data: likeResults, error: likeError } = await supabase
+            .from('image_assets')
+            .select('id, cdn_url, alt_text, title, description, ai_tags, usage_count, status')
+            .or(likePattern)
+            .eq('status', 'active')
+            .limit(1000);
+          
+          console.log('🔍 [검색 디버깅] image_assets ILIKE 검색 결과:', {
+            hasData: !!likeResults,
+            dataCount: likeResults?.length || 0,
+            error: likeError?.message || null,
+            sampleResults: likeResults?.slice(0, 3).map(r => ({
+              cdn_url: r.cdn_url,
+              alt_text: r.alt_text?.substring(0, 50),
+              title: r.title?.substring(0, 50)
+            })) || []
           });
           
-          let metadataResults = matchingMetadata;
-          
-          // RPC 함수가 없거나 에러가 있으면 직접 쿼리 (폴백)
-          if (rpcError || !matchingMetadata) {
-            console.log('⚠️ RPC 함수 사용 불가, 직접 쿼리로 폴백');
-            
-            // TSVECTOR 검색 시도
-            const { data: tsResults, error: tsError } = await supabase
-              .from('image_metadata')
-              .select('image_url, alt_text, title, description, tags, category_id, usage_count, id')
-              .or(`search_vector @@ plainto_tsquery('simple', '${searchTerm.replace(/'/g, "''")}'),alt_text.ilike.%${searchTerm.replace(/%/g, '\\%')}%,title.ilike.%${searchTerm.replace(/%/g, '\\%')}%,description.ilike.%${searchTerm.replace(/%/g, '\\%')}%`)
-              .limit(1000);
-            
-            if (tsError) {
-              console.log('⚠️ TSVECTOR 검색 실패, ILIKE 검색으로 폴백:', tsError.message);
-              // ILIKE 검색만 사용 (폴백)
-              const { data: likeResults, error: likeError } = await supabase
-                .from('image_metadata')
-                .select('image_url, alt_text, title, description, tags, category_id, usage_count, id')
-                .or(`alt_text.ilike.%${searchTerm.replace(/%/g, '\\%')}%,title.ilike.%${searchTerm.replace(/%/g, '\\%')}%,description.ilike.%${searchTerm.replace(/%/g, '\\%')}%`)
-                .limit(1000);
-              
-              if (likeError) {
-                console.error('❌ 메타데이터 검색 오류:', likeError);
-                return res.status(500).json({ error: '검색 중 오류 발생', details: likeError.message });
-              }
-              metadataResults = likeResults;
-            } else {
-              metadataResults = tsResults;
-            }
+          if (likeError) {
+            console.error('❌ [검색 디버깅] image_assets 검색 오류:', likeError);
+            return res.status(500).json({ error: '검색 중 오류 발생', details: likeError.message });
           }
           
-          // 2. 매칭된 URL만 추출 (메타데이터 검색 결과가 없어도 파일명 검색은 계속 진행)
-          const matchingUrls = new Set(metadataResults ? metadataResults.map(m => m.image_url) : []);
+          // image_assets 결과를 image_metadata 형식으로 변환 (하위 호환성)
+          const metadataResults = likeResults ? likeResults.map(r => ({
+            id: r.id,
+            image_url: r.cdn_url, // cdn_url을 image_url로 매핑
+            alt_text: r.alt_text,
+            title: r.title,
+            description: r.description,
+            tags: Array.isArray(r.ai_tags) ? r.ai_tags : [], // ai_tags를 tags로 매핑
+            category_id: null, // image_assets에는 category_id가 없음
+            usage_count: r.usage_count || 0
+          })) : [];
           
-          if (metadataResults && metadataResults.length > 0) {
-            console.log(`🔍 검색 결과: ${metadataResults.length}개 메타데이터 발견`);
+          // 2. image_assets 테이블에서도 검색 (김진권 검색 문제 해결)
+          let assetsResults = [];
+          try {
+            console.log('🔍 [검색 디버깅] image_assets 테이블 검색 시작');
+            const assetsSearchPattern = `alt_text.ilike.%${searchTerm.replace(/%/g, '\\%')}%,title.ilike.%${searchTerm.replace(/%/g, '\\%')}%,description.ilike.%${searchTerm.replace(/%/g, '\\%')}%,ai_text_extracted.ilike.%${searchTerm.replace(/%/g, '\\%')}%`;
+            
+            const { data: assetsSearchResults, error: assetsError } = await supabase
+              .from('image_assets')
+              .select('id, cdn_url, alt_text, title, description, ai_tags, ai_text_extracted')
+              .or(assetsSearchPattern)
+              .limit(1000);
+            
+            console.log('🔍 [검색 디버깅] image_assets 검색 결과:', {
+              hasData: !!assetsSearchResults,
+              dataCount: assetsSearchResults?.length || 0,
+              error: assetsError?.message || null,
+              sampleResults: assetsSearchResults?.slice(0, 3).map(r => ({
+                cdn_url: r.cdn_url,
+                alt_text: r.alt_text?.substring(0, 50),
+                title: r.title?.substring(0, 50)
+              })) || []
+            });
+            
+            if (!assetsError && assetsSearchResults) {
+              assetsResults = assetsSearchResults;
+            }
+          } catch (assetsSearchError) {
+            console.warn('⚠️ [검색 디버깅] image_assets 검색 오류:', assetsSearchError.message);
+          }
+          
+          // 3. 매칭된 URL만 추출 (image_assets 결과만 사용)
+          // ✅ null/undefined 체크 추가
+          const matchingUrls = new Set(
+            metadataResults && Array.isArray(metadataResults) 
+              ? metadataResults.map(m => m?.image_url).filter(Boolean) 
+              : []
+          );
+          
+          // ✅ image_assets 결과도 URL에 추가 (중복 제거)
+          if (assetsResults && Array.isArray(assetsResults)) {
+            assetsResults.forEach(asset => {
+              if (asset?.cdn_url) {
+                matchingUrls.add(asset.cdn_url);
+              }
+            });
+          }
+          
+          console.log('🔍 [검색 디버깅] 통합 검색 결과:', {
+            metadataCount: metadataResults?.length || 0,
+            assetsCount: assetsResults?.length || 0,
+            totalMatchingUrls: matchingUrls.size
+          });
+          
+          // ✅ 성능 개선: 메타데이터 검색 결과가 충분하면 파일명 검색 건너뛰기
+          const hasMetadataResults = (metadataResults && Array.isArray(metadataResults) && metadataResults.length > 0) ||
+                                     (assetsResults && Array.isArray(assetsResults) && assetsResults.length > 0);
+          
+          if (hasMetadataResults) {
+            console.log(`🔍 검색 결과: image_assets ${metadataResults?.length || 0}개, 추가 assets ${assetsResults?.length || 0}개 발견 - 파일명 검색 건너뜀`);
           } else {
             console.log('🔍 메타데이터 검색 결과 없음, 파일명 검색으로 진행');
           }
           
           // 3. Storage에서 해당 파일들 찾기 (prefix 필터 적용)
-          // ✅ 파일명으로도 검색 (메타데이터 검색 결과 + 파일명 매칭)
+          // ✅ 성능 개선: 메타데이터 검색 결과가 있으면 파일명 검색 건너뛰기
           const searchTermLower = searchTerm.toLowerCase();
           let allFilesForSearch = [];
-          const getAllFilesForSearch = async (folderPath = '') => {
+          
+          // ✅ 성능 개선: 파일명 검색은 메타데이터 검색 결과가 없을 때만 수행
+          // ✅ 개선: blog-images와 originals 두 버킷 모두 검색
+          if (!hasMetadataResults) {
+          const getAllFilesForSearch = async (folderPath = '', bucketName = 'blog-images', startTime = Date.now()) => {
+            // ✅ 타임아웃 체크 (10초)
+            if (Date.now() - startTime > 10000) {
+              console.log(`⚠️ 파일명 검색 타임아웃 (10초) - 조기 종료: "${bucketName}/${folderPath}"`);
+              return;
+            }
+            
+            // ✅ 최대 결과 수 제한 (200개)
+            if (allFilesForSearch.length >= 200) {
+              console.log(`✅ 파일명 검색 최대 결과 수 도달 (200개) - 조기 종료`);
+              return;
+            }
             let offset = 0;
             const batchSize = 1000;
             let allFilesInFolder = [];
             
             while (true) {
               const { data: files, error } = await supabase.storage
-                .from('blog-images')
+                .from(bucketName)
                 .list(folderPath, {
                   limit: batchSize,
                   offset: offset,
@@ -559,9 +594,14 @@ export default async function handler(req, res) {
             }
             
             for (const file of allFilesInFolder) {
+              // ✅ 조기 종료 체크
+              if (allFilesForSearch.length >= 200 || Date.now() - startTime > 10000) {
+                break;
+              }
+              
               if (!file.id) {
                 const subFolderPath = folderPath ? `${folderPath}/${file.name}` : file.name;
-                await getAllFilesForSearch(subFolderPath);
+                await getAllFilesForSearch(subFolderPath, bucketName, startTime);
               } else {
                 // 이미지 및 동영상 확장자
                 const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.heic', '.heif'];
@@ -576,19 +616,25 @@ export default async function handler(req, res) {
                 const isTempFile = fullPath.startsWith('temp/');
                 if (isTempFile) continue;
                 
-                const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fullPath);
+                const { data: urlData } = supabase.storage.from(bucketName).getPublicUrl(fullPath);
                 const publicUrl = urlData.publicUrl;
                 
                 // ✅ 파일명으로 검색 (검색어가 파일명에 포함되어 있는지 확인)
                 const fileNameMatches = file.name.toLowerCase().includes(searchTermLower);
                 
-                // URL이 매칭된 메타데이터에 있거나, 파일명이 검색어와 일치하는지 확인
-                if (matchingUrls.has(publicUrl) || fileNameMatches) {
+                // 파일명이 검색어와 일치하는지 확인 (메타데이터 검색 결과는 이미 제외됨)
+                if (fileNameMatches) {
                   allFilesForSearch.push({
                     ...file,
                     folderPath: folderPath,
-                    url: publicUrl
+                    url: publicUrl,
+                    bucket: bucketName
                   });
+                  
+                  // ✅ 최대 결과 수 도달 시 조기 종료
+                  if (allFilesForSearch.length >= 200) {
+                    break;
+                  }
                 }
               }
               }
@@ -598,77 +644,173 @@ export default async function handler(req, res) {
           const shouldIncludeChildren = includeChildren === 'true' || includeChildren === true || includeChildren === '1';
           const searchPrefix = prefix === 'all' ? '' : prefix;
           
+          // ✅ 개선: blog-images와 originals 두 버킷 모두 검색
+          const searchBuckets = ['blog-images', 'originals'];
+          
           if (shouldIncludeChildren) {
-            await getAllFilesForSearch(searchPrefix || '');
+            // 각 버킷에 대해 검색 수행
+            for (const bucket of searchBuckets) {
+              if (allFilesForSearch.length >= 200) break; // 최대 결과 수 도달 시 중단
+              await getAllFilesForSearch(searchPrefix || '', bucket, Date.now());
+            }
           } else {
-            // 현재 폴더만
-            let offset = 0;
-            const batchSize = 1000;
-            while (true) {
-              const { data: files, error } = await supabase.storage
-                .from('blog-images')
-                .list(searchPrefix || '', { limit: batchSize, offset: offset });
+            // 현재 폴더만 - 각 버킷에 대해 검색 수행
+            for (const bucket of searchBuckets) {
+              if (allFilesForSearch.length >= 200) break; // 최대 결과 수 도달 시 중단
               
-              if (error || !files || files.length === 0) break;
-              
-              for (const file of files) {
-                if (file.id) {
-                  // 이미지 및 동영상 확장자
-                  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.heic', '.heif'];
-                  const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
-                  const mediaExtensions = [...imageExtensions, ...videoExtensions];
-                  const isMedia = mediaExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-                  // .keep.png 마커 파일 제외
-                  const isKeepFile = file.name.toLowerCase() === '.keep.png';
-                  if (isMedia && !isKeepFile) {
-                    const fullPath = searchPrefix ? `${searchPrefix}/${file.name}` : file.name;
-                    // temp 폴더 제외
-                    const isTempFile = fullPath.startsWith('temp/');
-                    if (isTempFile) continue;
-                    
-                    const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fullPath);
-                    const publicUrl = urlData.publicUrl;
-                    
-                    // ✅ 파일명으로 검색 (검색어가 파일명에 포함되어 있는지 확인)
-                    const fileNameMatches = file.name.toLowerCase().includes(searchTermLower);
-                    
-                    // URL이 매칭된 메타데이터에 있거나, 파일명이 검색어와 일치하는지 확인
-                    if (matchingUrls.has(publicUrl) || fileNameMatches) {
-                      // source/channel 필터 추가 확인
-                      if (filteredImageUrls && !filteredImageUrls.has(publicUrl)) {
-                        continue;
-                      }
+              const fileNameSearchStartTime = Date.now();
+              let offset = 0;
+              const batchSize = 1000;
+              while (true) {
+                // ✅ 타임아웃 체크
+                if (Date.now() - fileNameSearchStartTime > 10000) {
+                  console.log(`⚠️ 파일명 검색 타임아웃 (10초) - 조기 종료: ${bucket}`);
+                  break;
+                }
+                
+                // ✅ 최대 결과 수 도달 시 조기 종료
+                if (allFilesForSearch.length >= 200) {
+                  console.log('✅ 파일명 검색 최대 결과 수 도달 (200개) - 조기 종료');
+                  break;
+                }
+                
+                const { data: files, error } = await supabase.storage
+                  .from(bucket)
+                  .list(searchPrefix || '', { limit: batchSize, offset: offset });
+                
+                if (error || !files || files.length === 0) break;
+                
+                for (const file of files) {
+                  if (file.id) {
+                    // 이미지 및 동영상 확장자
+                    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.heic', '.heif'];
+                    const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.m4v', '.3gp', '.wmv'];
+                    const mediaExtensions = [...imageExtensions, ...videoExtensions];
+                    const isMedia = mediaExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+                    // .keep.png 마커 파일 제외
+                    const isKeepFile = file.name.toLowerCase() === '.keep.png';
+                    if (isMedia && !isKeepFile) {
+                      const fullPath = searchPrefix ? `${searchPrefix}/${file.name}` : file.name;
+                      // temp 폴더 제외
+                      const isTempFile = fullPath.startsWith('temp/');
+                      if (isTempFile) continue;
                       
-                      allFilesForSearch.push({ ...file, folderPath: searchPrefix || '', url: publicUrl });
+                      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fullPath);
+                      const publicUrl = urlData.publicUrl;
+                      
+                      // ✅ 파일명으로 검색 (검색어가 파일명에 포함되어 있는지 확인)
+                      const fileNameMatches = file.name.toLowerCase().includes(searchTermLower);
+                      
+                      // 파일명이 검색어와 일치하는지 확인 (메타데이터 검색 결과는 이미 제외됨)
+                      if (fileNameMatches) {
+                        // source/channel 필터 추가 확인
+                        if (filteredImageUrls && !filteredImageUrls.has(publicUrl)) {
+                          continue;
+                        }
+                        
+                        allFilesForSearch.push({ ...file, folderPath: searchPrefix || '', url: publicUrl, bucket: bucket });
+                        
+                        // ✅ 최대 결과 수 도달 시 조기 종료
+                        if (allFilesForSearch.length >= 200) {
+                          break;
+                        }
+                      }
                     }
                   }
                 }
+                
+                offset += batchSize;
+                if (files.length < batchSize) break;
               }
-              
-              offset += batchSize;
-              if (files.length < batchSize) break;
+            }
+          }
+          } // ✅ 메타데이터 검색 결과가 없을 때만 파일명 검색 수행
+          
+          // 5. 메타데이터 매핑 (먼저 생성)
+          const metadataMap = new Map();
+          // ✅ null/undefined 체크 추가
+          if (metadataResults && Array.isArray(metadataResults)) {
+            metadataResults.forEach(meta => {
+              if (meta && meta.image_url) {
+                metadataMap.set(meta.image_url, meta);
+              }
+            });
+          }
+          
+          // ✅ image_assets 검색 결과도 메타데이터 매핑에 추가
+          const assetsMetadataMap = new Map();
+          if (assetsResults && Array.isArray(assetsResults)) {
+            assetsResults.forEach(asset => {
+              if (asset && asset.cdn_url) {
+                // image_assets 결과를 image_metadata 형식으로 변환
+                assetsMetadataMap.set(asset.cdn_url, {
+                  image_url: asset.cdn_url,
+                  alt_text: asset.alt_text,
+                  title: asset.title,
+                  description: asset.description,
+                  tags: asset.ai_tags || [],
+                  id: asset.id
+                });
+              }
+            });
+          }
+          
+          // ✅ 성능 개선: 메타데이터 검색 결과가 있으면 URL에서 파일 정보 추출
+          if (hasMetadataResults && allFilesForSearch.length === 0) {
+            console.log('🔍 메타데이터 검색 결과로 파일 정보 생성 중...');
+            const metadataUrls = Array.from(matchingUrls);
+            
+            // URL에서 파일 경로 추출하여 기본 파일 정보 생성
+            for (const url of metadataUrls) {
+              try {
+                // URL에서 파일 경로 추출 (예: https://.../blog-images/originals/.../file.jpg)
+                const urlMatch = url.match(/blog-images\/(.+)$/);
+                if (urlMatch) {
+                  const filePath = urlMatch[1];
+                  const pathParts = filePath.split('/');
+                  const fileName = pathParts[pathParts.length - 1];
+                  const folderPath = pathParts.slice(0, -1).join('/');
+                  
+                  // 메타데이터에서 추가 정보 가져오기 (이제 metadataMap과 assetsMetadataMap 사용 가능)
+                  const metadata = metadataMap.get(url) || assetsMetadataMap.get(url);
+                  
+                  // 기본 파일 정보 생성
+                  allFilesForSearch.push({
+                    id: metadata?.id || null,
+                    name: fileName,
+                    metadata: { size: 0 },
+                    created_at: metadata?.created_at || new Date().toISOString(),
+                    updated_at: metadata?.updated_at || new Date().toISOString(),
+                    folderPath: folderPath,
+                    url: url
+                  });
+                }
+              } catch (error) {
+                console.warn(`⚠️ 파일 정보 생성 오류 (${url}):`, error.message);
+              }
             }
           }
           
           console.log(`🔍 검색 결과 파일: ${allFilesForSearch.length}개`);
           
           // 4. 정렬 및 페이지네이션
-          allFilesForSearch.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          allFilesForSearch.sort((a, b) => {
+            const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
+            const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
+            return dateB - dateA;
+          });
           const searchTotalCount = allFilesForSearch.length;
           const searchFiles = allFilesForSearch.slice(currentOffset, currentOffset + pageSize);
           
-          // 5. 메타데이터 매핑
-          const metadataMap = new Map();
-          metadataResults.forEach(meta => {
-            metadataMap.set(meta.image_url, meta);
-          });
-          
           // ✅ image_assets 테이블에서 메타데이터 조회 (검색 결과용 fallback)
-          const searchUrls = searchFiles.map(f => f.url);
-          const { data: searchAssets } = await supabase
-            .from('image_assets')
-            .select('id, cdn_url, alt_text, title, description, ai_tags')
-            .in('cdn_url', searchUrls);
+          // ✅ 빈 배열 체크 추가
+          const searchUrls = searchFiles && searchFiles.length > 0 ? searchFiles.map(f => f.url) : [];
+          const { data: searchAssets } = searchUrls.length > 0
+            ? await supabase
+                .from('image_assets')
+                .select('id, cdn_url, alt_text, title, description, ai_tags')
+                .in('cdn_url', searchUrls)
+            : { data: null, error: null };
           
           const searchAssetsMap = new Map();
           if (searchAssets) {
@@ -677,9 +819,21 @@ export default async function handler(req, res) {
             });
           }
           
+          // ✅ 통합 메타데이터 맵 (image_assets만 사용)
+          const combinedMetadataMap = new Map(metadataMap);
+          assetsMetadataMap.forEach((value, key) => {
+            // image_assets 결과 사용 (우선)
+            if (!combinedMetadataMap.has(key)) {
+              combinedMetadataMap.set(key, value);
+            }
+          });
+          
           // 카테고리 매핑
           const categoryIdMap = new Map();
-          const categoryIds = [...new Set(metadataResults.map(m => m.category_id).filter(Boolean))];
+          // ✅ null/undefined 체크 추가
+          const categoryIds = metadataResults && Array.isArray(metadataResults) 
+            ? [...new Set(metadataResults.map(m => m?.category_id).filter(Boolean))] 
+            : [];
           if (categoryIds.length > 0) {
             const { data: categories } = await supabase
               .from('image_categories')
@@ -693,149 +847,159 @@ export default async function handler(req, res) {
           }
           
           // 6. 최종 이미지 데이터 생성 (사용 횟수 실시간 계산)
-          const imagesWithUrl = await Promise.all(searchFiles.map(async (file) => {
-            const metadata = metadataMap.get(file.url);
-            
-            const hasQualityMeta = hasQualityMetadata(metadata);
-            const qualityScore = calculateMetadataQualityScore(metadata);
-            const qualityIssues = getMetadataQualityIssues(metadata);
-            
-            // 사용 횟수 실시간 계산 (DB 값이 0이거나 없으면 계산)
-            let usageCount = metadata?.usage_count || 0;
-            let usedIn = [];
-            let lastUsedAt = null;
-            
-            if (file.folderPath) {
-              const fullPath = file.folderPath ? `${file.folderPath}/${file.name}` : file.name;
-              // campaigns 폴더의 경우에만 실시간 계산 (성능 최적화)
-              if (fullPath.includes('campaigns/')) {
-                usageCount = await calculateUsageCount(fullPath, file.name);
+          // ✅ 빈 배열 체크 추가
+          let imagesWithUrl = [];
+          if (searchFiles && Array.isArray(searchFiles) && searchFiles.length > 0) {
+            imagesWithUrl = await Promise.all(searchFiles.map(async (file) => {
+              // ✅ 통합 메타데이터 맵 사용 (image_assets만 사용)
+              const metadata = combinedMetadataMap.get(file.url) || metadataMap.get(file.url);
+              
+              const hasQualityMeta = hasQualityMetadata(metadata);
+              const qualityScore = calculateMetadataQualityScore(metadata);
+              const qualityIssues = getMetadataQualityIssues(metadata);
+              
+              // 사용 횟수 실시간 계산 (DB 값이 0이거나 없으면 계산)
+              let usageCount = metadata?.usage_count || 0;
+              let usedIn = [];
+              let lastUsedAt = null;
+              
+              if (file.folderPath) {
+                const fullPath = file.folderPath ? `${file.folderPath}/${file.name}` : file.name;
+                // campaigns 폴더의 경우에만 실시간 계산 (성능 최적화)
+                if (fullPath.includes('campaigns/')) {
+                  usageCount = await calculateUsageCount(fullPath, file.name);
+                }
+                
+                // 사용 위치 상세 정보 수집 (usage_count > 0인 경우만)
+                if (usageCount > 0) {
+                  try {
+                    const usageResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/image-usage-tracker?imageUrl=${encodeURIComponent(file.url)}`);
+                    if (usageResponse.ok) {
+                      const usageData = await usageResponse.json();
+                      const usage = usageData.usage || {};
+                      
+                      // 사용 위치 정보 수집
+                      if (usage.blogPosts && usage.blogPosts.length > 0) {
+                        usedIn.push(...usage.blogPosts.map(post => ({
+                          type: 'blog',
+                          title: post.title,
+                          url: post.url,
+                          isFeatured: post.isFeatured,
+                          isInContent: post.isInContent,
+                          created_at: post.created_at
+                        })));
+                      }
+                      
+                      if (usage.funnelPages && usage.funnelPages.length > 0) {
+                        usedIn.push(...usage.funnelPages.map(page => ({
+                          type: 'funnel',
+                          title: page.title,
+                          url: page.url,
+                          isFeatured: page.isFeatured,
+                          isInContent: page.isInContent,
+                          created_at: page.created_at
+                        })));
+                      }
+                      
+                      if (usage.homepage && usage.homepage.length > 0) {
+                        usedIn.push(...usage.homepage.map(item => ({
+                          type: 'homepage',
+                          title: item.title,
+                          url: item.url,
+                          location: item.location,
+                          isFeatured: item.isFeatured,
+                          isInContent: item.isInContent
+                        })));
+                      }
+                      
+                      if (usage.muziik && usage.muziik.length > 0) {
+                        usedIn.push(...usage.muziik.map(item => ({
+                          type: 'muziik',
+                          title: item.title,
+                          url: item.url,
+                          location: item.location,
+                          isFeatured: item.isFeatured,
+                          isInContent: item.isInContent
+                        })));
+                      }
+                      
+                      // 최근 사용 날짜 계산
+                      const allDates = usedIn
+                        .filter(item => item.created_at)
+                        .map(item => new Date(item.created_at))
+                        .sort((a, b) => b - a);
+                      if (allDates.length > 0) {
+                        lastUsedAt = allDates[0].toISOString();
+                      }
+                    }
+                  } catch (error) {
+                    console.warn(`⚠️ 사용 위치 정보 수집 오류 (${file.url}):`, error.message);
+                  }
+                }
               }
               
-              // 사용 위치 상세 정보 수집 (usage_count > 0인 경우만)
-              if (usageCount > 0) {
-                try {
-                  const usageResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/image-usage-tracker?imageUrl=${encodeURIComponent(file.url)}`);
-                  if (usageResponse.ok) {
-                    const usageData = await usageResponse.json();
-                    const usage = usageData.usage || {};
-                    
-                    // 사용 위치 정보 수집
-                    if (usage.blogPosts && usage.blogPosts.length > 0) {
-                      usedIn.push(...usage.blogPosts.map(post => ({
-                        type: 'blog',
-                        title: post.title,
-                        url: post.url,
-                        isFeatured: post.isFeatured,
-                        isInContent: post.isInContent,
-                        created_at: post.created_at
-                      })));
-                    }
-                    
-                    if (usage.funnelPages && usage.funnelPages.length > 0) {
-                      usedIn.push(...usage.funnelPages.map(page => ({
-                        type: 'funnel',
-                        title: page.title,
-                        url: page.url,
-                        isFeatured: page.isFeatured,
-                        isInContent: page.isInContent,
-                        created_at: page.created_at
-                      })));
-                    }
-                    
-                    if (usage.homepage && usage.homepage.length > 0) {
-                      usedIn.push(...usage.homepage.map(item => ({
-                        type: 'homepage',
-                        title: item.title,
-                        url: item.url,
-                        location: item.location,
-                        isFeatured: item.isFeatured,
-                        isInContent: item.isInContent
-                      })));
-                    }
-                    
-                    if (usage.muziik && usage.muziik.length > 0) {
-                      usedIn.push(...usage.muziik.map(item => ({
-                        type: 'muziik',
-                        title: item.title,
-                        url: item.url,
-                        location: item.location,
-                        isFeatured: item.isFeatured,
-                        isInContent: item.isInContent
-                      })));
-                    }
-                    
-                    // 최근 사용 날짜 계산
-                    const allDates = usedIn
-                      .filter(item => item.created_at)
-                      .map(item => new Date(item.created_at))
-                      .sort((a, b) => b - a);
-                    if (allDates.length > 0) {
-                      lastUsedAt = allDates[0].toISOString();
-                    }
-                  }
-                } catch (error) {
-                  console.warn(`⚠️ 사용 위치 정보 수집 오류 (${file.url}):`, error.message);
-                }
-              }
-            }
-            
-            // image_assets 테이블에서 id 가져오기 (검색 결과용)
-            const asset = searchAssetsMap.get(file.url);
-            const imageAssetId = asset?.id || null;
+              // image_assets 테이블에서 id 가져오기 (검색 결과용)
+              const asset = searchAssetsMap.get(file.url);
+              const imageAssetId = asset?.id || null;
 
-            return {
-              id: imageAssetId, // image_assets 테이블의 id 사용
-              name: file.name,
-              size: file.metadata?.size || 0,
-              created_at: file.created_at,
-              updated_at: file.updated_at,
-              url: file.url,
-              folder_path: file.folderPath || '',
-              // ✅ image_metadata → image_assets 순서로 fallback
-              alt_text: metadata?.alt_text || asset?.alt_text || '',
-              title: metadata?.title || asset?.title || '',
-              description: metadata?.description || asset?.description || '',
-              // ✅ keywords: image_metadata.tags → image_assets.ai_tags 순서로 fallback
-              keywords: (() => {
-                // image_metadata의 tags 우선
-                if (metadata?.tags) {
-                  return Array.isArray(metadata.tags) ? metadata.tags : [metadata.tags];
+              return {
+                id: imageAssetId, // image_assets 테이블의 id 사용
+                name: file.name,
+                size: file.metadata?.size || 0,
+                created_at: file.created_at,
+                updated_at: file.updated_at,
+                url: file.url,
+                folder_path: file.folderPath || '',
+                // ✅ image_assets만 사용
+                alt_text: metadata?.alt_text || asset?.alt_text || '',
+                title: metadata?.title || asset?.title || '',
+                description: metadata?.description || asset?.description || '',
+                // ✅ keywords: image_assets.ai_tags 사용
+                keywords: (() => {
+                  // image_assets의 ai_tags 사용
+                  if (asset?.ai_tags && Array.isArray(asset.ai_tags)) {
+                    return asset.ai_tags;
+                  }
+                  // metadata에서 변환된 tags (하위 호환성)
+                  if (metadata?.tags) {
+                    return Array.isArray(metadata.tags) ? metadata.tags : [metadata.tags];
+                  }
+                  return [];
+                })(),
+                // ✅ tags 추가 (product-composition, kakao-content 등 표시용)
+                tags: (() => {
+                  // image_assets의 ai_tags 사용
+                  if (asset?.ai_tags && Array.isArray(asset.ai_tags)) {
+                    return asset.ai_tags;
+                  }
+                  // metadata에서 변환된 tags (하위 호환성)
+                  if (metadata?.tags) {
+                    return Array.isArray(metadata.tags) ? metadata.tags : [metadata.tags];
+                  }
+                  return [];
+                })(),
+                category: metadata?.category_id ? categoryIdMap.get(metadata.category_id) || '' : '',
+                categories: metadata?.category_id ? [categoryIdMap.get(metadata.category_id)].filter(Boolean) : [],
+                usage_count: usageCount,
+                used_in: usedIn,
+                last_used_at: lastUsedAt,
+                upload_source: metadata?.upload_source || 'manual',
+                status: metadata?.status || 'active',
+                has_metadata: !!metadata,
+                has_quality_metadata: hasQualityMeta,
+                metadata_quality: {
+                  score: qualityScore,
+                  has_alt_text: !!(metadata?.alt_text && metadata.alt_text.trim().length > 0),
+                  has_title: !!(metadata?.title && metadata.title.trim().length > 0),
+                  has_description: !!(metadata?.description && metadata.description.trim().length > 0),
+                  has_keywords: !!(metadata?.tags && (
+                    Array.isArray(metadata.tags) ? metadata.tags.length > 0 : (typeof metadata.tags === 'string' && metadata.tags.trim().length > 0)
+                  )),
+                  issues: qualityIssues
                 }
-                // image_assets의 ai_tags fallback
-                if (asset?.ai_tags && Array.isArray(asset.ai_tags)) {
-                  return asset.ai_tags;
-                }
-                return [];
-              })(),
-              // ✅ tags 추가 (product-composition, kakao-content 등 표시용)
-              tags: (() => {
-                if (metadata?.tags) {
-                  return Array.isArray(metadata.tags) ? metadata.tags : [metadata.tags];
-                }
-                return [];
-              })(),
-              category: metadata?.category_id ? categoryIdMap.get(metadata.category_id) || '' : '',
-              categories: metadata?.category_id ? [categoryIdMap.get(metadata.category_id)].filter(Boolean) : [],
-              usage_count: usageCount,
-              used_in: usedIn,
-              last_used_at: lastUsedAt,
-              upload_source: metadata?.upload_source || 'manual',
-              status: metadata?.status || 'active',
-              has_metadata: !!metadata,
-              has_quality_metadata: hasQualityMeta,
-              metadata_quality: {
-                score: qualityScore,
-                has_alt_text: !!(metadata?.alt_text && metadata.alt_text.trim().length > 0),
-                has_title: !!(metadata?.title && metadata.title.trim().length > 0),
-                has_description: !!(metadata?.description && metadata.description.trim().length > 0),
-                has_keywords: !!(metadata?.tags && (
-                  Array.isArray(metadata.tags) ? metadata.tags.length > 0 : (typeof metadata.tags === 'string' && metadata.tags.trim().length > 0)
-                )),
-                issues: qualityIssues
-              }
-            };
-          }));
+              };
+            }));
+          }
           
           const searchTotalPages = Math.ceil(searchTotalCount / pageSize);
           
@@ -1269,48 +1433,53 @@ export default async function handler(req, res) {
           if (!hasRealImages) {
             console.log(`🔗 링크된 이미지 조회: 메시지 ID ${messageId}, 태그 ${tag} (리얼 이미지 없음)`);
             
+            // ⚠️ image_assets에는 source/channel 컬럼이 없으므로 tags로만 필터링
             // tags에 해당 메시지 ID가 포함된 다른 폴더의 이미지 조회
             const { data: linkedMetadata, error: linkedError } = await supabase
-              .from('image_metadata')
-              .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status, folder_path')
-              .contains('tags', [tag])
-              .eq('source', 'mms')
-              .eq('channel', 'sms')
-              .neq('folder_path', prefix); // 실제 폴더 제외
+              .from('image_assets')
+              .select('id, alt_text, title, description, ai_tags, cdn_url, usage_count, upload_source, status, file_path')
+              .contains('ai_tags', [tag])
+              .eq('status', 'active');
+            
+            // file_path로 폴더 필터링 (prefix 제외)
+            const filteredLinkedMetadata = linkedMetadata ? linkedMetadata.filter(asset => {
+              const assetPath = asset.file_path || '';
+              return !assetPath.startsWith(prefix);
+            }) : [];
             
             if (linkedError) {
               console.error('❌ 링크된 이미지 조회 실패:', linkedError);
-            } else if (linkedMetadata && linkedMetadata.length > 0) {
-              console.log(`✅ 링크된 이미지 ${linkedMetadata.length}개 발견`);
+            } else if (filteredLinkedMetadata && filteredLinkedMetadata.length > 0) {
+              console.log(`✅ 링크된 이미지 ${filteredLinkedMetadata.length}개 발견`);
               
               // 링크된 이미지를 imageUrls 형식으로 변환
-              linkedImages = linkedMetadata.map(meta => {
-                // ⭐ image_url이 Solapi imageId인 경우 처리
-                let displayUrl = meta.image_url;
+              linkedImages = filteredLinkedMetadata.map(asset => {
+                // ⭐ cdn_url이 Solapi imageId인 경우 처리
+                let displayUrl = asset.cdn_url;
                 let fileName = 'solapi-image.jpg';
                 
-                if (meta.image_url && meta.image_url.startsWith('ST01FZ')) {
+                if (asset.cdn_url && asset.cdn_url.startsWith('ST01FZ')) {
                   // Solapi imageId인 경우
-                  displayUrl = `/api/solapi/get-image-preview?imageId=${meta.image_url}`;
-                  fileName = `solapi-${meta.image_url.substring(0, 20)}.jpg`;
+                  displayUrl = `/api/solapi/get-image-preview?imageId=${asset.cdn_url}`;
+                  fileName = `solapi-${asset.cdn_url.substring(0, 20)}.jpg`;
                 } else {
                   // Supabase URL인 경우 파일명 추출
-                  const urlParts = meta.image_url.split('/');
+                  const urlParts = asset.cdn_url.split('/');
                   fileName = urlParts[urlParts.length - 1];
                 }
                 
-                const folderPath = meta.folder_path || '';
+                const folderPath = asset.file_path ? asset.file_path.substring(0, asset.file_path.lastIndexOf('/')) : '';
                 
                 return {
                   file: {
                     name: fileName,
                     folderPath: folderPath,
-                    created_at: meta.created_at || new Date().toISOString(),
+                    created_at: asset.created_at || new Date().toISOString(),
                     id: null, // 링크된 이미지는 파일 ID가 없음
                     isLinked: true // 링크된 이미지 플래그
                   },
                   url: displayUrl, // ⭐ 프리뷰 API URL 또는 Supabase URL
-                  original_url: meta.image_url, // ⭐ 원본 URL (Solapi imageId 또는 Supabase URL)
+                  original_url: asset.cdn_url, // ⭐ 원본 URL (Solapi imageId 또는 Supabase URL)
                   fullPath: folderPath ? `${folderPath}/${fileName}` : fileName,
                   isLinked: true, // 링크된 이미지 플래그
                   originalFolder: folderPath // 원본 폴더 경로
@@ -1346,19 +1515,23 @@ export default async function handler(req, res) {
               console.log(`🔍 발견된 메시지 ID: ${messageIds.join(', ')}`);
               
               // 각 메시지 ID에 대한 링크 이미지 조회
+              // ⚠️ image_assets에는 source/channel 컬럼이 없으므로 tags로만 필터링
               const allLinkedMetadata = [];
               for (const messageId of messageIds) {
                 const tag = `sms-${messageId}`;
                 const { data: linkedMetadata, error: linkedError } = await supabase
-                  .from('image_metadata')
-                  .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status, folder_path')
-                  .contains('tags', [tag])
-                  .eq('source', 'mms')
-                  .eq('channel', 'sms')
-                  .not('folder_path', 'like', `${dateFolder}%`); // 해당 날짜 폴더 제외
+                  .from('image_assets')
+                  .select('id, alt_text, title, description, ai_tags, cdn_url, usage_count, upload_source, status, file_path')
+                  .contains('ai_tags', [tag])
+                  .eq('status', 'active');
                 
                 if (!linkedError && linkedMetadata && linkedMetadata.length > 0) {
-                  allLinkedMetadata.push(...linkedMetadata);
+                  // file_path로 날짜 폴더 제외 필터링
+                  const filtered = linkedMetadata.filter(asset => {
+                    const assetPath = asset.file_path || '';
+                    return !assetPath.startsWith(dateFolder);
+                  });
+                  allLinkedMetadata.push(...filtered);
                 }
               }
               
@@ -1403,46 +1576,51 @@ export default async function handler(req, res) {
             console.log(`ℹ️  리얼 이미지가 많거나 페이지네이션 중이어서 링크 이미지 조회 스킵: ${allFilesForPagination.length}개, offset: ${currentOffset}`);
           } else {
             // ⚠️ 제한된 수만 조회 (성능 최적화)
+            // ⚠️ image_assets에는 source/channel 컬럼이 없으므로 ai_tags로만 필터링
             const { data: linkedMetadata, error: linkedError } = await supabase
-              .from('image_metadata')
-              .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status, folder_path')
-              .eq('source', 'mms')
-              .eq('channel', 'sms')
-              .not('folder_path', 'like', 'originals/mms%') // mms 폴더 제외
+              .from('image_assets')
+              .select('id, alt_text, title, description, ai_tags, cdn_url, usage_count, upload_source, status, file_path')
+              .eq('status', 'active')
               .limit(50); // ⭐ 최대 50개만 조회 (타임아웃 방지)
             
             if (linkedError) {
               console.error('❌ 링크된 이미지 조회 실패:', linkedError);
             } else if (linkedMetadata && linkedMetadata.length > 0) {
-              console.log(`✅ mms 전체 폴더 링크 이미지 ${linkedMetadata.length}개 발견`);
+              // file_path로 mms 폴더 제외 필터링
+              const filteredByPath = linkedMetadata.filter(asset => {
+                const assetPath = asset.file_path || '';
+                return !assetPath.startsWith('originals/mms');
+              });
               
-              // tags에 'sms-'가 포함된 이미지만 필터링 (실제 링크 이미지)
-              const filteredLinkedMetadata = linkedMetadata.filter(meta => {
-                if (!meta.tags || !Array.isArray(meta.tags)) return false;
-                return meta.tags.some(tag => typeof tag === 'string' && tag.startsWith('sms-'));
+              // ai_tags에 'sms-'가 포함된 이미지만 필터링 (실제 링크 이미지)
+              const filteredLinkedMetadata = filteredByPath.filter(asset => {
+                if (!asset.ai_tags || !Array.isArray(asset.ai_tags)) return false;
+                return asset.ai_tags.some(tag => typeof tag === 'string' && tag.startsWith('sms-'));
               });
               
               if (filteredLinkedMetadata.length > 0) {
+                console.log(`✅ mms 전체 폴더 링크 이미지 ${filteredLinkedMetadata.length}개 발견`);
+                
                 // 중복 제거
                 const uniqueLinkedMetadata = Array.from(
-                  new Map(filteredLinkedMetadata.map(meta => [meta.image_url, meta])).values()
+                  new Map(filteredLinkedMetadata.map(asset => [asset.cdn_url, asset])).values()
                 );
                 
                 // 링크된 이미지를 imageUrls 형식으로 변환
-                linkedImages = uniqueLinkedMetadata.map(meta => {
-                  const urlParts = meta.image_url.split('/');
+                linkedImages = uniqueLinkedMetadata.map(asset => {
+                  const urlParts = asset.cdn_url.split('/');
                   const fileName = urlParts[urlParts.length - 1];
-                  const folderPath = meta.folder_path || '';
+                  const folderPath = asset.file_path ? asset.file_path.substring(0, asset.file_path.lastIndexOf('/')) : '';
                   
                   return {
                     file: {
                       name: fileName,
                       folderPath: folderPath,
-                      created_at: meta.created_at || new Date().toISOString(),
+                      created_at: asset.created_at || new Date().toISOString(),
                       id: null,
                       isLinked: true
                     },
-                    url: meta.image_url,
+                    url: asset.cdn_url,
                     fullPath: folderPath ? `${folderPath}/${fileName}` : fileName,
                     isLinked: true,
                     originalFolder: folderPath
@@ -1461,46 +1639,51 @@ export default async function handler(req, res) {
             console.log(`ℹ️  리얼 이미지가 많거나 페이지네이션 중이어서 링크 이미지 조회 스킵: ${allFilesForPagination.length}개, offset: ${currentOffset}`);
           } else {
               // ⚠️ 제한된 수만 조회 (성능 최적화)
+            // ⚠️ image_assets에는 source/channel 컬럼이 없으므로 ai_tags로만 필터링
             const { data: linkedMetadata, error: linkedError } = await supabase
-              .from('image_metadata')
-              .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status, folder_path')
-              .eq('source', 'mms')
-              .eq('channel', 'sms')
-              .not('folder_path', 'like', 'originals%') // originals 폴더 제외
+              .from('image_assets')
+              .select('id, alt_text, title, description, ai_tags, cdn_url, usage_count, upload_source, status, file_path')
+              .eq('status', 'active')
               .limit(50); // ⭐ 최대 50개만 조회 (타임아웃 방지)
             
             if (linkedError) {
               console.error('❌ 링크된 이미지 조회 실패:', linkedError);
             } else if (linkedMetadata && linkedMetadata.length > 0) {
-              console.log(`✅ originals 전체 폴더 링크 이미지 ${linkedMetadata.length}개 발견`);
+              // file_path로 originals 폴더 제외 필터링
+              const filteredByPath = linkedMetadata.filter(asset => {
+                const assetPath = asset.file_path || '';
+                return !assetPath.startsWith('originals');
+              });
               
-              // tags에 'sms-'가 포함된 이미지만 필터링 (실제 링크 이미지)
-              const filteredLinkedMetadata = linkedMetadata.filter(meta => {
-                if (!meta.tags || !Array.isArray(meta.tags)) return false;
-                return meta.tags.some(tag => typeof tag === 'string' && tag.startsWith('sms-'));
+              // ai_tags에 'sms-'가 포함된 이미지만 필터링 (실제 링크 이미지)
+              const filteredLinkedMetadata = filteredByPath.filter(asset => {
+                if (!asset.ai_tags || !Array.isArray(asset.ai_tags)) return false;
+                return asset.ai_tags.some(tag => typeof tag === 'string' && tag.startsWith('sms-'));
               });
               
               if (filteredLinkedMetadata.length > 0) {
+                console.log(`✅ originals 전체 폴더 링크 이미지 ${filteredLinkedMetadata.length}개 발견`);
+                
                 // 중복 제거
                 const uniqueLinkedMetadata = Array.from(
-                  new Map(filteredLinkedMetadata.map(meta => [meta.image_url, meta])).values()
+                  new Map(filteredLinkedMetadata.map(asset => [asset.cdn_url, asset])).values()
                 );
                 
                 // 링크된 이미지를 imageUrls 형식으로 변환
-                linkedImages = uniqueLinkedMetadata.map(meta => {
-                  const urlParts = meta.image_url.split('/');
+                linkedImages = uniqueLinkedMetadata.map(asset => {
+                  const urlParts = asset.cdn_url.split('/');
                   const fileName = urlParts[urlParts.length - 1];
-                  const folderPath = meta.folder_path || '';
+                  const folderPath = asset.file_path ? asset.file_path.substring(0, asset.file_path.lastIndexOf('/')) : '';
                   
                   return {
                     file: {
                       name: fileName,
                       folderPath: folderPath,
-                      created_at: meta.created_at || new Date().toISOString(),
+                      created_at: asset.created_at || new Date().toISOString(),
                       id: null,
                       isLinked: true
                     },
-                    url: meta.image_url,
+                    url: asset.cdn_url,
                     fullPath: folderPath ? `${folderPath}/${fileName}` : fileName,
                     isLinked: true,
                     originalFolder: folderPath
@@ -1591,12 +1774,28 @@ export default async function handler(req, res) {
       }
 
       // 모든 URL을 한 번에 조회하여 메타데이터 가져오기
-      // 주의: image_metadata 테이블 스키마에 맞춰 컬럼 조회
+      // ⚠️ image_metadata → image_assets로 변경
       const urls = imageUrls.map(item => item.url);
       const { data: allMetadata } = await supabase
-        .from('image_metadata')
-        .select('id, alt_text, title, description, tags, category_id, image_url, usage_count, upload_source, status, used_in, is_liked')
-        .in('image_url', urls);
+        .from('image_assets')
+        .select('id, alt_text, title, description, ai_tags, cdn_url, usage_count, upload_source, status')
+        .in('cdn_url', urls);
+      
+      // image_assets 결과를 image_metadata 형식으로 변환 (하위 호환성)
+      const convertedMetadata = allMetadata ? allMetadata.map(asset => ({
+        id: asset.id,
+        alt_text: asset.alt_text,
+        title: asset.title,
+        description: asset.description,
+        tags: Array.isArray(asset.ai_tags) ? asset.ai_tags : [],
+        category_id: null, // image_assets에는 category_id가 없음
+        image_url: asset.cdn_url, // cdn_url을 image_url로 매핑
+        usage_count: asset.usage_count || 0,
+        upload_source: asset.upload_source || 'manual',
+        status: asset.status || 'active',
+        used_in: null, // image_assets에는 used_in이 없음 (별도 조회 필요)
+        is_liked: null // image_assets에는 is_liked가 없음 (별도 조회 필요)
+      })) : [];
 
       // image_assets 테이블에서 id 및 메타데이터 조회 (비교 기능용 + 메타데이터 fallback)
       const { data: allAssets } = await supabase
@@ -1613,26 +1812,14 @@ export default async function handler(req, res) {
       }
 
       // 카테고리 매핑 (category_id -> 카테고리 이름)
+      // ⚠️ image_assets에는 category_id가 없으므로 카테고리 매핑 건너뛰기
       const categoryIdMap = new Map();
-      if (allMetadata && allMetadata.length > 0) {
-        const categoryIds = [...new Set(allMetadata.map(m => m.category_id).filter(Boolean))];
-        if (categoryIds.length > 0) {
-          const { data: categories } = await supabase
-            .from('image_categories')
-            .select('id, name')
-            .in('id', categoryIds);
-          if (categories) {
-            categories.forEach(cat => {
-              categoryIdMap.set(cat.id, cat.name);
-            });
-          }
-        }
-      }
+      // image_assets에는 category_id가 없으므로 빈 맵 사용
 
-      // 메타데이터를 URL 기준으로 매핑
+      // 메타데이터를 URL 기준으로 매핑 (변환된 형식 사용)
       const metadataMap = new Map();
-      if (allMetadata) {
-        allMetadata.forEach(meta => {
+      if (convertedMetadata) {
+        convertedMetadata.forEach(meta => {
           metadataMap.set(meta.image_url, meta);
         });
       }

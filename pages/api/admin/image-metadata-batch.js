@@ -21,17 +21,20 @@ export default async function handler(req, res) {
     }
     const { imageUrls, paths } = req.body || {};
 
-    // 모드 2: paths upsert
+    // 모드 2: paths upsert (image_assets 사용)
     if (Array.isArray(paths) && paths.length > 0) {
       const bucket = process.env.NEXT_PUBLIC_IMAGE_BUCKET || 'blog-images';
       const updates = paths.map((p) => {
         const url = `${supabaseUrl}/storage/v1/object/public/${bucket}/${p}`;
-        // prod 스키마에 folder_path가 없으므로 image_url만 보정
-        return { image_url: url };
+        // image_assets에는 cdn_url과 file_path 사용
+        return { 
+          cdn_url: url,
+          file_path: p
+        };
       });
       const { error } = await supabase
-        .from('image_metadata')
-        .upsert(updates, { onConflict: 'image_url' });
+        .from('image_assets')
+        .upsert(updates, { onConflict: 'cdn_url' });
       if (error) return res.status(500).json({ error: error.message, where: 'upsert paths', count: updates.length });
       return res.status(200).json({ success: true, count: updates.length });
     }
@@ -45,25 +48,25 @@ export default async function handler(req, res) {
     if (normalized.length === 0) return res.status(200).json({ metadata: {} });
 
     const { data, error } = await supabase
-      .from('image_metadata')
+      .from('image_assets')
       .select('*')
-      .in('image_url', normalized);
+      .in('cdn_url', normalized);
     if (error) return res.status(500).json({ error: error.message, where: 'select by imageUrls', count: normalized.length });
 
     const map = {};
     for (const row of data || []) {
-      map[row.image_url] = {
+      map[row.cdn_url] = {
         alt_text: row.alt_text || '',
-        tags: row.tags || [],
+        tags: Array.isArray(row.ai_tags) ? row.ai_tags : [],
         title: row.title || '',
         description: row.description || '',
-        category_id: row.category_id || null,
+        category_id: null, // image_assets에는 category_id가 없음
         prompt: row.prompt || '',
         file_size: row.file_size || 0,
         width: row.width || 0,
         height: row.height || 0,
         format: row.format || '',
-        folder_path: row.folder_path || ''
+        folder_path: row.file_path || ''
       };
     }
     return res.status(200).json({ metadata: map });

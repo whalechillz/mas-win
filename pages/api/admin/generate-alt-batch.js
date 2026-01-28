@@ -37,14 +37,16 @@ export default async function handler(req, res) {
           fallbackAlt = keywords ? `${keywords} image` : '';
         }
         
-        await supabase.from('image_metadata').upsert({
-          name: items[i].name,
+        // ⚠️ image_assets로 변경 (name 대신 cdn_url 또는 file_path 사용)
+        // name으로는 조회할 수 없으므로 URL이나 file_path로 조회 필요
+        await supabase.from('image_assets').upsert({
+          // name은 image_assets에 없으므로 cdn_url 또는 file_path 사용
           alt_text: s.alt || fallbackAlt || items[i].alt_text || '',
           title: s.title || items[i].title || '',
           description: s.description || items[i].description || '',
-          keywords: items[i].keywords || [],
-          category: items[i].category || context.category || 'general'
-        }, { onConflict: 'name' });
+          ai_tags: items[i].keywords || []
+          // ⚠️ image_assets에는 name, category 필드가 없음
+        }, { onConflict: 'cdn_url' }); // cdn_url 기준으로 upsert
       }
     }
 

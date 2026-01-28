@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { generateStandardFileName, detectLocation, extractProductName, extractCustomerName } from '../../lib/filename-generator';
 // Sharp는 동적 import로 로드 (Vercel 환경 호환성)
 import crypto from 'crypto';
 
@@ -226,11 +227,44 @@ export default async function handler(req, res) {
         finalFileName = customFileName;
         console.log('✅ 동영상 커스텀 파일명 사용:', finalFileName);
       } else if (effectiveUploadMode === 'optimize-filename') {
-        // 파일명 최적화: 폴더 기반 + 타임스탬프 + 랜덤, 확장자 유지
-        const folderPrefix = extractFolderPrefix(targetFolder);
-        const timestamp = Date.now();
-        const randomString = Math.random().toString(36).substring(2, 8);
-        finalFileName = `${folderPrefix}-${timestamp}-${randomString}.${originalExtension}`;
+        // ✅ 표준 파일명 형식 사용: {위치}-{제품명}-upload-{날짜}-{고유번호}.{확장자}
+        let location = 'uploaded';
+        let productName = 'none';
+        
+        // targetFolder에서 위치 및 제품명 추출
+        if (targetFolder) {
+          location = detectLocation(targetFolder);
+          
+          // 고객 이미지인 경우
+          if (location === 'customers') {
+            const customerName = extractCustomerName(targetFolder);
+            if (customerName) {
+              productName = customerName;
+            }
+          } else {
+            // 제품명 추출
+            const extractedProductName = await extractProductName(undefined, targetFolder);
+            if (extractedProductName) {
+              productName = extractedProductName;
+            }
+          }
+        }
+        
+        // 표준 파일명 생성
+        finalFileName = await generateStandardFileName({
+          location: location,
+          productName: productName,
+          compositionProgram: 'none',
+          compositionFunction: 'upload',
+          creationDate: new Date(),
+          extension: originalExtension
+        });
+        
+        console.log('✅ 동영상 표준 파일명 생성 완료:', {
+          location,
+          productName,
+          finalFileName
+        });
       } else if (effectiveUploadMode === 'preserve-filename' || effectiveUploadMode === 'preserve-original') {
         // 파일명 유지: 원본 파일명과 확장자 그대로
         finalFileName = file.originalFilename || `video-${Date.now()}.${originalExtension}`;
@@ -328,11 +362,44 @@ export default async function handler(req, res) {
         
         // 파일명 처리
         if (effectiveUploadMode === 'optimize-filename') {
-          // 파일명 최적화: 폴더 기반 + 타임스탬프 + 랜덤
-          const folderPrefix = extractFolderPrefix(targetFolder);
-          const timestamp = Date.now();
-          const randomString = Math.random().toString(36).substring(2, 8);
-          finalFileName = `${folderPrefix}-${timestamp}-${randomString}.${originalExtension}`;
+          // ✅ 표준 파일명 형식 사용: {위치}-{제품명}-upload-{날짜}-{고유번호}.{확장자}
+          let location = 'uploaded';
+          let productName = 'none';
+          
+          // targetFolder에서 위치 및 제품명 추출
+          if (targetFolder) {
+            location = detectLocation(targetFolder);
+            
+            // 고객 이미지인 경우
+            if (location === 'customers') {
+              const customerName = extractCustomerName(targetFolder);
+              if (customerName) {
+                productName = customerName;
+              }
+            } else {
+              // 제품명 추출
+              const extractedProductName = await extractProductName(undefined, targetFolder);
+              if (extractedProductName) {
+                productName = extractedProductName;
+              }
+            }
+          }
+          
+          // 표준 파일명 생성
+          finalFileName = await generateStandardFileName({
+            location: location,
+            productName: productName,
+            compositionProgram: 'none',
+            compositionFunction: 'upload',
+            creationDate: new Date(),
+            extension: originalExtension
+          });
+          
+          console.log('✅ 표준 파일명 생성 완료:', {
+            location,
+            productName,
+            finalFileName
+          });
         } else {
           // preserve-filename 또는 preserve-original: 원본 파일명 유지
           finalFileName = file.originalFilename || `image-${Date.now()}.${originalExtension}`;
@@ -667,14 +734,14 @@ export default async function handler(req, res) {
 
         // AI 생성된 메타데이터로 업데이트 (중복 방지)
         const { error: updateError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .update({
             alt_text: aiMetadata.alt_text,
             title: aiMetadata.title,
             description: aiMetadata.description,
-            tags: aiMetadata.tags
+            ai_tags: aiMetadata.tags
           })
-          .eq('image_url', imageUrl)
+          .eq('cdn_url', imageUrl)
           .not('alt_text', 'is', null); // 이미 AI 메타데이터가 있는 경우만 업데이트
 
         if (updateError) {
@@ -689,7 +756,7 @@ export default async function handler(req, res) {
       }
     }, 1000); // 1초 후 비동기 실행
 
-    // 메타데이터를 image_metadata 테이블에 저장
+    // 메타데이터를 image_assets 테이블에 저장
     console.log('🔄 메타데이터 저장 중...');
     try {
       // 동영상 파일의 경우 포맷을 확장자 기반으로 설정
@@ -712,7 +779,8 @@ export default async function handler(req, res) {
       }
       
       const metadataRecord = {
-        image_url: imageUrl,
+        cdn_url: imageUrl,
+        file_path: targetFolder ? `${targetFolder}/${finalFileName}` : finalFileName,
         title: finalFileName.replace(/\.[^/.]+$/, ''), // 확장자 제거한 파일명
         file_size: imageMetadata?.size || processedBuffer.length,
         width: imageMetadata?.width || null,
@@ -722,17 +790,17 @@ export default async function handler(req, res) {
         status: 'active',
         hash_md5: hashMd5,
         hash_sha256: hashSha256,
-        optimized_versions: optimizedVersions,
         usage_count: 0
+        // ⚠️ image_assets에는 optimized_versions가 없을 수 있음
       };
 
       console.log('💾 메타데이터 저장 중:', metadataRecord);
 
       // 중복 방지를 위해 먼저 기존 레코드 확인
       const { data: existingRecord, error: checkError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .select('id')
-        .eq('image_url', imageUrl)
+        .eq('cdn_url', imageUrl)
         .single();
 
       if (checkError && checkError.code !== 'PGRST116') {
@@ -744,9 +812,9 @@ export default async function handler(req, res) {
       if (existingRecord) {
         // 기존 레코드가 있으면 업데이트
         const { data: updateData, error: updateError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .update(metadataRecord)
-          .eq('image_url', imageUrl)
+          .eq('cdn_url', imageUrl)
           .select();
         
         if (updateError) {
@@ -758,7 +826,7 @@ export default async function handler(req, res) {
       } else {
         // 새 레코드 생성
         const { data: insertData, error: insertError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .insert(metadataRecord)
           .select();
         

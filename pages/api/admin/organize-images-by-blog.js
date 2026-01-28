@@ -956,9 +956,9 @@ export default async function handler(req, res) {
                     // 방법 1: 새 URL로 찾기
                     if (newUrl) {
                       const { data: urlMeta, error: urlError } = await supabase
-                        .from('image_metadata')
-                        .select('id, blog_posts, usage_count, references, original_path, image_url')
-                        .eq('image_url', newUrl)
+                        .from('image_assets')
+                        .select('id, usage_count, cdn_url, file_path')
+                        .eq('cdn_url', newUrl)
                         .limit(1);
                       
                       if (!urlError && urlMeta && urlMeta.length > 0) {
@@ -971,9 +971,9 @@ export default async function handler(req, res) {
                     // 방법 2: 경로로 찾기 (URL로 못 찾은 경우)
                     if (!metadata && targetPath) {
                       const { data: pathMeta, error: pathError } = await supabase
-                        .from('image_metadata')
-                        .select('id, blog_posts, usage_count, references, original_path, image_url')
-                        .eq('original_path', targetPath)
+                        .from('image_assets')
+                        .select('id, usage_count, cdn_url, file_path')
+                        .eq('file_path', targetPath)
                         .limit(1);
                       
                       if (!pathError && pathMeta && pathMeta.length > 0) {
@@ -987,7 +987,7 @@ export default async function handler(req, res) {
                     if (!metadata && targetPath) {
                       const fileName = targetPath.split('/').pop();
                       const { data: nameMeta, error: nameError } = await supabase
-                        .from('image_metadata')
+                        .from('image_assets')
                         .select('id, blog_posts, usage_count, references, original_path, image_url')
                         .like('original_path', `%/${fileName}`)
                         .limit(1);
@@ -1030,12 +1030,12 @@ export default async function handler(req, res) {
                         };
                         
                         // image_url이 다르면 업데이트
-                        if (newUrl && meta.image_url !== newUrl) {
-                          updateData.image_url = newUrl;
+                        if (newUrl && meta.cdn_url !== newUrl) {
+                          updateData.cdn_url = newUrl;
                         }
                         
                         const { error: updateMetaError } = await supabase
-                          .from('image_metadata')
+                          .from('image_assets')
                           .update(updateData)
                           .eq('id', meta.id);
                         
@@ -1053,15 +1053,15 @@ export default async function handler(req, res) {
                           updateData.original_path = updatedOriginalPath;
                         }
                         
-                        if (newUrl && meta.image_url !== newUrl) {
-                          updateData.image_url = newUrl;
+                        if (newUrl && meta.cdn_url !== newUrl) {
+                          updateData.cdn_url = newUrl;
                         }
                         
                         if (Object.keys(updateData).length > 0) {
                           updateData.last_used_at = new Date().toISOString();
                           
                           const { error: updatePathError } = await supabase
-                            .from('image_metadata')
+                            .from('image_assets')
                             .update(updateData)
                             .eq('id', meta.id);
                           
@@ -1076,7 +1076,7 @@ export default async function handler(req, res) {
                       // 메타데이터가 없으면 새로 생성
                       if (targetPath) {
                         const newMetadata = {
-                          image_url: newUrl,
+                          cdn_url: newUrl,
                           original_path: targetPath,
                           blog_posts: [blogPost.id],
                           references: [{
@@ -1092,7 +1092,7 @@ export default async function handler(req, res) {
                         };
                         
                         const { error: insertMetaError } = await supabase
-                          .from('image_metadata')
+                          .from('image_assets')
                           .insert(newMetadata);
                         
                         if (insertMetaError) {
@@ -1136,7 +1136,7 @@ export default async function handler(req, res) {
                     // 방법 1: 경로로 찾기
                     if (imagePath) {
                       const { data: pathMeta, error: pathError } = await supabase
-                        .from('image_metadata')
+                        .from('image_assets')
                         .select('id, blog_posts, usage_count, references, original_path, image_url')
                         .eq('original_path', imagePath)
                         .limit(1);
@@ -1150,9 +1150,9 @@ export default async function handler(req, res) {
                     if (!metadata && imageUrl) {
                       const normalizedImageUrl = imageUrl.split('?')[0].split('#')[0];
                       const { data: urlMeta, error: urlError } = await supabase
-                        .from('image_metadata')
+                        .from('image_assets')
                         .select('id, blog_posts, usage_count, references, original_path, image_url')
-                        .or(`image_url.eq.${imageUrl},image_url.eq.${normalizedImageUrl}`)
+                        .or(`cdn_url.eq.${imageUrl},cdn_url.eq.${normalizedImageUrl}`)
                         .limit(1);
                       
                       if (!urlError && urlMeta && urlMeta.length > 0) {
@@ -1164,7 +1164,7 @@ export default async function handler(req, res) {
                     if (!metadata && imagePath) {
                       const fileName = imagePath.split('/').pop();
                       const { data: nameMeta, error: nameError } = await supabase
-                        .from('image_metadata')
+                        .from('image_assets')
                         .select('id, blog_posts, usage_count, references, original_path, image_url')
                         .like('original_path', `%/${fileName}`)
                         .limit(1);
@@ -1200,12 +1200,12 @@ export default async function handler(req, res) {
                           last_used_at: new Date().toISOString()
                         };
                         
-                        if (imageUrl && meta.image_url !== imageUrl) {
-                          updateData.image_url = imageUrl;
+                        if (imageUrl && meta.cdn_url !== imageUrl) {
+                          updateData.cdn_url = imageUrl;
                         }
                         
                         const { error: updateMetaError } = await supabase
-                          .from('image_metadata')
+                          .from('image_assets')
                           .update(updateData)
                           .eq('id', meta.id);
                         
@@ -1218,7 +1218,7 @@ export default async function handler(req, res) {
                         // 이미 블로그 글 ID가 있으면 original_path만 업데이트
                         if (meta.original_path !== imagePath) {
                           const { error: updatePathError } = await supabase
-                            .from('image_metadata')
+                            .from('image_assets')
                             .update({
                               original_path: imagePath,
                               last_used_at: new Date().toISOString()
@@ -1240,7 +1240,7 @@ export default async function handler(req, res) {
                       
                       if (newUrlData?.publicUrl) {
                         const newMetadata = {
-                          image_url: newUrlData.publicUrl,
+                          cdn_url: newUrlData.publicUrl,
                           original_path: imagePath,
                           blog_posts: [blogPost.id],
                           references: [{
@@ -1256,7 +1256,7 @@ export default async function handler(req, res) {
                         };
                         
                         const { error: insertMetaError } = await supabase
-                          .from('image_metadata')
+                          .from('image_assets')
                           .insert(newMetadata);
                         
                         if (insertMetaError) {

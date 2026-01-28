@@ -26,7 +26,7 @@ export default async function handler(req, res) {
 
       // 메타데이터에서 버전 정보 조회
       const { data: metadata, error } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .select('*')
         .eq('id', imageId)
         .single();
@@ -115,7 +115,7 @@ export default async function handler(req, res) {
 
       // 메타데이터에 버전 정보 저장
       const { error: updateError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .update({
           versions: JSON.stringify(createdVersions),
           updated_at: new Date().toISOString()
@@ -148,7 +148,7 @@ export default async function handler(req, res) {
 
       // 메타데이터에서 버전 정보 조회
       const { data: metadata, error: fetchError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .select('versions')
         .eq('id', imageId)
         .single();
@@ -185,7 +185,7 @@ export default async function handler(req, res) {
       delete versions[versionType];
       
       const { error: updateError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .update({
           versions: JSON.stringify(versions),
           updated_at: new Date().toISOString()

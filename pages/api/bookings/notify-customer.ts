@@ -330,7 +330,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               // 1. 로고 메타데이터에서 image_url 가져오기
               // ⭐ 수정: is_logo 조건 제거 (logo 폴더 이미지 포함 모든 이미지 허용)
               const { data: logoMetadata, error: fetchError } = await supabase
-                .from('image_metadata')
+                .from('image_assets')
                 .select('image_url, folder_path')
                 .eq('id', logoId)
                 .single();

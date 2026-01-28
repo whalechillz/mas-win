@@ -61,7 +61,7 @@ export default async function handler(req, res) {
 
     // upsert by file_name
     const { data, error } = await supabase
-      .from('image_metadata')
+        .from('image_assets')
       .upsert(payload, { onConflict: 'file_name' })
       .select();
 

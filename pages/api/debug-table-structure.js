@@ -37,7 +37,7 @@ export default async function handler(req, res) {
 
     // 3. image_metadata 테이블 구조 확인
     const { data: imageColumns, error: imageError } = await supabase
-      .from('image_metadata')
+        .from('image_assets')
       .select('*')
       .limit(1);
 

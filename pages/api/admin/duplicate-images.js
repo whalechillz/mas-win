@@ -132,7 +132,7 @@ export default async function handler(req, res) {
         }
 
         const { error: metadataError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .insert(metadata);
 
         if (metadataError) {

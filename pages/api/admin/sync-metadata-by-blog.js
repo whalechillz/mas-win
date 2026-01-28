@@ -217,7 +217,7 @@ const syncMetadataForBlogPost = async (blogPostId) => {
         // 기존 메타데이터 확인
         const normalizedUrl = normalizeUrl(img.url);
         const { data: existingMetadata } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .select('image_url, alt_text, title')
           .eq('image_url', img.url)
           .single();
@@ -321,7 +321,7 @@ const syncMetadataForBlogPost = async (blogPostId) => {
         };
         
         const { error: upsertError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .upsert(metadataPayload, { onConflict: 'image_url' });
         
         if (upsertError) {

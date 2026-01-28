@@ -88,13 +88,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // 고객 이미지 및 장면 설명 조회
       // customer_id 컬럼이 비어있을 수 있으므로 tags 배열을 사용하여 조회
       const { data: images, error: imagesError } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .select('*')
-        .contains('tags', [`customer-${customerId}`]) // tags 배열에 customer-{id} 포함
-        .not('story_scene', 'is', null)
-        .order('story_scene', { ascending: true })
-        .order('is_scene_representative', { ascending: false }) // 대표 이미지 우선
-        .order('display_order', { ascending: true });
+        .contains('ai_tags', [`customer-${customerId}`]) // ai_tags 배열에 customer-{id} 포함
+        // ⚠️ image_assets에는 story_scene, is_scene_representative, display_order가 없음
+        .order('created_at', { ascending: true });
       
       if (imagesError) {
         console.error('❌ 이미지 조회 오류:', imagesError);
@@ -208,7 +206,7 @@ ${reviewContent}
                     ...representativeImageList.slice(0, 20).map((img: any) => ({
                       type: 'image_url',
                       image_url: { 
-                        url: img.image_url,
+                        url: img.cdn_url || img.image_url,
                         detail: 'low' // 비용 절감
                       }
                     }))
@@ -252,7 +250,7 @@ ${reviewContent}
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  imageUrl: img.image_url,
+                  imageUrl: img.cdn_url || img.image_url,
                   title: `장면 ${img.story_scene}`,
                   excerpt: `스토리보드 ${img.story_scene}단계 이미지`
                 })
@@ -314,7 +312,7 @@ ${reviewContent}
     let reviewImageMetadata: any[] = [];
     if (reviewImages && reviewImages.length > 0) {
       const { data: images } = await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .select('*')
         .in('id', reviewImages);
 
@@ -513,7 +511,7 @@ ${reviewContent}
           // 이미지 URL 정규화
           const normalizedUrl = normalizeImageUrl(img.image_url);
           if (!normalizedUrl) {
-            console.warn(`⚠️ 장면 ${img.story_scene} 이미지 URL이 유효하지 않음:`, img.image_url);
+            console.warn(`⚠️ 이미지 URL이 유효하지 않음:`, img.cdn_url || img.image_url);
             return; // 이 이미지는 건너뛰기
           }
           
@@ -545,7 +543,7 @@ ${reviewContent}
           id: img.id,
           scene: img.story_scene,
           filename: img.english_filename,
-          url: img.image_url?.substring(0, 80) + '...',
+          url: (img.cdn_url || img.image_url)?.substring(0, 80) + '...',
           isValid: img.image_url?.startsWith('http')
         })));
       } else {

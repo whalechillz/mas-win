@@ -2,6 +2,7 @@ import { fal } from "@fal-ai/client";
 import { createClient } from '@supabase/supabase-js';
 import { getProductById, generateCompositionPrompt, generateLogoReplacementPrompt, getAbsoluteImageUrl, generateColorChangePrompt } from '../../lib/product-composition';
 import { logFALAIUsage } from '../../lib/ai-usage-logger';
+import { generateStandardFileName, detectLocation } from '../../lib/filename-generator';
 
 // API 타임아웃 설정 (10분)
 export const config = {
@@ -25,12 +26,13 @@ if (process.env.FAL_KEY) {
 
 /**
  * 이미지를 Supabase Storage에 저장
- * 두 곳 저장 방식: 제품 gallery (항상) + 소스 폴더 (있는 경우)
- * - 블로그, 카카오 콘텐츠 등 모든 소스 폴더에 대해 범용적으로 적용
+ * 저장 위치 결정 로직:
+ * - 원본 위치가 각 제품 갤러리이면 → 원본 위치에만 저장
+ * - 원본 위치가 갤러리가 아니면 → 원본 위치 + 제품 갤러리에 저장
  */
-async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', baseImageUrl = null) {
+async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', baseImageUrl = null, originalFileName = null, originalFolderPath = null) {
   try {
-    console.log('💾 이미지 저장 시작:', { imageUrl, productId, baseImageUrl });
+    console.log('💾 이미지 저장 시작:', { imageUrl, productId, baseImageUrl, originalFileName, originalFolderPath });
     
     // 🔍 디버깅: 입력값 상세 로깅
     console.log('🔍 [디버깅] saveImageToSupabase 입력값:', {
@@ -38,14 +40,29 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', bas
       productIdType: typeof productId,
       baseImageUrl: baseImageUrl,
       baseImageUrlType: typeof baseImageUrl,
-      prefix: prefix
+      prefix: prefix,
+      originalFileName: originalFileName,
+      originalFolderPath: originalFolderPath
     });
     
-    // 1. 베이스 이미지 URL에서 소스 폴더 경로 추출
+    // 1. 소스 폴더 경로 결정 (원본 폴더 경로 우선, 없으면 baseImageUrl에서 추출)
     let sourceFolder = null;
     let sourceFolderType = null; // 'blog', 'kakao', 'other'
     
-    if (baseImageUrl) {
+    // 원본 폴더 경로가 있으면 우선 사용
+    if (originalFolderPath) {
+      sourceFolder = originalFolderPath;
+      // 폴더 타입 판단
+      if (originalFolderPath.includes('blog/')) {
+        sourceFolderType = 'blog';
+      } else if (originalFolderPath.includes('kakao/')) {
+        sourceFolderType = 'kakao';
+      } else {
+        sourceFolderType = 'other';
+      }
+      console.log('✅ 원본 폴더 경로 사용:', { sourceFolder, sourceFolderType });
+    } else if (baseImageUrl) {
+      // 원본 폴더 경로가 없으면 baseImageUrl에서 추출
       try {
         // ✅ 여러 패턴 시도
         let match = baseImageUrl.match(/blog-images\/([^?]+)/);
@@ -175,11 +192,44 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', bas
     }
     
     const imageBuffer = await imageResponse.arrayBuffer();
-    const timestamp = Date.now();
     const fileExtension = imageUrl.split('.').pop()?.split('?')[0] || 'png';
     const contentType = imageResponse.headers.get('content-type') || `image/${fileExtension}`;
     
-    // 4. 제품 gallery 폴더 경로 결정 (항상 저장)
+    // 4. 위치 감지 및 파일명 생성 (새로운 표준 형식)
+    let location = 'products';
+    if (sourceFolder) {
+      const detectedLocation = detectLocation(sourceFolder);
+      if (detectedLocation === 'daily-kakao') {
+        location = 'daily-kakao';
+      } else if (detectedLocation === 'goods') {
+        location = 'goods';
+      } else {
+        location = 'products';
+      }
+    } else {
+      // 제품 카테고리에 따라 위치 결정
+      location = (category === 'cap' || category === 'hat' || category === 'accessory' || category === 'goods')
+        ? 'goods'
+        : 'products';
+    }
+    
+    // 표준 파일명 생성
+    const finalFileName = await generateStandardFileName({
+      location: location,
+      productName: productSlug || 'none',
+      compositionProgram: 'nanobanana',
+      compositionFunction: 'composed',
+      creationDate: new Date(),
+      extension: fileExtension
+    });
+    
+    console.log('✅ 표준 파일명 생성 완료:', {
+      location,
+      productSlug,
+      finalFileName
+    });
+    
+    // 5. 제품 gallery 폴더 경로 결정
     const productGalleryFolder = (category === 'cap' || category === 'hat' || category === 'accessory' || category === 'goods')
       ? `originals/goods/${productSlug}/gallery`
       : `originals/products/${productSlug}/gallery`;
@@ -191,12 +241,10 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', bas
       productId: productId
     });
     
-    const productFileName = `${productGalleryFolder}/${prefix}-${productId}-${timestamp}.${fileExtension}`;
-    
-    // 5. 소스 폴더 경로 결정 (있는 경우)
+    // 6. 소스 폴더 경로 결정 (있는 경우)
     let sourceFileName = null;
     if (sourceFolder) {
-      sourceFileName = `${sourceFolder}/${prefix}-${productId}-${timestamp}.${fileExtension}`;
+      sourceFileName = `${sourceFolder}/${finalFileName}`;
     } else {
       // ✅ baseImageUrl에서 경로 추출 실패 시, baseImageUrl 자체에서 카카오 콘텐츠 경로 추출 시도
       if (baseImageUrl) {
@@ -206,7 +254,7 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', bas
           const [, dateStr, accountFolder, typeFolder] = kakaoMatch;
           sourceFolder = `originals/daily-branding/kakao/${dateStr}/${accountFolder}/${typeFolder}`;
           sourceFolderType = 'kakao';
-          sourceFileName = `${sourceFolder}/${prefix}-${productId}-${timestamp}.${fileExtension}`;
+          sourceFileName = `${sourceFolder}/${finalFileName}`;
           console.log('✅ baseImageUrl에서 카카오 콘텐츠 경로 추출 성공 (fallback):', {
             sourceFolder: sourceFolder,
             sourceFileName: sourceFileName
@@ -215,78 +263,138 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', bas
       }
     }
     
-    // 6. 제품 gallery에 저장 (항상 - 필수)
-    const { data: productUploadData, error: productUploadError } = await supabase.storage
-      .from('blog-images')
-      .upload(productFileName, imageBuffer, {
-        contentType: contentType,
-        upsert: false
-      });
+    // 7. 저장 위치 결정 로직
+    // - 원본 위치가 각 제품 갤러리이면 → 원본 위치에만 저장
+    // - 원본 위치가 갤러리가 아니면 → 원본 위치 + 제품 갤러리에 저장
+    // 제품 갤러리 패턴: originals/products/{productSlug}/gallery 또는 originals/goods/{productSlug}/gallery
+    const isSourceGallery = sourceFolder && (
+      (sourceFolder.includes('/products/') && sourceFolder.includes('/gallery')) ||
+      (sourceFolder.includes('/goods/') && sourceFolder.includes('/gallery'))
+    );
     
-    if (productUploadError) {
-      throw new Error(`제품 gallery 저장 실패: ${productUploadError.message}`);
-    }
+    console.log('🔍 [디버깅] 저장 위치 결정:', {
+      sourceFolder: sourceFolder,
+      isSourceGallery: isSourceGallery,
+      productGalleryFolder: productGalleryFolder
+    });
     
-    const { data: { publicUrl: productPublicUrl } } = supabase.storage
-      .from('blog-images')
-      .getPublicUrl(productFileName);
-    
-    console.log('✅ 제품 gallery 저장 완료:', productFileName);
-    
-    // 7. 소스 폴더에도 저장 (있는 경우 - 선택)
+    let savedFileName = null;
+    let savedPublicUrl = null;
+    let savedPath = null;
+    let savedLocations = [];
     let sourcePublicUrl = null;
-    if (sourceFileName) {
-      try {
-        const { data: sourceUploadData, error: sourceUploadError } = await supabase.storage
-          .from('blog-images')
-          .upload(sourceFileName, imageBuffer, {
-            contentType: contentType,
-            upsert: false
-          });
-        
-        if (!sourceUploadError) {
-          const { data: { publicUrl } } = supabase.storage
+    let sourcePath = null;
+    
+    if (isSourceGallery && sourceFileName) {
+      // 원본 위치가 각 제품 갤러리이면 → 원본 위치에만 저장
+      console.log('📁 원본 위치가 각 제품 갤러리 → 원본 위치에만 저장');
+      savedFileName = sourceFileName;
+      savedPath = sourceFolder;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('blog-images')
+        .upload(savedFileName, imageBuffer, {
+          contentType: contentType,
+          upsert: false
+        });
+      
+      if (uploadError) {
+        throw new Error(`원본 위치 저장 실패: ${uploadError.message}`);
+      }
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('blog-images')
+        .getPublicUrl(savedFileName);
+      savedPublicUrl = publicUrl;
+      savedLocations = ['source_folder'];
+      
+      console.log('✅ 원본 위치(갤러리) 저장 완료:', savedFileName);
+    } else {
+      // 원본 위치가 갤러리가 아니면 → 원본 위치 + 제품 갤러리에 저장
+      console.log('📁 원본 위치가 갤러리가 아님 → 원본 위치 + 제품 갤러리에 저장');
+      
+      const productFileName = `${productGalleryFolder}/${finalFileName}`;
+      
+      // 1. 제품 갤러리에 저장 (항상)
+      const { data: productUploadData, error: productUploadError } = await supabase.storage
+        .from('blog-images')
+        .upload(productFileName, imageBuffer, {
+          contentType: contentType,
+          upsert: false
+        });
+      
+      if (productUploadError) {
+        throw new Error(`제품 gallery 저장 실패: ${productUploadError.message}`);
+      }
+      
+      const { data: { publicUrl: productPublicUrl } } = supabase.storage
+        .from('blog-images')
+        .getPublicUrl(productFileName);
+      
+      savedFileName = productFileName;
+      savedPublicUrl = productPublicUrl;
+      savedPath = productGalleryFolder;
+      savedLocations.push('product_gallery');
+      
+      console.log('✅ 제품 갤러리 저장 완료:', productFileName);
+      
+      // 2. 원본 위치에도 저장 (있는 경우)
+      if (sourceFileName) {
+        try {
+          const { data: sourceUploadData, error: sourceUploadError } = await supabase.storage
             .from('blog-images')
-            .getPublicUrl(sourceFileName);
-          sourcePublicUrl = publicUrl;
-          console.log('✅ 소스 폴더 저장 완료:', sourceFileName);
-        } else {
-          console.warn('⚠️ 소스 폴더 저장 실패 (제품 gallery는 저장됨):', sourceUploadError.message);
+            .upload(sourceFileName, imageBuffer, {
+              contentType: contentType,
+              upsert: false
+            });
+          
+          if (!sourceUploadError) {
+            const { data: { publicUrl } } = supabase.storage
+              .from('blog-images')
+              .getPublicUrl(sourceFileName);
+            sourcePublicUrl = publicUrl;
+            sourcePath = sourceFileName;
+            savedLocations.push('source_folder');
+            console.log('✅ 원본 위치 저장 완료:', sourceFileName);
+          } else {
+            console.warn('⚠️ 원본 위치 저장 실패 (제품 갤러리는 저장됨):', sourceUploadError.message);
+          }
+        } catch (sourceErr) {
+          console.warn('⚠️ 원본 위치 저장 중 오류 (제품 갤러리는 저장됨):', sourceErr.message);
         }
-      } catch (sourceErr) {
-        console.warn('⚠️ 소스 폴더 저장 중 오류 (제품 gallery는 저장됨):', sourceErr.message);
       }
     }
     
     // 8. 저장 결과 반환
     const result = {
-      fileName: productFileName,
-      publicUrl: productPublicUrl,
-      path: productFileName,
+      fileName: savedFileName,
+      publicUrl: savedPublicUrl,
+      path: savedPath,
       originalUrl: imageUrl,
-      // 소스 폴더 정보 (있는 경우)
-      sourcePath: sourceFileName,
-      sourceUrl: sourcePublicUrl,
-      sourceFolderType: sourceFolderType,
       // 저장 위치 정보
-      savedLocations: sourceFileName 
-        ? ['product_gallery', 'source_folder']
-        : ['product_gallery']
+      savedLocations: savedLocations,
+      // 원본 위치 정보 (있는 경우)
+      sourcePath: sourcePath || (isSourceGallery ? savedFileName : null),
+      sourceUrl: sourcePublicUrl || (isSourceGallery ? savedPublicUrl : null),
+      sourceFolderType: sourceFolderType || null
     };
     
     console.log('✅ 이미지 저장 완료:', {
-      productGallery: productFileName,
-      sourceFolder: sourceFileName || '없음',
-      savedLocations: result.savedLocations
+      savedFileName: savedFileName,
+      savedPath: savedPath,
+      sourcePath: sourcePath,
+      savedLocations: savedLocations,
+      isSourceGallery: isSourceGallery
     });
     
-    // 메타데이터 저장 (소스 폴더 저장 성공 후)
-    if (sourceFileName && sourcePublicUrl) {
-      await saveImageMetadata(sourcePublicUrl, sourceFileName, sourceFolderType);
-    }
+    // 메타데이터 저장
+    // 제품 갤러리 메타데이터 저장 (원본 이미지 URL 전달)
+    await saveImageMetadata(savedPublicUrl, savedFileName, 'product_gallery', null, baseImageUrl);
     
-    // 제품 gallery에도 메타데이터 저장
-    await saveImageMetadata(productPublicUrl, productFileName, 'product_gallery');
+    // 원본 위치 메타데이터 저장 (있는 경우)
+    if (sourcePublicUrl && sourcePath) {
+      await saveImageMetadata(sourcePublicUrl, sourcePath, sourceFolderType || 'other', null, baseImageUrl);
+    }
     
     return result;
   } catch (error) {
@@ -298,7 +406,7 @@ async function saveImageToSupabase(imageUrl, productId, prefix = 'composed', bas
 /**
  * 이미지 메타데이터 저장/업데이트
  */
-async function saveImageMetadata(imageUrl, filePath, sourceFolderType, platform = null) {
+async function saveImageMetadata(imageUrl, filePath, sourceFolderType, platform = null, baseImageUrl = null) {
   try {
     // 소스 타입에 따른 태그 및 채널 설정
     let tags = ['product-composition'];
@@ -323,45 +431,125 @@ async function saveImageMetadata(imageUrl, filePath, sourceFolderType, platform 
       channel = 'naver';
     }
     
-    // image_metadata에 저장/업데이트
+    // 원본 이미지가 고객 이미지인 경우 고객 정보 추가
+    let customerId = null;
+    let visitDate = null;
+    
+    if (baseImageUrl) {
+      try {
+        // 원본 이미지 메타데이터 조회
+        const { data: originalMetadata } = await supabase
+          .from('image_assets')
+          .select('file_path, ai_tags')
+          .eq('cdn_url', baseImageUrl)
+          .maybeSingle();
+        
+        if (originalMetadata) {
+          // file_path에서 고객 폴더 확인
+          if (originalMetadata.file_path && originalMetadata.file_path.includes('originals/customers/')) {
+            const customerMatch = originalMetadata.file_path.match(/customers\/([^/]+)/);
+            if (customerMatch) {
+              const customerFolderName = customerMatch[1];
+              
+              // 고객 정보 조회
+              const { data: customer } = await supabase
+                .from('customers')
+                .select('id, folder_name')
+                .eq('folder_name', customerFolderName)
+                .maybeSingle();
+              
+              if (customer) {
+                customerId = customer.id;
+                
+                // 날짜 추출 (file_path에서 또는 현재 날짜)
+                const dateMatch = originalMetadata.file_path.match(/(\d{4}-\d{2}-\d{2})/);
+                visitDate = dateMatch ? dateMatch[1] : new Date().toISOString().slice(0, 10);
+                
+                // 고객 태그 추가
+                const customerTag = `customer-${customerId}`;
+                const visitTag = `visit-${visitDate}`;
+                tags.push(customerTag, visitTag);
+                
+                console.log('✅ 제품 합성: 고객 정보 추가:', {
+                  customerId,
+                  visitDate,
+                  customerTag,
+                  visitTag
+                });
+              }
+            }
+          }
+          
+          // ai_tags에서 고객 정보 추출 (file_path에서 찾지 못한 경우)
+          if (!customerId && originalMetadata.ai_tags && Array.isArray(originalMetadata.ai_tags)) {
+            const customerTag = originalMetadata.ai_tags.find((tag) => 
+              typeof tag === 'string' && tag.startsWith('customer-')
+            );
+            const visitTag = originalMetadata.ai_tags.find((tag) => 
+              typeof tag === 'string' && tag.startsWith('visit-')
+            );
+            
+            if (customerTag) {
+              customerId = parseInt(customerTag.replace('customer-', ''), 10);
+              tags.push(customerTag);
+            }
+            if (visitTag) {
+              visitDate = visitTag.replace('visit-', '');
+              tags.push(visitTag);
+            }
+            
+            if (customerId) {
+              console.log('✅ 제품 합성: ai_tags에서 고객 정보 추출:', {
+                customerId,
+                visitDate
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ 원본 이미지 메타데이터 조회 실패 (계속 진행):', error.message);
+      }
+    }
+    
+    // image_assets에 저장/업데이트
     const { data: existing } = await supabase
-      .from('image_metadata')
-      .select('id, tags')
-      .eq('image_url', imageUrl)
+      .from('image_assets')
+      .select('id, ai_tags')
+      .eq('cdn_url', imageUrl)
       .maybeSingle();
     
     if (existing) {
       // 기존 메타데이터 업데이트 (태그 병합)
-      const existingTags = existing.tags || [];
+      const existingTags = existing.ai_tags || existing.tags || [];
       const mergedTags = [...new Set([...existingTags, ...tags])];
       
       await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .update({
-          tags: mergedTags,
+          ai_tags: mergedTags,
           upload_source: source,
           updated_at: new Date().toISOString()
         })
         .eq('id', existing.id);
       
-      console.log('✅ 이미지 메타데이터 업데이트 완료:', { imageUrl, tags: mergedTags, source, channel });
+      console.log('✅ 이미지 메타데이터 업데이트 완료:', { imageUrl, tags: mergedTags, source });
     } else {
       // 새 메타데이터 생성
       const folderPath = filePath.split('/').slice(0, -1).join('/');
       
       await supabase
-        .from('image_metadata')
+        .from('image_assets')
         .insert({
-          image_url: imageUrl,
-          folder_path: folderPath,
-          tags: tags,
+          cdn_url: imageUrl,
+          file_path: filePath,
+          ai_tags: tags,
           upload_source: source,
           status: 'active',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
       
-      console.log('✅ 이미지 메타데이터 생성 완료:', { imageUrl, tags, source, channel });
+      console.log('✅ 이미지 메타데이터 생성 완료:', { imageUrl, tags, source });
     }
   } catch (error) {
     console.warn('⚠️ 이미지 메타데이터 저장 실패:', error.message);
@@ -559,7 +747,9 @@ export default async function handler(req, res) {
       compositionBackground = 'natural', // 배경 타입: 'natural' | 'studio' | 'product-page'
       productOnlyMode = false, // 제품컷 전용 모드
       baseImageUrl = null, // 베이스 이미지 URL (저장 위치 결정용)
-      imageType = null // 이미지 타입: 'profile' | 'feed' | 'background' (프로필 이미지용 클로즈업 지시사항)
+      imageType = null, // 이미지 타입: 'profile' | 'feed' | 'background' (프로필 이미지용 클로즈업 지시사항)
+      originalFileName = null, // 원본 파일명 (파일명 최적화용)
+      originalFolderPath = null // 원본 폴더 경로 (저장 위치 최적화용)
     } = req.body;
 
     // 🔍 디버깅: 요청 파라미터 상세 로깅
@@ -1145,7 +1335,9 @@ export default async function handler(req, res) {
           image.url, 
           productId, 
           `composed-${i + 1}`,
-          baseImageUrl || modelImageUrl // 베이스 이미지 URL 전달 (저장 위치 결정용)
+          baseImageUrl || modelImageUrl, // 베이스 이미지 URL 전달 (저장 위치 결정용)
+          originalFileName, // 원본 파일명 (파일명 최적화용)
+          originalFolderPath // 원본 폴더 경로 (저장 위치 최적화용)
         );
         savedImages.push({
           ...saved,

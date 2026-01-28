@@ -5,6 +5,8 @@
  */
 
 import { translateKoreanToEnglish } from './korean-to-english-translator';
+import { detectScannedDocument } from './scanned-document-detector';
+import { generateCustomerFolderName } from './customer-folder-name-generator';
 
 /**
  * 고객 이름에서 이니셜 추출
@@ -161,7 +163,6 @@ export function generateCustomerImageFileName(
   index?: number
 ): { fileName: string; scene: number; type: string } {
   // 고객 영문 이름 가져오기 (이니셜이 아닌 풀네임)
-  const { translateKoreanToEnglish } = require('./korean-to-english-translator');
   const customerNameEn = customer.name_en || translateKoreanToEnglish(customer.name);
   // 하이픈과 공백 제거하고 소문자로 변환
   const nameEn = customerNameEn
@@ -172,7 +173,6 @@ export function generateCustomerImageFileName(
     || (customer.initials || getCustomerInitials(customer.name));
   
   // 스캔 문서 감지
-  const { detectScannedDocument } = require('./scanned-document-detector');
   const documentDetection = detectScannedDocument(originalFileName);
   const isScannedDocument = documentDetection.isDocument;
   
@@ -326,7 +326,6 @@ export async function generateFinalCustomerImageFileName(
   const fileName = `${nameEn}-${sceneCode}-${dateStr}-${sequenceStr}${extension}`;
   
   // 고객 폴더명 생성
-  const { generateCustomerFolderName } = require('./customer-folder-name-generator');
   const customerFolderName = customer.folder_name || generateCustomerFolderName({
     name: customer.name,
     phone: customer.phone || ''

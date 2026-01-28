@@ -1,0 +1,590 @@
+{
+  "basePath": "/Users/m2/MASLABS/00.blog_customers",
+  "years": [
+    "2020",
+    "2022",
+    "2023",
+    "2024",
+    "2025",
+    "2026"
+  ],
+  "folderStructure": {
+    "2020": {
+      "path": "/Users/m2/MASLABS/00.blog_customers/2020",
+      "customerFolders": [
+        {
+          "name": "2020.09.02.최석호",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2020/2020.09.02.최석호",
+          "imageCount": 4
+        },
+        {
+          "name": "2020.11.18.최석호_전화후기",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2020/2020.11.18.최석호_전화후기",
+          "imageCount": 0
+        },
+        {
+          "name": "2020.12.10.최석호_전화후기",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2020/2020.12.10.최석호_전화후기",
+          "imageCount": 0
+        }
+      ],
+      "totalImages": 0
+    },
+    "2022": {
+      "path": "/Users/m2/MASLABS/00.blog_customers/2022",
+      "customerFolders": [
+        {
+          "name": "2022.04.18.장진수",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2022/2022.04.18.장진수",
+          "imageCount": 1
+        }
+      ],
+      "totalImages": 0
+    },
+    "2023": {
+      "path": "/Users/m2/MASLABS/00.blog_customers/2023",
+      "customerFolders": [
+        {
+          "name": "2023.11.27.김봉현-010-4880-7159",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.11.27.김봉현-010-4880-7159",
+          "imageCount": 9
+        },
+        {
+          "name": "2023.12.12.김용석",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.12.12.김용석",
+          "imageCount": 9
+        },
+        {
+          "name": "2023.05.19.김석구",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.05.19.김석구",
+          "imageCount": 6
+        },
+        {
+          "name": "2023.06.12.김영진-010-8832-9806",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.12.김영진-010-8832-9806",
+          "imageCount": 6
+        },
+        {
+          "name": "2023.06.14.이윤희-010-3532-4572",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.14.이윤희-010-3532-4572",
+          "imageCount": 6
+        },
+        {
+          "name": "2023.08.08.안영호",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.08.08.안영호",
+          "imageCount": 6
+        },
+        {
+          "name": "2023.05.17.황인석",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.05.17.황인석",
+          "imageCount": 5
+        },
+        {
+          "name": "2023.05.31.채문석",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.05.31.채문석",
+          "imageCount": 5
+        },
+        {
+          "name": "2023.06.09.김선옥",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.09.김선옥",
+          "imageCount": 5
+        },
+        {
+          "name": "2023.06.20.조성대",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.20.조성대",
+          "imageCount": 5
+        },
+        {
+          "name": "2023.06.21.김한구",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.21.김한구",
+          "imageCount": 5
+        },
+        {
+          "name": "2023.07.13.하종천",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.13.하종천",
+          "imageCount": 5
+        },
+        {
+          "name": "2023.08.16.송화용",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.08.16.송화용",
+          "imageCount": 5
+        },
+        {
+          "name": "2023.12.08.한귀용",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.12.08.한귀용",
+          "imageCount": 5
+        },
+        {
+          "name": "2023.12.18.정해선",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.12.18.정해선",
+          "imageCount": 5
+        },
+        {
+          "name": "2023.05.23.박중진",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.05.23.박중진",
+          "imageCount": 4
+        },
+        {
+          "name": "2023.06.05.이수원",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.05.이수원",
+          "imageCount": 4
+        },
+        {
+          "name": "2023.06.07.김영필",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.07.김영필",
+          "imageCount": 4
+        },
+        {
+          "name": "2023.06.27.조보현-010-8752-8857",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.27.조보현-010-8752-8857",
+          "imageCount": 4
+        },
+        {
+          "name": "2023.07.12.민호식",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.12.민호식",
+          "imageCount": 4
+        },
+        {
+          "name": "2023.07.17.심원섭",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.17.심원섭",
+          "imageCount": 4
+        },
+        {
+          "name": "2023.07.26.유병묵",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.26.유병묵",
+          "imageCount": 4
+        },
+        {
+          "name": "2023.08.23.문광배",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.08.23.문광배",
+          "imageCount": 4
+        },
+        {
+          "name": "2023.08.29.박진욱",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.08.29.박진욱",
+          "imageCount": 4
+        },
+        {
+          "name": "2023.10.26.김순복",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.10.26.김순복",
+          "imageCount": 4
+        },
+        {
+          "name": "2023.07.03.이강석",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.03.이강석",
+          "imageCount": 3
+        },
+        {
+          "name": "2023.07.19.김찬기",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.19.김찬기",
+          "imageCount": 3
+        },
+        {
+          "name": "2023.07.24.이준희",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.24.이준희",
+          "imageCount": 3
+        },
+        {
+          "name": "2023.08.04.강병부",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.08.04.강병부",
+          "imageCount": 3
+        },
+        {
+          "name": "2023.11.27.이경민",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2023/2023.11.27.이경민",
+          "imageCount": 3
+        }
+      ],
+      "totalImages": 0
+    },
+    "2024": {
+      "path": "/Users/m2/MASLABS/00.blog_customers/2024",
+      "customerFolders": [
+        {
+          "name": "2024.10.21.try-a-massgoo",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.21.try-a-massgoo",
+          "imageCount": 17
+        },
+        {
+          "name": "2024.10.15.박성우",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.15.박성우",
+          "imageCount": 12
+        },
+        {
+          "name": "2024.10.29.이남구",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.29.이남구",
+          "imageCount": 12
+        },
+        {
+          "name": "2024.11.05.전진용",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.05.전진용",
+          "imageCount": 10
+        },
+        {
+          "name": "2024.11.12.박영관",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.12.박영관",
+          "imageCount": 10
+        },
+        {
+          "name": "2024.11.11.김수환",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.11.김수환",
+          "imageCount": 9
+        },
+        {
+          "name": "2024.09.29.임태희",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.09.29.임태희",
+          "imageCount": 8
+        },
+        {
+          "name": "2024.09.10.이용복",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.09.10.이용복",
+          "imageCount": 7
+        },
+        {
+          "name": "2024.11.13.최승남",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.13.최승남",
+          "imageCount": 7
+        },
+        {
+          "name": "2024.11.18.방광설",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.18.방광설",
+          "imageCount": 7
+        },
+        {
+          "name": "2024.11.22.김사빈",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.22.김사빈",
+          "imageCount": 7
+        },
+        {
+          "name": "2024.11.24.유재영",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.24.유재영",
+          "imageCount": 7
+        },
+        {
+          "name": "2024.12.05.조양현",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.12.05.조양현",
+          "imageCount": 7
+        },
+        {
+          "name": "2024.01.02.조영수",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.01.02.조영수",
+          "imageCount": 6
+        },
+        {
+          "name": "2024.05.28.제동환",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.05.28.제동환",
+          "imageCount": 6
+        },
+        {
+          "name": "2024.10.21.김종철",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.21.김종철",
+          "imageCount": 6
+        },
+        {
+          "name": "2024.10.26.신재식",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.26.신재식",
+          "imageCount": 6
+        },
+        {
+          "name": "2024.11.06.권성수",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.06.권성수",
+          "imageCount": 6
+        },
+        {
+          "name": "2024.12.31.장근수",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.12.31.장근수",
+          "imageCount": 6
+        },
+        {
+          "name": "2024.10.02.윤효영",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.02.윤효영",
+          "imageCount": 5
+        },
+        {
+          "name": "2024.11.05.박성원",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.05.박성원",
+          "imageCount": 5
+        },
+        {
+          "name": "2024.01.10.김재희",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.01.10.김재희",
+          "imageCount": 4
+        },
+        {
+          "name": "2024.01.14.유홍근",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.01.14.유홍근",
+          "imageCount": 4
+        },
+        {
+          "name": "2024.09.09.박성우",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.09.09.박성우",
+          "imageCount": 4
+        },
+        {
+          "name": "2024.11.25.연재화",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.25.연재화",
+          "imageCount": 4
+        },
+        {
+          "name": "2024.12.12.조보현-010-8752-8857",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.12.12.조보현-010-8752-8857",
+          "imageCount": 4
+        },
+        {
+          "name": "2024.01.10 이종수",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.01.10 이종수",
+          "imageCount": 3
+        },
+        {
+          "name": "2024.03.06.이옥형",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.03.06.이옥형",
+          "imageCount": 3
+        },
+        {
+          "name": "2024.10.10.김종철.DJI",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.10.김종철.DJI",
+          "imageCount": 3
+        },
+        {
+          "name": "2024.10.31.김선애",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.31.김선애",
+          "imageCount": 3
+        },
+        {
+          "name": "2024.08.30.이수원",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2024/2024.08.30.이수원",
+          "imageCount": 2
+        }
+      ],
+      "totalImages": 0
+    },
+    "2025": {
+      "path": "/Users/m2/MASLABS/00.blog_customers/2025",
+      "customerFolders": [
+        {
+          "name": "2025.05.30.박영구",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.05.30.박영구",
+          "imageCount": 18
+        },
+        {
+          "name": "2025.06.05.민호식",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.06.05.민호식",
+          "imageCount": 17
+        },
+        {
+          "name": "2025.12.18.김정석",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.12.18.김정석",
+          "imageCount": 7
+        },
+        {
+          "name": "2025.12.26.박동렬",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.12.26.박동렬",
+          "imageCount": 7
+        },
+        {
+          "name": "2025.01.24.강성동",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.01.24.강성동",
+          "imageCount": 6
+        },
+        {
+          "name": "2025.11.23.신희갑",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.23.신희갑",
+          "imageCount": 6
+        },
+        {
+          "name": "2025.02.12.최범규",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.02.12.최범규",
+          "imageCount": 5
+        },
+        {
+          "name": "2025.02.27.이순길",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.02.27.이순길",
+          "imageCount": 5
+        },
+        {
+          "name": "2025.04.18.박봉수",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.04.18.박봉수",
+          "imageCount": 5
+        },
+        {
+          "name": "2025.06.04.홍기봉-010-5270-8688",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.06.04.홍기봉-010-5270-8688",
+          "imageCount": 5
+        },
+        {
+          "name": "2025.10.23.김종안",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.23.김종안",
+          "imageCount": 5
+        },
+        {
+          "name": "2025.12.02.김원풍운",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.12.02.김원풍운",
+          "imageCount": 5
+        },
+        {
+          "name": "2025.01.08.김성묵",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.01.08.김성묵",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.01.14.묵현상",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.01.14.묵현상",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.02.20.박용옥",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.02.20.박용옥",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.03.13.김홍창",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.03.13.김홍창",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.04.10.이희익",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.04.10.이희익",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.04.25.채영태",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.04.25.채영태",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.04.29.최범규",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.04.29.최범규",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.04.30.강원식",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.04.30.강원식",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.06.02.김상현",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.06.02.김상현",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.09.08.김학규",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.09.08.김학규",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.09.08.조병섭",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.09.08.조병섭",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.10.28.원종문",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.28.원종문",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.11.06.강상휘",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.06.강상휘",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.11.11.김홍창",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.11.김홍창",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.11.11.정태웅",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.11.정태웅",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.11.20.김승훈",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.20.김승훈",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.11.24.이상천",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.24.이상천",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.12.18.김석구",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.12.18.김석구",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.12.19. 강영길",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.12.19. 강영길",
+          "imageCount": 4
+        },
+        {
+          "name": "2025.02.21.정형표",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.02.21.정형표",
+          "imageCount": 3
+        },
+        {
+          "name": "2025.11.06.장가반",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.06.장가반",
+          "imageCount": 3
+        },
+        {
+          "name": "2025.09.26.윤종덕",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.09.26.윤종덕",
+          "imageCount": 2
+        },
+        {
+          "name": "2025.10.13.안중철",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.13.안중철",
+          "imageCount": 1
+        },
+        {
+          "name": "2025.10.14.정윤호",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.14.정윤호",
+          "imageCount": 1
+        },
+        {
+          "name": "2025.10.14.채영태",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.14.채영태",
+          "imageCount": 1
+        },
+        {
+          "name": "2025.10.15.문은경",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.15.문은경",
+          "imageCount": 1
+        },
+        {
+          "name": "2025.10.17.이주동",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.17.이주동",
+          "imageCount": 1
+        }
+      ],
+      "totalImages": 0
+    },
+    "2026": {
+      "path": "/Users/m2/MASLABS/00.blog_customers/2026",
+      "customerFolders": [
+        {
+          "name": "2026.01.08.김가영",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2026/2026.01.08.김가영",
+          "imageCount": 12
+        },
+        {
+          "name": "2026.01.05.신희갑",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2026/2026.01.05.신희갑",
+          "imageCount": 5
+        },
+        {
+          "name": "2026.01.07.박진욱",
+          "path": "/Users/m2/MASLABS/00.blog_customers/2026/2026.01.07.박진욱",
+          "imageCount": 1
+        }
+      ],
+      "totalImages": 0
+    }
+  },
+  "statistics": {
+    "totalYears": 6,
+    "totalCustomerFolders": 107,
+    "totalImages": 545
+  },
+  "timestamp": "2026-01-25T15:54:06.123Z"
+}

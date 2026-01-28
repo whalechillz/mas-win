@@ -37,29 +37,26 @@ const uploadOriginalToSupabase = async (supabase, folderPath, imageBuffer, conte
   return urlData?.publicUrl || null;
 };
 
-// image_metadata에 메타데이터 생성/업데이트
+// image_assets에 메타데이터 생성/업데이트
 const upsertImageMetadata = async (supabase, payload) => {
   if (!payload.image_url) return;
 
   const metadataPayload = {
-    image_url: payload.image_url,
-    folder_path: payload.folder_path || null,
-    date_folder: payload.date_folder || null,
-    source: 'mms',
-    channel: 'sms',
+    cdn_url: payload.image_url,
+    file_path: payload.original_path || payload.folder_path || null,
     file_size: payload.file_size || null,
     width: payload.width || null,
     height: payload.height || null,
     format: 'jpg',
     upload_source: 'mms-gallery-select',
-    tags: payload.tags || [],
-    original_path: payload.original_path || null,
+    ai_tags: payload.tags || [],
     updated_at: new Date().toISOString()
+    // ⚠️ image_assets에는 다음 필드들이 없음: folder_path, date_folder, source, channel, original_path
   };
 
   const { error } = await supabase
-    .from('image_metadata')
-    .upsert(metadataPayload, { onConflict: 'image_url' });
+    .from('image_assets')
+    .upsert(metadataPayload, { onConflict: 'cdn_url' });
 
   if (error) {
     console.error('⚠️ image_metadata upsert 실패:', error.message);
@@ -176,16 +173,16 @@ export default async function handler(req, res) {
         
         // ⭐ 수정: 이미지가 이미 Supabase Storage에 있는지 확인
         const { data: existingMetadata, error: checkError } = await supabase
-          .from('image_metadata')
+          .from('image_assets')
           .select('*')
-          .eq('image_url', imageUrl)
+          .eq('cdn_url', imageUrl)
           .maybeSingle();
         
         if (existingMetadata) {
           // ⭐ 이미 존재하는 이미지: 복사하지 않고 태그만 추가
           console.log('✅ 기존 이미지 발견, 링크로 사용:', imageUrl);
           
-          const existingTags = existingMetadata.tags || [];
+          const existingTags = existingMetadata.ai_tags || existingMetadata.tags || [];
           const newTag = `sms-${messageId}`;
           
           // 태그가 없으면 추가
@@ -193,7 +190,7 @@ export default async function handler(req, res) {
             const updatedTags = [...existingTags, newTag];
             
             await upsertImageMetadata(supabase, {
-              image_url: imageUrl,
+              cdn_url: imageUrl,
               tags: updatedTags,
               folder_path: existingMetadata.folder_path, // 원본 폴더 유지
               date_folder: existingMetadata.date_folder
@@ -225,7 +222,7 @@ export default async function handler(req, res) {
             
             // 메타데이터 생성
             await upsertImageMetadata(supabase, {
-              image_url: supabaseUrl,
+              cdn_url: supabaseUrl,
               folder_path: folderPath,
               date_folder: dateFolder,
               file_size: imageBuffer.length,

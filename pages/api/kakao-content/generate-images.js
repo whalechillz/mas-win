@@ -1,5 +1,6 @@
 import { logFALAIUsage } from '../../../lib/ai-usage-logger';
 import { createClient } from '@supabase/supabase-js';
+import { generateStandardFileName } from '../../../lib/filename-generator';
 // Sharp는 동적 import로 로드 (Vercel 환경 호환성)
 
 // API 타임아웃 설정 (5분) - 이미지 생성 + 제품 합성 시간 고려
@@ -322,10 +323,21 @@ export default async function handler(req, res) {
             
             const accountFolder = metadata.account === 'account1' ? 'account1' : 'account2';
             const typeFolder = metadata.type;
-            const timestamp = Date.now();
             
-            // ✅ 모든 타입을 JPG로 저장
-            finalFileName = `kakao-${metadata.account}-${metadata.type}-${timestamp}-${i + 1}-${imgIdx + 1}.jpg`;
+            // 표준 파일명 생성 (제품 합성 여부 확인 필요)
+            // TODO: 제품 합성 정보가 있으면 productName과 compositionProgram/compositionFunction 설정
+            const dateObj = new Date(dateStr);
+            
+            finalFileName = await generateStandardFileName({
+              location: 'daily-kakao',
+              productName: 'none', // TODO: 제품 합성 시 제품 slug로 변경
+              compositionProgram: 'none', // TODO: 제품 합성 시 'nanobanana'로 변경
+              compositionFunction: 'none', // TODO: 제품 합성 시 'composed'로 변경
+              creationDate: dateObj,
+              uniqueNumber: imgIdx + 1, // 이미지 인덱스로 고유번호 설정
+              extension: 'jpg'
+            });
+            
             finalFilePath = `originals/daily-branding/kakao/${dateStr}/${accountFolder}/${typeFolder}/${finalFileName}`;
             
             console.log(`📁 카카오 콘텐츠 저장 경로: ${finalFilePath}`);
@@ -370,14 +382,14 @@ export default async function handler(req, res) {
               const isAIGenerated = !metadata.account || logoOption;
               
               const metadataPayload = {
-                image_url: storedUrl,
-                file_name: finalFileName,
+                cdn_url: storedUrl,
+                file_path: finalFileName, // 파일 경로는 필요시 추가
                 alt_text: metadata.message || promptData.prompt || '',
                 title: isAIGenerated 
                   ? `AI 생성 이미지 - ${metadata.type === 'background' ? '배경' : metadata.type === 'profile' ? '프로필' : '피드'} (${imgIdx + 1}/${generatedImages.length})`
                   : `${metadata.account === 'account1' ? '대표폰' : '업무폰'} - ${metadata.type === 'background' ? '배경' : metadata.type === 'profile' ? '프로필' : '피드'} (${imgIdx + 1}/${generatedImages.length})`,
                 description: promptData.prompt || '',
-                tags: isAIGenerated
+                ai_tags: isAIGenerated
                   ? [
                       'AI 생성',
                       metadata.type === 'background' ? '배경' : metadata.type === 'profile' ? '프로필' : '피드',
@@ -395,17 +407,14 @@ export default async function handler(req, res) {
                       metadata.date || '',
                       `옵션${imgIdx + 1}`
                     ],
-                category: isAIGenerated 
-                  ? 'AI 생성 이미지'
-                  : (metadata.account === 'account1' ? '시니어 골퍼' : '젊은 골퍼'),
                 upload_source: isAIGenerated ? 'ai_image_generator' : 'kakao_content_ai',
-                channel: isAIGenerated ? 'ai' : 'kakao',
                 updated_at: new Date().toISOString()
+                // ⚠️ image_assets에는 다음 필드들이 없음: file_name, category, channel
               };
               
               const { error: metadataError } = await supabase
-                .from('image_metadata')
-                .upsert(metadataPayload, { onConflict: 'image_url' });
+                .from('image_assets')
+                .upsert(metadataPayload, { onConflict: 'cdn_url' });
               
               if (metadataError) {
                 console.error('메타데이터 저장 오류:', metadataError);

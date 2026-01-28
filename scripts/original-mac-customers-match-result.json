@@ -1,0 +1,1736 @@
+{
+  "total": 106,
+  "matched": 3,
+  "unmatched": 103,
+  "matchedByPhone": 3,
+  "matchedByName": 0,
+  "results": [
+    {
+      "year": "2020",
+      "folderName": "2020.09.02.최석호",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2020/2020.09.02.최석호",
+      "extractedInfo": {
+        "date": "2020-09-02",
+        "customerName": "최석호",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2020",
+      "folderName": "2020.11.18.최석호_전화후기",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2020/2020.11.18.최석호_전화후기",
+      "extractedInfo": {
+        "date": "2020-11-18",
+        "customerName": "최석호_전화후기",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2020",
+      "folderName": "2020.12.10.최석호_전화후기",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2020/2020.12.10.최석호_전화후기",
+      "extractedInfo": {
+        "date": "2020-12-10",
+        "customerName": "최석호_전화후기",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2022",
+      "folderName": "2022.04.18.장진수",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2022/2022.04.18.장진수",
+      "extractedInfo": {
+        "date": "2022-04-18",
+        "customerName": "장진수",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.05.17.황인석",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.05.17.황인석",
+      "extractedInfo": {
+        "date": "2023-05-17",
+        "customerName": "황인석",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.05.19.김석구",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.05.19.김석구",
+      "extractedInfo": {
+        "date": "2023-05-19",
+        "customerName": "김석구",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.05.23.박중진",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.05.23.박중진",
+      "extractedInfo": {
+        "date": "2023-05-23",
+        "customerName": "박중진",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.05.31.채문석",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.05.31.채문석",
+      "extractedInfo": {
+        "date": "2023-05-31",
+        "customerName": "채문석",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.06.05.이수원",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.05.이수원",
+      "extractedInfo": {
+        "date": "2023-06-05",
+        "customerName": "이수원",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.06.07.김영필",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.07.김영필",
+      "extractedInfo": {
+        "date": "2023-06-07",
+        "customerName": "김영필",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.06.09.김선옥",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.09.김선옥",
+      "extractedInfo": {
+        "date": "2023-06-09",
+        "customerName": "김선옥",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.06.12.김영진-010-8832-9806",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.12.김영진-010-8832-9806",
+      "extractedInfo": {
+        "date": "2023-06-12",
+        "customerName": "김영진",
+        "phone": "010-8832-9806"
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.06.14.이윤희-010-3532-4572",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.14.이윤희-010-3532-4572",
+      "extractedInfo": {
+        "date": "2023-06-14",
+        "customerName": "이윤희",
+        "phone": "010-3532-4572"
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": {
+          "id": 1692,
+          "name": "이윤희",
+          "phone": "01035324572",
+          "folder_name": "iyunhui-4572"
+        }
+      },
+      "matchedCustomer": {
+        "id": 1692,
+        "name": "이윤희",
+        "phone": "01035324572",
+        "folder_name": "iyunhui-4572"
+      },
+      "matchMethod": "phone"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.06.20.조성대",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.20.조성대",
+      "extractedInfo": {
+        "date": "2023-06-20",
+        "customerName": "조성대",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.06.21.김한구",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.21.김한구",
+      "extractedInfo": {
+        "date": "2023-06-21",
+        "customerName": "김한구",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.06.27.조보현-010-8752-8857",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.06.27.조보현-010-8752-8857",
+      "extractedInfo": {
+        "date": "2023-06-27",
+        "customerName": "조보현",
+        "phone": "010-8752-8857"
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": {
+          "id": 13719,
+          "name": "조보현",
+          "phone": "01087528857",
+          "folder_name": "jobohyeon-8857"
+        }
+      },
+      "matchedCustomer": {
+        "id": 13719,
+        "name": "조보현",
+        "phone": "01087528857",
+        "folder_name": "jobohyeon-8857"
+      },
+      "matchMethod": "phone"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.07.03.이강석",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.03.이강석",
+      "extractedInfo": {
+        "date": "2023-07-03",
+        "customerName": "이강석",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.07.12.민호식",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.12.민호식",
+      "extractedInfo": {
+        "date": "2023-07-12",
+        "customerName": "민호식",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.07.13.하종천",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.13.하종천",
+      "extractedInfo": {
+        "date": "2023-07-13",
+        "customerName": "하종천",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.07.17.심원섭",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.17.심원섭",
+      "extractedInfo": {
+        "date": "2023-07-17",
+        "customerName": "심원섭",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.07.19.김찬기",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.19.김찬기",
+      "extractedInfo": {
+        "date": "2023-07-19",
+        "customerName": "김찬기",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.07.24.이준희",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.24.이준희",
+      "extractedInfo": {
+        "date": "2023-07-24",
+        "customerName": "이준희",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.07.26.유병묵",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.07.26.유병묵",
+      "extractedInfo": {
+        "date": "2023-07-26",
+        "customerName": "유병묵",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.08.04.강병부",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.08.04.강병부",
+      "extractedInfo": {
+        "date": "2023-08-04",
+        "customerName": "강병부",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.08.08.안영호",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.08.08.안영호",
+      "extractedInfo": {
+        "date": "2023-08-08",
+        "customerName": "안영호",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.08.16.송화용",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.08.16.송화용",
+      "extractedInfo": {
+        "date": "2023-08-16",
+        "customerName": "송화용",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.08.23.문광배",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.08.23.문광배",
+      "extractedInfo": {
+        "date": "2023-08-23",
+        "customerName": "문광배",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.08.29.박진욱",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.08.29.박진욱",
+      "extractedInfo": {
+        "date": "2023-08-29",
+        "customerName": "박진욱",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.10.26.김순복",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.10.26.김순복",
+      "extractedInfo": {
+        "date": "2023-10-26",
+        "customerName": "김순복",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.11.27.김봉현-010-4880-7159",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.11.27.김봉현-010-4880-7159",
+      "extractedInfo": {
+        "date": "2023-11-27",
+        "customerName": "김봉현",
+        "phone": "010-4880-7159"
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.11.27.이경민",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.11.27.이경민",
+      "extractedInfo": {
+        "date": "2023-11-27",
+        "customerName": "이경민",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.12.08.한귀용",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.12.08.한귀용",
+      "extractedInfo": {
+        "date": "2023-12-08",
+        "customerName": "한귀용",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.12.12.김용석",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.12.12.김용석",
+      "extractedInfo": {
+        "date": "2023-12-12",
+        "customerName": "김용석",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2023",
+      "folderName": "2023.12.18.정해선",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2023/2023.12.18.정해선",
+      "extractedInfo": {
+        "date": "2023-12-18",
+        "customerName": "정해선",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.01.02.조영수",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.01.02.조영수",
+      "extractedInfo": {
+        "date": "2024-01-02",
+        "customerName": "조영수",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.01.10.김재희",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.01.10.김재희",
+      "extractedInfo": {
+        "date": "2024-01-10",
+        "customerName": "김재희",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.01.14.유홍근",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.01.14.유홍근",
+      "extractedInfo": {
+        "date": "2024-01-14",
+        "customerName": "유홍근",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.03.06.이옥형",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.03.06.이옥형",
+      "extractedInfo": {
+        "date": "2024-03-06",
+        "customerName": "이옥형",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.05.28.제동환",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.05.28.제동환",
+      "extractedInfo": {
+        "date": "2024-05-28",
+        "customerName": "제동환",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.08.30.이수원",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.08.30.이수원",
+      "extractedInfo": {
+        "date": "2024-08-30",
+        "customerName": "이수원",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.09.09.박성우",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.09.09.박성우",
+      "extractedInfo": {
+        "date": "2024-09-09",
+        "customerName": "박성우",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.09.10.이용복",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.09.10.이용복",
+      "extractedInfo": {
+        "date": "2024-09-10",
+        "customerName": "이용복",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.09.29.임태희",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.09.29.임태희",
+      "extractedInfo": {
+        "date": "2024-09-29",
+        "customerName": "임태희",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.10.02.윤효영",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.02.윤효영",
+      "extractedInfo": {
+        "date": "2024-10-02",
+        "customerName": "윤효영",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.10.10.김종철.DJI",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.10.김종철.DJI",
+      "extractedInfo": {
+        "date": "2024-10-10",
+        "customerName": "김종철.DJI",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.10.15.박성우",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.15.박성우",
+      "extractedInfo": {
+        "date": "2024-10-15",
+        "customerName": "박성우",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.10.21.try-a-massgoo",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.21.try-a-massgoo",
+      "extractedInfo": {
+        "date": "2024-10-21",
+        "customerName": "try-a-massgoo",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.10.21.김종철",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.21.김종철",
+      "extractedInfo": {
+        "date": "2024-10-21",
+        "customerName": "김종철",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.10.26.신재식",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.26.신재식",
+      "extractedInfo": {
+        "date": "2024-10-26",
+        "customerName": "신재식",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.10.29.이남구",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.29.이남구",
+      "extractedInfo": {
+        "date": "2024-10-29",
+        "customerName": "이남구",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.10.31.김선애",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.10.31.김선애",
+      "extractedInfo": {
+        "date": "2024-10-31",
+        "customerName": "김선애",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.11.05.박성원",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.05.박성원",
+      "extractedInfo": {
+        "date": "2024-11-05",
+        "customerName": "박성원",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.11.05.전진용",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.05.전진용",
+      "extractedInfo": {
+        "date": "2024-11-05",
+        "customerName": "전진용",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.11.06.권성수",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.06.권성수",
+      "extractedInfo": {
+        "date": "2024-11-06",
+        "customerName": "권성수",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.11.11.김수환",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.11.김수환",
+      "extractedInfo": {
+        "date": "2024-11-11",
+        "customerName": "김수환",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.11.12.박영관",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.12.박영관",
+      "extractedInfo": {
+        "date": "2024-11-12",
+        "customerName": "박영관",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.11.13.최승남",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.13.최승남",
+      "extractedInfo": {
+        "date": "2024-11-13",
+        "customerName": "최승남",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.11.18.방광설",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.18.방광설",
+      "extractedInfo": {
+        "date": "2024-11-18",
+        "customerName": "방광설",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.11.22.김사빈",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.22.김사빈",
+      "extractedInfo": {
+        "date": "2024-11-22",
+        "customerName": "김사빈",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.11.24.유재영",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.24.유재영",
+      "extractedInfo": {
+        "date": "2024-11-24",
+        "customerName": "유재영",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.11.25.연재화",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.11.25.연재화",
+      "extractedInfo": {
+        "date": "2024-11-25",
+        "customerName": "연재화",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.12.05.조양현",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.12.05.조양현",
+      "extractedInfo": {
+        "date": "2024-12-05",
+        "customerName": "조양현",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.12.12.조보현-010-8752-8857",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.12.12.조보현-010-8752-8857",
+      "extractedInfo": {
+        "date": "2024-12-12",
+        "customerName": "조보현",
+        "phone": "010-8752-8857"
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": {
+          "id": 13719,
+          "name": "조보현",
+          "phone": "01087528857",
+          "folder_name": "jobohyeon-8857"
+        }
+      },
+      "matchedCustomer": {
+        "id": 13719,
+        "name": "조보현",
+        "phone": "01087528857",
+        "folder_name": "jobohyeon-8857"
+      },
+      "matchMethod": "phone"
+    },
+    {
+      "year": "2024",
+      "folderName": "2024.12.31.장근수",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2024/2024.12.31.장근수",
+      "extractedInfo": {
+        "date": "2024-12-31",
+        "customerName": "장근수",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.01.08.김성묵",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.01.08.김성묵",
+      "extractedInfo": {
+        "date": "2025-01-08",
+        "customerName": "김성묵",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.01.14.묵현상",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.01.14.묵현상",
+      "extractedInfo": {
+        "date": "2025-01-14",
+        "customerName": "묵현상",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.01.24.강성동",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.01.24.강성동",
+      "extractedInfo": {
+        "date": "2025-01-24",
+        "customerName": "강성동",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.02.12.최범규",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.02.12.최범규",
+      "extractedInfo": {
+        "date": "2025-02-12",
+        "customerName": "최범규",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.02.20.박용옥",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.02.20.박용옥",
+      "extractedInfo": {
+        "date": "2025-02-20",
+        "customerName": "박용옥",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.02.21.정형표",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.02.21.정형표",
+      "extractedInfo": {
+        "date": "2025-02-21",
+        "customerName": "정형표",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.02.27.이순길",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.02.27.이순길",
+      "extractedInfo": {
+        "date": "2025-02-27",
+        "customerName": "이순길",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.03.13.김홍창",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.03.13.김홍창",
+      "extractedInfo": {
+        "date": "2025-03-13",
+        "customerName": "김홍창",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.04.10.이희익",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.04.10.이희익",
+      "extractedInfo": {
+        "date": "2025-04-10",
+        "customerName": "이희익",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.04.18.박봉수",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.04.18.박봉수",
+      "extractedInfo": {
+        "date": "2025-04-18",
+        "customerName": "박봉수",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.04.25.채영태",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.04.25.채영태",
+      "extractedInfo": {
+        "date": "2025-04-25",
+        "customerName": "채영태",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.04.29.최범규",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.04.29.최범규",
+      "extractedInfo": {
+        "date": "2025-04-29",
+        "customerName": "최범규",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.04.30.강원식",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.04.30.강원식",
+      "extractedInfo": {
+        "date": "2025-04-30",
+        "customerName": "강원식",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.05.30.박영구",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.05.30.박영구",
+      "extractedInfo": {
+        "date": "2025-05-30",
+        "customerName": "박영구",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.06.02.김상현",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.06.02.김상현",
+      "extractedInfo": {
+        "date": "2025-06-02",
+        "customerName": "김상현",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.06.04.홍기봉-010-5270-8688",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.06.04.홍기봉-010-5270-8688",
+      "extractedInfo": {
+        "date": "2025-06-04",
+        "customerName": "홍기봉",
+        "phone": "010-5270-8688"
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.06.05.민호식",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.06.05.민호식",
+      "extractedInfo": {
+        "date": "2025-06-05",
+        "customerName": "민호식",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.09.08.김학규",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.09.08.김학규",
+      "extractedInfo": {
+        "date": "2025-09-08",
+        "customerName": "김학규",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.09.08.조병섭",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.09.08.조병섭",
+      "extractedInfo": {
+        "date": "2025-09-08",
+        "customerName": "조병섭",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.09.26.윤종덕",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.09.26.윤종덕",
+      "extractedInfo": {
+        "date": "2025-09-26",
+        "customerName": "윤종덕",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.10.13.안중철",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.13.안중철",
+      "extractedInfo": {
+        "date": "2025-10-13",
+        "customerName": "안중철",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.10.14.정윤호",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.14.정윤호",
+      "extractedInfo": {
+        "date": "2025-10-14",
+        "customerName": "정윤호",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.10.14.채영태",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.14.채영태",
+      "extractedInfo": {
+        "date": "2025-10-14",
+        "customerName": "채영태",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.10.15.문은경",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.15.문은경",
+      "extractedInfo": {
+        "date": "2025-10-15",
+        "customerName": "문은경",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.10.17.이주동",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.17.이주동",
+      "extractedInfo": {
+        "date": "2025-10-17",
+        "customerName": "이주동",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.10.23.김종안",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.23.김종안",
+      "extractedInfo": {
+        "date": "2025-10-23",
+        "customerName": "김종안",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.10.28.원종문",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.10.28.원종문",
+      "extractedInfo": {
+        "date": "2025-10-28",
+        "customerName": "원종문",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.11.06.강상휘",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.06.강상휘",
+      "extractedInfo": {
+        "date": "2025-11-06",
+        "customerName": "강상휘",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.11.06.장가반",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.06.장가반",
+      "extractedInfo": {
+        "date": "2025-11-06",
+        "customerName": "장가반",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.11.11.김홍창",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.11.김홍창",
+      "extractedInfo": {
+        "date": "2025-11-11",
+        "customerName": "김홍창",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.11.11.정태웅",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.11.정태웅",
+      "extractedInfo": {
+        "date": "2025-11-11",
+        "customerName": "정태웅",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.11.20.김승훈",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.20.김승훈",
+      "extractedInfo": {
+        "date": "2025-11-20",
+        "customerName": "김승훈",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.11.23.신희갑",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.23.신희갑",
+      "extractedInfo": {
+        "date": "2025-11-23",
+        "customerName": "신희갑",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.11.24.이상천",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.11.24.이상천",
+      "extractedInfo": {
+        "date": "2025-11-24",
+        "customerName": "이상천",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.12.02.김원풍운",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.12.02.김원풍운",
+      "extractedInfo": {
+        "date": "2025-12-02",
+        "customerName": "김원풍운",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.12.18.김석구",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.12.18.김석구",
+      "extractedInfo": {
+        "date": "2025-12-18",
+        "customerName": "김석구",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.12.18.김정석",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.12.18.김정석",
+      "extractedInfo": {
+        "date": "2025-12-18",
+        "customerName": "김정석",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.12.19. 강영길",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.12.19. 강영길",
+      "extractedInfo": {
+        "date": "2025-12-19",
+        "customerName": "강영길",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2025",
+      "folderName": "2025.12.26.박동렬",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2025/2025.12.26.박동렬",
+      "extractedInfo": {
+        "date": "2025-12-26",
+        "customerName": "박동렬",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2026",
+      "folderName": "2026.01.05.신희갑",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2026/2026.01.05.신희갑",
+      "extractedInfo": {
+        "date": "2026-01-05",
+        "customerName": "신희갑",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2026",
+      "folderName": "2026.01.07.박진욱",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2026/2026.01.07.박진욱",
+      "extractedInfo": {
+        "date": "2026-01-07",
+        "customerName": "박진욱",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    },
+    {
+      "year": "2026",
+      "folderName": "2026.01.08.김가영",
+      "folderPath": "/Users/m2/MASLABS/00.blog_customers/2026/2026.01.08.김가영",
+      "extractedInfo": {
+        "date": "2026-01-08",
+        "customerName": "김가영",
+        "phone": null
+      },
+      "matches": {
+        "byName": [],
+        "byPhone": null
+      },
+      "matchedCustomer": null,
+      "matchMethod": "none"
+    }
+  ],
+  "timestamp": "2026-01-25T15:54:43.513Z"
+}

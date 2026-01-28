@@ -115,7 +115,7 @@ export default async function handler(req, res) {
 
               // 메타데이터에서도 삭제
               const { error: metadataError } = await supabase
-                .from('image_metadata')
+                .from('image_assets')
                 .delete()
                 .eq('image_url', file.url);
 
