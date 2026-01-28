@@ -2614,15 +2614,37 @@ function CustomerImageModal({ customer, onClose }: {
       if (result.success) {
         // date_folder가 없는 이미지에 대해 폴더 경로에서 날짜 추출
         const processedImages = (result.images || []).map((img: any) => {
-          if (!img.date_folder && img.folder_path) {
-            const dateMatch = img.folder_path.match(/(\d{4}-\d{2}-\d{2})/);
-            if (dateMatch) {
-              img.date_folder = dateMatch[1];
-            } else if (img.image_url) {
-              // image_url에서 날짜 추출 시도
+          if (!img.date_folder) {
+            // 1. folder_path에서 날짜 추출
+            if (img.folder_path) {
+              const dateMatch = img.folder_path.match(/(\d{4}-\d{2}-\d{2})/);
+              if (dateMatch) {
+                img.date_folder = dateMatch[1];
+              }
+            }
+            
+            // 2. file_path에서 날짜 추출 (folder_path에 없으면)
+            if (!img.date_folder && img.file_path) {
+              const dateMatch = img.file_path.match(/(\d{4}-\d{2}-\d{2})/);
+              if (dateMatch) {
+                img.date_folder = dateMatch[1];
+              }
+            }
+            
+            // 3. image_url에서 날짜 추출 (file_path에도 없으면)
+            if (!img.date_folder && img.image_url) {
               const urlDateMatch = img.image_url.match(/(\d{4}-\d{2}-\d{2})/);
               if (urlDateMatch) {
                 img.date_folder = urlDateMatch[1];
+              }
+            }
+            
+            // 4. filename에서 날짜 추출 (YYYYMMDD 형식)
+            if (!img.date_folder && (img.filename || img.english_filename || img.original_filename)) {
+              const filename = img.filename || img.english_filename || img.original_filename;
+              const filenameDateMatch = filename.match(/(\d{4})(\d{2})(\d{2})/);
+              if (filenameDateMatch) {
+                img.date_folder = `${filenameDateMatch[1]}-${filenameDateMatch[2]}-${filenameDateMatch[3]}`;
               }
             }
           }
