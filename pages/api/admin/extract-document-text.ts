@@ -190,15 +190,37 @@ export default async function handler(
         errorText = '응답 본문을 읽을 수 없습니다';
       }
       
-      console.error('❌ [OCR] Google Vision API 오류 상세:', {
+      // 상세 오류 로깅
+      const errorDetails = {
         status: response.status,
         statusText: response.statusText,
-        errorText: errorText.substring(0, 500),
+        errorText: errorText.substring(0, 1000),
         errorJson: errorJson,
         apiKeyPrefix: googleApiKey ? googleApiKey.substring(0, 10) + '...' : '없음',
-        requestMethod: useContentField ? 'content' : 'imageUri',
-        imageUrl: imageUrl.substring(0, 100)
-      });
+        apiKeyLength: googleApiKey?.length || 0,
+        requestMethod: useContentField ? 'content (base64)' : 'imageUri (gs://)',
+        imageUrl: imageUrl.substring(0, 100),
+        requestBodySize: JSON.stringify(requestBody).length,
+        imageDataSize: useContentField ? imageData.length : 'N/A',
+        apiUrl: apiUrl.substring(0, 100) + '...',
+        timestamp: new Date().toISOString(),
+        headers: Object.fromEntries(response.headers.entries())
+      };
+      
+      console.error('❌ [OCR] Google Vision API 오류 상세:', errorDetails);
+      
+      // 401/403 오류인 경우 추가 정보
+      if (response.status === 401 || response.status === 403) {
+        console.error('🔴 [OCR] 인증 오류 상세 분석:', {
+          status: response.status,
+          errorReason: errorJson?.error?.details?.[0]?.reason || errorJson?.error?.message || '알 수 없음',
+          errorDomain: errorJson?.error?.details?.[0]?.domain || '알 수 없음',
+          httpReferrer: errorJson?.error?.details?.[0]?.metadata?.httpReferrer || 'N/A',
+          service: errorJson?.error?.details?.[0]?.metadata?.service || 'N/A',
+          consumer: errorJson?.error?.details?.[0]?.metadata?.consumer || 'N/A',
+          fullError: errorJson
+        });
+      }
       
       // 401 오류인 경우 특별한 메시지
       if (response.status === 401) {

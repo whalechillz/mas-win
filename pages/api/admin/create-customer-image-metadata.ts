@@ -281,9 +281,26 @@ export default async function handler(
         keyLength: apiKeyCheck?.length || 0
       });
       
+      // 서버 사이드에서 직접 호출하는 경우 쿠키 전달
+      const cookies = req.headers.cookie || '';
+      
+      console.log('📤 [create-customer-image-metadata] OCR API 호출 준비:', {
+        url: `${baseUrl}/api/admin/extract-document-text`,
+        hasCookies: !!cookies,
+        cookieLength: cookies.length,
+        cookiePreview: cookies.substring(0, 100),
+        isLocalhost: baseUrl.includes('localhost')
+      });
+      
       const ocrResponse = await fetch(`${baseUrl}/api/admin/extract-document-text`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          // 서버 사이드 호출 시 쿠키 전달 (세션 인증용)
+          ...(cookies ? { 'Cookie': cookies } : {}),
+          // 호스트 헤더 추가
+          ...(baseUrl.includes('localhost') ? { 'Host': 'localhost:3000' } : {})
+        },
         body: JSON.stringify({
           imageUrl: tempUploadResult.url
         })
