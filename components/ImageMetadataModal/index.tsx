@@ -5,7 +5,7 @@ import { SEOScore } from './components/SEOScore';
 import { useAIGeneration } from './hooks/useAIGeneration';
 import { validateForm, calculateSEOScore, getSEORecommendations } from './utils/validation';
 import { extractVideoMetadataClient } from '@/lib/video-utils';
-import DocumentOCRViewer from '../../admin/DocumentOCRViewer';
+import DocumentOCRViewer from '@/components/admin/DocumentOCRViewer';
 
 interface ImageMetadataModalProps {
   isOpen: boolean;
@@ -825,7 +825,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
   if (!isOpen || !image) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[110] p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
         {/* 헤더 */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
@@ -953,12 +953,6 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
                 </div>
               )}
 
-            </div>
-          )}
-          
-          {/* 메인 폼 계속 (문서 뷰어가 아닐 때만 표시) */}
-          {!showDocumentViewer && (
-            <>
               {/* EXIF/비디오 메타데이터 정보 표시 영역 */}
               {exifData && (
                 <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded">
@@ -1085,21 +1079,24 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
                   {isGenerating ? '⏳' : '🎯'} 하이브리드 SEO 파일명 생성
                 </button>
               </div>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* SEO 사이드바 */}
-          <div className="w-80 border-l border-gray-200 p-6 overflow-y-auto">
-            <SEOScore
-              score={seoScore}
-              recommendations={seoRecommendations}
-              onRecommendationClick={(field) => {
-                // 해당 필드로 스크롤
-                const element = document.querySelector(`[data-field="${field}"]`);
-                element?.scrollIntoView({ behavior: 'smooth' });
-              }}
-            />
-          </div>
+          {!showDocumentViewer && (
+            <div className="w-80 border-l border-gray-200 p-6 overflow-y-auto">
+              <SEOScore
+                score={seoScore}
+                recommendations={seoRecommendations}
+                onRecommendationClick={(field) => {
+                  // 해당 필드로 스크롤
+                  const element = document.querySelector(`[data-field="${field}"]`);
+                  element?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* 푸터 - 항상 하단에 고정 */}

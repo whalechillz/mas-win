@@ -14,6 +14,17 @@ export interface ImageMetadata {
   used_in_posts?: string[];
   created_at?: string;
   updated_at?: string;
+  // EXIF 메타데이터
+  taken_at?: string;
+  gps_lat?: number;
+  gps_lng?: number;
+  width?: number;
+  height?: number;
+  camera?: string;
+  orientation?: number;
+  // OCR 관련
+  ocr_text?: string;
+  ocr_fulltextannotation?: any;
 }
 
 export interface MetadataForm {
