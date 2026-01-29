@@ -99,12 +99,30 @@ export default async function handler(req, res) {
       });
     }
     if (req.method === 'GET') {
-      // 특정 이미지의 메타데이터 조회
-      const { imageName, imageUrl } = req.query;
-      
+      // GET by ids (배열로 여러 이미지 조회) - 기존 .ts 로직 통합
+      const { ids, imageName, imageUrl } = req.query;
+      if (ids) {
+        try {
+          const idArray = (typeof ids === 'string' ? ids.split(',') : []).map((id) => id.trim()).filter(Boolean);
+          if (idArray.length === 0) {
+            return res.status(200).json({ success: true, images: [] });
+          }
+          const { data, error } = await supabase
+            .from('image_assets')
+            .select('*')
+            .in('id', idArray);
+          if (error) throw error;
+          return res.status(200).json({ success: true, images: data || [] });
+        } catch (err) {
+          console.error('❌ 이미지 메타데이터 조회 오류 (ids):', err);
+          return res.status(500).json({ success: false, error: (err && err.message) || '이미지 메타데이터 조회 실패' });
+        }
+      }
+
+      // 특정 이미지의 메타데이터 조회 (imageName 또는 imageUrl)
       if (!imageName && !imageUrl) {
         return res.status(400).json({
-          error: 'imageName 또는 imageUrl 파라미터가 필요합니다.'
+          error: 'imageName, imageUrl 또는 ids 파라미터가 필요합니다.'
         });
       }
 
@@ -163,7 +181,7 @@ export default async function handler(req, res) {
       }
       
     } else if (req.method === 'POST') {
-      // 이미지 메타데이터 생성/업데이트
+      // 이미지 메타데이터 생성/업데이트 (image_assets에는 category/category_id 없음)
       const { 
         imageName, 
         imageUrl, 
@@ -171,11 +189,8 @@ export default async function handler(req, res) {
         keywords, 
         title, 
         description, 
-        category, 
-        categories,
-        // EXIF 정보
         exifData
-      } = req.body;
+      } = req.body || {};
       
       if (!imageName || !imageUrl) {
         return res.status(400).json({
@@ -183,42 +198,14 @@ export default async function handler(req, res) {
         });
       }
 
-      // 카테고리 처리: categories 배열이 있으면 사용, 없으면 category 문자열 사용
-      const categoriesArray = Array.isArray(categories) && categories.length > 0
-        ? categories
-        : (category ? category.split(',').map(c => c.trim()).filter(c => c) : []);
-      const categoryString = categoriesArray.length > 0 ? categoriesArray.join(',') : category || '';
-
       console.log('📝 메타데이터 저장 시작:', { 
         imageName, 
         imageUrl, 
         alt_text: alt_text ? `${alt_text.substring(0, 50)}... (길이: ${alt_text.length})` : null,
-        keywords: keywords ? `${keywords.length}개 키워드` : null,
+        keywords: keywords ? `${Array.isArray(keywords) ? keywords.length : 0}개 키워드` : null,
         title: title ? `${title.substring(0, 30)}... (길이: ${title.length})` : null,
-        description: description ? `${description.substring(0, 50)}... (길이: ${description.length})` : null,
-        category: categoryString,
-        categories: categoriesArray,
-        requestBody: req.body
+        description: description ? `${description.substring(0, 50)}... (길이: ${description.length})` : null
       });
-
-      // 카테고리 문자열을 ID로 변환 (첫 번째 카테고리를 category_id로 사용, 하위 호환성 유지)
-      let categoryId = 5; // 기본값: '기타'
-      if (categoryString && categoryString !== '') {
-        const firstCategory = categoriesArray.length > 0 ? categoriesArray[0] : categoryString.split(',')[0].trim();
-        // 한글/영문 카테고리를 숫자 ID로 변환
-        const categoryMap = {
-          // 한글 카테고리 (기존 매핑)
-          '골프': 1, '장비': 2, '코스': 3, '이벤트': 4, '기타': 5,
-          // 새로운 다중 카테고리
-          '골프코스': 3, '젊은 골퍼': 1, '시니어 골퍼': 1, '스윙': 1,
-          '드라이버': 2, '드라이버샷': 2,
-          // 영문 카테고리
-          'golf': 1, 'equipment': 2, 'course': 3, 'event': 4, 'other': 5,
-          // 추가 영문 카테고리
-          'general': 5, 'instruction': 1
-        };
-        categoryId = categoryMap[firstCategory.toLowerCase()] || 5; // 기본값: '기타'
-      }
 
       // 🔍 입력값 검증 및 길이 제한 확인 (SEO 최적화 기준 - 완화된 제한)
       const validationErrors = [];
@@ -237,15 +224,9 @@ export default async function handler(req, res) {
         validationErrors.push(`설명이 너무 깁니다 (${description.length}자, 최대: 5000자)`);
       }
       
-      if (keywords && keywords.length > 50) {
-        validationErrors.push(`키워드가 너무 깁니다 (${keywords.length}자, 권장: 50자 이하)`);
-      }
-      
-      // 카테고리 필수 입력 검증 (완화)
-      if (categoriesArray.length === 0 && (!category || category.trim() === '')) {
-        console.warn('⚠️ 카테고리가 선택되지 않았습니다. category_id를 NULL로 설정합니다.');
-        // 카테고리가 없으면 NULL로 설정 (외래키 제약이 없는 경우)
-        categoryId = null;
+      const keywordsArray = Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(k => k.trim()).filter(k => k) : []);
+      if (keywordsArray.length > 50) {
+        validationErrors.push(`키워드가 너무 많습니다 (${keywordsArray.length}개, 권장: 50개 이하)`);
       }
       
       // 경고만 표시하고 저장은 허용 (SEO 최적화는 권장사항)
@@ -254,8 +235,7 @@ export default async function handler(req, res) {
         // 에러로 처리하지 않고 경고만 로그에 남김
       }
 
-      // 데이터베이스에 메타데이터 저장/업데이트 (image_assets 사용)
-      // ⚠️ image_assets에는 category_id가 없으므로 제거
+      // 데이터베이스에 메타데이터 저장/업데이트 (image_assets 사용, category/category_id 없음)
       const metadataData = {
         cdn_url: imageUrl,
         alt_text: alt_text || '',
@@ -288,62 +268,125 @@ export default async function handler(req, res) {
         alt_text_length: metadataData.alt_text.length,
         title_length: metadataData.title.length,
         description_length: metadataData.description.length,
-        tags_count: metadataData.tags.length,
-        category_id: metadataData.category_id
+        ai_tags_count: metadataData.ai_tags?.length ?? 0
       });
 
       // cdn_url이 UNIQUE이므로 upsert 사용 (중복 방지 및 안전한 저장)
-      console.log('🔍 메타데이터 upsert 시작:', imageUrl);
+      // INSERT 시 image_assets 필수 컬럼(filename, original_filename, file_path, file_size, mime_type, format) 포함
+      console.log('🔍 메타데이터 upsert 시작:', typeof imageUrl === 'string' ? imageUrl.substring(0, 120) : imageUrl);
+      
+      const ext = (imageName || '').split('.').pop()?.toLowerCase() || 'png';
+      const mimeMap = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', heic: 'image/heic' };
+      const formatMap = { jpg: 'jpeg', jpeg: 'jpeg', png: 'png', gif: 'gif', webp: 'webp', heic: 'heic' };
+      let file_path = 'uploaded';
+      try {
+        if (typeof imageUrl === 'string' && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
+          const urlPath = new URL(imageUrl).pathname;
+          const blogImagesIndex = urlPath.indexOf('/blog-images/');
+          if (blogImagesIndex !== -1) {
+            file_path = urlPath.slice(blogImagesIndex + '/blog-images/'.length);
+          } else {
+            const lastSlash = urlPath.lastIndexOf('/');
+            file_path = lastSlash !== -1 ? urlPath.slice(1, lastSlash + 1) + (imageName || '') : (imageName || 'uploaded');
+          }
+        } else {
+          file_path = (imageName || 'uploaded').includes('/') ? (imageName || 'uploaded') : `uploaded/${imageName || 'unknown'}`;
+        }
+      } catch (urlErr) {
+        console.warn('⚠️ imageUrl 파싱 실패, file_path 기본값 사용:', urlErr?.message);
+        file_path = (imageName || 'uploaded').includes('/') ? (imageName || 'uploaded') : `uploaded/${imageName || 'unknown'}`;
+      }
       
       const insertData = {
         ...metadataData,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        // INSERT 시 필수 컬럼 (갤러리 메타데이터 저장 500 방지)
+        filename: (imageName || '').split('/').pop() || imageName || 'unknown',
+        original_filename: imageName || 'unknown',
+        file_path,
+        file_size: 0,
+        mime_type: mimeMap[ext] || 'image/png',
+        format: formatMap[ext] || ext,
+        status: metadataData.status || 'active',
+        upload_source: metadataData.upload_source || 'file_upload'
       };
       
-      // 기존 레코드 확인 (로깅용)
-      const { data: existingCheck } = await supabase
+      // cdn_url에 UNIQUE 제약이 없을 수 있으므로 upsert 대신 "조회 → UPDATE 또는 INSERT" 사용
+      const { data: existingRow, error: selectError } = await supabase
         .from('image_assets')
         .select('id')
         .eq('cdn_url', imageUrl)
-        .single();
+        .maybeSingle();
       
-      if (existingCheck) {
-        console.log('🔄 기존 메타데이터 발견, 업데이트 예정:', existingCheck.id);
+      if (selectError) {
+        console.error('❌ 메타데이터 조회 오류:', selectError);
+        return res.status(500).json({
+          error: '메타데이터 저장 실패',
+          details: selectError.message,
+          code: selectError.code || 'SELECT_ERROR'
+        });
+      }
+      
+      let result;
+      if (existingRow) {
+        // 기존 행 업데이트 (메타데이터 필드만)
+        const updatePayload = {
+          alt_text: metadataData.alt_text,
+          ai_tags: metadataData.ai_tags,
+          title: metadataData.title,
+          description: metadataData.description,
+          updated_at: new Date().toISOString()
+        };
+        if (metadataData.gps_lat !== undefined) updatePayload.gps_lat = metadataData.gps_lat;
+        if (metadataData.gps_lng !== undefined) updatePayload.gps_lng = metadataData.gps_lng;
+        if (metadataData.taken_at !== undefined) updatePayload.taken_at = metadataData.taken_at;
+        if (metadataData.width !== undefined) updatePayload.width = metadataData.width;
+        if (metadataData.height !== undefined) updatePayload.height = metadataData.height;
+        const { data: updated, error: updateError } = await supabase
+          .from('image_assets')
+          .update(updatePayload)
+          .eq('id', existingRow.id)
+          .select()
+          .single();
+        if (updateError) {
+          console.error('❌ 메타데이터 UPDATE 오류:', updateError);
+          return res.status(500).json({
+            error: '메타데이터 저장 실패',
+            details: updateError.message,
+            code: updateError.code || 'UPDATE_ERROR'
+          });
+        }
+        result = updated;
+        console.log('✅ 메타데이터 업데이트 완료:', result?.id);
       } else {
-        console.log('➕ 새 메타데이터 생성 예정');
+        // 새 행 INSERT (필수 컬럼 포함)
+        const { data: inserted, error: insertError } = await supabase
+          .from('image_assets')
+          .insert(insertData)
+          .select()
+          .single();
+        if (insertError) {
+          const errDetail = insertError.message || String(insertError);
+          const errCode = insertError.code || 'UNKNOWN';
+          console.error('❌ 메타데이터 INSERT 오류:', errDetail, 'code:', errCode);
+          console.error('오류 상세:', {
+            message: insertError.message,
+            details: insertError.details,
+            hint: insertError.hint,
+            code: insertError.code,
+            imageUrl: typeof imageUrl === 'string' ? imageUrl.substring(0, 100) : imageUrl,
+            imageName: imageName
+          });
+          return res.status(500).json({
+            error: '메타데이터 저장 실패',
+            details: errDetail,
+            code: errCode,
+            hint: insertError.hint || null
+          });
+        }
+        result = inserted;
+        console.log('✅ 메타데이터 INSERT 완료:', result?.id);
       }
-      
-      // upsert 사용: cdn_url이 있으면 업데이트, 없으면 생성
-      const { data: result, error: upsertError } = await supabase
-        .from('image_assets')
-        .upsert(insertData, {
-          onConflict: 'cdn_url',
-          ignoreDuplicates: false
-        })
-        .select()
-        .single();
-      
-      if (upsertError) {
-        console.error('❌ 메타데이터 upsert 오류:', upsertError);
-        console.error('오류 상세:', {
-          message: upsertError.message,
-          details: upsertError.details,
-          hint: upsertError.hint,
-          code: upsertError.code,
-          imageUrl: imageUrl,
-          fileName: fileName,
-          insertData: JSON.stringify(insertData, null, 2)
-        });
-        return res.status(500).json({ 
-          error: '메타데이터 저장 실패', 
-          details: upsertError.message || '알 수 없는 오류',
-          code: upsertError.code,
-          hint: upsertError.hint,
-          imageUrl: imageUrl
-        });
-      }
-      
-      console.log('✅ 메타데이터 upsert 완료:', result);
 
       // 🔍 저장된 데이터 검증
       if (result) {
@@ -365,8 +408,9 @@ export default async function handler(req, res) {
       });
       
     } else if (req.method === 'PUT') {
-      // 이미지 메타데이터 업데이트
-      const { imageName, imageUrl, alt_text, keywords, title, description, category } = req.body;
+      console.log('[image-metadata.js] PUT 핸들러 실행 (categories 미사용)');
+      // 이미지 메타데이터 업데이트 (image_assets에는 category/category_id 없음)
+      const { imageName, imageUrl, alt_text, keywords, title, description } = req.body || {};
       
       if (!imageName || !imageUrl) {
         return res.status(400).json({
@@ -374,32 +418,7 @@ export default async function handler(req, res) {
         });
       }
 
-      // 카테고리 처리: categories 배열이 있으면 사용, 없으면 category 문자열 사용
-      const categoriesArray = Array.isArray(categories) && categories.length > 0
-        ? categories
-        : (category ? category.split(',').map(c => c.trim()).filter(c => c) : []);
-      const categoryString = categoriesArray.length > 0 ? categoriesArray.join(',') : category || '';
-
-      console.log('📝 메타데이터 업데이트 시작:', { imageName, imageUrl, alt_text, keywords, title, description, category: categoryString, categories: categoriesArray });
-
-      // 카테고리 문자열을 ID로 변환 (첫 번째 카테고리를 category_id로 사용, 하위 호환성 유지)
-      let categoryId = 5; // 기본값: '기타'
-      if (categoryString && categoryString !== '') {
-        const firstCategory = categoriesArray.length > 0 ? categoriesArray[0] : categoryString.split(',')[0].trim();
-        // 한글/영문 카테고리를 숫자 ID로 변환
-        const categoryMap = {
-          // 한글 카테고리 (기존 매핑)
-          '골프': 1, '장비': 2, '코스': 3, '이벤트': 4, '기타': 5,
-          // 새로운 다중 카테고리
-          '골프코스': 3, '젊은 골퍼': 1, '시니어 골퍼': 1, '스윙': 1,
-          '드라이버': 2, '드라이버샷': 2,
-          // 영문 카테고리
-          'golf': 1, 'equipment': 2, 'course': 3, 'event': 4, 'other': 5,
-          // 추가 영문 카테고리
-          'general': 5, 'instruction': 1
-        };
-        categoryId = categoryMap[firstCategory.toLowerCase()] || 5; // 기본값: '기타'
-      }
+      console.log('📝 메타데이터 업데이트 시작:', { imageName, imageUrl, alt_text: !!alt_text, keywords: Array.isArray(keywords) ? keywords.length : 0, title: !!title, description: !!description });
 
       // ✅ imageUrl이 없으면 에러 반환
       if (!imageUrl) {
@@ -444,14 +463,86 @@ export default async function handler(req, res) {
         metadataData.description = metadataData.description.substring(0, 5000);
       }
 
-      console.log('📝 메타데이터 업데이트 시도:', {
+      console.log('[image-metadata] 📝 PUT 업데이트 시도:', {
         imageUrl: imageUrl.substring(0, 100),
+        imageName,
         alt_text_length: metadataData.alt_text?.length || 0,
         title_length: metadataData.title?.length || 0,
         description_length: metadataData.description?.length || 0,
         keywords_count: safeKeywords.length,
         has_ocr_text: !!metadataData.ocr_text
       });
+
+      // 먼저 cdn_url로 존재 여부 확인
+      const { data: existingRow, error: selectError } = await supabase
+        .from('image_assets')
+        .select('id, cdn_url')
+        .eq('cdn_url', imageUrl)
+        .maybeSingle();
+
+      if (selectError) {
+        console.error('[image-metadata] ❌ 조회 오류:', selectError);
+        return res.status(500).json({ error: '메타데이터 조회 실패', details: selectError.message });
+      }
+
+      if (!existingRow) {
+        // 레코드가 없으면 INSERT (갤러리 업로드 직후 메타데이터 생성 시 upload API가 아직 insert 전이거나 실패한 경우)
+        console.log('[image-metadata] ⚠️ cdn_url에 해당 레코드 없음 → INSERT 시도');
+        const ext = (imageName || '').split('.').pop()?.toLowerCase() || 'png';
+        const mimeMap = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', heic: 'image/heic' };
+        const formatMap = { jpg: 'jpeg', jpeg: 'jpeg', png: 'png', gif: 'gif', webp: 'webp', heic: 'heic' };
+        // imageUrl에서 storage 경로 추출 (예: .../blog-images/uploaded/xxx.png → uploaded/xxx.png)
+        let file_path = 'uploaded';
+        try {
+          const urlPath = new URL(imageUrl).pathname;
+          const blogImagesIndex = urlPath.indexOf('/blog-images/');
+          if (blogImagesIndex !== -1) {
+            file_path = urlPath.slice(blogImagesIndex + '/blog-images/'.length);
+          } else {
+            const lastSlash = urlPath.lastIndexOf('/');
+            file_path = lastSlash !== -1 ? urlPath.slice(1, lastSlash + 1) + (imageName || '') : (imageName || 'uploaded');
+          }
+        } catch (_) {
+          file_path = (imageName || 'uploaded').includes('/') ? imageName : `uploaded/${imageName || 'unknown'}`;
+        }
+        const insertRecord = {
+          filename: imageName || 'unknown',
+          original_filename: imageName || 'unknown',
+          file_path,
+          file_size: 0,
+          mime_type: mimeMap[ext] || 'image/png',
+          format: formatMap[ext] || ext,
+          cdn_url: imageUrl,
+          alt_text: metadataData.alt_text || '',
+          ai_tags: metadataData.ai_tags || [],
+          title: metadataData.title || '',
+          description: metadataData.description || '',
+          updated_at: new Date().toISOString(),
+          status: 'active',
+          upload_source: 'file_upload',
+          ...(metadataData.ocr_text !== undefined && { ocr_text: metadataData.ocr_text }),
+          ...(metadataData.ocr_extracted !== undefined && { ocr_extracted: metadataData.ocr_extracted }),
+          ...(metadataData.ocr_confidence !== undefined && { ocr_confidence: metadataData.ocr_confidence }),
+          ...(metadataData.ocr_processed_at !== undefined && { ocr_processed_at: metadataData.ocr_processed_at }),
+          ...(metadataData.ocr_fulltextannotation !== undefined && { ocr_fulltextannotation: metadataData.ocr_fulltextannotation })
+        };
+        const { data: inserted, error: insertError } = await supabase
+          .from('image_assets')
+          .insert(insertRecord)
+          .select()
+          .single();
+        if (insertError) {
+          console.error('[image-metadata] ❌ INSERT 실패:', insertError.message, insertError.code, insertError.details);
+          return res.status(500).json({
+            error: '메타데이터 저장 실패 (레코드 없음 → INSERT 실패)',
+            details: insertError.message,
+            code: insertError.code,
+            hint: insertError.hint || 'image_assets 테이블 컬럼 확인 (filename, original_filename, file_path, file_size, mime_type, format 필수)'
+          });
+        }
+        console.log('[image-metadata] ✅ INSERT 완료:', inserted?.id);
+        return res.status(200).json({ success: true, metadata: inserted });
+      }
 
       const { data, error } = await supabase
         .from('image_assets')
@@ -461,22 +552,33 @@ export default async function handler(req, res) {
         .single();
       
       if (error) {
-        console.error('❌ 메타데이터 업데이트 오류:', {
+        console.error('[image-metadata] ❌ UPDATE 오류:', {
           error: error.message,
           code: error.code,
           details: error.details,
           hint: error.hint,
           imageUrl: imageUrl.substring(0, 100),
-          metadataDataKeys: Object.keys(metadataData)
+          imageName
         });
+        
+        let errorMessage = error.message || '알 수 없는 오류';
+        if (error.code === 'PGRST116') {
+          errorMessage = '이미지를 찾을 수 없습니다. imageUrl을 확인해주세요.';
+        } else if (error.code === '23505') {
+          errorMessage = '중복된 데이터입니다.';
+        } else if (error.details) {
+          errorMessage = `${errorMessage}: ${error.details}`;
+        }
+        
         return res.status(500).json({ 
           error: '메타데이터 업데이트 실패', 
-          details: error.message || '알 수 없는 오류',
-          code: error.code
+          details: errorMessage,
+          code: error.code,
+          hint: error.hint || '데이터베이스 업데이트 중 오류가 발생했습니다.'
         });
       }
 
-      console.log('✅ 메타데이터 업데이트 완료');
+      console.log('[image-metadata] ✅ 메타데이터 업데이트 완료');
 
       return res.status(200).json({ 
         success: true,
@@ -554,10 +656,14 @@ export default async function handler(req, res) {
     }
     
   } catch (error) {
-    console.error('❌ 이미지 메타데이터 API 오류:', error);
+    const msg = error?.message || String(error);
+    const stack = error?.stack;
+    console.error('❌ 이미지 메타데이터 API 오류:', msg);
+    if (stack) console.error('스택:', stack);
     return res.status(500).json({
-      error: '서버 오류가 발생했습니다.',
-      details: error.message
+      error: '메타데이터 저장 실패',
+      details: msg,
+      code: 'SERVER_ERROR'
     });
   }
 }

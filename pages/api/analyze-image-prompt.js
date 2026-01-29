@@ -10,6 +10,17 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
+  // OpenAI API 키 없으면 즉시 반환 (원인 명확화)
+  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.trim() === '') {
+    console.error('❌ [analyze-image-prompt] OPENAI_API_KEY가 설정되지 않았습니다.');
+    return res.status(500).json({
+      error: '이미지 프롬프트 분석 중 오류가 발생했습니다.',
+      details: 'OPENAI_API_KEY가 환경 변수에 설정되지 않았습니다. .env에 OPENAI_API_KEY를 추가해주세요.',
+      type: 'golf-ai',
+      code: 'MISSING_OPENAI_API_KEY'
+    });
+  }
+
   try {
     const { imageUrl, title, excerpt, sceneContext } = req.body;
 
@@ -179,13 +190,11 @@ Return format:
     });
 
   } catch (error) {
-    console.error('❌ 이미지 프롬프트 분석 에러:', error);
-    
-    // OpenAI 크레딧 부족 오류 감지
     const errorCode = error.code || '';
     const errorMessage = error.message || '';
+    console.error('❌ [analyze-image-prompt] 이미지 프롬프트 분석 에러:', { message: errorMessage, code: errorCode, stack: error.stack });
     
-    // 크레딧 부족 관련 오류 코드/메시지 확인
+    // OpenAI 크레딧 부족 오류 감지
     const isCreditError = 
       errorCode === 'insufficient_quota' ||
       errorCode === 'billing_not_active' ||
@@ -200,14 +209,16 @@ Return format:
       return res.status(402).json({
         error: '💰 OpenAI 계정에 크레딧이 부족합니다',
         details: 'OpenAI 계정에 크레딧을 충전해주세요. https://platform.openai.com/settings/organization/billing/overview',
-        type: 'insufficient_credit',
+        type: 'golf-ai',
         code: errorCode
       });
     }
     
     res.status(500).json({
       error: '이미지 프롬프트 분석 중 오류가 발생했습니다.',
-      details: error.message
+      details: errorMessage,
+      type: 'golf-ai',
+      code: errorCode || 'OPENAI_ERROR'
     });
   }
 }

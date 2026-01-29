@@ -4,8 +4,23 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { formatBrandYears } from '../../lib/brand-utils';
 import { useProductData } from '../../lib/use-product-data';
+import { getProductImageUrl } from '../../lib/product-image-url';
 
 const REVIEW_CATEGORIES = ['고객 후기', '리얼 체험, 비거리 성공 후기'];
+
+// 기본 이미지 (fallback) - 관리자 제품 수정과 동일한 originals 경로
+const defaultImages = [
+  'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_11.webp',
+  'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_01.webp',
+  'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_12.webp',
+  'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_13.webp',
+  'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_14.webp',
+  'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_16.webp',
+  'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_17.webp',
+  'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_18.webp',
+  'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_22.webp',
+  'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_23.webp',
+];
 
 export default function Gold2SapphireProduct() {
   const [selectedImage, setSelectedImage] = useState(0);
@@ -13,22 +28,19 @@ export default function Gold2SapphireProduct() {
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
 
-  // 기본 이미지 (fallback)
-  const defaultImages = [
-    '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_11.webp',
-    '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_01.webp',
-    '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_12.webp',
-    '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_13.webp',
-    '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_14.webp',
-    '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_16.webp',
-    '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_17.webp',
-    '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_18.webp',
-    '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_22.webp',
-    '/main/products/gold2-sapphire/massgoo_sf_gold2_muz_23.webp',
-  ];
+  // 제품 데이터 로드 (웨폰 블랙/프로3와 동일: hero, hook_content, detail_content)
+  const {
+    productImages,
+    heroImages,
+    hookContent,
+    detailContent,
+    performanceImages,
+    isLoadingProduct,
+  } = useProductData('secret-force-gold-2-muziik', defaultImages);
 
-  // 제품 데이터 로드
-  const { productImages, galleryImages, performanceImages, isLoadingProduct } = useProductData('secret-force-gold-2-muziik', defaultImages);
+  // DB 이미지 없을 때 fallback → 표시용은 hero 우선, 없으면 product/fallback
+  const resolvedProductImages = productImages.length > 0 ? productImages : defaultImages.map((p) => getProductImageUrl(p));
+  const displayImages = heroImages.length > 0 ? heroImages : resolvedProductImages;
 
   // 블로그 후기 가져오기
   useEffect(() => {
@@ -94,13 +106,13 @@ export default function Gold2SapphireProduct() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="min-h-screen bg-gradient-to-br from-yellow-50 via-yellow-100 to-blue-50">
-        {/* 헤더 */}
-        <header className="bg-white shadow-lg sticky top-0 z-50">
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-green-50">
+        {/* 헤더 - 웨폰 블랙과 동일 (다크) */}
+        <header className="bg-black shadow-lg sticky top-0 z-50">
           <div className="container mx-auto px-4 py-3 sm:py-4">
             <div className="flex justify-between items-center">
               <Link href="/" className="flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-                <span className="text-lg sm:text-2xl font-bold text-gray-800">MASSGOO X MUZIIK</span>
+                <span className="text-lg sm:text-2xl font-bold text-white">MASSGOO X MUZIIK</span>
               </Link>
               <a href="tel:080-028-8888" className="bg-red-600 text-white px-3 py-2 sm:px-6 sm:py-3 rounded-lg hover:bg-red-700 transition-colors font-bold text-sm sm:text-base whitespace-nowrap">
                 <span className="hidden sm:inline">080-028-8888 (무료 상담)</span>
@@ -109,6 +121,62 @@ export default function Gold2SapphireProduct() {
             </div>
           </div>
         </header>
+
+        {/* 2컷 후킹 이미지 섹션 - DB hook_content 있으면 표시 */}
+        {hookContent.length > 0 && (
+          <section className="py-12 sm:py-16 bg-black">
+            <div className="container mx-auto px-4 max-w-7xl">
+              {hookContent.map((item, index) => (
+                <div
+                  key={index}
+                  className={`flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-8 items-center ${index < hookContent.length - 1 ? 'mb-12 md:mb-16' : ''}`}
+                >
+                  <div className={`relative w-full rounded-lg overflow-hidden ${index % 2 === 1 ? 'md:order-2' : ''}`}>
+                    <div className="relative w-full h-[400px] sm:h-[450px] md:h-[500px]">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        className="object-cover md:object-contain"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        priority={index < 2}
+                        unoptimized
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className={`text-center md:text-left w-full ${index % 2 === 1 ? 'md:order-1' : ''}`}>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4 leading-tight">{item.title}</h2>
+                    <p className="text-base sm:text-lg text-gray-300 leading-relaxed">{item.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 첫 번째 CTA 버튼 섹션 */}
+        <section className="py-12 sm:py-16 bg-gradient-to-br from-gray-900 via-black to-gray-900">
+          <div className="container mx-auto px-4 max-w-7xl text-center">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
+              프리미엄 마쓰구 드라이버
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-6 sm:mb-8">
+              지금 상담 받고 특별 혜택을 경험하세요!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+              <a href="tel:080-028-8888" className="bg-green-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-green-700 transition-colors font-bold text-base sm:text-lg">
+                080-028-8888 무료 상담하기
+              </a>
+              <a href="https://smartstore.naver.com/mas9golf/products/12581045696" target="_blank" rel="noopener noreferrer" className="bg-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-blue-700 transition-colors font-bold text-base sm:text-lg">
+                네이버 스마트스토어에서 구매하기
+              </a>
+            </div>
+          </div>
+        </section>
 
         {/* 제품 히어로 섹션 */}
         <section className="py-12">
@@ -120,17 +188,17 @@ export default function Gold2SapphireProduct() {
                   <div className="relative aspect-square w-full bg-gray-200 rounded-2xl flex items-center justify-center">
                     <p className="text-gray-500">이미지 로딩 중...</p>
                   </div>
-                ) : productImages.length > 0 ? (
+                ) : displayImages.length > 0 ? (
                   <>
                     <div className="relative aspect-square w-full max-w-full">
                       <div className="relative w-full h-full rounded-2xl shadow-2xl overflow-hidden">
                         <Image 
-                          src={productImages[selectedImage]} 
+                          src={displayImages[selectedImage]} 
                           alt="GOLD 2 + 사파이어 콤보" 
                           fill
                           className="object-contain rounded-2xl"
+                          unoptimized
                           onError={(e) => {
-                            console.error('제품 이미지 로드 실패:', productImages[selectedImage]);
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
                           }}
@@ -143,7 +211,7 @@ export default function Gold2SapphireProduct() {
                     
                     {/* 썸네일 이미지들 - 모바일에서 가로 스크롤 */}
                     <div className="flex space-x-4 overflow-x-auto pb-2 product-scrollbar-light w-full">
-                      {productImages.map((image, index) => (
+                      {displayImages.map((image, index) => (
                         <button
                           key={index}
                           onClick={() => setSelectedImage(index)}
@@ -153,23 +221,23 @@ export default function Gold2SapphireProduct() {
                         >
                           <Image 
                             src={image} 
-                        alt={`제품 이미지 ${index + 1}`} 
-                        width={80} 
-                        height={80}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          console.error('썸네일 이미지 로드 실패:', image);
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                        }}
-                      />
-                    </button>
-                  ))}
-                </div>
+                            alt={`제품 이미지 ${index + 1}`} 
+                            width={80} 
+                            height={80}
+                            className="w-full h-full object-cover"
+                            unoptimized
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                        </button>
+                      ))}
+                    </div>
                   </>
                 ) : (
                   <div className="relative aspect-square w-full bg-gray-200 rounded-2xl flex items-center justify-center">
-                    <p className="text-gray-500">이미지가 없습니다.</p>
+                    <p className="text-gray-500">이미지를 불러올 수 없습니다.</p>
                   </div>
                 )}
               </div>
@@ -228,6 +296,44 @@ export default function Gold2SapphireProduct() {
             </div>
           </div>
         </section>
+
+        {/* 8컷 상세 이미지 섹션 - DB detail_content 있으면 표시 */}
+        {detailContent.length > 0 && (
+          <section className="py-12 sm:py-16 bg-black">
+            <div className="container mx-auto px-4 max-w-7xl">
+              <div className="space-y-12 md:space-y-16">
+                {detailContent.map((item, index) => (
+                  <div
+                    key={index}
+                    className={`flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-8 items-center`}
+                  >
+                    <div className={`relative w-full rounded-lg overflow-hidden ${index % 2 === 1 ? 'md:order-2' : ''}`}>
+                      <div className="relative w-full h-[350px] sm:h-[380px] md:h-[400px]">
+                        <Image
+                          src={item.image}
+                          alt={item.title}
+                          fill
+                          className="object-cover md:object-contain"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          priority={index < 2}
+                          unoptimized
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className={`text-center md:text-left w-full ${index % 2 === 1 ? 'md:order-1' : ''}`}>
+                      <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 leading-tight">{item.title}</h3>
+                      <p className="text-sm sm:text-base text-gray-300 leading-relaxed">{item.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* 혁신적인 테크놀로지 섹션 */}
         <section className="py-16 bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -732,35 +838,6 @@ export default function Gold2SapphireProduct() {
             )}
           </div>
         </section>
-
-        {/* 제품 착용 이미지 섹션 */}
-        {galleryImages.length > 0 && (
-          <section className="py-16 bg-white">
-            <div className="container mx-auto px-4 max-w-7xl">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">제품 착용 이미지</h2>
-                <p className="text-lg text-gray-600">실제 사용 모습을 확인하세요</p>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {galleryImages.map((image, index) => (
-                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden shadow-lg">
-                    <Image
-                      src={image}
-                      alt={`제품 착용 이미지 ${index + 1}`}
-                      fill
-                      className="object-cover"
-                      onError={(e) => {
-                        console.error('착용 이미지 로드 실패:', image);
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* 고객 후기 슬라이드 섹션 */}
         <section className="py-12 bg-gray-50">

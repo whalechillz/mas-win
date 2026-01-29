@@ -228,6 +228,67 @@ export default async function handler(req, res) {
         details: error?.message || '알 수 없는 오류'
       });
     }
+  } else if (req.method === 'PUT') {
+    // 메타데이터만 업데이트 (고객 이미지 편집 모달 저장)
+    try {
+      const { imageId, metadata } = req.body || {};
+      if (!imageId) {
+        return res.status(400).json({
+          success: false,
+          error: 'imageId가 필요합니다.'
+        });
+      }
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+      const keywords = metadata?.keywords;
+      const safeKeywords = Array.isArray(keywords)
+        ? keywords.map((k) => String(k || '').trim()).filter(Boolean)
+        : (typeof keywords === 'string' ? keywords.split(',').map((k) => k.trim()).filter(Boolean) : []);
+
+      const updatePayload = {
+        updated_at: new Date().toISOString(),
+        ...(metadata?.alt_text !== undefined && { alt_text: metadata.alt_text ?? '' }),
+        ...(metadata?.title !== undefined && { title: metadata.title ?? '' }),
+        ...(metadata?.description !== undefined && { description: metadata.description ?? '' }),
+        ...(keywords !== undefined && { ai_tags: safeKeywords }),
+        ...(metadata?.ocr_text !== undefined && { ocr_text: metadata.ocr_text ?? null })
+      };
+
+      const { data, error } = await supabase
+        .from('image_assets')
+        .update(updatePayload)
+        .eq('id', imageId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ [upload-customer-image API] PUT 메타데이터 업데이트 실패:', error);
+        return res.status(500).json({
+          success: false,
+          error: '메타데이터 업데이트 실패',
+          details: error.message
+        });
+      }
+      if (!data) {
+        return res.status(404).json({
+          success: false,
+          error: '이미지를 찾을 수 없습니다.',
+          details: 'imageId에 해당하는 레코드가 없습니다.'
+        });
+      }
+      return res.status(200).json({
+        success: true,
+        message: '메타데이터가 저장되었습니다.',
+        image: data
+      });
+    } catch (err) {
+      console.error('❌ [upload-customer-image API] PUT 예외:', err);
+      return res.status(500).json({
+        success: false,
+        error: '메타데이터 저장 중 오류가 발생했습니다.',
+        details: err?.message || '알 수 없는 오류'
+      });
+    }
   } else if (req.method === 'GET') {
     // 고객 이미지 목록 조회
     try {

@@ -156,46 +156,105 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
     });
     await page.waitForTimeout(3000);
 
-    // 4. 고객 찾기 및 클릭
-    console.log('4️⃣ 고객 찾기...');
+    // 4. 고객 찾기 및 이미지 관리 모달 열기
+    console.log('4️⃣ 고객 찾기 및 이미지 관리 모달 열기...');
     const customerName = '최태섭';
     
     // 고객 이름으로 검색 또는 직접 클릭
     try {
       // 고객 이름이 포함된 요소 찾기
       const customerSelector = `text=${customerName}`;
-      await page.waitForSelector(customerSelector, { timeout: 5000 });
+      await page.waitForSelector(customerSelector, { timeout: 10000 });
       
-      // 고객 행 클릭 (이미지 업로드 버튼이 있는 행)
-      const customerRow = page.locator(customerSelector).first();
-      await customerRow.click({ force: true });
-      await page.waitForTimeout(2000);
+      console.log('✅ 고객 이름 발견');
       
-      console.log(`✅ 고객 "${customerName}" 클릭 완료`);
+      // 이미지 관리 버튼 찾기 (정확히 "이미지" 텍스트만)
+      const imageButtonSelectors = [
+        'button:has-text("이미지"):not(:has-text("위치"))',
+        'button:has-text("이미지")'
+      ];
+
+      let imageButton = null;
+      for (const selector of imageButtonSelectors) {
+        try {
+          const buttons = page.locator(selector);
+          const count = await buttons.count();
+          console.log(`  "${selector}" 선택자로 ${count}개 버튼 발견`);
+          
+          if (count > 0) {
+            // 모든 버튼 확인
+            for (let i = 0; i < count; i++) {
+              const button = buttons.nth(i);
+              const buttonText = await button.textContent();
+              console.log(`  버튼 ${i + 1}: "${buttonText?.trim()}"`);
+              
+              // "이미지"만 포함하고 "위치"는 포함하지 않는 버튼 찾기
+              if (buttonText && buttonText.includes('이미지') && !buttonText.includes('위치')) {
+                imageButton = button;
+                console.log(`✅ 정확한 이미지 버튼 발견: "${buttonText?.trim()}"`);
+                break;
+              }
+            }
+            if (imageButton) {
+              break;
+            }
+          }
+        } catch (e) {
+          console.log(`  선택자 "${selector}" 오류: ${e.message}`);
+        }
+      }
+
+      if (imageButton && await imageButton.count() > 0) {
+        await imageButton.click();
+        console.log('✅ 이미지 관리 버튼 클릭 완료');
+        await page.waitForTimeout(3000); // 모달이 열릴 때까지 대기
+      } else {
+        // 버튼을 찾지 못하면 고객 이름 클릭
+        console.log('⚠️ 이미지 관리 버튼을 찾지 못함, 고객 이름 클릭');
+        const customerElement = page.locator(customerSelector).first();
+        await customerElement.click({ force: true });
+        await page.waitForTimeout(2000);
+        
+        // 클릭 후 모달이 열렸는지 확인하고, 안 열렸으면 직접 모달 열기 버튼 찾기
+        const modalOpen = await page.locator('text=고객 이미지 관리, text=이미지 업로드').first().count() > 0;
+        if (!modalOpen) {
+          // 다시 이미지 관리 버튼 찾기
+          const retryButton = page.locator('button:has-text("이미지"), button:has-text("관리")').first();
+          if (await retryButton.count() > 0) {
+            await retryButton.click();
+            await page.waitForTimeout(2000);
+          }
+        }
+      }
+      
+      console.log(`✅ 고객 "${customerName}" 처리 완료`);
     } catch (error) {
-      console.log('⚠️ 고객 직접 클릭 실패, 이미지 업로드 버튼 직접 찾기');
+      console.log('⚠️ 고객 클릭 실패:', error.message);
+      // 계속 진행 (모달이 이미 열려있을 수 있음)
     }
 
     // 5. 이미지 업로드 영역 찾기
     console.log('5️⃣ 이미지 업로드 영역 찾기...');
     await page.waitForTimeout(2000);
 
-    // 여러 가능한 업로드 버튼/영역 찾기
-    const uploadButtonSelectors = [
-      'button:has-text("이미지 업로드")',
-      'button:has-text("업로드")',
-      '[class*="upload"]',
-      '[data-testid*="upload"]',
+    // 고객 이미지 모달이 열렸는지 확인
+    const modalOpen = await page.locator('text=이미지 업로드, text=고객 이미지 관리').first().count() > 0;
+    console.log(`📋 고객 이미지 모달 열림 여부: ${modalOpen}`);
+
+    // 파일 입력 요소 찾기 (id="customer-image-upload" 또는 일반 file input)
+    const fileInputSelectors = [
+      '#customer-image-upload',
+      'input[type="file"][id="customer-image-upload"]',
       'input[type="file"]'
     ];
 
     let fileInput = null;
-    for (const selector of uploadButtonSelectors) {
+    for (const selector of fileInputSelectors) {
       try {
         const elements = page.locator(selector);
         const count = await elements.count();
         if (count > 0) {
-          console.log(`✅ 업로드 요소 발견: ${selector} (${count}개)`);
+          console.log(`✅ 파일 입력 요소 발견: ${selector} (${count}개)`);
           fileInput = elements.first();
           break;
         }
@@ -204,13 +263,46 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '66699000';
       }
     }
 
-    if (!fileInput) {
-      // 파일 입력 직접 찾기
-      fileInput = page.locator('input[type="file"]').first();
-      const count = await fileInput.count();
-      if (count === 0) {
+    if (!fileInput || (await fileInput.count()) === 0) {
+      console.log('⚠️ 파일 입력 요소를 직접 찾을 수 없음, label 클릭 시도...');
+      
+      // label 찾기 (htmlFor="customer-image-upload" 또는 드래그앤드롭 영역)
+      const labelSelectors = [
+        'label[for="customer-image-upload"]',
+        'label:has-text("파일 선택")',
+        'label:has-text("드래그")',
+        '[class*="border-dashed"]' // 드래그앤드롭 영역
+      ];
+
+      let labelFound = false;
+      for (const selector of labelSelectors) {
+        try {
+          const label = page.locator(selector).first();
+          if (await label.count() > 0) {
+            console.log(`✅ 업로드 영역 발견: ${selector}`);
+            await label.click();
+            await page.waitForTimeout(1000);
+            
+            // 클릭 후 파일 입력 다시 찾기
+            fileInput = page.locator('input[type="file"]').first();
+            if (await fileInput.count() > 0) {
+              labelFound = true;
+              break;
+            }
+          }
+        } catch (e) {
+          // 계속 시도
+        }
+      }
+
+      if (!labelFound) {
         console.log('❌ 파일 입력 요소를 찾을 수 없습니다');
         await page.screenshot({ path: 'e2e-test/ocr-no-file-input.png', fullPage: true });
+        
+        // 페이지의 모든 file input 확인
+        const allFileInputs = await page.locator('input[type="file"]').count();
+        console.log(`📊 페이지의 전체 file input 개수: ${allFileInputs}`);
+        
         throw new Error('파일 입력 요소를 찾을 수 없음');
       }
     }

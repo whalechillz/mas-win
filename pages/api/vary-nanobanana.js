@@ -320,7 +320,7 @@ export default async function handler(req, res) {
         
         // 고객 이미지인 경우 고객 이름 추출
         if (location === 'customers') {
-          const { extractCustomerName } = require('../../../lib/filename-generator');
+          const { extractCustomerName } = require('../../lib/filename-generator');
           const extractedCustomerName = extractCustomerName(targetFolderPath);
           if (extractedCustomerName) {
             productName = extractedCustomerName;

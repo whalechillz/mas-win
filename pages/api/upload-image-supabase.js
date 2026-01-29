@@ -584,27 +584,35 @@ export default async function handler(req, res) {
       ? `${targetFolder}/${uniqueFileName}`.replace(/\/+/g, '/') // 중복 슬래시 제거
       : uniqueFileName;
     
-    // 원본 파일명 유지 옵션일 때 중복 체크
-    if (effectiveUploadMode === 'preserve-filename' || 
-        effectiveUploadMode === 'preserve-original' || 
-        effectiveUploadMode === 'preserve-name') {
-      const baseFileName = uniqueFileName;
+    // ✅ 모든 업로드 모드에서 중복 파일 체크 및 자동 파일명 생성
+    const checkAndGenerateUniquePath = async (path, maxAttempts = 10) => {
+      let finalPath = path;
       let counter = 0;
-      let finalPath = uploadPath;
       
-      // 중복 체크 (최대 10번 시도)
-      while (counter < 10) {
+      while (counter < maxAttempts) {
         const folderPath = finalPath.split('/').slice(0, -1).join('/');
         const fileName = finalPath.split('/').pop();
         
+        // Supabase Storage에서 파일 존재 여부 확인
         const { data: existingFiles, error: listError } = await supabase.storage
           .from('blog-images')
           .list(folderPath || '', {
             search: fileName
           });
         
+        // 에러가 있거나 파일이 없으면 중복 없음
         if (listError || !existingFiles || existingFiles.length === 0) {
-          break; // 중복 없음
+          // 정확한 파일명으로 한 번 더 확인 (search는 부분 일치일 수 있음)
+          const { data: exactFile } = await supabase.storage
+            .from('blog-images')
+            .list(folderPath || '', {
+              limit: 1000
+            });
+          
+          const fileExists = exactFile?.some(f => f.name === fileName);
+          if (!fileExists) {
+            break; // 중복 없음
+          }
         }
         
         // 중복이면 번호 추가
@@ -617,8 +625,11 @@ export default async function handler(req, res) {
         finalPath = pathParts.join('/');
       }
       
-      uploadPath = finalPath;
-    }
+      return finalPath;
+    };
+    
+    // ✅ 모든 업로드 모드에서 중복 체크 수행
+    uploadPath = await checkAndGenerateUniquePath(uploadPath);
 
     // Supabase Storage에 업로드
     console.log('🔄 Supabase Storage 업로드 중...', {
@@ -636,19 +647,64 @@ export default async function handler(req, res) {
       });
 
     if (error) {
-      console.error('❌ Supabase Storage 업로드 오류:', {
-        error: error.message,
-        code: error.statusCode,
-        uploadPath,
-        fileSize: processedBuffer.length
-      });
-      return res.status(500).json({ 
-        error: '이미지 업로드에 실패했습니다.',
-        details: error.message 
-      });
+      // ✅ "The resource already exists" 오류 처리: 자동으로 고유 파일명 생성 후 재시도
+      if (error.message && error.message.includes('already exists') || error.message.includes('duplicate')) {
+        console.warn('⚠️ 파일이 이미 존재합니다. 고유 파일명으로 재시도:', uploadPath);
+        
+        // 타임스탬프와 랜덤 문자열 추가하여 고유 파일명 생성
+        const pathParts = uploadPath.split('/');
+        const fileName = pathParts.pop();
+        const nameWithoutExt = fileName.replace(/\.[^/.]+$/, '');
+        const ext = fileName.match(/\.[^/.]+$/)?.[0] || '';
+        const timestamp = Date.now();
+        const random = Math.random().toString(36).substring(2, 8);
+        const uniqueFileName = `${nameWithoutExt}-${timestamp}-${random}${ext}`;
+        pathParts.push(uniqueFileName);
+        const newUploadPath = pathParts.join('/');
+        
+        console.log('🔄 고유 파일명으로 재시도:', newUploadPath);
+        
+        // 재시도
+        const { data: retryData, error: retryError } = await supabase.storage
+          .from('blog-images')
+          .upload(newUploadPath, processedBuffer, {
+            contentType: contentType,
+            cacheControl: '3600',
+            upsert: false
+          });
+        
+        if (retryError) {
+          console.error('❌ 재시도 후에도 Supabase Storage 업로드 오류:', {
+            error: retryError.message,
+            code: retryError.statusCode,
+            uploadPath: newUploadPath,
+            fileSize: processedBuffer.length
+          });
+          return res.status(500).json({ 
+            error: '이미지 업로드에 실패했습니다.',
+            details: retryError.message,
+            suggestion: '파일이 이미 존재하거나 네트워크 오류가 발생했습니다. 다른 파일명으로 시도해주세요.'
+          });
+        }
+        
+        // 재시도 성공
+        uploadPath = newUploadPath;
+        console.log('✅ 고유 파일명으로 업로드 성공:', uploadPath);
+      } else {
+        // 다른 오류
+        console.error('❌ Supabase Storage 업로드 오류:', {
+          error: error.message,
+          code: error.statusCode,
+          uploadPath,
+          fileSize: processedBuffer.length
+        });
+        return res.status(500).json({ 
+          error: '이미지 업로드에 실패했습니다.',
+          details: error.message,
+          suggestion: '네트워크 연결을 확인하거나 파일 크기를 확인해주세요.'
+        });
+      }
     }
-    
-    console.log('✅ Supabase Storage 업로드 완료:', uploadPath);
 
     // 공개 URL 생성
     const { data: publicUrlData } = supabase.storage

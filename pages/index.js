@@ -6,6 +6,12 @@ import { useState, useEffect } from 'react';
 import { formatBrandYearsTradition, BRAND_FOUNDED_YEAR } from '../lib/brand-utils';
 import { getProductImageUrl } from '../lib/product-image-url';
 
+// 메인 페이지 좌상단(헤더) 로고: 배경에 따라 블랙/화이트 버전 사용
+const HEADER_LOGO_LIGHT_BG = '/main/logo/massgoo_logo_black.png';  // 흰색·밝은 배경용
+const HEADER_LOGO_DARK_BG = '/main/logo/massgoo_logo_white.png';  // 검정·어두운 배경용
+const HEADER_IS_DARK = false; // true → 어두운 헤더 + 흰색 로고, false → 밝은 헤더 + 검정 로고
+const HEADER_NAV_TEXT_CLASS = HEADER_IS_DARK ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-gray-900';
+
 export default function Home({ hostname, initialProducts = [] }) {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -23,25 +29,6 @@ export default function Home({ hostname, initialProducts = [] }) {
     'secret-force-pro-3-muziik': null,
   });
   const [performanceImagesLoading, setPerformanceImagesLoading] = useState(true);
-
-  // 히어로 섹션 PRO 3 MUZIIK 이미지 (제품 상세 페이지와 동일한 API에서 첫 이미지 사용)
-  const defaultHeroPro3Url = getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp');
-  const [heroPro3ImageUrl, setHeroPro3ImageUrl] = useState(defaultHeroPro3Url);
-
-  useEffect(() => {
-    const loadHeroPro3Image = async () => {
-      try {
-        const res = await fetch('/api/products/secret-force-pro-3-muziik');
-        const json = await res.json();
-        if (json.success && json.product?.detail_images?.length > 0) {
-          setHeroPro3ImageUrl(getProductImageUrl(json.product.detail_images[0]));
-        }
-      } catch (error) {
-        console.error('히어로 PRO3 MUZIIK 이미지 로드 실패:', error);
-      }
-    };
-    loadHeroPro3Image();
-  }, []);
 
   // 제품 데이터 로드 (데이터베이스에서)
   useEffect(() => {
@@ -85,7 +72,7 @@ export default function Home({ hostname, initialProducts = [] }) {
         const defaultPaths = {
           'secret-force-gold-2-muziik': 'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_11.webp',
           'secret-weapon-black-muziik': 'originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_11.webp',
-          'secret-force-pro-3-muziik': 'originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp',
+          'secret-force-pro-3-muziik': 'originals/products/secret-force-pro-3-muziik/detail/massgoo-secret-force-pro-3-muziik-20260126-01.webp',
         };
         results.forEach(({ slug, imageUrl }) => {
           imagesMap[slug] = imageUrl || (defaultPaths[slug] ? getProductImageUrl(defaultPaths[slug]) : null);
@@ -114,7 +101,7 @@ export default function Home({ hostname, initialProducts = [] }) {
         'originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_01.webp',
       ],
       'secret-force-pro-3-muziik': [
-        'originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp',
+        'originals/products/secret-force-pro-3-muziik/detail/massgoo-secret-force-pro-3-muziik-20260126-01.webp',
         'originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_beryl_240.webp',
       ],
       'secret-force-gold-2': [
@@ -147,7 +134,7 @@ export default function Home({ hostname, initialProducts = [] }) {
         'originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_01.webp',
       ],
       'pro3-muziik': [
-        'originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp',
+        'originals/products/secret-force-pro-3-muziik/detail/massgoo-secret-force-pro-3-muziik-20260126-01.webp',
         'originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_beryl_240.webp',
       ],
       'gold2': [
@@ -258,13 +245,13 @@ export default function Home({ hostname, initialProducts = [] }) {
       price: '1,700,000원',
       features: ['MUZIIK 샤프트', '사파이어, 베릴 샤프트 추가', '업그레이드된 고반발 드라이버'],
       images: [
-        'originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp',
-        'originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_beryl_230.webp',
-        'originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_beryl_240.webp',
-        'originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_beryl_250.webp',
-        'originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_sapphire_200.webp',
-        'originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_sapphire_215.webp',
-        'originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-03.webp',
+        getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/massgoo-secret-force-pro-3-muziik-20260126-01.webp'),
+        getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_beryl_230.webp'),
+        getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_beryl_240.webp'),
+        getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_beryl_250.webp'),
+        getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_sapphire_200.webp'),
+        getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/massgoo_pro3_sapphire_215.webp'),
+        getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-03.webp'),
       ],
       badges: { left: 'NEW', right: null, leftColor: 'red', rightColor: null },
       borderColor: null,
@@ -429,14 +416,14 @@ export default function Home({ hostname, initialProducts = [] }) {
       </Head>
 
       <main>
-        {/* 헤더 네비게이션 */}
-        <header className="bg-white shadow-sm sticky top-0 z-50">
+        {/* 헤더 네비게이션 - 배경에 맞는 로고(블랙/화이트) 사용 */}
+        <header className={HEADER_IS_DARK ? 'bg-black shadow-sm sticky top-0 z-50' : 'bg-white shadow-sm sticky top-0 z-50'}>
           <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-center">
               <Link href="/" className="flex items-center">
                 <div className="relative h-8 w-auto max-w-[140px]">
                   <Image
-                    src="/main/logo/massgoo_logo_black.png"
+                    src={HEADER_IS_DARK ? HEADER_LOGO_DARK_BG : HEADER_LOGO_LIGHT_BG}
                     alt="MASSGOO 로고"
                     width={140}
                     height={32}
@@ -453,7 +440,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                   onMouseEnter={() => setDriverMenuOpen(true)}
                   onMouseLeave={() => setDriverMenuOpen(false)}
                 >
-                  <button className="text-gray-700 hover:text-gray-900 flex items-center">
+                  <button className={`${HEADER_NAV_TEXT_CLASS} flex items-center`}>
                     드라이버
                     <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
@@ -497,11 +484,11 @@ export default function Home({ hostname, initialProducts = [] }) {
                     </div>
                   )}
                 </div>
-                <Link href="/#technology" className="text-gray-700 hover:text-gray-900">기술력</Link>
-                <Link href="/#reviews" className="text-gray-700 hover:text-gray-900">고객후기</Link>
-                <Link href="/about" className="text-gray-700 hover:text-gray-900">브랜드 스토리</Link>
-                <Link href="/blog" className="text-gray-700 hover:text-gray-900">골프 가이드</Link>
-                <Link href="/contact" className="text-gray-700 hover:text-gray-900">시타매장</Link>
+                <Link href="/#technology" className={HEADER_NAV_TEXT_CLASS}>기술력</Link>
+                <Link href="/#reviews" className={HEADER_NAV_TEXT_CLASS}>고객후기</Link>
+                <Link href="/about" className={HEADER_NAV_TEXT_CLASS}>브랜드 스토리</Link>
+                <Link href="/blog" className={HEADER_NAV_TEXT_CLASS}>골프 가이드</Link>
+                <Link href="/contact" className={HEADER_NAV_TEXT_CLASS}>시타매장</Link>
                 <Link href="/try-a-massgoo" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
                   무료 시타
                 </Link>
@@ -509,7 +496,7 @@ export default function Home({ hostname, initialProducts = [] }) {
               <div className="md:hidden">
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="text-gray-700 hover:text-gray-900 transition-colors"
+                  className={`${HEADER_NAV_TEXT_CLASS} transition-colors`}
                   aria-label="메뉴 열기/닫기"
                 >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -526,7 +513,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                   <div>
                     <button
                       onClick={() => setDriverMenuOpen(!driverMenuOpen)}
-                      className="w-full text-left text-gray-700 hover:text-gray-900 py-2 flex items-center justify-between"
+                      className={`w-full text-left ${HEADER_NAV_TEXT_CLASS} py-2 flex items-center justify-between`}
                     >
                       <span>드라이버</span>
                       <svg 
@@ -542,7 +529,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                       <div className="pl-4 mt-2 space-y-2 border-l-2 border-gray-200">
                         <Link 
                           href="/products/secret-weapon-black-muziik"
-                          className="block py-2 text-gray-700 hover:text-gray-900"
+                          className={`block py-2 ${HEADER_NAV_TEXT_CLASS}`}
                           onClick={() => {
                             setMobileMenuOpen(false);
                             setDriverMenuOpen(false);
@@ -556,7 +543,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                         </Link>
                         <Link 
                           href="/products/secret-force-gold-2-muziik"
-                          className="block py-2 text-gray-700 hover:text-gray-900"
+                          className={`block py-2 ${HEADER_NAV_TEXT_CLASS}`}
                           onClick={() => {
                             setMobileMenuOpen(false);
                             setDriverMenuOpen(false);
@@ -570,7 +557,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                         </Link>
                         <Link 
                           href="/products/secret-force-pro-3-muziik"
-                          className="block py-2 text-gray-700 hover:text-gray-900"
+                          className={`block py-2 ${HEADER_NAV_TEXT_CLASS}`}
                           onClick={() => {
                             setMobileMenuOpen(false);
                             setDriverMenuOpen(false);
@@ -585,11 +572,11 @@ export default function Home({ hostname, initialProducts = [] }) {
                       </div>
                     )}
                   </div>
-                  <Link href="/#technology" className="text-gray-700 hover:text-gray-900 py-2">기술력</Link>
-                  <Link href="/#reviews" className="text-gray-700 hover:text-gray-900 py-2">고객후기</Link>
-                  <Link href="/about" className="text-gray-700 hover:text-gray-900 py-2">브랜드 스토리</Link>
-                  <Link href="/blog" className="text-gray-700 hover:text-gray-900 py-2">골프 가이드</Link>
-                  <Link href="/contact" className="text-gray-700 hover:text-gray-900 py-2">시타매장</Link>
+                  <Link href="/#technology" className={`${HEADER_NAV_TEXT_CLASS} py-2`}>기술력</Link>
+                  <Link href="/#reviews" className={`${HEADER_NAV_TEXT_CLASS} py-2`}>고객후기</Link>
+                  <Link href="/about" className={`${HEADER_NAV_TEXT_CLASS} py-2`}>브랜드 스토리</Link>
+                  <Link href="/blog" className={`${HEADER_NAV_TEXT_CLASS} py-2`}>골프 가이드</Link>
+                  <Link href="/contact" className={`${HEADER_NAV_TEXT_CLASS} py-2`}>시타매장</Link>
                   <Link href="/try-a-massgoo" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-center">
                     무료 시타
                   </Link>
@@ -713,21 +700,11 @@ export default function Home({ hostname, initialProducts = [] }) {
                   className="relative aspect-square rounded-2xl overflow-hidden border-2 border-red-500/30 hover:border-red-400 transition-all block cursor-pointer group"
                 >
                   <Image
-                    src={heroPro3ImageUrl}
+                    src={getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/massgoo-secret-force-pro-3-muziik-20260126-01.webp')}
                     alt="시크리트포스 PRO 3 MUZIIK"
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    priority
-                    onError={(e) => {
-                      const target = e.target;
-                      if (target) {
-                        target.style.display = 'none';
-                        const parent = target.parentElement;
-                        if (parent) {
-                          parent.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-gray-800"><span class="text-gray-400 text-sm">이미지 없음</span></div>';
-                        }
-                      }
-                    }}
+                    unoptimized
                   />
                   <div className="absolute top-4 left-4 flex items-center gap-2">
                     <span className="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold">NEW</span>
@@ -1059,7 +1036,9 @@ export default function Home({ hostname, initialProducts = [] }) {
                                       product.badges?.leftColor === 'purple' ? 'bg-purple-400 text-white' : '';
                 const badgeRightClass = product.badges?.rightColor === 'green' ? 'bg-green-400 text-white' : 
                                        product.badges?.rightColor === 'yellow' ? 'bg-yellow-400 text-black' : '';
-                
+                // 상대 경로면 Supabase 공개 URL로 변환 (PRO 3 등 로컬 404 방지)
+                const rawFirst = (product.images && product.images[0]) || '';
+                const firstImageUrl = rawFirst && !rawFirst.startsWith('http') ? getProductImageUrl(rawFirst) : rawFirst;
                 return (
                   <div
                     key={product.id}
@@ -1067,15 +1046,16 @@ export default function Home({ hostname, initialProducts = [] }) {
                     className={`bg-white rounded-lg shadow-lg overflow-hidden ${borderClass} cursor-pointer hover:shadow-2xl transition-all`}
               >
                 <div className="relative min-h-80 md:h-72 bg-gray-200">
-                    {product.images && product.images.length > 0 && product.images[0] ? (
+                    {firstImageUrl ? (
                       <Image
-                        src={product.images[0]}
+                        src={firstImageUrl}
                         alt={product.name}
                         fill
                         className="object-cover"
+                        unoptimized
                         priority={product.id === 'secret-force-gold-2-muziik' || product.id === 'secret-weapon-black-muziik' || product.id === 'gold2-sapphire' || product.id === 'black-beryl'}
                         onError={(e) => {
-                          console.error('이미지 로드 실패:', product.images[0], product.name);
+                          console.error('이미지 로드 실패:', firstImageUrl, product.name);
                           const target = e.target;
                           if (target) {
                             target.style.display = 'none';

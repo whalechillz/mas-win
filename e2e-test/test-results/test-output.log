@@ -1,0 +1,43 @@
+🌐 갤러리 페이지 접속 중...
+[info] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[log] [TOUCH-SCROLL] [INIT] 페이지 스크롤 가능 여부 체크
+[log]   스크롤 가능: ❌ 아니오
+[log]   문서 높이: 720px
+[log]   윈도우 높이: 720px
+[log]   CSS 스타일: {htmlOverflow: hidden auto, htmlOverflowY: auto, htmlHeight: 720px, htmlMaxHeight: none, bodyOverflow: hidden auto}
+[log] [HMR] connected
+[error] Failed to load resource: the server responded with a status of 404 (Not Found)
+[log] 🔍 [검색 디버깅] filteredImages useMemo 시작: {imagesCount: 0, searchQuery: (빈 검색어), folderFilter: all, filterType: all, sortBy: created_at}
+[log] 🔍 [검색 디버깅] 필터링 전 이미지 수: 0
+[log] 🔍 [검색 디버깅] 폴더 필터 없음 (all)
+[log] 🔍 [검색 디버깅] filteredImages useMemo 완료: {filteredCount: 0, originalCount: 0, removedCount: 0, timestamp: 2026-01-28T15:13:40.112Z}
+[log] ⏳ router.isReady가 false이거나 window가 없습니다
+[log] 🔍 좋아요 필터 URL 파라미터 확인: {routerIsReady: true, windowLocationSearch: , urlParamsLiked: null, routerQueryLiked: undefined, finalLikedParam: undefined}
+[log] ❌ 좋아요 필터 비활성화 (likedParam: undefined )
+[error] Failed to load resource: the server responded with a status of 401 (Unauthorized)
+[error] Failed to load resource: the server responded with a status of 401 (Unauthorized)
+[error] Failed to load resource: the server responded with a status of 401 (Unauthorized)
+[error] Failed to load resource: the server responded with a status of 401 (Unauthorized)
+[error] ❌ 카테고리 로드 실패: Unauthorized
+[log] 🚀 갤러리 초기화 완료: 15ms
+[error] Failed to load resource: the server responded with a status of 401 (Unauthorized)
+📷 이미지 추가 모달 열기...
+  📋 총 6개의 버튼 발견
+  📝 버튼 목록: 관관리자편집자, 다시 시도, 폴더 선택, 🤍 좋아요, ☐ 선택 모드, 🔄리프레시
+  ⚠️ 방법 1 실패, 방법 2 시도...
+  ⚠️ 방법 2 실패, 방법 3 시도...
+[info] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[log] [TOUCH-SCROLL] [INIT] 페이지 스크롤 가능 여부 체크
+[log]   스크롤 가능: ❌ 아니오
+[log]   문서 높이: 720px
+[log]   윈도우 높이: 720px
+[log]   CSS 스타일: {htmlOverflow: hidden auto, htmlOverflowY: auto, htmlHeight: 720px, htmlMaxHeight: none, bodyOverflow: hidden auto}
+[log] [HMR] connected
+❌ 테스트 실패: locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator('button:has-text("이미지 추가")').first()
+
+    at /Users/m2/MASLABS/win.masgolf.co.kr/e2e-test/test-gallery-metadata-generation.js:154:26 {
+  name: 'TimeoutError'
+}
+📸 에러 스크린샷 저장: /Users/m2/MASLABS/win.masgolf.co.kr/e2e-test/test-results/error-1769613262701.png

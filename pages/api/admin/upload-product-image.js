@@ -7,14 +7,15 @@ import fs from 'fs';
 import path from 'path';
 import { generateProductImageFileName } from '../../../lib/filename-generator';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('❌ Supabase 환경 변수가 설정되지 않았습니다.');
+// 런타임에서 env 사용 (모듈 로드 시점에 없을 수 있음)
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase 환경 변수가 설정되지 않았습니다. .env.local에 NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY를 설정해주세요.');
+  }
+  return createClient(supabaseUrl, supabaseServiceKey);
 }
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export const config = {
   api: {
@@ -68,6 +69,17 @@ function getProductStoragePath(productSlug, category, imageType = 'detail') {
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  let supabase;
+  try {
+    supabase = getSupabaseClient();
+  } catch (envError) {
+    console.error('[upload-product-image] ❌ Supabase env:', envError.message);
+    return res.status(503).json({
+      error: '이미지 업로드에 실패했습니다.',
+      details: envError.message,
+    });
   }
 
   try {
@@ -144,9 +156,18 @@ export default async function handler(req, res) {
     
     // WebP로 변환
     console.log('[upload-product-image] WebP 변환 시작');
-    const webpBuffer = await sharp(fileBuffer)
-      .webp({ quality: 85 })
-      .toBuffer();
+    let webpBuffer;
+    try {
+      webpBuffer = await sharp(fileBuffer)
+        .webp({ quality: 85 })
+        .toBuffer();
+    } catch (sharpError) {
+      console.error('[upload-product-image] ❌ Sharp 변환 실패:', sharpError.message);
+      return res.status(400).json({
+        error: '이미지 업로드에 실패했습니다.',
+        details: '지원하지 않는 이미지 형식이거나 파일이 손상되었습니다. JPG/PNG/WebP 이미지 파일인지 확인해주세요.',
+      });
+    }
     console.log('[upload-product-image] WebP 변환 완료, 크기:', webpBuffer.length);
 
     // Storage 경로 결정 (새 구조 사용)
@@ -208,7 +229,8 @@ export default async function handler(req, res) {
     }
 
     // Supabase Storage에 업로드
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await supabase
+      .storage
       .from('blog-images')
       .upload(storagePath, webpBuffer, {
         contentType: 'image/webp',
@@ -250,9 +272,11 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('[upload-product-image] ❌ 예외 발생:', error);
+    const message = error.message || '이미지 업로드 중 오류가 발생했습니다.';
     return res.status(500).json({
-      error: error.message || '이미지 업로드 중 오류가 발생했습니다.',
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      error: message,
+      details: message,
+      ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
     });
   }
 }

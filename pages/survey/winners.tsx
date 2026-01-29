@@ -1,5 +1,6 @@
 import Head from 'next/head';
-import { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/router';
 
 type Winner = {
@@ -23,6 +24,7 @@ export default function WinnersPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [winnersPageEnabled, setWinnersPageEnabled] = useState<boolean | null>(null);
   const [checkingAccess, setCheckingAccess] = useState(true);
+  const touchStartX = useRef<number | null>(null);
 
   // 모바일 감지
   useEffect(() => {
@@ -117,6 +119,23 @@ export default function WinnersPage() {
     return () => clearInterval(interval);
   }, [isMobile, groups.length]);
 
+  // 모바일: 좌우 스와이프로 그룹 전환
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current == null || groups.length <= 1) return;
+    const endX = e.changedTouches[0].clientX;
+    const delta = endX - touchStartX.current;
+    const threshold = 50;
+    if (delta > threshold) {
+      setCurrentGroupIndex((prev) => (prev <= 0 ? groups.length - 1 : prev - 1));
+    } else if (delta < -threshold) {
+      setCurrentGroupIndex((prev) => (prev + 1) % groups.length);
+    }
+    touchStartX.current = null;
+  };
+
   // 이름 마스킹 함수 (개인정보 보호)
   const maskName = (name: string): string => {
     if (!name) return name;
@@ -158,6 +177,11 @@ export default function WinnersPage() {
       month: 'long',
       day: 'numeric',
     });
+  };
+  // 모바일용 짧은 날짜 (세로 공간 절약)
+  const formatDateShort = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' }).replace(/\. /g, '/');
   };
 
   return (
@@ -254,57 +278,64 @@ export default function WinnersPage() {
               <p className="text-gray-400 text-lg">당첨자가 없습니다.</p>
             </div>
           ) : isMobile ? (
-            /* 모바일: 자동 스크롤 카드 형식 */
-            <div className="space-y-6">
+            /* 모바일: 좌우 스와이프 + 압축 카드 (5명 한 화면 노출 목표) */
+            <div
+              className="touch-pan-y select-none"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              style={{ touchAction: 'pan-y' }}
+            >
+              <p className="text-center text-gray-500 text-xs mb-2">← 좌우로 드래그하여 그룹 이동</p>
               {groups.map((group, groupIdx) => (
                 <div
                   key={groupIdx}
-                  className={`transition-opacity duration-500 ${
-                    groupIdx === currentGroupIndex ? 'opacity-100' : 'opacity-0 absolute'
+                  className={`transition-opacity duration-300 ${
+                    groupIdx === currentGroupIndex ? 'opacity-100' : 'opacity-0 absolute pointer-events-none'
                   }`}
                   style={{
                     display: groupIdx === currentGroupIndex ? 'block' : 'none',
                   }}
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     {group.map((winner) => (
                       <div
                         key={winner.id}
-                        className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 border border-yellow-400/30 shadow-xl"
+                        className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg px-3 py-2.5 border border-yellow-400/30 shadow"
                       >
-                        <div className="flex items-center justify-between mb-3">
-                          <h3 className="text-xl font-bold text-yellow-400">{maskName(winner.name)}</h3>
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <h3 className="text-base font-bold text-yellow-400 truncate">{maskName(winner.name)}</h3>
                           {winner.is_winner && (
-                            <span className="px-3 py-1 bg-yellow-400/20 text-yellow-300 rounded-full text-xs font-semibold">
+                            <span className="shrink-0 px-2 py-0.5 bg-yellow-400/20 text-yellow-300 rounded-full text-[10px] font-semibold">
                               🎁 당첨
                             </span>
                           )}
                         </div>
-                        <div className="space-y-2 text-sm text-gray-300">
-                          <p>전화번호: <span className="text-gray-400">{formatPhone(winner.phone)}</span></p>
-                          <p>선택 모델: {winner.selected_model}</p>
-                          {winner.important_factors.length > 0 && (
-                            <p>중요 요소: {winner.important_factors.join(', ')}</p>
-                          )}
-                          <p className="text-xs text-gray-500">제출일: {formatDate(winner.created_at)}</p>
+                        <div className="space-y-0.5 text-xs text-gray-300">
+                          <p className="truncate">전화: <span className="text-gray-400">{formatPhone(winner.phone)}</span></p>
+                          <p className="truncate">
+                            모델: {winner.selected_model}
+                            {winner.important_factors.length > 0 && (
+                              <span className="text-gray-400"> · 요소: {winner.important_factors.join(', ')}</span>
+                            )}
+                          </p>
+                          <p className="text-[10px] text-gray-500">제출: {formatDateShort(winner.created_at)}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
               ))}
-              
               {/* 인디케이터 */}
               {groups.length > 1 && (
-                <div className="flex justify-center gap-2 mt-6">
+                <div className="flex justify-center gap-2 mt-4">
                   {groups.map((_, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentGroupIndex(idx)}
-                      className={`h-2 rounded-full transition-all ${
+                      className={`h-1.5 rounded-full transition-all ${
                         idx === currentGroupIndex
-                          ? 'bg-yellow-400 w-8'
-                          : 'bg-gray-600 w-2 hover:bg-gray-500'
+                          ? 'bg-yellow-400 w-6'
+                          : 'bg-gray-600 w-1.5 hover:bg-gray-500'
                       }`}
                       aria-label={`그룹 ${idx + 1}`}
                     />
@@ -360,15 +391,36 @@ export default function WinnersPage() {
           )}
         </div>
 
-        {/* 하단 링크 */}
-        <div className="text-center pb-12">
-          <button
-            onClick={() => router.push('/survey')}
-            className="text-yellow-400 hover:text-yellow-300 text-sm underline"
-          >
-            설문 조사 페이지로 돌아가기
-          </button>
-        </div>
+        {/* 신제품 보기 CTA + 시타안내 + 하단 링크 */}
+        <section className="max-w-2xl mx-auto px-4 pb-12">
+          <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-yellow-400/30 p-6 md:p-8 text-center mb-8">
+            <p className="text-gray-300 text-sm md:text-base mb-4">
+              MASSGOO X MUZIIK 신제품을 만나보세요
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+              <Link
+                href="/products/secret-force-pro-3-muziik"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-300 text-gray-900 font-semibold rounded-xl hover:from-yellow-300 hover:to-yellow-200 transition-all duration-300 shadow-lg"
+              >
+                시크리트포스 PRO3 MUZIIK 신제품 보기
+              </Link>
+              <Link
+                href="/try-a-massgoo"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-700 text-white font-semibold rounded-xl border border-gray-500 hover:bg-gray-600 transition-all duration-300"
+              >
+                시타 안내
+              </Link>
+            </div>
+          </div>
+          <div className="text-center">
+            <button
+              onClick={() => router.push('/survey')}
+              className="text-yellow-400 hover:text-yellow-300 text-sm underline"
+            >
+              설문 조사 페이지로 돌아가기
+            </button>
+          </div>
+        </section>
       </div>
     </>
   );

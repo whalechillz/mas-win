@@ -1177,6 +1177,8 @@ export default async function handler(req, res) {
         // 재귀적으로 모든 폴더의 이미지 조회 (페이지네이션용)
         // ✅ 중요: allFilesForPagination을 클로저로 접근하므로 함수 내부에서 직접 수정 가능
         const getAllImagesForPagination = async (folderPath = '', startTime = Date.now()) => {
+          // ✅ Storage 경로 정규화 (앞쪽 슬래시 제거)
+          folderPath = (folderPath || '').trim().replace(/^\//, '');
           // ✅ 타임아웃 체크 (55초 경과 시 조기 반환)
           if (Date.now() - startTime > 55000) {
             console.log(`⚠️ [getAllImagesForPagination] 타임아웃 방지를 위해 조회 중단: "${folderPath}"`);
@@ -1185,21 +1187,27 @@ export default async function handler(req, res) {
           
           console.log(`📁 [getAllImagesForPagination] 시작: "${folderPath || '루트'}"`);
           
-          // ✅ 최적화: originals/products/ 또는 originals/goods/ 폴더는 하위 폴더를 직접 지정하여 조회 (재귀 탐색 최소화)
-          const isProductsRoot = folderPath.startsWith('originals/products/') && 
-                                 !folderPath.includes('/composition') && 
-                                 !folderPath.includes('/detail') && 
-                                 !folderPath.includes('/gallery');
-          
-          const isGoodsRoot = folderPath.startsWith('originals/goods/') &&
-                             !folderPath.includes('/composition') && 
-                             !folderPath.includes('/detail') && 
-                             !folderPath.includes('/gallery');
+          // ✅ 최적화: 제품/굿즈 "루트"일 때만 하위 폴더를 직접 지정하여 조회 (hook 포함)
+          // 경로가 originals/products/제품ID 또는 originals/goods/제품ID (세그먼트 3개)일 때만 적용.
+          // originals/products/제품ID/hook 같은 하위 폴더에서는 이 최적화를 쓰지 않고 해당 폴더 파일을 조회.
+          const pathSegments = (folderPath || '').split('/').filter(Boolean);
+          const isProductsRoot = pathSegments.length === 3 &&
+                                 folderPath.startsWith('originals/products/') &&
+                                 !folderPath.includes('/composition') &&
+                                 !folderPath.includes('/detail') &&
+                                 !folderPath.includes('/gallery') &&
+                                 !folderPath.includes('/hook');
+          const isGoodsRoot = pathSegments.length === 3 &&
+                             folderPath.startsWith('originals/goods/') &&
+                             !folderPath.includes('/composition') &&
+                             !folderPath.includes('/detail') &&
+                             !folderPath.includes('/gallery') &&
+                             !folderPath.includes('/hook');
           
           if (isProductsRoot || isGoodsRoot) {
-            // 하위 폴더를 직접 조회 (재귀 탐색 대신)
-            const subFolders = ['composition', 'detail', 'gallery'];
-            console.log(`⚡ [getAllImagesForPagination] 최적화: "${folderPath}" 하위 폴더 직접 조회`);
+            // 하위 폴더를 직접 조회 (hook 포함)
+            const subFolders = ['composition', 'detail', 'gallery', 'hook'];
+            console.log(`⚡ [getAllImagesForPagination] 최적화: "${folderPath}" 하위 폴더 직접 조회 (${subFolders.join(', ')})`);
             const folderPromises = subFolders.map(subFolder => {
               const subFolderPath = `${folderPath}/${subFolder}`;
               return getAllImagesForPagination(subFolderPath, startTime);

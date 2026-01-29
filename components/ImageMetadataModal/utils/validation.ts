@@ -79,12 +79,14 @@ export const validateForm = (form: MetadataForm, hasOCRText: boolean = false): R
 export const calculateSEOScore = (form: MetadataForm): number => {
   let totalScore = 0;
   let fieldCount = 0;
+  let hasAnyContent = false;
 
   Object.entries(SEO_RECOMMENDATIONS).forEach(([field, recommendation]) => {
     const value = form[field as keyof MetadataForm];
     // 문자열 또는 문자열 배열 처리
     const stringValue = Array.isArray(value) ? value.join(', ') : (value || '');
     if (stringValue && stringValue.trim()) {
+      hasAnyContent = true;
       const length = stringValue.length;
       let score = 0;
 
@@ -101,6 +103,13 @@ export const calculateSEOScore = (form: MetadataForm): number => {
     }
   });
 
+  // ✅ 메타데이터가 하나도 없으면 0점 반환 (개선 필요 메시지 표시)
+  // ✅ 메타데이터가 하나라도 있으면 점수 계산 (최소 1개 필드만 있어도 점수 계산)
+  if (!hasAnyContent) {
+    return 0;
+  }
+
+  // ✅ 최소 1개 필드만 있어도 점수 계산 (빈 폼이 아닌 경우)
   return fieldCount > 0 ? Math.round(totalScore / fieldCount) : 0;
 };
 

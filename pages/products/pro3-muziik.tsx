@@ -17,8 +17,8 @@ export default function Pro3MuziikProduct() {
     '/main/products/pro3-muziik/massgoo_pro3_beryl_240.webp',
     '/main/products/pro3-muziik/massgoo_pro3_sapphire_200.webp',
     '/main/products/pro3-muziik/massgoo_pro3_sapphire_215.webp',
-    '/main/products/pro3-muziik/secret-force-pro-3-muziik-00.webp',
-    '/main/products/pro3-muziik/secret-force-pro-3-muziik-03.webp',
+    'originals/products/secret-force-pro-3-muziik/detail/massgoo-secret-force-pro-3-muziik-20260126-01.webp',
+    'originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-03.webp',
   ];
 
   // 제품 데이터 로드

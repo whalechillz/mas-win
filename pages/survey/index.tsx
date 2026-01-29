@@ -39,7 +39,7 @@ export default function SurveyLanding() {
   const [bucketHatImages, setBucketHatImages] = useState<Array<{ src: string; originalUrl?: string; alt: string }>>([]);
   const [golfCapImages, setGolfCapImages] = useState<Array<{ src: string; originalUrl?: string; alt: string }>>([]);
   const [imagesLoading, setImagesLoading] = useState(true);
-  const [pro3MuziikImage, setPro3MuziikImage] = useState<string>(getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp')); // Fallback
+  const [pro3MuziikImage, setPro3MuziikImage] = useState<string>(getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/massgoo-secret-force-pro-3-muziik-20260126-01.webp')); // Fallback
   const [surveyEnded, setSurveyEnded] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
   const [winnersPageEnabled, setWinnersPageEnabled] = useState(true);
@@ -116,12 +116,12 @@ export default function SurveyLanding() {
         setPro3MuziikImage(firstImage);
       } else {
         // Fallback: 기본 이미지 사용 (Supabase Storage 경로)
-        setPro3MuziikImage(getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp'));
+        setPro3MuziikImage(getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/massgoo-secret-force-pro-3-muziik-20260126-01.webp'));
       }
     } catch (error) {
       console.error('PRO3 MUZIIK 이미지 로드 오류:', error);
       // Fallback 사용 (Supabase Storage 경로)
-      setPro3MuziikImage(getProductImageUrl('originals/products/pro3-muziik/detail/secret-force-pro-3-muziik-00.webp'));
+      setPro3MuziikImage(getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/massgoo-secret-force-pro-3-muziik-20260126-01.webp'));
     }
   };
 

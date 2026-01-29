@@ -1429,7 +1429,7 @@ export default function GalleryAdmin() {
   const [selectedUploadFolder, setSelectedUploadFolder] = useState<string>('');
   const [uploadMode, setUploadMode] = useState<'optimize-filename' | 'preserve-filename'>('optimize-filename'); // 업로드 모드
   const [aiBrandTone, setAiBrandTone] = useState<'senior_emotional' | 'high_tech_innovative'>('senior_emotional');
-  const [metadataType, setMetadataType] = useState<'golf-ai' | 'general' | 'ocr'>('golf-ai'); // 메타데이터 생성 타입 (고객 이미지 업로드와 동일)
+  const [metadataType, setMetadataType] = useState<'golf-ai' | 'general' | 'ocr' | 'none'>('golf-ai'); // 메타데이터 생성 타입 (고객 이미지 업로드와 동일)
   
   // 모달 열 때 현재 폴더 자동 설정
   const handleOpenAddModal = () => {
@@ -3166,9 +3166,8 @@ export default function GalleryAdmin() {
         alt_text: editForm.alt_text || '',
         keywords: finalKeywords.length > 0 ? finalKeywords : [],
         title: titleValue,  // 파일명과 같으면 빈 문자열
-        description: editForm.description || '',
-        category: categoryString,  // 하위 호환성: 문자열로 전송
-        categories: categoriesArray  // 다중 선택: 배열로 전송
+        description: editForm.description || ''
+        // image_assets에는 category/category_id 없음
       };
       
       console.log('📤 저장 요청 데이터:', requestData);
@@ -5920,9 +5919,8 @@ export default function GalleryAdmin() {
               keywords: finalKeywords.length > 0 ? finalKeywords : [],
               title: titleValue,  // 파일명과 같으면 빈 문자열
               description: metadata.description || '',
-              category: categoryString,  // 하위 호환성: 문자열로 전송
-              categories: categoriesArray,  // 다중 선택: 배열로 전송
               exifData: exifData || null  // EXIF 정보 추가
+              // image_assets에는 category/category_id 없음
             };
             
             console.log('📤 저장 요청 데이터:', requestData);
@@ -5966,24 +5964,32 @@ export default function GalleryAdmin() {
               
               alert('메타데이터가 성공적으로 저장되었습니다!');
             } else {
-              const errorData = await response.json();
+              let errorData: { error?: string; details?: string | string[]; message?: string; code?: string; hint?: string } = {};
+              try {
+                const text = await response.text();
+                if (text) errorData = JSON.parse(text);
+              } catch (parseErr) {
+                console.error('❌ 저장 API 오류 응답 파싱 실패:', parseErr);
+                errorData = { error: `서버 응답 파싱 실패 (${response.status})` };
+              }
               console.error('❌ 저장 API 오류 응답:', {
                 status: response.status,
                 statusText: response.statusText,
-                errorData: errorData
+                errorData
               });
               let errorMessage = `저장에 실패했습니다.\n상태: ${response.status}\n`;
-              
-              if (errorData.details && Array.isArray(errorData.details)) {
-                errorMessage += `오류 내용:\n${errorData.details.join('\n')}`;
-              } else if (errorData.error) {
+              const details = errorData?.details;
+              if (details && Array.isArray(details)) {
+                errorMessage += `오류 내용:\n${details.join('\n')}`;
+              } else if (errorData?.error) {
                 errorMessage += `오류: ${errorData.error}`;
-              } else if (errorData.message) {
+              } else if (errorData?.message) {
                 errorMessage += `오류: ${errorData.message}`;
+              } else if (typeof details === 'string') {
+                errorMessage += `오류: ${details}`;
               } else {
-                errorMessage += '알 수 없는 오류가 발생했습니다.';
+                errorMessage += '알 수 없는 오류가 발생했습니다. 서버 로그를 확인해주세요.';
               }
-              
               alert(errorMessage);
             }
           } catch (error) {
@@ -8332,10 +8338,16 @@ export default function GalleryAdmin() {
                   />
                   
                   {/* 업로드 모드 선택 */}
-                  <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
-                    <label className="text-xs font-medium text-gray-600 mb-2 block">
-                      업로드 모드
-                    </label>
+                  <div className="mt-3 p-3 bg-blue-50 rounded-lg border-2 border-blue-200 space-y-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded">1️⃣</span>
+                      <label className="text-sm font-semibold text-blue-800">
+                        업로드 모드 (파일명 처리 방식)
+                      </label>
+                    </div>
+                    <p className="text-xs text-blue-600 mb-2">
+                      파일을 저장할 때 파일명을 어떻게 처리할지 선택합니다.
+                    </p>
                     
                     {/* 파일명 최적화 (기본) */}
                     <label className="flex items-start cursor-pointer">
@@ -8379,10 +8391,16 @@ export default function GalleryAdmin() {
                   </div>
                   
                   {/* 메타데이터 생성 타입 선택 (고객 이미지 업로드와 동일한 방식) */}
-                  <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
-                    <label className="text-xs font-medium text-gray-600 mb-2 block">
-                      메타데이터 생성 타입
-                    </label>
+                  <div className="mt-3 p-3 bg-green-50 rounded-lg border-2 border-green-200 space-y-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded">2️⃣</span>
+                      <label className="text-sm font-semibold text-green-800">
+                        메타데이터 생성 타입 (설명/태그 생성 방식)
+                      </label>
+                    </div>
+                    <p className="text-xs text-green-600 mb-2">
+                      이미지에 대한 설명, 태그, 제목 등을 어떤 방식으로 자동 생성할지 선택합니다.
+                    </p>
                     
                     {/* 골프 AI 생성 */}
                     <label className="flex items-start cursor-pointer">
@@ -8434,6 +8452,24 @@ export default function GalleryAdmin() {
                         <span className="text-sm text-gray-700 font-medium">📄 OCR (구글 비전)</span>
                         <p className="text-xs text-gray-500 mt-1">
                           문서 이미지에서 텍스트를 자동으로 추출합니다 (주문사양서, 서류 등)
+                        </p>
+                      </div>
+                    </label>
+                    
+                    {/* 메타데이터 생성 안 함 */}
+                    <label className="flex items-start cursor-pointer">
+                      <input
+                        type="radio"
+                        name="metadataType"
+                        value="none"
+                        checked={metadataType === 'none'}
+                        onChange={(e) => setMetadataType('none')}
+                        className="mt-1 mr-2 w-4 h-4 text-blue-600"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm text-gray-700 font-medium">⚪ 없음</span>
+                        <p className="text-xs text-gray-500 mt-1">
+                          메타데이터를 자동 생성하지 않습니다 (나중에 수동으로 입력 가능)
                         </p>
                       </div>
                     </label>
@@ -8518,51 +8554,166 @@ export default function GalleryAdmin() {
                               usage_count: 0,
                             };
                             
-                            // OCR 처리 (이미지이고 OCR 타입이 선택된 경우)
-                            if (metadataType === 'ocr' && !isVideo && uploadResult.url) {
+                            // ✅ 메타데이터 생성 처리 (이미지인 경우)
+                            if (!isVideo && uploadResult.url) {
                               try {
-                                console.log('📄 OCR 처리 시작:', fileName);
-                                const ocrResponse = await fetch('/api/admin/extract-document-text', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ imageUrl: uploadResult.url })
-                                });
-                                
-                                if (ocrResponse.ok) {
-                                  const ocrResult = await ocrResponse.json();
-                                  if (ocrResult.text) {
-                                    // 이미지 메타데이터에 OCR 결과 저장
-                                    const metadataUpdateResponse = await fetch('/api/admin/update-image-metadata', {
-                                      method: 'PUT',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({
+                                if (metadataType === 'ocr') {
+                                  // OCR 처리
+                                  console.log('[갤러리 메타데이터] 📄 OCR 처리 시작:', { fileName, imageUrl: uploadResult.url?.substring(0, 80) });
+                                  const ocrResponse = await fetch('/api/admin/extract-document-text', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ imageUrl: uploadResult.url })
+                                  });
+                                  console.log('[갤러리 메타데이터] 📄 OCR API 응답:', { status: ocrResponse.status, ok: ocrResponse.ok });
+                                  
+                                  if (ocrResponse.ok) {
+                                    const ocrResult = await ocrResponse.json();
+                                    console.log('[갤러리 메타데이터] 📄 OCR 결과:', { hasText: !!ocrResult?.text, textLength: ocrResult?.text?.length });
+                                    if (ocrResult.text) {
+                                      const ocrPayload = {
                                         imageUrl: uploadResult.url,
+                                        imageName: fileName,
                                         ocr_text: ocrResult.text,
                                         ocr_extracted: true,
-                                        ocr_confidence: ocrResult.confidence || null,
+                                        ocr_confidence: ocrResult.confidence ?? null,
                                         ocr_processed_at: new Date().toISOString(),
-                                        ocr_fulltextannotation: ocrResult.fullTextAnnotation || null
-                                      })
+                                        ocr_fulltextannotation: ocrResult.fullTextAnnotation ?? null,
+                                        description: `[OCR 추출 텍스트]\n${ocrResult.text.substring(0, 1000)}`
+                                      };
+                                      console.log('[갤러리 메타데이터] 📤 OCR 메타데이터 저장 요청:', { imageUrl: uploadResult.url?.substring(0, 80), imageName: fileName });
+                                      const metadataUpdateResponse = await fetch('/api/admin/image-metadata', {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(ocrPayload)
+                                      });
+                                      const metadataBody = await metadataUpdateResponse.json().catch(() => ({}));
+                                      if (metadataUpdateResponse.ok) {
+                                        console.log('[갤러리 메타데이터] ✅ OCR 결과 저장 완료:', fileName);
+                                      } else {
+                                        console.error('[갤러리 메타데이터] ❌ OCR 메타데이터 저장 실패:', {
+                                          status: metadataUpdateResponse.status,
+                                          statusText: metadataUpdateResponse.statusText,
+                                          error: metadataBody?.error,
+                                          details: metadataBody?.details,
+                                          code: metadataBody?.code
+                                        });
+                                      }
+                                    } else {
+                                      console.warn('[갤러리 메타데이터] ⚠️ OCR 텍스트 없음:', fileName);
+                                    }
+                                  } else {
+                                    const ocrErrBody = await ocrResponse.json().catch(() => ({}));
+                                    console.error('[갤러리 메타데이터] ❌ OCR API 실패:', { status: ocrResponse.status, error: ocrErrBody?.error, details: ocrErrBody?.details });
+                                  }
+                                } else if (metadataType === 'golf-ai' || metadataType === 'general') {
+                                  // 골프 AI 또는 일반 메타데이터 생성
+                                  const analysisEndpoint = metadataType === 'golf-ai'
+                                    ? '/api/analyze-image-prompt'  // 골프 이미지용
+                                    : '/api/analyze-image-general'; // 일반 이미지용
+                                  
+                                  console.log('[갤러리 메타데이터] 🤖 분석 API 호출:', { type: metadataType, fileName, endpoint: analysisEndpoint, imageUrl: uploadResult.url?.substring(0, 80) });
+                                  
+                                  const analysisResponse = await fetch(analysisEndpoint, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ 
+                                      imageUrl: uploadResult.url,
+                                      title: '갤러리 이미지',
+                                      excerpt: '갤러리에서 업로드된 이미지'
+                                    })
+                                  });
+                                  
+                                  if (analysisResponse.ok) {
+                                    const analysisData = await analysisResponse.json();
+                                    
+                                    console.log('[갤러리 메타데이터] 📊 분석 결과:', {
+                                      type: metadataType,
+                                      hasAltText: !!(analysisData.alt_text || analysisData.altText),
+                                      hasTitle: !!analysisData.title,
+                                      hasDescription: !!(analysisData.description || analysisData.excerpt),
+                                      hasKeywords: !!(analysisData.keywords || analysisData.tags),
+                                      keywordsType: Array.isArray(analysisData.keywords || analysisData.tags) ? 'array' : typeof (analysisData.keywords || analysisData.tags)
                                     });
                                     
+                                    // keywords 처리: 문자열이면 배열로 변환
+                                    let keywordsArray = [];
+                                    if (analysisData.keywords || analysisData.tags) {
+                                      const keywordsValue = analysisData.keywords || analysisData.tags;
+                                      if (Array.isArray(keywordsValue)) {
+                                        keywordsArray = keywordsValue;
+                                      } else if (typeof keywordsValue === 'string') {
+                                        keywordsArray = keywordsValue.split(',').map(k => k.trim()).filter(k => k);
+                                      }
+                                    }
+                                    
+                                    // 메타데이터 저장 (image_assets에는 category 없음)
+                                    const metadataPayload = {
+                                      imageUrl: uploadResult.url,
+                                      imageName: fileName,
+                                      alt_text: analysisData.alt_text || analysisData.altText || '',
+                                      title: analysisData.title || '',
+                                      description: analysisData.description || analysisData.excerpt || '',
+                                      keywords: keywordsArray
+                                    };
+                                    
+                                    console.log('[갤러리 메타데이터] 📤 메타데이터 저장 요청 (PUT):', {
+                                      imageUrl: uploadResult.url?.substring(0, 100),
+                                      imageName: fileName,
+                                      alt_text_length: metadataPayload.alt_text.length,
+                                      title_length: metadataPayload.title.length,
+                                      description_length: metadataPayload.description.length,
+                                      keywords_count: keywordsArray.length
+                                    });
+                                    
+                                    const metadataUpdateResponse = await fetch('/api/admin/image-metadata', {
+                                      method: 'PUT',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify(metadataPayload)
+                                    });
+                                    const errorData = await metadataUpdateResponse.json().catch(() => ({}));
+                                    
                                     if (metadataUpdateResponse.ok) {
-                                      console.log('✅ OCR 결과 저장 완료:', fileName);
+                                      console.log('[갤러리 메타데이터] ✅ 메타데이터 저장 완료:', { type: metadataType, fileName });
                                     } else {
-                                      console.warn('⚠️ OCR 결과 저장 실패:', fileName);
+                                      console.error('[갤러리 메타데이터] ❌ 메타데이터 저장 실패:', {
+                                        type: metadataType,
+                                        fileName,
+                                        status: metadataUpdateResponse.status,
+                                        statusText: metadataUpdateResponse.statusText,
+                                        error: errorData?.error,
+                                        details: errorData?.details,
+                                        code: errorData?.code,
+                                        hint: errorData?.hint
+                                      });
+                                    }
+                                  } else {
+                                    const errorData = await analysisResponse.json().catch(() => ({}));
+                                    console.error('[갤러리 메타데이터] ❌ 분석 API 실패:', {
+                                      type: metadataType,
+                                      status: analysisResponse.status,
+                                      error: errorData?.error || '알 수 없는 오류',
+                                      details: errorData?.details,
+                                      code: errorData?.code
+                                    });
+                                    if (errorData?.details) {
+                                      console.error('[갤러리 메타데이터] 🔍 500 원인(서버 반환):', errorData.details);
                                     }
                                   }
-                                } else {
-                                  console.warn('⚠️ OCR 처리 실패:', fileName);
+                                } else if (metadataType === 'none') {
+                                  // 메타데이터 생성 안 함
+                                  console.log('⚪ 메타데이터 생성 건너뜀:', fileName);
                                 }
-                              } catch (ocrError) {
-                                console.error('❌ OCR 처리 오류:', ocrError);
-                                // OCR 실패해도 업로드는 성공으로 처리
+                              } catch (metadataError) {
+                                console.error('❌ 메타데이터 생성 오류:', metadataError);
+                                // 메타데이터 생성 실패해도 업로드는 성공으로 처리
                               }
                             }
                             
                             uploadedFiles.push(newImage);
                             successCount++;
-                            console.log(`✅ 파일 ${i + 1}/${files.length} 업로드 완료:`, fileName, isVideo ? '(동영상)' : metadataType === 'ocr' ? '(이미지 + OCR)' : `(이미지 + ${metadataType})`);
+                            const metadataTypeLabel = metadataType === 'none' ? '메타데이터 없음' : metadataType === 'ocr' ? 'OCR' : metadataType;
+                            console.log(`✅ 파일 ${i + 1}/${files.length} 업로드 완료:`, fileName, isVideo ? '(동영상)' : `(이미지 + ${metadataTypeLabel})`);
                           } catch (fileError: any) {
                             failCount++;
                             console.error(`❌ 파일 ${i + 1}/${files.length} 업로드 실패:`, file.name, fileError);
@@ -8675,46 +8826,97 @@ export default function GalleryAdmin() {
                                   // 파일명에서 확장자 추출
                                   const fileName = uploadResult.fileName || file.name;
                                   
-                                  // OCR 처리 (이미지이고 OCR 타입이 선택된 경우)
-                                  if (metadataType === 'ocr' && !isVideo && uploadResult.url) {
+                                  // ✅ 메타데이터 생성 처리 (이미지인 경우)
+                                  if (!isVideo && uploadResult.url) {
                                     try {
-                                      console.log('📄 OCR 처리 시작:', fileName);
-                                      const ocrResponse = await fetch('/api/admin/extract-document-text', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ imageUrl: uploadResult.url })
-                                      });
-                                      
-                                      if (ocrResponse.ok) {
-                                        const ocrResult = await ocrResponse.json();
-                                        if (ocrResult.text) {
-                                          // 이미지 메타데이터에 OCR 결과 저장
+                                      if (metadataType === 'ocr') {
+                                        // OCR 처리
+                                        console.log('📄 OCR 처리 시작:', fileName);
+                                        const ocrResponse = await fetch('/api/admin/extract-document-text', {
+                                          method: 'POST',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ imageUrl: uploadResult.url })
+                                        });
+                                        
+                                        if (ocrResponse.ok) {
+                                          const ocrResult = await ocrResponse.json();
+                                          if (ocrResult.text) {
+                                            // 이미지 메타데이터에 OCR 결과 저장
+                                            const metadataUpdateResponse = await fetch('/api/admin/image-metadata', {
+                                              method: 'PUT',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({
+                                                imageUrl: uploadResult.url,
+                                                imageName: fileName,
+                                                ocr_text: ocrResult.text,
+                                                ocr_extracted: true,
+                                                ocr_confidence: ocrResult.confidence || null,
+                                                ocr_processed_at: new Date().toISOString(),
+                                                ocr_fulltextannotation: ocrResult.fullTextAnnotation || null,
+                                                description: `[OCR 추출 텍스트]\n${ocrResult.text.substring(0, 1000)}`
+                                              })
+                                            });
+                                            
+                                            if (metadataUpdateResponse.ok) {
+                                              console.log('✅ OCR 결과 저장 완료:', fileName);
+                                            } else {
+                                              console.warn('⚠️ OCR 결과 저장 실패:', fileName);
+                                            }
+                                          }
+                                        } else {
+                                          console.warn('⚠️ OCR 처리 실패:', fileName);
+                                        }
+                                      } else if (metadataType === 'golf-ai' || metadataType === 'general') {
+                                        // 골프 AI 또는 일반 메타데이터 생성
+                                        const analysisEndpoint = metadataType === 'golf-ai'
+                                          ? '/api/analyze-image-prompt'  // 골프 이미지용
+                                          : '/api/analyze-image-general'; // 일반 이미지용
+                                        
+                                        console.log(`🤖 ${metadataType === 'golf-ai' ? '골프 AI' : '일반'} 메타데이터 생성 시작:`, fileName);
+                                        
+                                        const analysisResponse = await fetch(analysisEndpoint, {
+                                          method: 'POST',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ 
+                                            imageUrl: uploadResult.url,
+                                            title: '갤러리 이미지',
+                                            excerpt: '갤러리에서 업로드된 이미지'
+                                          })
+                                        });
+                                        
+                                        if (analysisResponse.ok) {
+                                          const analysisData = await analysisResponse.json();
+                                          
+                                          // 메타데이터 저장
                                           const metadataUpdateResponse = await fetch('/api/admin/image-metadata', {
                                             method: 'PUT',
                                             headers: { 'Content-Type': 'application/json' },
                                             body: JSON.stringify({
                                               imageUrl: uploadResult.url,
-                                              ocr_text: ocrResult.text,
-                                              ocr_extracted: true,
-                                              ocr_confidence: ocrResult.confidence || null,
-                                              ocr_processed_at: new Date().toISOString(),
-                                              ocr_fulltextannotation: ocrResult.fullTextAnnotation || null,
-                                              description: `[OCR 추출 텍스트]\n${ocrResult.text.substring(0, 1000)}`
+                                              imageName: fileName,
+                                              alt_text: analysisData.alt_text || analysisData.altText || '',
+                                              title: analysisData.title || '',
+                                              description: analysisData.description || analysisData.excerpt || '',
+                                              keywords: analysisData.keywords || analysisData.tags || []
                                             })
                                           });
                                           
                                           if (metadataUpdateResponse.ok) {
-                                            console.log('✅ OCR 결과 저장 완료:', fileName);
+                                            console.log(`✅ ${metadataType === 'golf-ai' ? '골프 AI' : '일반'} 메타데이터 저장 완료:`, fileName);
                                           } else {
-                                            console.warn('⚠️ OCR 결과 저장 실패:', fileName);
+                                            console.warn(`⚠️ ${metadataType === 'golf-ai' ? '골프 AI' : '일반'} 메타데이터 저장 실패:`, fileName);
                                           }
+                                        } else {
+                                          const errorData = await analysisResponse.json().catch(() => ({}));
+                                          console.warn(`⚠️ ${metadataType === 'golf-ai' ? '골프 AI' : '일반'} 메타데이터 생성 실패:`, errorData.error || '알 수 없는 오류');
                                         }
-                                      } else {
-                                        console.warn('⚠️ OCR 처리 실패:', fileName);
+                                      } else if (metadataType === 'none') {
+                                        // 메타데이터 생성 안 함
+                                        console.log('⚪ 메타데이터 생성 건너뜀:', fileName);
                                       }
-                                    } catch (ocrError) {
-                                      console.error('❌ OCR 처리 오류:', ocrError);
-                                      // OCR 실패해도 업로드는 성공으로 처리
+                                    } catch (metadataError) {
+                                      console.error('❌ 메타데이터 생성 오류:', metadataError);
+                                      // 메타데이터 생성 실패해도 업로드는 성공으로 처리
                                     }
                                   }
                                   
@@ -8737,7 +8939,8 @@ export default function GalleryAdmin() {
                                   
                                   uploadedFiles.push(newImage);
                                   successCount++;
-                                  console.log(`✅ 파일 ${i + 1}/${files.length} 업로드 완료:`, fileName, isVideo ? '(동영상)' : metadataType === 'ocr' ? '(이미지 + OCR)' : `(이미지 + ${metadataType})`);
+                                  const metadataTypeLabel2 = metadataType === 'none' ? '메타데이터 없음' : metadataType === 'ocr' ? 'OCR' : metadataType;
+                                  console.log(`✅ 파일 ${i + 1}/${files.length} 업로드 완료:`, fileName, isVideo ? '(동영상)' : `(이미지 + ${metadataTypeLabel2})`);
                                 } catch (fileError: any) {
                                   failCount++;
                                   console.error(`❌ 파일 ${i + 1}/${files.length} 업로드 실패:`, file.name, fileError);

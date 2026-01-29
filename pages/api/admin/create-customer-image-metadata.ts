@@ -337,7 +337,14 @@ export default async function handler(
           throw new Error(`OCR API 오류 (401): Unauthorized - Google Vision API 인증 실패. API 키와 Vision API 활성화 상태를 확인하세요.`);
         }
         
-        throw new Error(`OCR API 오류 (${ocrResponse.status}): ${ocrResponse.statusText}`);
+        // 서브 API가 반환한 상세 메시지 전달 (디버깅 및 캐시 오류 안내)
+        const serverDetails = (errorJson && (errorJson.details ?? errorJson.error)) || errorText;
+        const detailMsg = typeof serverDetails === 'string' ? serverDetails : JSON.stringify(serverDetails);
+        throw new Error(
+          detailMsg && !detailMsg.includes('OCR API 오류')
+            ? `OCR API 오류 (${ocrResponse.status}): ${detailMsg.substring(0, 200)}`
+            : `OCR API 오류 (${ocrResponse.status}): ${ocrResponse.statusText}`
+        );
       }
 
       const ocrResult = await ocrResponse.json();
@@ -548,6 +555,17 @@ export default async function handler(
         error: '💰 OpenAI 계정에 크레딧이 부족합니다',
         details: 'OpenAI 계정에 크레딧을 충전해주세요.',
         type: 'insufficient_credit'
+      });
+    }
+    
+    // "categories is not defined" 등 이전 API 캐시로 인한 오류 안내
+    const msg = error.message || '';
+    if (msg.includes('categories is not defined')) {
+      return res.status(503).json({
+        success: false,
+        error: '서버 캐시로 인한 오류가 발생했습니다.',
+        details: '개발 서버를 한 번 중지한 뒤, 터미널에서 "rm -rf .next" 실행 후 "npm run dev"로 다시 실행해주세요. (image-metadata의 categories 제거가 반영되지 않은 경우 발생합니다.)',
+        code: 'CACHE_CATEGORIES_ERROR'
       });
     }
     
