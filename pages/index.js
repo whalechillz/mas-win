@@ -24,6 +24,25 @@ export default function Home({ hostname, initialProducts = [] }) {
   });
   const [performanceImagesLoading, setPerformanceImagesLoading] = useState(true);
 
+  // 히어로 섹션 PRO 3 MUZIIK 이미지 (제품 상세 페이지와 동일한 API에서 첫 이미지 사용)
+  const defaultHeroPro3Url = getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp');
+  const [heroPro3ImageUrl, setHeroPro3ImageUrl] = useState(defaultHeroPro3Url);
+
+  useEffect(() => {
+    const loadHeroPro3Image = async () => {
+      try {
+        const res = await fetch('/api/products/secret-force-pro-3-muziik');
+        const json = await res.json();
+        if (json.success && json.product?.detail_images?.length > 0) {
+          setHeroPro3ImageUrl(getProductImageUrl(json.product.detail_images[0]));
+        }
+      } catch (error) {
+        console.error('히어로 PRO3 MUZIIK 이미지 로드 실패:', error);
+      }
+    };
+    loadHeroPro3Image();
+  }, []);
+
   // 제품 데이터 로드 (데이터베이스에서)
   useEffect(() => {
     if (initialProducts.length === 0) {
@@ -651,28 +670,34 @@ export default function Home({ hostname, initialProducts = [] }) {
           <div className="container mx-auto px-4">
             <div className="max-w-7xl mx-auto">
               <div className="grid md:grid-cols-3 gap-8 mb-12">
-                <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-green-500/30 hover:border-green-400 transition-all">
+                <Link
+                  href="/products/secret-weapon-black-muziik"
+                  className="relative aspect-square rounded-2xl overflow-hidden border-2 border-green-500/30 hover:border-green-400 transition-all block cursor-pointer group"
+                >
                   <Image
                     src={getProductImageUrl('originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_11.webp')}
                     alt="시크리트웨폰 블랙 MUZIIK"
                     fill
-                    className="object-cover"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   <div className="absolute top-4 left-4 flex items-center gap-2">
                     <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold">LIMITED</span>
                     <span className="bg-green-400/20 text-green-400 px-3 py-1 rounded-full text-xs font-semibold">나노 카본 기술</span>
-              </div>
+                  </div>
                   <div className="absolute bottom-4 left-4 right-4">
                     <h3 className="text-2xl font-bold mb-2">시크리트웨폰 블랙 MUZIIK</h3>
                     <p className="text-green-400 text-sm font-semibold">혁명적인 차세대 기술</p>
-              </div>
-              </div>
-                <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-yellow-500/30 hover:border-yellow-400 transition-all">
+                  </div>
+                </Link>
+                <Link
+                  href="/products/secret-force-gold-2-muziik"
+                  className="relative aspect-square rounded-2xl overflow-hidden border-2 border-yellow-500/30 hover:border-yellow-400 transition-all block cursor-pointer group"
+                >
                   <Image
                     src={getProductImageUrl('originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_11.webp')}
                     alt="시크리트포스 골드 2 MUZIIK"
                     fill
-                    className="object-cover"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   <div className="absolute top-4 left-4 flex items-center gap-2">
                     <span className="bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-bold">BEST</span>
@@ -682,13 +707,17 @@ export default function Home({ hostname, initialProducts = [] }) {
                     <h3 className="text-2xl font-bold mb-2">시크리트포스 골드 2 MUZIIK</h3>
                     <p className="text-yellow-400 text-sm font-semibold">검증된 성능, 안정적인 비거리</p>
                   </div>
-                </div>
-                <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-red-500/30 hover:border-red-400 transition-all">
+                </Link>
+                <Link
+                  href="/products/secret-force-pro-3-muziik"
+                  className="relative aspect-square rounded-2xl overflow-hidden border-2 border-red-500/30 hover:border-red-400 transition-all block cursor-pointer group"
+                >
                   <Image
-                    src={getProductImageUrl('originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp')}
+                    src={heroPro3ImageUrl}
                     alt="시크리트포스 PRO 3 MUZIIK"
                     fill
-                    className="object-cover"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    priority
                     onError={(e) => {
                       const target = e.target;
                       if (target) {
@@ -708,7 +737,7 @@ export default function Home({ hostname, initialProducts = [] }) {
                     <h3 className="text-2xl font-bold mb-2">시크리트포스 PRO 3 MUZIIK</h3>
                     <p className="text-red-400 text-sm font-semibold">업그레이드된 비거리 드라이버</p>
                   </div>
-                </div>
+                </Link>
               </div>
               <div className="bg-gray-900/50 rounded-2xl p-8 border border-gray-700">
                 <div className="grid md:grid-cols-3 gap-8">
