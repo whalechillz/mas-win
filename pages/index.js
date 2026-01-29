@@ -43,9 +43,16 @@ export default function Home({ hostname, initialProducts = [] }) {
             const res = await fetch(`/api/products/${slug}`);
             const json = await res.json();
             
-            if (json.success && json.product && Array.isArray(json.product.performance_images) && json.product.performance_images.length > 0) {
-              const imageUrl = getProductImageUrl(json.product.performance_images[0]);
-              return { slug, imageUrl };
+            if (json.success && json.product) {
+              if (Array.isArray(json.product.performance_images) && json.product.performance_images.length > 0) {
+                const imageUrl = getProductImageUrl(json.product.performance_images[0]);
+                return { slug, imageUrl };
+              }
+              // performance_images 없으면 detail_images 첫 장 fallback
+              if (Array.isArray(json.product.detail_images) && json.product.detail_images.length > 0) {
+                const imageUrl = getProductImageUrl(json.product.detail_images[0]);
+                return { slug, imageUrl };
+              }
             }
             return { slug, imageUrl: null };
           } catch (error) {
@@ -56,8 +63,13 @@ export default function Home({ hostname, initialProducts = [] }) {
 
         const results = await Promise.all(imagePromises);
         const imagesMap = {};
+        const defaultPaths = {
+          'secret-force-gold-2-muziik': 'originals/products/secret-force-gold-2-muziik/detail/massgoo_sf_gold2_muz_11.webp',
+          'secret-weapon-black-muziik': 'originals/products/secret-weapon-black-muziik/detail/massgoo_sw_black_muz_11.webp',
+          'secret-force-pro-3-muziik': 'originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp',
+        };
         results.forEach(({ slug, imageUrl }) => {
-          imagesMap[slug] = imageUrl;
+          imagesMap[slug] = imageUrl || (defaultPaths[slug] ? getProductImageUrl(defaultPaths[slug]) : null);
         });
         
         setPerformanceImages(imagesMap);
@@ -677,6 +689,16 @@ export default function Home({ hostname, initialProducts = [] }) {
                     alt="시크리트포스 PRO 3 MUZIIK"
                     fill
                     className="object-cover"
+                    onError={(e) => {
+                      const target = e.target;
+                      if (target) {
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-gray-800"><span class="text-gray-400 text-sm">이미지 없음</span></div>';
+                        }
+                      }
+                    }}
                   />
                   <div className="absolute top-4 left-4 flex items-center gap-2">
                     <span className="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold">NEW</span>

@@ -21,11 +21,17 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Product slug is required' });
   }
 
+  // URL/라우트용 slug → DB slug 별칭 (설문 등에서 pro3-muziik 호출 시 DB는 secret-force-pro-3-muziik)
+  const slugAliases = {
+    'pro3-muziik': 'secret-force-pro-3-muziik',
+  };
+  const resolvedSlug = slugAliases[slug] || slug;
+
   try {
     const { data: product, error } = await supabase
       .from('products')
       .select('*')
-      .eq('slug', slug)
+      .eq('slug', resolvedSlug)
       .eq('is_active', true)
       .single();
 

@@ -1,5 +1,227 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
+## ✅ 완료: 메인 페이지 PRO 3 MUZIIK 이미지 깨짐 수정 (2026-01-29)
+
+### 원인
+- **메인 페이지** (`/`)에서 "시크리트포스 PRO 3 MUZIIK" 카드가 검은 사각형 또는 이미지 없음으로 표시됨.
+- **원인 1**: 히어로 섹션(상단 3개 제품 카드)의 PRO 3 MUZIIK `<Image>`에 **onError 핸들러가 없어**, Supabase 이미지 404 시 검은 영역으로 남음.
+- **원인 2**: 퍼포먼스의 변화 섹션 이미지는 `/api/products/secret-force-pro-3-muziik`의 `performance_images`만 사용하는데, DB에 해당 필드가 비어 있으면 이미지가 null → "이미지 로딩 중..." 또는 빈 영역으로 표시됨.
+
+### 수정 내용
+- **pages/index.js**
+  1. **히어로 섹션**: PRO 3 MUZIIK Image에 `onError` 추가 → 로드 실패 시 "이미지 없음" 문구로 대체하여 검은 화면 방지.
+  2. **퍼포먼스 이미지 로드**: API 응답에서 `performance_images`가 없으면 `detail_images[0]`로 fallback; 둘 다 없으면 slug별 기본 경로(`defaultPaths`)로 URL 생성하여 사용.
+
+### 변경된 파일
+- `pages/index.js`
+
+### 참고
+- 근본적으로 Supabase `blog-images` 버킷에 PRO 3 MUZIIK 이미지 파일이 있어야 정상 표시됨. 파일이 없다면 스토리지 업로드 확인 필요.
+
+---
+
+## ✅ 완료: 설문 페이지 상단 PRO3 MUZIIK 이미지 깨짐 수정 (2026-01-29)
+
+### 원인
+- **설문 페이지** (`/survey`) 상단 PRO3 MUZIIK 제품 이미지가 "이미지 없음"으로 표시됨.
+- **원인 1**: 설문 페이지가 `/api/products/pro3-muziik`으로 요청하는데, DB `products` 테이블 slug는 `secret-force-pro-3-muziik`으로만 등록되어 있어 API가 404 반환 → 클라이언트가 하드코딩된 fallback URL만 사용.
+- **원인 2**: fallback URL이 가리키는 Supabase Storage 파일(`blog-images/originals/products/secret-force-pro-3-muziik/detail/...`)이 없거나 경로가 다르면 이미지 요청 404 → `<Image onError>`에서 "이미지 없음" 표시.
+
+### 수정 내용
+- **pages/api/products/[slug].js**
+  - slug 별칭 추가: 요청 slug가 `pro3-muziik`일 때 DB 조회 시 `secret-force-pro-3-muziik`으로 변환.
+  - `/api/products/pro3-muziik` 호출 시 DB에서 제품을 찾아 `detail_images`를 반환하므로, 설문 페이지가 API에서 받은 첫 번째 이미지 URL을 사용하게 됨.
+
+### 변경된 파일
+- `pages/api/products/[slug].js`
+
+### 참고
+- Supabase `blog-images` 버킷에 `originals/products/secret-force-pro-3-muziik/detail/secret-force-pro-3-muziik-00.webp` 등 파일이 없으면 fallback 단계에서도 이미지가 깨질 수 있음. 필요 시 스토리지 경로/파일 업로드 확인.
+
+---
+
+## ✅ 완료: 갤러리 메타데이터 저장 500 원인 수정 (upsert → 조회 후 UPDATE/INSERT) (2026-01-29)
+
+### 원인
+- `image_assets` 테이블 스키마에 **cdn_url UNIQUE 제약이 없음** (`image_management_schema.sql`: `cdn_url TEXT`만 있음).
+- API에서 `supabase.from('image_assets').upsert(insertData, { onConflict: 'cdn_url' })` 사용 시, Postgres가 "there is no unique or exclusion constraint matching the ON CONFLICT specification" 오류로 **500** 반환.
+
+### 수정 내용
+- **pages/api/admin/image-metadata.js** (POST)
+  - `upsert(..., { onConflict: 'cdn_url' })` 제거.
+  - **조회 후 분기**: `cdn_url`로 `maybeSingle()` 조회 → 있으면 **UPDATE**(메타데이터 필드만), 없으면 **INSERT**(필수 컬럼 포함).
+  - 조회/UPDATE/INSERT 각 단계에서 오류 시 상세 메시지·code 반환.
+
+### 변경된 파일
+- `pages/api/admin/image-metadata.js`
+
+---
+
+## ✅ 완료: 갤러리 메타데이터 저장 로그·에러 처리 강화 (2026-01-29)
+
+### 문제
+- 갤러리 메타데이터 저장 실패 시 500 응답 후 클라이언트에서 `errorData` 접근 시 TypeError (undefined).
+- 서버 500 원인(DB 오류 등)이 응답/로그에 충분히 남지 않음.
+
+### 수정 내용
+1. **pages/admin/gallery.tsx** (메타데이터 저장 onSave)
+   - 500 시 `response.json()` 대신 `response.text()` 후 `JSON.parse` try/catch. 파싱 실패 시 `errorData = {}`로 두고, `errorData?.error` 등 optional chaining으로 메시지 구성.
+   - 항상 JSON 형태 오류 메시지로 alert, "서버 로그를 확인해주세요" 안내 추가.
+2. **pages/api/admin/image-metadata.js**
+   - POST: `imageUrl`이 상대 경로 등일 때 `new URL(imageUrl)` 예외 방지 — `http(s)://`일 때만 URL 파싱, 아니면 `uploaded/...` fallback.
+   - upsert 실패 시 응답에 `details`(메시지), `code`, `hint` 포함해 클라이언트/로그에서 원인 확인 가능하도록 함.
+   - 최상위 catch에서 `error.message`, `error.stack` 로그 및 `details`, `code: 'SERVER_ERROR'` 반환.
+
+### 변경된 파일
+- `pages/admin/gallery.tsx`
+- `pages/api/admin/image-metadata.js`
+
+---
+
+## ✅ 완료: 갤러리 메타데이터 저장 500 수정 (2026-01-29)
+
+### 문제
+- **갤러리 관리** (`/admin/gallery`)에서 이미지 메타데이터 편집 후 저장 시 **500 Internal Server Error** 발생.
+- 고객 이미지 관리에서는 저장이 잘 됨 (PUT `/api/admin/upload-customer-image` 사용).
+
+### 원인
+- 갤러리는 **POST** `/api/admin/image-metadata` 호출 후 **upsert** 사용.
+- `image_assets` 테이블은 `filename`, `original_filename`, `file_path`, `file_size`, `mime_type`, `format`이 **NOT NULL**인데, POST 시 이 필드들을 보내지 않아 **새 행 INSERT** 시 500 발생.
+
+### 수정 내용
+- **pages/api/admin/image-metadata.js** (POST)
+  - upsert용 `insertData`에 필수 컬럼 추가: `imageName`/`imageUrl`에서 `filename`, `original_filename`, `file_path`, `file_size`, `mime_type`, `format` 도출 후 포함.
+  - `status`, `upload_source` 기본값 설정.
+
+### 변경된 파일
+- `pages/api/admin/image-metadata.js`
+
+---
+
+## ✅ 완료: 고객 메타데이터 저장 405 수정 및 image_metadata→image_assets 필드 검토 (2026-01-29)
+
+### 문제
+- 고객 페이지(`/admin/customers`)에서 이미지 메타데이터 편집 후 **저장** 시 **405 Method Not Allowed** 발생.
+- PUT ` /api/admin/upload-customer-image` 호출 시 해당 API가 PUT 미지원.
+
+### 수정 내용
+1. **pages/api/admin/upload-customer-image.js**
+   - **PUT** 핸들러 추가: `imageId` + `metadata`(alt_text, keywords, title, description, ocr_text)로 `image_assets` 업데이트.
+   - 요청: `{ imageId, metadata: { alt_text?, keywords?, title?, description?, ocr_text? } }` → 응답: `{ success: true, image }`.
+2. **docs/image-metadata-to-assets-field-review.md** 신규 작성
+   - image_metadata → image_assets 필드 매핑 정리 (식별·URL, 파일·경로, 메타데이터, 고객·스토리·분류, 개별 저장 시 사용 API·필드).
+   - 덤프 마이그레이션 시 점검 권장 사항 (is_liked, story_scene, 고객 연결 등).
+
+### 변경된 파일
+- `pages/api/admin/upload-customer-image.js` (PUT 추가)
+- `docs/image-metadata-to-assets-field-review.md` (신규)
+
+---
+
+## ✅ 완료: 이미지 category 제거 및 불필요 코드 정리 (2026-01-29)
+
+### 확인 결과
+- **image_assets** 테이블 스키마(`database/image_management_schema.sql`)에는 **category / category_id 컬럼이 없음** (alt_text, title, description, ai_tags 등만 존재).
+- API 주석에도 "image_assets에는 category_id가 없으므로 제거"라고 되어 있었으나, POST/PUT에서 category·categories를 계속 destructure하고 categoryId/categoryMap 등 불필요 로직이 남아 있음.
+
+### 정리 내용
+1. **pages/api/admin/image-metadata.js**
+   - **POST**: `category`, `categories` destructure 제거. `categoriesArray`, `categoryString`, `categoryId`, `categoryMap`, "카테고리 필수 입력 검증" 블록 삭제. 로그에서 `category`/`categories` 제거. `metadataData`는 원래부터 category 미포함 → 변경 없음. "최종 저장 데이터" 로그에서 `tags`/`category_id` 참조 제거 → `ai_tags_count`로 수정.
+   - **PUT**: `category`, `categories` destructure 제거. `categoriesArray`, `categoryString`, `categoryId`, `categoryMap` 블록 삭제. 로그 단순화.
+2. **pages/admin/gallery.tsx**
+   - 골프 AI/일반 메타데이터 저장 시 PUT body에서 `category` 제거 (2곳).
+   - 메타데이터 편집 저장 시 POST body에서 `category`, `categories` 제거 (2곳).
+
+### 유지한 것
+- 갤러리/모달의 **editForm.category**, **ImageMetadata 타입의 category**, **GET 응답의 category: ''** 는 UI/하위 호환을 위해 유지. API는 더 이상 사용하지 않음.
+- 카테고리 값을 키워드에 병합하는 로직(editForm 저장 시)은 유지 → ai_tags로 저장 가능.
+
+### 변경된 파일
+- `pages/api/admin/image-metadata.js`
+- `pages/admin/gallery.tsx`
+
+---
+
+## ✅ 완료: 메타데이터 저장 500 - categories is not defined 수정 (2026-01-29)
+
+### 문제
+- 갤러리에서 골프 AI 생성 후 메타데이터 저장 시 `PUT /api/admin/image-metadata` 500 발생.
+- 콘솔: `details: "categories is not defined"`.
+
+### 원인
+- `pages/api/admin/image-metadata.js`의 **PUT** 핸들러에서 `req.body`를 destructure할 때 `categories`를 빼먹음.
+- 이후 `categoriesArray` 계산에서 `categories`를 참조해 ReferenceError 발생.
+
+### 수정
+- PUT 요청 처리 시 `const { ..., category, categories } = req.body || {}` 로 `categories` 추가.
+- 클라이언트가 `categories`를 보내지 않으면 `undefined` → `Array.isArray(undefined)` false → 기존대로 `category` 문자열로 처리.
+
+### 변경된 파일
+- `pages/api/admin/image-metadata.js` (PUT destructure에 `categories` 추가)
+
+---
+
+## ✅ 완료: 골프 AI 500 원인 추적 및 에러 응답 개선 (2026-01-29)
+
+### 문제
+- `POST /api/analyze-image-prompt` 500 발생 시 "골프 AI 메타데이터 저장 실패"만 보이고, **실제 원인**(API 키 누락, OpenAI 오류 등)을 알기 어려움.
+
+### 원인 후보 (우선순위)
+1. **OPENAI_API_KEY 미설정** – `.env`에 키가 없거나 비어 있으면 OpenAI 호출 전에 실패.
+2. **OpenAI 쿼터/과금** – 크레딧 부족, 결제 비활성 등 → 402로 구분해 응답하도록 이미 처리됨.
+3. **이미지 URL 접근 실패** – OpenAI가 Supabase 공개 URL을 fetch하지 못하는 경우(드묾).
+4. **기타 OpenAI API 예외** – 네트워크/타임아웃, 잘못된 요청 등.
+
+### 작업 내용
+1. **`analyze-image-prompt` API**
+   - 요청 처리 전 `OPENAI_API_KEY` 검사 → 없으면 500 + `code: 'MISSING_OPENAI_API_KEY'`, `details`에 안내 문구 반환.
+   - 500 응답 시 항상 `type: 'golf-ai'`, `code`, `details: error.message` 포함해 클라이언트/로그에서 원인 확인 가능하도록 함.
+   - 서버 로그: `❌ [analyze-image-prompt] 이미지 프롬프트 분석 에러:` + message/code/stack 출력.
+2. **갤러리 프론트**
+   - 분석 API 실패 시 응답 body의 `details`, `code`를 콘솔에 출력.
+   - `[갤러리 메타데이터] 🔍 500 원인(서버 반환):` 로 실제 서버 메시지 표시.
+
+### 확인 방법
+- **브라우저**: 개발자 도구 → Console에서 `🔍 500 원인(서버 반환):` 로그 확인.
+- **서버**: 터미널에서 `❌ [analyze-image-prompt]` 로그 확인.
+- **Network**: `analyze-image-prompt` 요청 선택 → Response 탭에서 `details`, `code` 확인.
+
+### 변경된 파일
+- `pages/api/analyze-image-prompt.js` (API 키 검사, 500 시 details/code/type 반환, 로그 강화)
+- `pages/admin/gallery.tsx` (분석 API 실패 시 details/code 콘솔 출력)
+
+---
+
+## ✅ 완료: 갤러리 메타데이터 (OCR/골프 AI) 로그 강화 및 PUT 폴백 (2026-01-29)
+
+### 문제
+- 갤러리 이미지 추가 시 "골프 AI 생성" / "OCR (구글 비전)" 선택 후 업로드해도 메타데이터 저장 실패 (PUT 500)
+- 원인: 업로드 직후 `image_assets`에 레코드가 아직 없거나 생성 실패한 경우, PUT으로 업데이트할 행이 없어 PGRST116 발생
+
+### 작업 내용
+1. **콘솔 로그 강화** ✅
+   - `[갤러리 메타데이터]` 접두사로 OCR/골프 AI 흐름 로그 추가
+   - OCR: OCR API 응답, 결과, 저장 요청/실패 상세
+   - 골프 AI: 분석 API 호출, 분석 결과, 저장 요청/실패 상세
+
+2. **image-metadata PUT 폴백** ✅
+   - PUT 전에 `cdn_url`로 레코드 존재 여부 확인
+   - 레코드 없으면 INSERT (filename, original_filename, file_path, file_size, mime_type, format, cdn_url + 메타데이터)
+   - `file_path`는 imageUrl에서 blog-images 경로 추출
+
+3. **Playwright 재현 테스트** ✅
+   - `e2e-test/playwright-gallery-metadata-ocr-golf-ai.js` 추가
+   - 로그인 → 갤러리 → 이미지 추가 → 메타데이터 타입 선택(golf-ai/ocr) → 업로드
+   - 네트워크 4xx/5xx 및 `[갤러리 메타데이터]` 콘솔 로그 수집 → `e2e-test/gallery-metadata-test-log.txt` 저장
+   - 실행: `node e2e-test/playwright-gallery-metadata-ocr-golf-ai.js` (골프 AI), `METADATA_TYPE=ocr node e2e-test/playwright-gallery-metadata-ocr-golf-ai.js` (OCR)
+
+### 변경된 파일
+- `pages/admin/gallery.tsx` (OCR/골프 AI 콘솔 로그)
+- `pages/api/admin/image-metadata.js` (PUT 시 레코드 없으면 INSERT)
+- `e2e-test/playwright-gallery-metadata-ocr-golf-ai.js` (신규)
+
+---
+
 ## ✅ 완료: 고객 이미지 조회 - 갤러리 폴더 기준 개선 (2026-01-28)
 
 ### 문제
