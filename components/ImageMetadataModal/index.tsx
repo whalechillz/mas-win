@@ -468,7 +468,8 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
       setForm(newForm);
       setHasChanges(false);
       setValidationErrors({});
-      
+      setShowDocumentViewer(false);
+
       // EXIF 정보 자동 로드 (이미지에 EXIF 정보가 있는 경우)
       if (image.gps_lat || image.taken_at || image.width || (image as any).gps_lng) {
         setExifData({
@@ -833,13 +834,13 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[110] p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
         {/* 헤더 */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
-          <div>
+        <div className="flex items-center justify-between gap-4 p-6 border-b border-gray-200 flex-shrink-0">
+          <div className="min-w-0 flex-1">
             <h2 className="text-xl font-semibold text-gray-800">{fileType === 'video' ? '동영상 메타데이터 편집' : '이미지 메타데이터 편집'}</h2>
-            <p className="text-sm text-gray-500 mt-1">{image.name}</p>
+            <p className="text-sm text-gray-500 mt-1 truncate" title={image.name}>{image.name}</p>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-nowrap flex-shrink-0 overflow-x-auto">
             {/* AI 생성 및 EXIF 추출 버튼들 */}
             <button
               onClick={() => handleGenerateGolf('korean')}
@@ -902,10 +903,11 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
                       return;
                     }
                     
-                    // OCR 결과를 description 필드에 자동 입력
+                    // OCR 결과를 description 필드와 문서 뷰어용 ocrText에 자동 입력
                     setForm(prev => ({
                       ...prev,
-                      description: `[OCR 추출 텍스트]\n${ocrResult.text}`
+                      description: `[OCR 추출 텍스트]\n${ocrResult.text}`,
+                      ...({ ocrText: ocrResult.text } as Record<string, unknown>)
                     }));
                     setHasChanges(true);
                     
@@ -938,9 +940,25 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
 
         {/* 컨텐츠 - 스크롤 가능한 영역 */}
         <div className="flex flex-1 overflow-hidden">
-          {/* OCR 문서 뷰어 모드 */}
-          {showDocumentViewer && hasOCRText && (form as any).ocrText && (
-            <div className="flex-1 overflow-hidden">
+          {/* OCR 문서 뷰어 모드 (ocrText 없으면 description에서 OCR 마커 제거한 텍스트 사용) */}
+          {showDocumentViewer && hasOCRText && ((form as any).ocrText || (form.description && form.description.replace(/^\[OCR 추출 텍스트\]\n?/, '').trim())) && (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* OCR 모드 → 일반 메타데이터 편집으로 돌아가기 */}
+              <div className="flex-shrink-0 px-4 py-2 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+                <span className="text-sm text-gray-600">문서 뷰어</span>
+                <button
+                  type="button"
+                  onClick={() => setShowDocumentViewer(false)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors"
+                  title="일반 메타데이터 편집 창으로 돌아가기"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  메타데이터 편집으로
+                </button>
+              </div>
+              <div className="flex-1 overflow-hidden min-h-0">
               <DocumentOCRViewer
                 imageUrl={image?.url || ''}
                 ocrText={(form as any).ocrText || form.description}
@@ -961,6 +979,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
                   }, exifData);
                 }}
               />
+              </div>
             </div>
           )}
           
@@ -1002,7 +1021,7 @@ export const ImageMetadataModal: React.FC<ImageMetadataModalProps> = ({
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-sm font-medium text-blue-900 mb-1">
-                        📄 OCR 문서 편집 모드
+                        📄 문서 뷰어
                       </h4>
                       <p className="text-xs text-blue-700">
                         원본 이미지와 텍스트를 나란히 보면서 편집할 수 있습니다.

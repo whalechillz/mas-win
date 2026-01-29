@@ -214,6 +214,7 @@ export default async function handler(
     // 3. 메타데이터 생성 (OCR 또는 일반 메타데이터)
     let metadata: any = {};
     let ocrText: string | null = null;
+    let fullTextAnnotation: any = null; // OCR 블록 밖에서도 사용 (문서 재구성용)
 
     // baseUrl 자동 감지 (프로덕션 환경 고려)
     // 1. 환경 변수 우선 확인
@@ -349,9 +350,7 @@ export default async function handler(
 
       const ocrResult = await ocrResponse.json();
       ocrText = ocrResult.text || '';
-      
-      // fullTextAnnotation 저장 (문서 재구성용)
-      const fullTextAnnotation = ocrResult.fullTextAnnotation || null;
+      fullTextAnnotation = ocrResult.fullTextAnnotation ?? null;
       
       console.log('✅ [create-customer-image-metadata] OCR 텍스트 추출 완료:', {
         textLength: ocrText.length,

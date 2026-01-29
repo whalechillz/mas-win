@@ -2737,7 +2737,8 @@ function CustomerImageModal({ customer, onClose }: {
       const isDoc = img.is_scanned_document === true || 
                     (img.document_type !== null && 
                      img.document_type !== undefined && 
-                     img.document_type !== '');
+                     img.document_type !== '') ||
+                    img.ocr_extracted === true;
       return !isVideoFile && !isDoc;
     });
     const vids = all.filter(img => isVideo(img.image_url));
@@ -2746,7 +2747,8 @@ function CustomerImageModal({ customer, onClose }: {
       const hasDocumentType = img.document_type !== null && 
                               img.document_type !== undefined && 
                               img.document_type !== '';
-      return isDoc || hasDocumentType;
+      const isOcrDocument = img.ocr_extracted === true;
+      return isDoc || hasDocumentType || isOcrDocument;
     });
     
     // 디버깅 로그

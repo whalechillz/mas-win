@@ -1,5 +1,49 @@
 # 🎯 MASGOLF 통합 콘텐츠 및 자산 마이그레이션 프로젝트
 
+## ✅ 완료: OCR 문서 편집 → 일반 메타데이터 편집 돌아가기 UI (2026-01-29)
+
+- **요청**: 갤러리 관리 이미지 메타데이터 편집 모달에서 OCR 문서 편집 상태에서 일반 메타데이터 편집 창으로 돌아가는 UI 추가.
+- **원인**: "메타데이터 편집으로" 버튼이 `!showDocumentViewer` 블록 안에 있어, OCR 문서 편집 모드일 때는 해당 블록이 렌더되지 않아 돌아가기 버튼이 보이지 않음.
+- **수정**: OCR 문서 뷰어 모드일 때만 보이는 상단 바 추가. 왼쪽에 "OCR 문서 편집 모드" 라벨, 오른쪽에 "← 메타데이터 편집으로" 버튼(`setShowDocumentViewer(false)`) 배치.
+- **파일**: `components/ImageMetadataModal/index.tsx`
+
+---
+
+## ✅ 완료: 이미지 메타데이터 모달 동일 여부 확인 및 상단 버튼 2줄 수정 (2026-01-29)
+
+- **모달 동일 여부**: 고객정보·갤러리 모두 **동일** `ImageMetadataModal` 사용 (`customers/index.tsx`, `gallery.tsx`).
+- **상단 버튼 2줄 원인**: 헤더 `justify-between`에서 좌측(제목+파일명)이 넓어지면 버튼 영역 가로 공간 부족으로 줄바꿈 발생.
+- **수정**: 제목 영역 `min-w-0 flex-1`, 파일명 `truncate`, 버튼 컨테이너 `flex-nowrap flex-shrink-0 overflow-x-auto` 적용 → 한 줄 유지, 필요 시 가로 스크롤.
+- **상세**: `docs/이미지-메타데이터-모달-수정계획서.md` 참고.
+- **파일**: `components/ImageMetadataModal/index.tsx`
+
+---
+
+## ✅ 완료: 고객 이미지 OCR 업로드 오류 수정 및 서류 분류 반영 (2026-01-29)
+
+### 1. 주문사양서.jpeg 자동 서류 분류 및 OCR 선택
+- **상황**: 파일명/클라이언트에서 `주문사양서.jpeg`는 이미 문서로 감지되어 `metadataType: 'ocr'`로 설정됨 (`최종 감지 결과: true`). 다만 업로드 실패로 DB에 저장되지 않아 "서류 (0개)"로만 보이던 상태.
+- **조치**: 
+  - **fullTextAnnotation is not defined** 수정으로 OCR 업로드가 성공하도록 함 → 저장된 이미지는 `ocr_extracted: true`로 들어감.
+  - 고객 이미지 관리 **서류 탭**에 `ocr_extracted === true`인 항목도 포함하도록 분류 로직 수정 → OCR로 업로드된 이미지가 "서류" 탭에 표시됨.
+- **파일**: `pages/admin/customers/index.tsx` (미디어 분류 useMemo: documents에 `ocr_extracted === true` 포함, images에서는 제외)
+
+### 2. 문서 업로드 오류 원인 및 수정 (fullTextAnnotation is not defined)
+- **원인**: `create-customer-image-metadata.ts`에서 `fullTextAnnotation`을 `if (metadataType === 'ocr')` 블록 **안**에서만 선언하고, 블록 **밖** 공통 코드(`if (ocrText)` 등)에서 참조하여 스코프 에러 발생.
+- **수정**: 
+  - 상단에 `let fullTextAnnotation: any = null;` 선언.
+  - OCR 블록 안에서는 `fullTextAnnotation = ocrResult.fullTextAnnotation ?? null;`로 할당만 수행.
+- **파일**: `pages/api/admin/create-customer-image-metadata.ts`
+
+### 요약
+| 항목 | 내용 |
+|------|------|
+| 자동 서류 분류 | 파일명 기반 문서 감지(주문사양서 등) → OCR 선택은 이미 동작. 업로드 성공 시 서류 탭에 반영되도록 수정 완료. |
+| OCR 업로드 오류 | `fullTextAnnotation is not defined` → 변수 스코프 수정으로 해결. |
+| 서류 탭 표시 | `is_scanned_document` / `document_type` 외에 `ocr_extracted === true`인 항목도 서류로 분류. |
+
+---
+
 ## ✅ 완료: 설문 당첨자 명단 모바일 최적화 (좌우 스와이프 + 5명 한 화면) (2026-01-29)
 - **요청**: 모바일에서 좌우 드래그로 그룹 이동, 5명일 때 한 화면에 5명 노출(선택 모델·중요 요소 한 줄).
 - **수정**: `pages/survey/winners.tsx` — 터치 스와이프로 그룹 전환, 모바일 카드 압축(모델·요소 한 줄, 패딩·폰트 축소), `formatDateShort`, "← 좌우로 드래그하여 그룹 이동" 안내.
