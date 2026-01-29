@@ -859,33 +859,33 @@ export default function SceneDetailView({
                           } : undefined}
                         />
                         
-                        {/* 동영상 배지 */}
+                        {/* 동영상 배지 - 제외 버튼 왼쪽에 배치 */}
                         {isVideoFile && (
-                          <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-500 text-white shadow-lg">
+                          <span className="absolute top-2 right-12 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-500 text-white shadow-lg">
                             동영상
                           </span>
                         )}
                         
-                        {/* 서류 배지 */}
+                        {/* 서류 배지 - 제외 버튼 왼쪽에 배치 */}
                         {(img.is_scanned_document === true || 
                           (img.document_type !== null && 
                            img.document_type !== undefined && 
                            img.document_type !== '')) && !isVideoFile && (
-                          <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-purple-500 text-white shadow-lg">
+                          <span className="absolute top-2 right-12 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-purple-500 text-white shadow-lg">
                             서류
                           </span>
                         )}
                         
-                        {/* 제거 버튼 */}
+                        {/* 제외 버튼 - 우측 상단, 미할당으로 이동 */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleRemoveFromScene(img.id, normalizedImageUrl);
                           }}
-                          className="absolute top-2 left-2 z-10 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 opacity-0 hover:opacity-100 transition-opacity"
-                          title="장면에서 제거"
+                          className="absolute top-2 right-2 z-20 px-2 py-1 bg-red-500 text-white rounded text-xs font-medium hover:bg-red-600 opacity-90 hover:opacity-100 transition-opacity shadow-lg"
+                          title="이 이미지를 장면에서 제거하고 미할당으로 이동"
                         >
-                          ×
+                          제외
                         </button>
                       </div>
                     );
@@ -992,33 +992,48 @@ export default function SceneDetailView({
                         </span>
                       )}
                       
-                      {/* 동영상 배지 - 오른쪽 상단 */}
+                      {/* 동영상 배지 - 제외 버튼 왼쪽에 배치 */}
                       {isVideoFile && (
-                        <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-500 text-white shadow-lg">
+                        <span className="absolute top-2 right-12 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-500 text-white shadow-lg">
                           동영상
                         </span>
                       )}
                       
-                      {/* 서류 배지 - 오른쪽 상단 (동영상이 아닐 때) */}
+                      {/* 서류 배지 - 제외 버튼 왼쪽에 배치 (동영상이 아닐 때) */}
                       {((image.is_scanned_document === true || 
                          (image.document_type !== null && 
                           image.document_type !== undefined && 
                           image.document_type !== '')) && !isVideoFile) && (
-                        <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-purple-500 text-white shadow-lg">
+                        <span className="absolute top-2 right-12 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-purple-500 text-white shadow-lg">
                           서류
                         </span>
                       )}
                       
-                      {/* 애니메이션 GIF 배지 - 오른쪽 상단 (동영상, 서류가 아닐 때) */}
+                      {/* 애니메이션 GIF 배지 - 제외 버튼 왼쪽에 배치 */}
                       {!isVideoFile && 
                        !(image.is_scanned_document === true || 
                          (image.document_type !== null && 
                           image.document_type !== undefined && 
                           image.document_type !== '')) && 
                        isGif && (
-                        <span className="absolute top-2 right-2 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-orange-500 text-white shadow-lg">
+                        <span className="absolute top-2 right-12 z-10 px-2 py-1 text-[10px] font-semibold rounded-md bg-orange-500 text-white shadow-lg">
                           움짤
                         </span>
+                      )}
+                      
+                      {/* 제외 버튼 - 장면 할당된 이미지에만, 우측 상단 */}
+                      {image.story_scene !== null && image.story_scene >= 1 && image.story_scene <= 7 && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveFromScene(image.id, normalizedImageUrl);
+                          }}
+                          className="absolute top-2 right-2 z-20 px-2 py-1 bg-red-500 text-white rounded text-xs font-medium hover:bg-red-600 opacity-90 hover:opacity-100 transition-opacity shadow-lg"
+                          title="이 이미지를 장면에서 제거하고 미할당으로 이동"
+                        >
+                          제외
+                        </button>
                       )}
                       
                       <div className="p-2 text-xs">
